@@ -1,0 +1,27 @@
+:ctml
+
+//│ Unit
+
+1
+//│ Int
+
+()
+//│ Unit
+
+true
+//│ Bool
+
+1.2
+//│ Decimal
+
+declare class String
+//│ Unit
+
+"Yoooo"
+//│ String
+
+"Yo" as String
+//│ String
+
+(x) => x
+//│ α → α

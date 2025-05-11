@@ -10,9 +10,12 @@ import hkmc2.semantics.{Elaborator, Resolver, Resolvable, Symbol, SymbolPrinter}
 import semantics.Elaborator.{Ctx, State}
 
 abstract class MLsDiffMaker extends DiffMaker:
-  
+
   val invalmlOpt: Command[?]
-  
+
+  /** Constraint types command. */
+  val ctmlOpt: Command[?]
+
   val rootPath: Str // * Absolute path to the root of the project
   val preludeFile: io.Path // * Contains declarations of JS builtins
   val predefFile: io.Path // * Contains MLscript standard library definitions
@@ -21,9 +24,9 @@ abstract class MLsDiffMaker extends DiffMaker:
   val termFile: io.Path = predefFile.up / "Term.mjs" // * Contains MLscript runtime term definitions
   val blockFile: io.Path = predefFile.up / "Block.mjs" // * Contains MLscript runtime block definitions
   val optionFile: io.Path = predefFile.up / "Option.mjs" // * Contains MLscipt runtime option definition
-  
+
   val wd = file.up
-  
+
   val importDot = NullaryCommand(".", () =>
     given Config = mkConfig
     importFile(wd / io.RelPath(".mls"), verbose = false, includeDirectives = true)
@@ -32,13 +35,13 @@ abstract class MLsDiffMaker extends DiffMaker:
   def doImportUp(wd: io.Path) =
     given Config = mkConfig
     importFile(wd.up / io.RelPath(".mls"), verbose = false, includeDirectives = true)
-  
+
   val silent = NullaryCommand("silent")
   val dbgElab = NullaryCommand("de")
   val dbgParsing = NullaryCommand("dp")
   val dbgResolving = NullaryCommand("dr")
   val dbgFlow = NullaryCommand("df")
-  
+
   val showLocations = NullaryCommand("loc")
   val showParse = NullaryCommand("p")
   val showParsedTree = NullaryCommand("pt")
@@ -65,7 +68,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   val showContext = NullaryCommand("ctx")
   val parseOnly = NullaryCommand("parseOnly")
   val funcToCls = NullaryCommand("ftc")
-  
+
   val flow = FlagCommand(false, "flow")
   private val flowScp: utils.Scope =
     utils.Scope.empty(utils.Scope.Cfg.default.copy(
@@ -73,15 +76,15 @@ abstract class MLsDiffMaker extends DiffMaker:
       useSuperscripts = true,
       includeZero = true,
     ))
-  
+
   /**
    * Enables Wasm support. All options in [[WasmDiffMaker]] are no-op if this option is not set.
    */
   val wasm = NullaryCommand("wasm")
-  
-  
+
+
   // * Compiler configuration
-  
+
   val noSanityCheck = NullaryCommand("noSanityCheck")
   val noCheckCasts = NullaryCommand("noCheckCasts")
   val noFreeze = NullaryCommand("noFreeze")
@@ -113,7 +116,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   )
   private val FlowBasedOptKnownFlags =
     Set("debug", "debugEta", "debugDpe", "debugDce", "on", "off", "mono", "poly")
-  
+
   def mkConfig: Config =
     import Config.*
     def parseFlags(raw: Opt[Str]): Set[Str] =
@@ -220,33 +223,33 @@ abstract class MLsDiffMaker extends DiffMaker:
         dataFlowAnalysis = noOptimizations.isUnset,
       )
     )
-  
-  
+
+
   val importCmd = Command("import"): ln =>
     given Config = mkConfig
     importFile(file.up / io.RelPath(ln.trim), verbose = silent.isUnset, includeDirectives = false)
-  
+
   // eg: `:ucs desugared normalized lowered`
   val showUCS = Command("ucs"): ln =>
     ln.split(" ").iterator.map(x => "ucs:" + x.trim).toSet
-  
-  
+
+
   given Elaborator.State = new Elaborator.State:
     override def dbg: Bool =
       dbgParsing.isSet
       || dbgElab.isSet
       || dbgResolving.isSet
       || debug.isSet
-  
-  
+
+
   protected lazy val dbgScp: utils.Scope = // for unique symbol debug-printing only
     Scope.empty(Scope.Cfg.default.copy(
       escapeChars = false,
       useSuperscripts = true,
       includeZero = true,
     ))
-  
-  
+
+
   val dbgPrinter: SymbolPrinter = new SymbolPrinter(dbgScp):
     override def preProcess(t: Product): Product = super.preProcess:
       case class Unexpanded(origin: Resolvable)
@@ -264,8 +267,8 @@ abstract class MLsDiffMaker extends DiffMaker:
             s" loc[$sl:$sc-$el:$ec]"
         else ""
       )
-  
-  
+
+
   val etl = new TraceLogger:
     override def doTrace = dbgElab.isSet || scope.exists:
       showUCS.get.getOrElse(Set.empty).contains
@@ -276,25 +279,25 @@ abstract class MLsDiffMaker extends DiffMaker:
       // * Perhaps this should be the default behavior of TraceLogger.
       if doTrace then super.trace(pre, post)(thunk)
       else thunk
-  
+
   val rtl = new TraceLogger:
     override def doTrace = dbgResolving.isSet
     override def emitDbg(str: String): Unit = output(str)
-  
+
   val ftl = new TraceLogger:
     override def doTrace = dbgFlow.isSet
     override def emitDbg(str: String): Unit = output(str)
-  
+
   var curCtx = Elaborator.State.init
   var curICtx = Resolver.ICtx.empty
-  
+
   /** Persistent config modification from `#config(...)` directives. */
   var configModify: Config => Config = identity
-  
+
   var prelude = Elaborator.Ctx.empty
-  
+
   override def run(): Unit =
-    if file =/= preludeFile then 
+    if file =/= preludeFile then
       given Config = mkConfig
       given Raise = d =>
         output(s"Error: $d")
@@ -303,8 +306,8 @@ abstract class MLsDiffMaker extends DiffMaker:
       curCtx = preludeArtifact.ctx
       prelude = preludeArtifact.ctx
     super.run()
-  
-  
+
+
   override def init(): Unit =
     import syntax.*
     import Tree.*
@@ -336,21 +339,21 @@ abstract class MLsDiffMaker extends DiffMaker:
         :: Open(Ident("Predef"))
         :: Nil)
     super.init()
-  
-  
+
+
   def importFile(file: io.Path, verbose: Bool, includeDirectives: Bool)(using Config): Unit =
-    
+
     // val raise: Raise = throw _
     given raise: Raise = d =>
       output(s"Error: $d")
       ()
-    
+
     val block = cctx.fs.read(file)
     val fph = new FastParseHelpers(block)
     val origin = Origin(file, 0, fph)
-    
+
     val lexer = new syntax.Lexer(origin, dbg = dbgParsing.isSet)
-    
+
     // Stupid hack to ignore diff-test directives like `:ignore`
     def dropCrap(ts: Ls[syntax.Stroken -> Loc]): Ls[syntax.Stroken -> Loc] = ts match
       case (syntax.IDENT(":..", true), _) :: rest =>
@@ -370,12 +373,12 @@ abstract class MLsDiffMaker extends DiffMaker:
           processLines(s":$nme ${render(ln)}" :: Nil, reprintCommands = false)
         dropCrap(rest.dropWhile(_._1 isnt syntax.NEWLINE).drop(1))
       case _ => ts
-    
+
     val tokens = dropCrap(lexer.bracketedTokens)
-    
+
     if showParse.isSet || dbgParsing.isSet then
       output(syntax.Lexer.printTokens(tokens))
-    
+
     val rules = syntax.ParseRules()
     val p = new syntax.Parser(origin, tokens, rules, raise, dbg = dbgParsing.isSet):
       def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
@@ -398,51 +401,51 @@ abstract class MLsDiffMaker extends DiffMaker:
     catch
       case err: Throwable =>
         uncaught(err)
-  
+
   given tl: TraceLogger with
     override def doTrace = debug.isSet
     override def emitDbg(str: String): Unit = output(str)
-  
-  
+
+
   def processOrigin(origin: Origin)(using Raise): Unit =
     val oldCtx = curCtx
-    
+
     given Config = configModify(mkConfig)
-    
+
     val lexer = new syntax.Lexer(origin, dbg = dbgParsing.isSet)
     val tokens = lexer.bracketedTokens
-    
+
     if showParse.isSet || dbgParsing.isSet then
       output(syntax.Lexer.printTokens(tokens))
-    
+
     val rules = syntax.ParseRules()
     val p = new syntax.Parser(origin, tokens, rules, raise, dbg = dbgParsing.isSet):
       def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
     val res = p.parseAll(p.block(allowNewlines = true))
-    
+
     // If parsed tree is displayed, don't show the string serialization.
     if (parseOnly.isSet || showParse.isSet) && !showParsedTree.isSet then
       output(s"Parsed:${res.map("\n\t"+_.showDbg).mkString}")
-    
+
     if showParsedTree.isSet then
       outputSeparator(s"Parsed tree")
       res.foreach(t => output(t.showAsTree))
-    
+
     // if showParse.isSet then
     //   output(s"AST: $res")
-    
+
     if parseOnly.isUnset then
       processTrees(res)(using summon, raise)
-    
+
     if showContext.isSet then
       output("Env:")
       curCtx.env.foreach: (k, v) =>
         if !(oldCtx.env contains k) then
           output(s"  $k -> $v")
-  
-  
+
+
   private var blockNum = 0
-  
+
   def extractConfig(stats: Ls[semantics.Statement]): Unit =
     // Extract SetConfig statements and update persistent config
     stats.foreach:
@@ -450,7 +453,7 @@ abstract class MLsDiffMaker extends DiffMaker:
         val prev = configModify
         configModify = cfg => sc.modify(prev(cfg))
       case _ => ()
-  
+
   def processTrees(trees: Ls[syntax.Tree])(using Config, Raise): Unit =
     val elab = Elaborator(etl, file.up, prelude)
     // val blockSymbol =
@@ -461,20 +464,19 @@ abstract class MLsDiffMaker extends DiffMaker:
     val blk = new syntax.Tree.Block(trees)
     val (e, newCtx) = elab.topLevel(blk)
     curCtx = newCtx
-    
+
     extractConfig(e.stats)
-    
+
     // If elaborated tree is displayed, don't show the string serialization.
     if (showElab.isSet || debug.isSet) && !showElaboratedTree.isSet then
       output(s"Elab: ${e.showDbg}")
     if showElaboratedTree.isSet then
       outputSeparator(s"Elaborated tree")
       output(e.showAsTree)
-    
     processTerm(e, inImport = false)
-      
-  
-  
+
+
+
   def processTerm(trm: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
     given Ctx = curCtx
     given Config = Config.extractConfigFromStats(trm)
@@ -483,13 +485,13 @@ abstract class MLsDiffMaker extends DiffMaker:
         using summon[TL], summon[Raise], cctx)
     val resolver = Resolver(rtl)
     curICtx = resolver.traverseBlock(trm)(using curICtx)
-    
+
     if showResolve.isSet then
       output(s"Resolved: ${trm.showDbg}")
     if showResolvedTree.isSet then
       outputSeparator(s"Resolved tree")
       output(trm.showAsTree)
-    
+
     if flow.isSet then
       val floan = semantics.flow.FlowAnalysis(using ftl)
       val flo = floan.typeProd(trm)
@@ -507,5 +509,5 @@ abstract class MLsDiffMaker extends DiffMaker:
         output:
           import document.*
           doc" #{ ${trm.showTopLevel(using flowScp)} #} \nwhere #{ ${floan.showFlows(using flowScp)} #} ".mkString()
-    
-  
+
+

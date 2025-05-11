@@ -2,15 +2,19 @@ package hkmc2
 
 import hkmc2.utils.*, shorthands.*
 
+import hkmc2.ctml.core.show
+import hkmc2.ctml.types.Context
+import hkmc2.ctml.types.Ok
+import hkmc2.ctml.types.Type
 import hkmc2.semantics.*
 import hkmc2.invalml.*
 import utils.Scope
 
 
 abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
-  
+
   val invalPreludeFile = io.Path(rootPath) / "hkmc2" / "shared" / "src" / "test" / "mlscript" / "invalml" / "InvalMLPrelude.mls"
-  
+
   val invalmlOpt = new NullaryCommand("invalml"):
     override def onSet(): Unit =
       super.onSet()
@@ -20,8 +24,9 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
         curCtx = Elaborator.State.init
         given Config = mkConfig
         importFile(invalPreludeFile, verbose = false, includeDirectives = false)
-  
-  
+  /** Constraint types command. */
+  val ctmlOpt = new NullaryCommand("ctml")
+
   override def init(): Unit =
     super.init()
 
@@ -29,10 +34,10 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
     given Elaborator.Ctx = curCtx
     given Config = mkConfig
     invalml.InvalCtx.init(_ => die)
-  
+
   var invalmlTyper: Opt[InvalTyper] = None
-  
-  
+
+
   override def processTerm(trm: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
     super.processTerm(trm, inImport)
     if invalmlOpt.isSet then
@@ -48,5 +53,12 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       val simplif = TypeSimplifier(tl)
       val sty = simplif(true, 0)(ty)
       printer.print(sty)
-  
 
+    if ctmlOpt.isSet then
+      ctml.core.freshVarCounter = 0
+      var res = ctml.core.infer(Context.empty, term)
+      res match
+        case ok: Ok[Type] =>
+          output(ok.value.show())
+        case _ =>
+          output("Type checking error.")

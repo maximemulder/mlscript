@@ -12,9 +12,12 @@ import hkmc2.semantics.Resolvable
 import semantics.Elaborator.Ctx
 
 abstract class MLsDiffMaker extends DiffMaker:
-  
+
   val bbmlOpt: Command[?]
-  
+
+  /** Constraint types command. */
+  val ctmlOpt: Command[?]
+
   val rootPath: Str // * Absolute path to the root of the project
   val preludeFile: io.Path // * Contains declarations of JS builtins
   val predefFile: io.Path // * Contains MLscript standard library definitions
@@ -22,9 +25,9 @@ abstract class MLsDiffMaker extends DiffMaker:
   val termFile: io.Path = predefFile.up / "Term.mjs" // * Contains MLscript runtime term definitions
   val blockFile: io.Path = predefFile.up / "Block.mjs" // * Contains MLscript runtime block definitions
   val shapeFile: io.Path = predefFile.up / "Shape.mjs" // * Contains MLscript runtime shape definitions
-  
+
   val wd = file.up
-  
+
   class DebugTreeCommand(name: Str) extends Command[Product => Str](name)(
     line => if line.contains("loc") then
       (t: Product) => t match
@@ -33,16 +36,16 @@ abstract class MLsDiffMaker extends DiffMaker:
           val (el, _, ec) = loc.origin.fph.getLineColAt(loc.spanEnd)
           s"$sl:$sc-$el:$ec"
         case _ => ""
-    else 
+    else
       Function.const("")
   ):
     def post: Product => Str = get.getOrElse(Function.const(""))
-  
+
   val silent = NullaryCommand("silent")
   val dbgElab = NullaryCommand("de")
   val dbgParsing = NullaryCommand("dp")
   val dbgResolving = NullaryCommand("dr")
-  
+
   val showParse = NullaryCommand("p")
   val showParsedTree = DebugTreeCommand("pt")
   val showElab = NullaryCommand("el")
@@ -53,17 +56,17 @@ abstract class MLsDiffMaker extends DiffMaker:
   val ppLoweredTree = NullaryCommand("slot")
   val showContext = NullaryCommand("ctx")
   val parseOnly = NullaryCommand("parseOnly")
-  
+
   val typeCheck = FlagCommand(false, "typeCheck")
-  
+
   /**
    * Enables Wasm support. All options in [[WasmDiffMaker]] are no-op if this option is not set.
    */
   val wasm = NullaryCommand("wasm")
-  
-  
+
+
   // * Compiler configuration
-  
+
   val noSanityCheck = NullaryCommand("noSanityCheck")
   val effectHandlers = Command("effectHandlers")(_.trim)
   val effectHandlersOptions = Set("debug", "")
@@ -73,7 +76,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   val stageCode = NullaryCommand("staging")
   val rewriteWhile = NullaryCommand("rewriteWhile")
   val noTailRecOpt = NullaryCommand("noTailRec")
-  
+
   def mkConfig: Config =
     import Config.*
     if stackSafe.isSet && effectHandlers.isUnset then
@@ -103,22 +106,22 @@ abstract class MLsDiffMaker extends DiffMaker:
       rewriteWhileLoops = rewriteWhile.isSet,
       tailRecOpt = !noTailRecOpt.isSet,
     )
-  
-  
+
+
   val importCmd = Command("import"): ln =>
     given Config = mkConfig
     importFile(file.up / io.RelPath(ln.trim), verbose = silent.isUnset)
-  
+
   val showUCS = Command("ucs"): ln =>
     ln.split(" ").iterator.map(x => "ucs:" + x.trim).toSet
-  
+
   given Elaborator.State = new Elaborator.State:
     override def dbg: Bool =
       dbgParsing.isSet
       || dbgElab.isSet
       || dbgResolving.isSet
       || debug.isSet
-  
+
   val etl = new TraceLogger:
     override def doTrace = dbgElab.isSet || scope.exists:
       showUCS.get.getOrElse(Set.empty).contains
@@ -129,24 +132,24 @@ abstract class MLsDiffMaker extends DiffMaker:
       // * Perhaps this should be the default behavior of TraceLogger.
       if doTrace then super.trace(pre, post)(thunk)
       else thunk
-  
+
   val rtl = new TraceLogger:
     override def doTrace = dbgResolving.isSet
     override def emitDbg(str: String): Unit = output(str)
-  
+
   var curCtx = Elaborator.State.init
   var curICtx = Resolver.ICtx.empty
-  
+
   var prelude = Elaborator.Ctx.empty
-  
+
   override def run(): Unit =
-    if file =/= preludeFile then 
+    if file =/= preludeFile then
       given Config = mkConfig
       importFile(preludeFile, verbose = false)
       prelude = curCtx
     super.run()
-  
-  
+
+
   override def init(): Unit =
     import syntax.*
     import Tree.*
@@ -171,25 +174,25 @@ abstract class MLsDiffMaker extends DiffMaker:
         :: PrefixApp(Keywrd(`import`), StrLit(shapeFile.toString))
         :: Nil)
     super.init()
-  
-  
+
+
   def importFile(file: io.Path, verbose: Bool)(using Config): Unit =
-    
+
     // val raise: Raise = throw _
     given raise: Raise = d =>
       output(s"Error: $d")
       ()
-    
+
     val block = cctx.fs.read(file)
     val fph = new FastParseHelpers(block)
     val origin = Origin(file, 0, fph)
-    
+
     val lexer = new syntax.Lexer(origin, dbg = dbgParsing.isSet)
     val tokens = lexer.bracketedTokens
-    
+
     if showParse.isSet || dbgParsing.isSet then
       output(syntax.Lexer.printTokens(tokens))
-    
+
     val rules = syntax.ParseRules()
     val p = new syntax.Parser(origin, tokens, rules, raise, dbg = dbgParsing.isSet):
       def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
@@ -209,51 +212,51 @@ abstract class MLsDiffMaker extends DiffMaker:
     catch
       case err: Throwable =>
         uncaught(err)
-  
+
   given tl: TraceLogger with
     override def doTrace = debug.isSet
     override def emitDbg(str: String): Unit = output(str)
-  
-  
+
+
   def processOrigin(origin: Origin)(using Raise): Unit =
     val oldCtx = curCtx
-    
+
     given Config = mkConfig
-    
+
     val lexer = new syntax.Lexer(origin, dbg = dbgParsing.isSet)
     val tokens = lexer.bracketedTokens
-    
+
     if showParse.isSet || dbgParsing.isSet then
       output(syntax.Lexer.printTokens(tokens))
-    
+
     val rules = syntax.ParseRules()
     val p = new syntax.Parser(origin, tokens, rules, raise, dbg = dbgParsing.isSet):
       def doPrintDbg(msg: => Str): Unit = if dbg then output(msg)
     val res = p.parseAll(p.block(allowNewlines = true))
-    
+
     // If parsed tree is displayed, don't show the string serialization.
     if (parseOnly.isSet || showParse.isSet) && !showParsedTree.isSet then
       output(s"Parsed:${res.map("\n\t"+_.showDbg).mkString}")
 
     showParsedTree.get.foreach: post =>
       output(s"Parsed tree:")
-      res.foreach(t => output(t.showAsTree(using post)))  
-    
+      res.foreach(t => output(t.showAsTree(using post)))
+
     // if showParse.isSet then
     //   output(s"AST: $res")
-    
+
     if parseOnly.isUnset then
       processTrees(res)(using summon, raise)
-    
+
     if showContext.isSet then
       output("Env:")
       curCtx.env.foreach: (k, v) =>
         if !(oldCtx.env contains k) then
           output(s"  $k -> $v")
-  
-  
+
+
   private var blockNum = 0
-  
+
   def processTrees(trees: Ls[syntax.Tree])(using Config, Raise): Unit =
     val elab = Elaborator(etl, file.up, prelude)
     // val blockSymbol =
@@ -270,30 +273,28 @@ abstract class MLsDiffMaker extends DiffMaker:
     showElaboratedTree.get.foreach: post =>
       output(s"Elaborated tree:")
       output(e.showAsTree(using post))
-      
+
     processTerm(e, inImport = false)
-      
-  
-  
+
+
+
   def processTerm(trm: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
     given Ctx = curCtx
     val resolver = Resolver(rtl)
     curICtx = resolver.traverseBlock(trm)(using curICtx)
-    
+
     if showResolve.isSet then
       output(s"Resolved: ${trm.showDbg}")
     showResolvedTree.get.foreach: post =>
       case class Unexpanded(origin: Resolvable)
-      val pre: PartialFunction[Product, Product] = 
+      val pre: PartialFunction[Product, Product] =
         case t: Resolvable if t.hasExpansion => t.expanded
         case t: Resolvable if dbgResolving.isSet => Unexpanded(t.duplicate.resolve)
         case t => t
       output(s"Resolved tree:")
       output(trm.showAsTree(inTailPos = false, pre = pre)(using post))
-    
+
     if typeCheck.isSet then
       val typer = typing.TypeChecker()
       val ty = typer.typeProd(trm)
       output(s"Type: ${ty}")
-  
-

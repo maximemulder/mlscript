@@ -4,6 +4,7 @@ import mlscript.utils.*, shorthands.*
 
 import hkmc2.semantics.*
 import hkmc2.bbml.*
+import hkmc2.ctml.core.parseExpr
 import hkmc2.ctml.core.show
 import hkmc2.ctml.types.Context
 import hkmc2.ctml.types.ParseError
@@ -56,13 +57,17 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
-      ctml.core.freshVarCounter = 0
-      var res =
-      try
-        val (type_, _) = ctml.core.infer(Context.empty, term)
-        output(type_.show())
+      val expr = try
+        term.parseExpr()
       catch
         case error: ParseError =>
           output(s"PARSE ERROR: ${error.getMessage()}")
+          return
+
+      try
+        ctml.core.freshVarCounter = 0
+        val (type_, _) = ctml.core.infer(expr, Context.empty)
+        output(type_.show())
+      catch
         case error: TypeError =>
           output(s"TYPE ERROR: ${error.getMessage()}")

@@ -4,8 +4,9 @@ import hkmc2.utils.*, shorthands.*
 
 import hkmc2.ctml.core.show
 import hkmc2.ctml.types.Context
-import hkmc2.ctml.types.Ok
+import hkmc2.ctml.types.ParseError
 import hkmc2.ctml.types.Type
+import hkmc2.ctml.types.TypeError
 import hkmc2.semantics.*
 import hkmc2.invalml.*
 import utils.Scope
@@ -55,9 +56,12 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
 
     if ctmlOpt.isSet then
       ctml.core.freshVarCounter = 0
-      var res = ctml.core.infer(Context.empty, term)
-      res match
-        case ok: Ok[Type] =>
-          output(ok.value.show())
-        case _ =>
-          output("Type checking error.")
+      var res =
+      try
+        val (type_, _) = ctml.core.infer(Context.empty, term)
+        output(type_.show())
+      catch
+        case error: ParseError =>
+          output(s"PARSE ERROR: ${error.getMessage()}")
+        case error: TypeError =>
+          output(s"TYPE ERROR: ${error.getMessage()}")

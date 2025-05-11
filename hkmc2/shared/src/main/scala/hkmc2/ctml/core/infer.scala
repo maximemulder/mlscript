@@ -15,7 +15,7 @@ def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
         val var_ = TVar(varName)
         ctx.withVar(lam.paramName, var_, (ctx) =>
           val (bodyType, bodyBounds) = infer(lam.body, ctx)
-          (TFun(var_, bodyType), bodyBounds)
+          (TLam(var_, bodyType), bodyBounds)
         )
       )
 
@@ -24,7 +24,7 @@ def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
       ctx.withFreshVar((mockRetVarName, mockRetCtx) =>
         val (lamType, lamBounds) = infer(app.lam, mockRetCtx)
         val (argType, argBounds) = infer(app.arg, mockRetCtx)
-        val mockLamType = TFun(argType, TVar(mockRetVarName))
+        val mockLamType = TLam(argType, TVar(mockRetVarName))
 
         val inferBounds = inferConstrainSub(lamType, mockLamType, mockRetCtx)
         (TVar(mockRetVarName), inferBounds ++ argBounds ++ lamBounds)

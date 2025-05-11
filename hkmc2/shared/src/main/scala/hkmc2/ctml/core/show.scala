@@ -12,8 +12,8 @@ extension (type_ : Type)
         "⊤"
       case var_ : TVar =>
         var_.name
-      case fun: TFun =>
-        s"${fun.param.show()} → ${fun.body.show()}"
+      case lam: TLam =>
+        s"${lam.param.show()} → ${lam.body.show()}"
       case union: TUnion =>
         s"${union.left.show()} ∨ ${union.right.show()}"
       case inter: TInter =>

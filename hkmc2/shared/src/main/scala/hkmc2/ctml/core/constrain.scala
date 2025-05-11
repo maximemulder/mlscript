@@ -58,8 +58,8 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
 
   /* Check other types. */
 
-  if sub.is[TFun] && sup.is[TFun] then
-    return constrainSubFun(sub.as[TFun], sup.as[TFun])
+  if sub.is[TLam] && sup.is[TLam] then
+    return constrainSubLam(sub.as[TLam], sup.as[TLam])
 
   throw new TypeError("Fail default case.")
 
@@ -69,7 +69,7 @@ def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): List[Bound] 
 
   throw new TypeError("Fail constrain rigid var.")
 
-def constrainSubFun(sub: TFun, sup: TFun)(using ctx: Context, mode: Mode): List[Bound] =
+def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): List[Bound] =
   val paramBounds = constrainSub(sup.param, sub.param)
   val bodyBounds = constrainSub(sub.body, sup.param)
   return paramBounds ++ bodyBounds

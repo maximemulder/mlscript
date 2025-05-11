@@ -12,8 +12,8 @@ object TTop extends Type
 /** A type variable type. */
 class TVar(val name: String) extends Type
 
-/** A function type. */
-class TFun(val param: Type, val body: Type) extends Type
+/** A lambda type. */
+class TLam(val param: Type, val body: Type) extends Type
 
 /** A union type. */
 class TUnion(val left: Type, val right: Type) extends Type

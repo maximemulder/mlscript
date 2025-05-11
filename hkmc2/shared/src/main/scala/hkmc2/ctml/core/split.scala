@@ -51,21 +51,21 @@ def splitInter(type_ : Type): Option[(Type, Type)] =
       None
     case inter: TInter =>
       Some (inter.left, inter.right)
-    case fun: TFun =>
-      val paramOption = splitUnion(fun.param)
+    case lam: TLam =>
+      val paramOption = splitUnion(lam.param)
       if paramOption.isDefined then
         val (left, right) = paramOption.get
         return Some((
-          TUnion(left,  fun.body),
-          TUnion(right, fun.body)
+          TUnion(left,  lam.body),
+          TUnion(right, lam.body)
         ))
 
-      val bodyOption = splitInter(fun.body)
+      val bodyOption = splitInter(lam.body)
       if bodyOption.isDefined then
         val (left, right) = bodyOption.get
         return Some((
-          TUnion(fun.param, left),
-          TUnion(fun.param, right),
+          TUnion(lam.param, left),
+          TUnion(lam.param, right),
         ))
 
       None

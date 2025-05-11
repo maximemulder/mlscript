@@ -19,14 +19,14 @@ def meet(left: Type, right: Type)(using ctx: Context): Type =
 /** Get the meet of two disjoint types in a non-intersection form if possible. */
 def meetDisjoint(left: Type, right: Type)(using ctx: Context): Option[Type] =
   (left, right) match
-    case (left: TFun, right: TFun) =>
+    case (left: TLam, right: TLam) =>
       if checkEq(left.param, right.param) then
         var body = meet(left.body, right.body)
-        return Some(TFun(left.param, body))
+        return Some(TLam(left.param, body))
 
       if checkEq(left.body, right.body) then
         var param = join(left.param, right.param)
-        return Some(TFun(param, left.body))
+        return Some(TLam(param, left.body))
 
       None
     case _ =>

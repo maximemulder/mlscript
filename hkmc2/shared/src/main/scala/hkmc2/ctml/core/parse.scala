@@ -65,6 +65,6 @@ extension (term: Term)
       case Term.Ref(symbol) =>
         TVar(symbol.nme)
       case Term.FunTy(param, ret, _) =>
-        TFun(param.parseType(), ret.parseType())
+        TLam(param.parseType(), ret.parseType())
       case _ =>
         throw ParseError(term)

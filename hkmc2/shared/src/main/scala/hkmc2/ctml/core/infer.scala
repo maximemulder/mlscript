@@ -1,87 +1,44 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
-import hkmc2.semantics.Term
-import hkmc2.semantics.Term.*
-import hkmc2.syntax.Keyword
-import hkmc2.syntax.Tree.*
 
-/** Infer the type of a term. */
-def infer(ctx: Context, term: Term): (Type, List[Bound]) =
-  term match
-    // Ignore the statements of MLScript block and only type the final term.
-
-    case Blk(_, term) =>
-      infer(ctx, term)
-
-    // Type MLScript literals using type variables.
-
-    case UnitVal() | Lit(UnitLit(_)) =>
-      (TVar("Unit"), Nil)
-    case Lit(BoolLit(_)) =>
-      (TVar("Bool"), Nil)
-    case Lit(IntLit(_)) =>
-      (TVar("Int"), Nil)
-    case Lit(DecLit(_)) =>
-      (TVar("Decimal"), Nil)
-    case Lit(StrLit(_)) =>
-      (TVar("String"), Nil)
-
+/** Infer the type of an expression. */
+def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
+  expr match
     // Variable
-
-    case Ref(symbol) =>
-      val varName = symbol.nme
-      (ctx.getVarType(varName), Nil)
+    case var_ : EVar =>
+      (ctx.getVarType(var_.name), Nil)
 
     // Lambda abstraction
-
-    case Lam(params, body) =>
-      val paramsCount = params.paramCountLB
-      if paramsCount != 1 then
-        throw new ParseError(term)
-
-      var paramName = params.allParams(0).sym.name
-
+    case lam: ELam =>
       ctx.withFreshVar((varName, ctx) =>
         val var_ = TVar(varName)
-        ctx.withVar(paramName, var_, (ctx) =>
-          val (bodyType, bodyBounds) = infer(ctx, body)
+        ctx.withVar(lam.paramName, var_, (ctx) =>
+          val (bodyType, bodyBounds) = infer(lam.body, ctx)
           (TFun(var_, bodyType), bodyBounds)
         )
       )
 
     // Lambda application
-
-    case Term.App(fun, arg) =>
+    case app: EApp =>
       ctx.withFreshVar((mockRetVarName, mockRetCtx) =>
-        val (funType, funBounds) = infer(mockRetCtx, fun)
-        val (argType, argBounds) = infer(mockRetCtx, arg)
-        val mockFunType = TFun(argType, TVar(mockRetVarName))
+        val (lamType, lamBounds) = infer(app.lam, mockRetCtx)
+        val (argType, argBounds) = infer(app.arg, mockRetCtx)
+        val mockLamType = TFun(argType, TVar(mockRetVarName))
 
-        val inferBounds = inferConstrainSub(mockRetCtx, funType, mockFunType)
-        (TVar(mockRetVarName), inferBounds ++ argBounds ++ funBounds)
+        val inferBounds = inferConstrainSub(lamType, mockLamType, mockRetCtx)
+        (TVar(mockRetVarName), inferBounds ++ argBounds ++ lamBounds)
       )
 
     // Type ascription
-
-    case Term.Asc(term, typeNode) =>
-      val type_ = typeNode.toType()
-      val (inferType, inferBounds) = infer(ctx, term)
-      val constrainBounds = inferConstrainSub(ctx, inferType, type_)
-      (type_, constrainBounds ++ inferBounds)
-
-    // Match expression
-
-    case Term.IfLike(Keyword.`if`, _) =>
-      // TODO: How to desugar a match expression ?
-      (TBot, Nil)
-
-    case _ =>
-      throw new ParseError(term)
+    case ascr: EAscr =>
+      val (inferType, inferBounds) = infer(ascr.expr, ctx)
+      val constrainBounds = inferConstrainSub(inferType, ascr.type_, ctx)
+      (ascr.type_, constrainBounds ++ inferBounds)
 
 /** Constrain a type to be a subtype of another in type inference, or throw an exception if that
  * relation cannot be satisfied. */
-def inferConstrainSub(ctx: Context, sub: Type, sup: Type): List[Bound] =
+def inferConstrainSub(sub: Type, sup: Type, ctx: Context): List[Bound] =
   given Context = ctx
   given Mode = Mode.Constrain
   constrainSub(sub, sup)

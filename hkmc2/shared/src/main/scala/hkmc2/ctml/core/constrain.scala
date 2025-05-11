@@ -4,30 +4,30 @@ import hkmc2.ctml.types.*
 
 
 /** Constrain a type to be a subtype of another type in a context. */
-def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): Result[Unit] =
+def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bound] =
 
   /* Check the top and bottom types. */
 
   if sub.is[TBot] then
-    return Ok((), Nil)
+    return Nil
 
   if sub.is[TTop] then
-    return Ok((), Nil)
+    return Nil
 
   /* Check equal variables*/
 
   if sub.is[TVar] && sup.is[TVar] && sub.as[TVar].name == sup.as[TVar].name then
-    return Ok((), Nil)
+    return Nil
 
   /* Check fresh variables in constraining mode. */
 
   if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
     // TODO: Check and propagate bounds.
-    return Ok((), List(Bound(sub.as[TVar].name, Direction.Super, sup)))
+    return List(Bound(sub.as[TVar].name, Direction.Super, sup))
 
   if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
     // TODO: Check and propagate bounds.
-    return Ok((), List(Bound(sub.as[TVar].name, Direction.Sub, sub)))
+    return List(Bound(sub.as[TVar].name, Direction.Sub, sub))
 
   /* Check union and intersection types. */
 
@@ -61,29 +61,29 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): Result[U
   if sub.is[TFun] && sup.is[TFun] then
     return constrainSubFun(sub.as[TFun], sup.as[TFun])
 
-  Fail
+  throw new TypeError("Fail default case.")
 
-def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): Result[Unit] =
+def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): List[Bound] =
   if sub.name == sup.name then
-    return Ok((), Nil)
+    return Nil
 
-  Fail
+  throw new TypeError("Fail constrain rigid var.")
 
-def constrainSubFun(sub: TFun, sup: TFun)(using ctx: Context, mode: Mode): Result[Unit] =
-  var paramResult = constrainSub(sup.param, sub.param)
-  if paramResult.isFail then
-    return paramResult
-
-  var bodyResult = constrainSub(sub.body, sup.param)
-  if bodyResult.isFail then
-    return bodyResult
-
-  Ok((), Nil)
+def constrainSubFun(sub: TFun, sup: TFun)(using ctx: Context, mode: Mode): List[Bound] =
+  val paramBounds = constrainSub(sup.param, sub.param)
+  val bodyBounds = constrainSub(sub.body, sup.param)
+  return paramBounds ++ bodyBounds
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSub(sub: Type, sup: Type)(using ctx: Context): Boolean =
   given Mode = Mode.Check
-  constrainSub(sub, sup).isOk
+
+  try
+    constrainSub(sub, sup)
+    return true
+  catch
+    case _: TypeError =>
+      return false
 
 /** Check whether tow types are equal without requiring any additional constraint. */
 def checkEq(left: Type, right: Type)(using ctx: Context): Boolean =

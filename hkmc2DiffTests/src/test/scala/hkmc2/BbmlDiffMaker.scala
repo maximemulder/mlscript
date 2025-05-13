@@ -57,6 +57,8 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
+      ctml.core.outputter = (message) => output(message)
+
       val expr = try
         term.parseExpr()
       catch
@@ -66,7 +68,7 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
 
       try
         ctml.core.freshVarCounter = 0
-        val (type_, _) = ctml.core.infer(expr, Context.empty)
+        val (type_, _) = ctml.core.infer(expr, Context.primitive)
         output(type_.show())
       catch
         case error: TypeError =>

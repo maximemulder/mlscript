@@ -36,38 +36,86 @@ extension (ctx: Context)
           None
     )
 
-  /** Evaluate a function within a context with a new term variable. */
-  def withVar[T](varName: String, varType : Type, f: (Context) => T): T =
-    var varCtx = CtxVar(varName, varType) :: ctx
-    f(varCtx)
-
-  /** Evaluate a function within a context with a new fresh type variable. */
-  def withFreshVar[T](f: (String, Context) => T): T =
-    var name = getFreshVarName(freshVarCounter)
-    freshVarCounter += 1
-    var varCtx = CtxTypeVar(name, TypeVarKind.Fresh) :: ctx
-    f(name, varCtx)
-
   /** Get the type of a term variable in the context. */
-  def getVarType(name: String): Type =
-    var var_ = ctx.vars.find((var_) => var_.name == name)
+  def getVarType(varName: String): Type =
+    var var_ = ctx.vars.find((var_) => var_.name == varName)
     if var_ == None then
-      throw new Exception(s"Variable '${name}' not found in the context.")
+      throw new TypeError(s"Variable '${varName}' not found in the context.")
 
     var_.get.type_
 
   /** Get a type variable in the context. */
-  def getTypeVar(name: String): CtxTypeVar =
-    var var_ = ctx.typeVars.find((var_) => var_.name == name)
+  def getTypeVar(varName: String): CtxTypeVar =
+    var var_ = ctx.typeVars.find((var_) => var_.name == varName)
     if var_ == None then
-      throw new Exception(s"Type variable '${name}' not found in the context.")
+      throw new TypeError(s"Type variable '${varName}' not found in the context.")
 
     var_.get
 
   /** Check whether a type variable is a fresh variable in the context. */
-  def isTypeVarFresh(name: String): Boolean =
-    ctx.getTypeVar(name).kind == TypeVarKind.Fresh
+  def isTypeVarFresh(varName: String): Boolean =
+    ctx.getTypeVar(varName).kind == TypeVarKind.Fresh
 
   /** Check whether a type variable is a rigid variable in the context. */
-  def isTypeVarRigid(name: String): Boolean =
-    ctx.getTypeVar(name).kind == TypeVarKind.Rigid
+  def isTypeVarRigid(varName: String): Boolean =
+    ctx.getTypeVar(varName).kind == TypeVarKind.Rigid
+
+  /** Get the lower bound of a type variable in the context. */
+  def getVarLowerBound(varName: String): Type =
+    ctx.bounds
+      .filter((bound) => bound.name == varName && bound.dir == Direction.Super)
+      .foldRight(TBot: Type)((bound, type_) =>
+        given Context = ctx
+        join(type_, bound.type_)
+      )
+
+  /** Get the upper bound of a type variable in the context. */
+  def getVarUpperBound(varName: String): Type =
+    ctx.bounds
+      .filter((bound) => bound.name == varName && bound.dir == Direction.Sub)
+      .foldRight(TTop: Type)((bound, type_) =>
+        given Context = ctx
+        meet(type_, bound.type_)
+      )
+
+  /** Evaluate a function within a context with a new fresh type variable. */
+  def withFreshVarLevel(f: (String, Context) => (Type, List[Bound])): (Type, List[Bound]) =
+    withFreshVar((varName, varCtx) =>
+      val (type_ , bounds) = f(varName, varCtx)
+      val newCtx = concatCtxs(ctx, bounds.c)
+      val polarities =
+        given Polarity = Polarity.Positive
+        getVarPolarities(type_, varName)
+      polarities match
+        case Polarities(true, true) =>
+          // TODO: Polymorphism.
+          (type_, bounds)
+        case Polarities(true, false) =>
+          val upperBound = newCtx.getVarUpperBound(varName)
+          given Context = newCtx
+          val newType = substitute(type_, varName, upperBound)
+          (newType, bounds)
+        case Polarities(false, true) =>
+          val lowerBound = newCtx.getVarLowerBound(varName)
+          given Context = newCtx
+          val newType = substitute(type_, varName, lowerBound)
+          (newType, bounds)
+        case Polarities(false, false) =>
+          (type_, bounds)
+    )
+
+/** Concatenante some contexts. */
+def concatCtxs(ctxs: Context*): Context =
+  ctxs.flatten.toList
+
+/** Evaluate a function within a context with a new term variable. */
+def withVar[T](varName: String, varType : Type, f: (Context) => T): T =
+  var varCtx = CtxVar(varName, varType) :: Nil
+  f(varCtx)
+
+/** Evaluate a function within a context with a new fresh type variable. */
+def withFreshVar[T](f: (String, Context) => T): T =
+  var varName = getFreshVarName(freshVarCounter)
+  freshVarCounter += 1
+  var varCtx = CtxTypeVar(varName, TypeVarKind.Fresh) :: Nil
+  f(varName, varCtx)

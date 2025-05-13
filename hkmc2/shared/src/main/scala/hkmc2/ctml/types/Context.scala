@@ -4,13 +4,22 @@ package hkmc2.ctml.types
 type Context = List[CtxLevel]
 
 object Context:
-  val empty: Context = List(
-    CtxTypeVar("Unit",   TypeVarKind.Rigid),
-    CtxTypeVar("Bool",   TypeVarKind.Rigid),
-    CtxTypeVar("Int",    TypeVarKind.Rigid),
-    CtxTypeVar("Float",  TypeVarKind.Rigid),
-    CtxTypeVar("String", TypeVarKind.Rigid),
+  /** The context with the primitive type variables of the language. */
+  val primitive: Context = List(
+    CtxVar("Unit",    TVar("Unit")),
+    CtxVar("Bool",    TVar("Bool")),
+    CtxVar("Int",     TVar("Int")),
+    CtxVar("Decimal", TVar("Decimal")),
+    CtxVar("String",  TVar("String")),
+    CtxTypeVar("Unit",    TypeVarKind.Rigid),
+    CtxTypeVar("Bool",    TypeVarKind.Rigid),
+    CtxTypeVar("Int",     TypeVarKind.Rigid),
+    CtxTypeVar("Decimal", TypeVarKind.Rigid),
+    CtxTypeVar("String",  TypeVarKind.Rigid),
   )
+
+  /** The empty context. */
+  val empty: Context = Nil
 
 /** A context level. */
 sealed class CtxLevel

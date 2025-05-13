@@ -13,13 +13,13 @@ object TTop extends Type
 class TVar(val name: String) extends Type
 
 /** A lambda type. */
-class TLam(val param: Type, val body: Type) extends Type
+class TLam(val param: Type, val ret: Type) extends Type
 
 /** A union type. */
-class TUnion(val left: Type, val right: Type) extends Type
+case class TUnion(val left: Type, val right: Type) extends Type
 
 /** An intersection type. */
-class TInter(val left: Type, val right: Type) extends Type
+case class TInter(val left: Type, val right: Type) extends Type
 
 /** A constraing type. */
 class TConstraining(val base: Type, val bounds: List[Bound]) extends Type

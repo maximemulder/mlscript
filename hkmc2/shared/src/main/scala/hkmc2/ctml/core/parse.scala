@@ -66,5 +66,9 @@ extension (term: Term)
         TVar(symbol.nme)
       case Term.FunTy(param, ret, _) =>
         TLam(param.parseType(), ret.parseType())
+      case Term.CompType(left, right, true) =>
+        TUnion(left.parseType(), right.parseType())
+      case Term.CompType(left, right, false) =>
+        TInter(left.parseType(), right.parseType())
       case _ =>
         throw ParseError(term)

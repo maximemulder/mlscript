@@ -21,12 +21,12 @@ def meetDisjoint(left: Type, right: Type)(using ctx: Context): Option[Type] =
   (left, right) match
     case (left: TLam, right: TLam) =>
       if checkEq(left.param, right.param) then
-        var body = meet(left.body, right.body)
+        var body = meet(left.ret, right.ret)
         return Some(TLam(left.param, body))
 
-      if checkEq(left.body, right.body) then
+      if checkEq(left.ret, right.ret) then
         var param = join(left.param, right.param)
-        return Some(TLam(param, left.body))
+        return Some(TLam(param, left.ret))
 
       None
     case _ =>

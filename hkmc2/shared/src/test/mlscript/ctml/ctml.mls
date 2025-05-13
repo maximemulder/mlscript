@@ -14,14 +14,11 @@ true
 1.2
 //│ Decimal
 
-declare class String
-//│ Unit
-
-"Yoooo"
+"Yooo"
 //│ String
 
 "Yo" as String
 //│ String
 
-(x) => x
-//│ α → α
+(x) => (x as String)
+//│ String → String

@@ -13,7 +13,7 @@ extension (type_ : Type)
       case var_ : TVar =>
         var_.name
       case lam: TLam =>
-        s"${lam.param.show()} → ${lam.body.show()}"
+        s"${lam.param.show()} → ${lam.ret.show()}"
       case union: TUnion =>
         s"${union.left.show()} ∨ ${union.right.show()}"
       case inter: TInter =>
@@ -32,3 +32,10 @@ extension (dir: Direction)
     dir match
       case Direction.Sub   => "≤"
       case Direction.Super => "≥"
+
+extension (pol: Polarity)
+  /** Convert the type polarity to its string representation. */
+  def show(): String =
+    pol match
+      case Polarity.Negative => "−"
+      case Polarity.Positive => "+"

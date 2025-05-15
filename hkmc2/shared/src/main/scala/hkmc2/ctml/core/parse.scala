@@ -1,10 +1,37 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
+import hkmc2.semantics.Branch
+import hkmc2.semantics.Pattern
+import hkmc2.semantics.Split
 import hkmc2.semantics.Term
 import hkmc2.syntax.Tree
 
 extension (term: Term)
+  /** Convert a MLScript term to a CTML type, or throw an exception if that term is not a valid
+   * CTML type. */
+  def parseType(): Type =
+    term match
+      case Term.Tup(elems) =>
+        if elems.length != 1 then
+          throw ParseError(term)
+
+        val elem = elems(0)
+        if elem.subTerms.length != 1 then
+          throw ParseError(term)
+
+        elem.subTerms(0).parseType()
+      case Term.Ref(symbol) =>
+        TVar(symbol.nme)
+      case Term.FunTy(param, ret, _) =>
+        TLam(param.parseType(), ret.parseType())
+      case Term.CompType(left, right, true) =>
+        TUnion(left.parseType(), right.parseType())
+      case Term.CompType(left, right, false) =>
+        TInter(left.parseType(), right.parseType())
+      case _ =>
+        throw ParseError(term)
+
   /** Convert a MLScript term to a CTML expression, or throw an exception if that term is not a
    * valid CTML expression. */
   def parseExpr(): Expr =
@@ -46,29 +73,24 @@ extension (term: Term)
         val expr = exprTerm.parseExpr()
         val type_ = typeTerm.parseType()
         EAscr(expr, type_)
+      // Parse pattern matching.
+      case Term.IfLike(_, Split.Let(_, exprTerm, casesTerm)) =>
+        val expr = exprTerm.parseExpr()
+        val cases = casesTerm.parseCases()
+        EMatch(expr, cases)
       case _ =>
           throw new ParseError(term)
 
-  /** Convert a MLScript term to a CTML type, or throw an exception if that term is not a valid
-   * CTML type. */
-  def parseType(): Type =
-    term match
-      case Term.Tup(elems) =>
-        if elems.length != 1 then
-          throw ParseError(term)
-
-        val elem = elems(0)
-        if elem.subTerms.length != 1 then
-          throw ParseError(term)
-
-        elem.subTerms(0).parseType()
-      case Term.Ref(symbol) =>
-        TVar(symbol.nme)
-      case Term.FunTy(param, ret, _) =>
-        TLam(param.parseType(), ret.parseType())
-      case Term.CompType(left, right, true) =>
-        TUnion(left.parseType(), right.parseType())
-      case Term.CompType(left, right, false) =>
-        TInter(left.parseType(), right.parseType())
+extension (split: Split)
+  /** Convert MLScript UCS branches to a list of CTML pattern matching cases, or throw an exception
+   * if these branches are not valid CTML pattern matching cases. */
+  def parseCases(): List[EMatchCase] =
+    split match
+      case Split.End =>
+        Nil
+      case Split.Cons(Branch(_, Pattern.ClassLike(_, typeTerm, _, _), Split.Else(exprTerm)), consTerm) =>
+        val type_ = typeTerm.parseType()
+        val expr = exprTerm.parseExpr()
+        EMatchCase(type_, expr) :: consTerm.parseCases()
       case _ =>
-        throw ParseError(term)
+        throw new ParseError(Term.Error)

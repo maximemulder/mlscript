@@ -4,16 +4,16 @@ package hkmc2.ctml.types
 sealed trait Type
 
 /** The bottom type. */
-object TBot extends Type
+case object TBot extends Type
 
 /** The top type. */
-object TTop extends Type
+case object TTop extends Type
 
 /** A type variable type. */
-class TVar(val name: String) extends Type
+case class TVar(val name: String) extends Type
 
 /** A lambda type. */
-class TLam(val param: Type, val ret: Type) extends Type
+case class TLam(val param: Type, val ret: Type) extends Type
 
 /** A union type. */
 case class TUnion(val left: Type, val right: Type) extends Type
@@ -22,7 +22,7 @@ case class TUnion(val left: Type, val right: Type) extends Type
 case class TInter(val left: Type, val right: Type) extends Type
 
 /** A constraing type. */
-class TConstraining(val base: Type, val bounds: List[Bound]) extends Type
+case class TConstraining(val base: Type, val bounds: List[Bound]) extends Type
 
 type TBot = TBot.type
 type TTop = TTop.type

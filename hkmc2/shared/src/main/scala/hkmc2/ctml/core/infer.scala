@@ -68,6 +68,10 @@ def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
       val constrainBounds = inferConstrainSub(inferType, ascr.type_, ctx1)
       (ascr.type_, constrainBounds ::: inferBounds)
 
+    // Pattern matching
+    case match_ : EMatch =>
+      throw new TypeError("TODO")
+
 /** Constrain a type to be a subtype of another in type inference, or throw an exception if that
  * relation cannot be satisfied. */
 def inferConstrainSub(sub: Type, sup: Type, ctx: Context): List[Bound] =

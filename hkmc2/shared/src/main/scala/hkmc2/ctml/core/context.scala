@@ -6,6 +6,8 @@ import hkmc2.ctml.types.*
 var freshVarCounter = 0
 
 extension (ctx: Context)
+  // Iterators
+
   /** Iterate over the term variables of the context. */
   def vars: Iterator[CtxVar] =
     ctx.iterator.flatMap((level) =>
@@ -36,21 +38,107 @@ extension (ctx: Context)
           None
     )
 
+  /** Iterate over the bounds of a type variable in the context*/
+  def varBounds(varName: String): Iterator[Bound] =
+    ctx.bounds.filter((bound) => bound.name == varName)
+
+  // Getters
+
   /** Get the type of a term variable in the context. */
   def getVarType(varName: String): Type =
-    var var_ = ctx.vars.find((var_) => var_.name == varName)
-    if var_ == None then
-      throw new TypeError(s"Variable '${varName}' not found in the context.")
-
-    var_.get.type_
+    ctx.vars.find((var_) => var_.name == varName) match
+      case Some(var_) =>
+        var_.type_
+      case None =>
+        throw new TypeError(s"Variable '${varName}' not found in the context.")
 
   /** Get a type variable in the context. */
   def getTypeVar(varName: String): CtxTypeVar =
-    var var_ = ctx.typeVars.find((var_) => var_.name == varName)
-    if var_ == None then
-      throw new TypeError(s"Type variable '${varName}' not found in the context.")
+    ctx.typeVars.find((var_) => var_.name == varName) match
+      case Some(var_) =>
+        var_
+      case None =>
+        throw new TypeError(s"Type variable '${varName}' not found in the context.")
 
-    var_.get
+  // Merge bounds
+
+  /** Merge two lists of bounds such that they must both be satisfied. */
+  def meetBounds(lefts: List[Bound], rights: List[Bound]): List[Bound] =
+    // Check if each right bound is satisfied in the left bounds to remove subsumed constraints.
+    val filteredRights = ctx.concat(lefts.c).filterUnsatisfiedBounds(rights)
+    // Be careful to check satisfaction against the *filtered* list of constraints to not remove duplicate
+    // constraints entirely.
+    val filteredLefts = ctx.concat(filteredRights.c).filterUnsatisfiedBounds(lefts)
+    // Return the concatenation of the filtered bounds.
+    filteredLefts ::: filteredRights
+
+  /** Merge two lists of bounds such that either of those must be satisfied. */
+  def joinBounds(lefts: List[Bound], rights: List[Bound]): List[Bound] =
+    val lowerBounds = joinBoundsDir(lefts, rights, Direction.Sub)
+    val upperBounds = joinBoundsDir(lefts, rights, Direction.Super)
+    lowerBounds ::: upperBounds
+
+  /** Join two lists of bounds in a given typing direction. */
+  def joinBoundsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
+    val varNames = getBoundedVarsDir(lefts, rights, dir)
+    ctx.joinVarsBoundsDir(varNames, lefts, rights, dir)
+
+  /** Get the variables bounded in a given typing direction in either of two bound lists. */
+  def getBoundedVarsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[String] =
+    val typeVars = ctx.typeVars.map(_.name).toList
+    val leftVars  = lefts.filterBoundedVars(typeVars, dir)
+    val rightVars = rights.filterBoundedVars(typeVars, dir)
+    joinVars(leftVars, rightVars)
+
+  /** Get the join bounds of some variables in two lists of constrains in a given typing direction. */
+  def joinVarsBoundsDir(varNames: List[String], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
+    varNames.map((varName) =>
+      val type_ = ctx.joinVarBounds(varName, lefts, rights, dir)
+      Bound(varName, dir, type_)
+    )
+
+  /** Get the join of the bounds of a variable in two lists of constraints. */
+  def joinVarBounds(varName: String, lefts: List[Bound], rights: List[Bound], dir: Direction) =
+    given Context = ctx
+    val leftBounds  = lefts.collectVarBounds(varName, dir)
+    val rightBounds = rights.collectVarBounds(varName, dir)
+    val leftBound  = combineMany(leftBounds,  dir)
+    val rightBound = combineMany(rightBounds, dir)
+    val leftType  =
+      given Context = (Bound(varName, dir, leftBound).c :: ctx)
+      attachConstrainingBounds(leftBound, lefts)
+    val rightType =
+      given Context = (Bound(varName, dir, rightBound).c :: ctx)
+      attachConstrainingBounds(rightBound, rights)
+    join(leftType, rightType)
+
+  // Combinators
+
+  /** Evaluate all the given functions and meet their returned bounds. */
+  def all(fs: (() => List[Bound])*): List[Bound] =
+    fs.map(_()).flatten.toList
+
+  /** Evaluate all the given functions and join their returned bounds. */
+  def any(fs: (() => List[Bound])*): List[Bound] =
+    val result = fs.foldRight(None: Option[List[Bound]])((f, result) =>
+      try
+        val bounds = f()
+        result match
+          case Some(resultBounds) =>
+            Some(joinBounds(resultBounds, bounds))
+          case None =>
+            Some(bounds)
+      catch
+        case _ : TypeError =>
+          None
+    )
+    result match
+      case Some(bounds) =>
+        bounds
+      case None =>
+        throw new TypeError("No alternative for any.")
+
+  // Others
 
   /** Check whether a type variable is a fresh variable in the context. */
   def isTypeVarFresh(varName: String): Boolean =
@@ -62,8 +150,8 @@ extension (ctx: Context)
 
   /** Get the lower bound of a type variable in the context. */
   def getVarLowerBound(varName: String): Type =
-    ctx.bounds
-      .filter((bound) => bound.name == varName && bound.dir == Direction.Super)
+    ctx.varBounds(varName)
+      .filter(_.dir == Direction.Super)
       .foldRight(TBot: Type)((bound, type_) =>
         given Context = ctx
         join(type_, bound.type_)
@@ -71,38 +159,15 @@ extension (ctx: Context)
 
   /** Get the upper bound of a type variable in the context. */
   def getVarUpperBound(varName: String): Type =
-    ctx.bounds
-      .filter((bound) => bound.name == varName && bound.dir == Direction.Sub)
+    ctx.varBounds(varName)
+      .filter(_.dir == Direction.Sub)
       .foldRight(TTop: Type)((bound, type_) =>
         given Context = ctx
         meet(type_, bound.type_)
       )
 
-  /** Evaluate a function within a context with a new fresh type variable. */
-  def withFreshVarLevel(f: (String, Context) => (Type, List[Bound])): (Type, List[Bound]) =
-    withFreshVar((varName, varCtx) =>
-      val (type_ , bounds) = f(varName, varCtx)
-      val newCtx = concatCtxs(ctx, bounds.c)
-      val polarities =
-        given Polarity = Polarity.Positive
-        getVarPolarities(type_, varName)
-      polarities match
-        case Polarities(true, true) =>
-          // TODO: Polymorphism.
-          (type_, bounds)
-        case Polarities(true, false) =>
-          val upperBound = newCtx.getVarUpperBound(varName)
-          given Context = newCtx
-          val newType = substitute(type_, varName, upperBound)
-          (newType, bounds)
-        case Polarities(false, true) =>
-          val lowerBound = newCtx.getVarLowerBound(varName)
-          given Context = newCtx
-          val newType = substitute(type_, varName, lowerBound)
-          (newType, bounds)
-        case Polarities(false, false) =>
-          (type_, bounds)
-    )
+  def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
+    bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
 
 /** Concatenante some contexts. */
 def concatCtxs(ctxs: Context*): Context =
@@ -119,3 +184,8 @@ def withFreshVar[T](f: (String, Context) => T): T =
   freshVarCounter += 1
   var varCtx = CtxTypeVar(varName, TypeVarKind.Fresh) :: Nil
   f(varName, varCtx)
+
+/** Join two lists of variables by removing duplicates. */
+def joinVars(lefts: List[String], rights: List[String]): List[String] =
+  val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
+  lefts ::: filteredRights

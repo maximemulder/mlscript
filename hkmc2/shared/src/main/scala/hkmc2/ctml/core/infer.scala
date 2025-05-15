@@ -2,6 +2,34 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 
+extension (ctx: Context)
+  /** Evaluate a function within a context with a new fresh type variable. */
+  def withFreshVarLevel(f: (String, Context) => (Type, List[Bound])): (Type, List[Bound]) =
+    withFreshVar((varName, varCtx) =>
+      val (type_ , bounds) = f(varName, varCtx)
+      val newCtx = concatCtxs(ctx, bounds.c)
+      val polarities =
+        given Polarity = Polarity.Positive
+        getVarPolarities(type_, varName)
+      val (newType, newBounds) = polarities match
+        case Polarities(true, true) =>
+          // TODO: Polymorphism.
+          (type_, bounds)
+        case Polarities(true, false) =>
+          val upperBound = newCtx.getVarUpperBound(varName)
+          given Context = newCtx
+          val newType = substitute(type_, varName, upperBound)
+          (newType, bounds)
+        case Polarities(false, true) =>
+          val lowerBound = newCtx.getVarLowerBound(varName)
+          given Context = newCtx
+          val newType = substitute(type_, varName, lowerBound)
+          (newType, bounds)
+        case Polarities(false, false) =>
+          (type_, bounds)
+      (newType, newBounds.removeVar(varName))
+    )
+
 /** Infer the type of an expression. */
 def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
   expr match

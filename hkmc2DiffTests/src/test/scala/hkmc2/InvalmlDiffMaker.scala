@@ -67,8 +67,10 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
 
       try
         ctml.core.freshVarCounter = 0
-        val (type_, _) = ctml.core.infer(expr, Context.primitive)
+        val (type_, bounds) = ctml.core.infer(expr, Context.primitive)
         output(type_.show())
+        if bounds != Nil then
+          output(bounds.show())
       catch
         case error: TypeError =>
           output(s"TYPE ERROR: ${error.getMessage()}")

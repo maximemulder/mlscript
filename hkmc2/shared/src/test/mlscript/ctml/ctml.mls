@@ -20,5 +20,5 @@ true
 "Yo" as String
 //│ String
 
-(x) => (x as String)
-//│ String → String
+(x) => (x as Int)
+//│ Int → Int

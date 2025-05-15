@@ -13,3 +13,12 @@ def getFreshVarName(i: Int): String = {
     i.toString()
   }
 }
+
+extension [T](iterator: Iterator[T])
+  def takeWhileInclusive(p: T => Boolean): Iterator[T] =
+    var shouldContinue = true
+    iterator.takeWhile((elem) =>
+      val result = shouldContinue
+      if !p(elem) then shouldContinue = false
+      result
+    )

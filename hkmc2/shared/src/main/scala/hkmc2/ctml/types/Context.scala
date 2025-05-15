@@ -25,13 +25,13 @@ object Context:
 sealed class CtxLevel
 
 /** A term variable. */
-class CtxVar(val name: String, val type_ : Type) extends CtxLevel
+case class CtxVar(val name: String, val type_ : Type) extends CtxLevel
 
 /** A type variable, which can be either rigid or fresh. */
-class CtxTypeVar(val name: String, val kind: TypeVarKind) extends CtxLevel
+case class CtxTypeVar(val name: String, val kind: TypeVarKind) extends CtxLevel
 
 /** A type variable bound, which should be respected by any term typed in this context. */
-class CtxBound(val bound: Bound) extends CtxLevel
+case class CtxBound(val bound: Bound) extends CtxLevel
 
 /** The kind of a type variable. */
 enum TypeVarKind:

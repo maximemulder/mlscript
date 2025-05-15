@@ -19,7 +19,12 @@ extension (type_ : Type)
       case inter: TInter =>
         s"${inter.left.show()} ∧ ${inter.right.show()}"
       case constraining: TConstraining =>
-        s"${constraining.base.show()} ⇒ TODO"
+        s"${constraining.base.show()} ⇒ ${constraining.bounds.show()}"
+
+extension (bounds: List[Bound])
+  /** Convert a list of bounds to its string representation. */
+  def show(): String =
+    return bounds.map(_.show()).mkString(", ")
 
 extension (bound: Bound)
   /** Convert the bound to its string representation. */

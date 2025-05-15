@@ -32,19 +32,35 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
 
   var subUnionSplit = splitUnion(sub)
   if subUnionSplit.isDefined then
-    None  // TODO
+    val (subLeft, subRight) = subUnionSplit.get
+    ctx.all(
+      () => constrainSub(subLeft,  sup),
+      () => constrainSub(subRight, sup),
+    )
 
   var supUnionSplit = splitUnion(sup)
   if supUnionSplit.isDefined then
-    None  // TODO
+    val (supLeft, supRight) = supUnionSplit.get
+    ctx.any(
+      () => constrainSub(sub, supLeft),
+      () => constrainSub(sub, supRight),
+    )
 
   var supInterSplit = splitInter(sup)
   if supInterSplit.isDefined then
-    None  // TODO
+    val (supLeft, supRight) = supInterSplit.get
+    ctx.all(
+      () => constrainSub(sub, supLeft),
+      () => constrainSub(sub, supRight),
+    )
 
   var subInterSplit = splitInter(sub)
   if subInterSplit.isDefined then
-    None  // TODO
+    val (subLeft, subRight) = subInterSplit.get
+    ctx.any(
+      () => constrainSub(subLeft, sup),
+      () => constrainSub(subRight, sup),
+    )
 
   // Check constraining types.
 
@@ -87,3 +103,15 @@ def checkSub(sub: Type, sup: Type)(using ctx: Context): Boolean =
 /** Check whether tow types are equal without requiring any additional constraint. */
 def checkEq(left: Type, right: Type)(using ctx: Context): Boolean =
   checkSub(left, right) && checkSub(right, left)
+
+extension (ctx: Context)
+  /** Check if a bound is satisified in the context. */
+  def checkBoundSatisfied(bound: Bound) =
+    val var_ = TVar(bound.name)
+    bound.dir match
+      case Direction.Sub =>
+        given Context = ctx
+        checkSub(var_, bound.type_)
+      case Direction.Super =>
+        given Context = ctx
+        checkSub(bound.type_, var_)

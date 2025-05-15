@@ -14,8 +14,10 @@ true
 1.2
 //│ Decimal
 
-"Yooo"
-//│ String
+if "Hello" is
+    Int    then "Int"
+    String then "String"
+//│ TYPE ERROR: TODO
 
 "Yo" as String
 //│ String

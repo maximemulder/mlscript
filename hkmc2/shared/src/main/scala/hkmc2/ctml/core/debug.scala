@@ -10,5 +10,5 @@ def debug(message: String) =
 def debugType(type_ : Type) =
   outputter(type_.show())
 
-def debugBounds(bounds: Bounds) =
+def debugBounds(bounds: List[Bound]) =
   outputter(bounds.map(_.show()).mkString(", "))

@@ -14,13 +14,25 @@ true
 1.2
 //│ Decimal
 
-if "Hello" is
-    Int    then "Int"
-    String then "String"
-//│ TYPE ERROR: TODO
+(x) =>
+    if x is
+        Int    then "Int"
+        String then "String"
+//│ OK String <= ⊤
+//│ FAIL Int <= String
+//│ FAIL String <= Int
+//│ OK α <= Int ∨ String
+//│ OK α <= Int
+//│ OK α <= String
+//│ OK String <= String
+//│ OK Int ∨ String <= ⊤
+//│ ⊤ → String
 
 "Yo" as String
+//│ OK String <= String
 //│ String
 
 (x) => (x as Int)
-//│ Int → Int
+//│ OK α <= Int
+//│ OK Int <= ⊤
+//│ ⊤ → Int

@@ -11,3 +11,7 @@ def join(left: Type, right: Type)(using ctx: Context): Type =
     return right
 
   TUnion(left, right)
+
+/** Get the simplified join of many types. */
+def joinMany(types: List[Type])(using ctx: Context): Type =
+  types.foldRight(TTop)(join)

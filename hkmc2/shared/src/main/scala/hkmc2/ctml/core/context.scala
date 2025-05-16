@@ -170,9 +170,13 @@ extension (ctx: Context)
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
 
-/** Concatenante some contexts. */
-def concatCtxs(ctxs: Context*): Context =
-  ctxs.flatten.toList
+  /** Concatenate some bounds to the context. */
+  def concatBounds(bounds: List[Bound]*): Context =
+    bounds.reverse.flatten.toList.c ::: ctx
+
+  /** Concatenate some contexts to the context. */
+  def concatContext(contexts: Context*): Context =
+    contexts.reverse.flatten.toList ::: ctx
 
 /** Evaluate a function within a context with a new term variable. */
 def withVar[T](varName: String, varType : Type, f: (Context) => T): T =

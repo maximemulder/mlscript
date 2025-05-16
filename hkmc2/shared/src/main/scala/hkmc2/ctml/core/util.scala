@@ -22,3 +22,13 @@ extension [T](iterator: Iterator[T])
       if !p(elem) then shouldContinue = false
       result
     )
+
+extension [T](list: List[T])
+  def fold1Right(f: (T, T) => T): T =
+    list match
+      case Nil =>
+        throw new Exception("Called fold1Right on an empty list.")
+      case head :: Nil  =>
+        head
+      case head :: tail =>
+        f(head, tail.fold1Right(f))

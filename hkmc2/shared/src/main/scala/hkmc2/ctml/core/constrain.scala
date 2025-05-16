@@ -4,13 +4,27 @@ import hkmc2.ctml.types.*
 
 
 /** Constrain a type to be a subtype of another type in a context. */
-def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bound] =
+def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
+  try
+    tab += 1
+    val a = constrainSubImpl(sub, sup)
+    tab -= 1
+    debug(s"OK ${sub.show()} <= ${sup.show()}")
+    return a
+  catch
+    case error : TypeError =>
+      tab -= 1
+      debug(s"FAIL ${sub.show()} <= ${sup.show()}")
+      throw error
+
+/** Implementation of `constrainSub` */
+def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
   // Check the top and bottom types.
 
   if sub.is[TBot] then
     return Nil
 
-  if sub.is[TTop] then
+  if sup.is[TTop] then
     return Nil
 
   // Check equal variables
@@ -33,7 +47,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
   var subUnionSplit = splitUnion(sub)
   if subUnionSplit.isDefined then
     val (subLeft, subRight) = subUnionSplit.get
-    ctx.all(
+    return ctx.all(
       () => constrainSub(subLeft,  sup),
       () => constrainSub(subRight, sup),
     )
@@ -41,7 +55,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
   var supUnionSplit = splitUnion(sup)
   if supUnionSplit.isDefined then
     val (supLeft, supRight) = supUnionSplit.get
-    ctx.any(
+    return ctx.any(
       () => constrainSub(sub, supLeft),
       () => constrainSub(sub, supRight),
     )
@@ -49,7 +63,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
   var supInterSplit = splitInter(sup)
   if supInterSplit.isDefined then
     val (supLeft, supRight) = supInterSplit.get
-    ctx.all(
+    return ctx.all(
       () => constrainSub(sub, supLeft),
       () => constrainSub(sub, supRight),
     )
@@ -57,7 +71,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
   var subInterSplit = splitInter(sub)
   if subInterSplit.isDefined then
     val (subLeft, subRight) = subInterSplit.get
-    ctx.any(
+    return ctx.any(
       () => constrainSub(subLeft, sup),
       () => constrainSub(subRight, sup),
     )
@@ -76,7 +90,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode): List[Bou
   if sub.is[TLam] && sup.is[TLam] then
     return constrainSubLam(sub.as[TLam], sup.as[TLam])
 
-  throw new TypeError("Fail default case.")
+  throw new TypeError(s"Fail default case ${sub.show()} <= ${sup.show()}.")
 
 def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): List[Bound] =
   if sub.name == sup.name then

@@ -57,7 +57,9 @@ def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
         val mockLamType = TLam(argType, TVar(mockRetVarName))
 
         val ctx2 = concatCtxs(argBounds.c, lamBounds.c, ctx1)
-        val inferBounds = inferConstrainSub(lamType, mockLamType, ctx2)
+        val inferBounds =
+          given Context = ctx2
+          constrainSub(lamType, mockLamType)
         (TVar(mockRetVarName), inferBounds ::: argBounds ::: lamBounds)
       )
 
@@ -65,16 +67,49 @@ def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
     case ascr: EAscr =>
       val (inferType, inferBounds) = infer(ascr.expr, ctx)
       val ctx1 = concatCtxs(inferBounds.c, ctx)
-      val constrainBounds = inferConstrainSub(inferType, ascr.type_, ctx1)
+      val constrainBounds =
+        given Context = ctx1
+        constrainSub(inferType, ascr.type_)
       (ascr.type_, constrainBounds ::: inferBounds)
 
-    // Pattern matching
     case match_ : EMatch =>
-      throw new TypeError("TODO")
+      inferMatch(match_, ctx)
 
-/** Constrain a type to be a subtype of another in type inference, or throw an exception if that
- * relation cannot be satisfied. */
-def inferConstrainSub(sub: Type, sup: Type, ctx: Context): List[Bound] =
-  given Context = ctx
-  given Mode = Mode.Constrain
-  constrainSub(sub, sup)
+/** Infer the type of a match expression. */
+def inferMatch(match_ : EMatch, ctx: Context): (Type, List[Bound]) =
+  // Infer the type and bounds of the scrutinee.
+  val (scrutineeType, scrutineeBounds) = infer(match_.expr, ctx)
+  val ctx1 = concatCtxs(scrutineeBounds.c, ctx)
+  // Get the union of the cases.
+  val casesType =
+    given Context = ctx1
+    joinMany(match_.cases.map(_.type_))
+  // Constrain the type of the scrutinee to be a subtype of the type of the cases.
+  val constrainBounds =
+    given Context = ctx1
+    constrainSub(scrutineeType, casesType)
+  // Infer each match case.
+  val ctx2 = concatCtxs(constrainBounds.c, ctx1)
+  val (casesType2, cases2Bounds) = match_.cases
+    .map(inferMatchCase(_, scrutineeType, ctx2))
+    .fold1Right((case_, cases) =>
+      val (caseType, caseBounds) = case_
+      val (casesType, casesBonds) = cases
+      val caseConstrainingType =
+        given Context = ctx2
+        attachConstrainingBounds(caseType, caseBounds)
+      val casesConstrainingType =
+        given Context = ctx2
+        join(casesType, caseConstrainingType)
+      (casesConstrainingType, Nil)
+    )
+
+  (casesType2, constrainBounds ::: scrutineeBounds)
+
+/** Infer the type of a match case. */
+def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Context): (Type, List[Bound]) =
+  val scrutineeBounds =
+    given Context = ctx
+    constrainSub(scrutineeType, case_.type_)
+  val ctx3 = concatCtxs(ctx, scrutineeBounds.c)
+  infer(case_.body, ctx3)

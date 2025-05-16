@@ -129,9 +129,10 @@ extension (ctx: Context)
           case None =>
             Some(bounds)
       catch
-        case _ : TypeError =>
-          None
+        case error : TypeError =>
+          result
     )
+
     result match
       case Some(bounds) =>
         bounds

@@ -5,17 +5,7 @@ import hkmc2.ctml.types.*
 
 /** Constrain a type to be a subtype of another type in a context. */
 def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
-  try
-    tab += 1
-    val a = constrainSubImpl(sub, sup)
-    tab -= 1
-    debug(s"OK ${sub.show()} <= ${sup.show()}")
-    return a
-  catch
-    case error : TypeError =>
-      tab -= 1
-      debug(s"FAIL ${sub.show()} <= ${sup.show()}")
-      throw error
+  constrainSubImpl(sub, sup)
 
 /** Implementation of `constrainSub` */
 def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =

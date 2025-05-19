@@ -13,6 +13,10 @@ enum Polarity:
       case Negative => Positive
       case Positive => Negative
 
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
+
 /** The type polarities at which a variable occurs in a type. */
 case class Polarities(
   /** Does the variable occurs at a negative polarity? */

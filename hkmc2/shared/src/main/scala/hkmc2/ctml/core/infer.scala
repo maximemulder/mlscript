@@ -76,12 +76,12 @@ def infer(expr: Expr, ctx: Context): (Type, List[Bound]) =
 /** Infer the type of a match expression. */
 def inferMatch(match_ : EMatch, ctx: Context): (Type, List[Bound]) =
   // Infer the type and bounds of the scrutinee.
-  val (scrutineeType, scrutineeBounds) = infer(match_.expr, ctx)
+  val (scrutineeType, scrutineeBounds) = infer(match_.scrutinee, ctx)
   val scrutineeCtx = ctx.concatBounds(scrutineeBounds)
   // Get the union of the cases.
   val patternsType =
     given Context = scrutineeCtx
-    joinMany(match_.cases.map(_.type_))
+    joinMany(match_.cases.map(_.pattern))
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
   val patternsBounds =
     given Context = scrutineeCtx
@@ -104,8 +104,8 @@ def inferMatch(match_ : EMatch, ctx: Context): (Type, List[Bound]) =
 
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Context): (Type, List[Bound]) =
-  val scrutineeBounds =
+  val patternBounds =
     given Context = ctx
-    constrainSub(scrutineeType, case_.type_)
-  val caseCtx = ctx.concatBounds(scrutineeBounds)
+    constrainSub(scrutineeType, case_.pattern)
+  val caseCtx = ctx.concatBounds(patternBounds)
   infer(case_.body, caseCtx)

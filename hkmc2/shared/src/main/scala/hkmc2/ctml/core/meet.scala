@@ -4,11 +4,15 @@ import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
 def meet(left: Type, right: Type)(using ctx: Context): Type =
+  meetImpl(left, right)
+
+/** Implementation of `meet`. */
+def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
   if checkSub(right, left) then
-    return left
+    return right
 
   if checkSub(left, right) then
-    return right
+    return left
 
   var fusedMeet = meetDisjoint(left, right)
   if fusedMeet.isDefined then

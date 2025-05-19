@@ -79,34 +79,33 @@ def inferMatch(match_ : EMatch, ctx: Context): (Type, List[Bound]) =
   val (scrutineeType, scrutineeBounds) = infer(match_.expr, ctx)
   val scrutineeCtx = ctx.concatBounds(scrutineeBounds)
   // Get the union of the cases.
-  val casesType =
+  val patternsType =
     given Context = scrutineeCtx
     joinMany(match_.cases.map(_.type_))
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
-  val constrainBounds =
+  val patternsBounds =
     given Context = scrutineeCtx
-    constrainSub(scrutineeType, casesType)
+    given Mode = Mode.Constrain
+    constrainSub(scrutineeType, patternsType)
+  val patternsCtx = scrutineeCtx.concatBounds(patternsBounds)
   // Infer each match case.
-  val casesCtx = ctx.concatBounds(scrutineeBounds, constrainBounds)
-  val (casesType2, cases2Bounds) = match_.cases
-    .map(inferMatchCase(_, scrutineeType, casesCtx))
+  given Context = patternsCtx
+  val (casesType, casesBounds) = match_.cases
+    .map(inferMatchCase(_, scrutineeType, patternsCtx))
     .fold1Right((case_, cases) =>
       val (caseType, caseBounds) = case_
-      val (casesType, casesBonds) = cases
-      val caseConstrainingType =
-        given Context = casesCtx
-        attachConstrainingBounds(caseType, caseBounds)
-      val casesConstrainingType =
-        given Context = casesCtx
-        join(casesType, caseConstrainingType)
-      (casesConstrainingType, Nil)
+      val (casesType, casesBounds) = cases
+      val type_ = join(caseType, casesType)
+      val bounds = patternsCtx.joinBounds(caseBounds, casesBounds)
+      (type_, bounds)
     )
 
-  (casesType2, constrainBounds ::: scrutineeBounds)
+  (casesType, casesBounds)
 
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Context): (Type, List[Bound]) =
   val scrutineeBounds =
     given Context = ctx
     constrainSub(scrutineeType, case_.type_)
-  infer(case_.body, ctx.concatBounds(scrutineeBounds))
+  val caseCtx = ctx.concatBounds(scrutineeBounds)
+  infer(case_.body, caseCtx)

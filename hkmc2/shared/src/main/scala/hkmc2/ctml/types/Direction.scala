@@ -6,3 +6,7 @@ enum Direction:
   case Sub
   /** The supertype direction. */
   case Super
+
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()

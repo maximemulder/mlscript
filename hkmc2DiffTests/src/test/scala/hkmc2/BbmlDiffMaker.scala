@@ -5,11 +5,11 @@ import mlscript.utils.*, shorthands.*
 import hkmc2.semantics.*
 import hkmc2.bbml.*
 import hkmc2.ctml.core.parseExpr
-import hkmc2.ctml.core.show
 import hkmc2.ctml.types.Context
 import hkmc2.ctml.types.ParseError
 import hkmc2.ctml.types.Type
 import hkmc2.ctml.types.TypeError
+import hkmc2.ctml.types.show
 import utils.Scope
 
 

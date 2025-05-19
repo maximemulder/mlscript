@@ -167,6 +167,7 @@ extension (ctx: Context)
         meet(type_, bound.type_)
       )
 
+  /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
 

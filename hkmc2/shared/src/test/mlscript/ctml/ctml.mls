@@ -14,25 +14,15 @@ true
 1.2
 //│ Decimal
 
-(x) =>
-    if x is
-        Int    then "Int"
-        String then "String"
-//│ OK String <= ⊤
-//│ FAIL Int <= String
-//│ FAIL String <= Int
-//│ OK α <= Int ∨ String
-//│ OK α <= Int
-//│ OK α <= String
-//│ OK String <= String
-//│ OK Int ∨ String <= ⊤
-//│ ⊤ → String
+(a) => (b) =>
+    if a is
+        Int    then (b as Int)
+        String then (b as String)
+//│ ⊤ → Int ⇒ β ≤ Int ∨ String ⇒ β ≤ String → Int ∨ String
+
 
 "Yo" as String
-//│ OK String <= String
 //│ String
 
 (x) => (x as Int)
-//│ OK α <= Int
-//│ OK Int <= ⊤
-//│ ⊤ → Int
+//│ Int → Int

@@ -1,6 +1,4 @@
-package hkmc2.ctml.core
-
-import hkmc2.ctml.types.*
+package hkmc2.ctml.types
 
 extension (type_ : Type)
   /** Convert the type to its string representation. */
@@ -21,11 +19,6 @@ extension (type_ : Type)
       case constraining: TConstraining =>
         s"${constraining.base.show()} ⇒ ${constraining.bounds.show()}"
 
-extension (bounds: List[Bound])
-  /** Convert a list of bounds to its string representation. */
-  def show(): String =
-    return bounds.map(_.show()).mkString(", ")
-
 extension (bound: Bound)
   /** Convert the bound to its string representation. */
   def show(): String =
@@ -44,3 +37,15 @@ extension (pol: Polarity)
     pol match
       case Polarity.Negative => "−"
       case Polarity.Positive => "+"
+
+extension (mode: Mode)
+  /** Convert a typing mode to its string representation. */
+  def show(): String =
+    mode match
+      case Mode.Constrain => "constrain"
+      case Mode.Check     => "check"
+
+extension (bounds: List[Bound])
+  /** Convert a list of bounds to its string representation. */
+  def show(): String =
+    return bounds.map(_.show()).mkString(", ")

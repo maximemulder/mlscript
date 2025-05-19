@@ -1,7 +1,10 @@
 package hkmc2.ctml.types
 
 /** A type. */
-sealed trait Type
+sealed trait Type:
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
 
 /** The bottom type. */
 case object TBot extends Type

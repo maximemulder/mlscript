@@ -3,7 +3,7 @@ package hkmc2
 import hkmc2.utils.*, shorthands.*
 
 import hkmc2.ctml.core.parseExpr
-import hkmc2.ctml.core.show
+import hkmc2.ctml.types.show
 import hkmc2.ctml.types.Context
 import hkmc2.ctml.types.ParseError
 import hkmc2.ctml.types.Type

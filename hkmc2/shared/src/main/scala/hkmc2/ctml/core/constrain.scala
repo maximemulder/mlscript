@@ -7,7 +7,7 @@ import hkmc2.ctml.types.*
 def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
   constrainSubImpl(sub, sup)
 
-/** Implementation of `constrainSub` */
+/** Implementation of `constrainSub`. */
 def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
   // Check the top and bottom types.
 
@@ -24,13 +24,15 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode
 
   // Check fresh variables in constraining mode.
 
-  if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
-    // TODO: Check and propagate bounds.
-    return List(Bound(sub.as[TVar].name, Direction.Sub, sup))
+  if mode == Mode.Constrain then
 
-  if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
-    // TODO: Check and propagate bounds.
-    return List(Bound(sub.as[TVar].name, Direction.Super, sub))
+    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
+      // TODO: Check and propagate bounds.
+      return List(Bound(sub.as[TVar].name, Direction.Sub, sup))
+
+    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
+      // TODO: Check and propagate bounds.
+      return List(Bound(sub.as[TVar].name, Direction.Super, sub))
 
   // Check union and intersection types.
 
@@ -80,7 +82,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode
   if sub.is[TLam] && sup.is[TLam] then
     return constrainSubLam(sub.as[TLam], sup.as[TLam])
 
-  throw new TypeError(s"Fail default case ${sub.show()} <= ${sup.show()}.")
+  throw new TypeError(s"Fail default case ${sub} <= ${sup}.")
 
 def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): List[Bound] =
   if sub.name == sup.name then
@@ -96,13 +98,13 @@ def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): List[
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSub(sub: Type, sup: Type)(using ctx: Context): Boolean =
   given Mode = Mode.Check
-
   try
     constrainSub(sub, sup)
-    return true
   catch
     case _: TypeError =>
       return false
+
+  return true
 
 /** Check whether tow types are equal without requiring any additional constraint. */
 def checkEq(left: Type, right: Type)(using ctx: Context): Boolean =

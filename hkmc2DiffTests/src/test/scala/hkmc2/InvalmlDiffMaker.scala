@@ -2,12 +2,6 @@ package hkmc2
 
 import hkmc2.utils.*, shorthands.*
 
-import hkmc2.ctml.core.parseExpr
-import hkmc2.ctml.types.show
-import hkmc2.ctml.types.Context
-import hkmc2.ctml.types.ParseError
-import hkmc2.ctml.types.Type
-import hkmc2.ctml.types.TypeError
 import hkmc2.semantics.*
 import hkmc2.invalml.*
 import utils.Scope
@@ -26,7 +20,8 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
         curCtx = Elaborator.State.init
         given Config = mkConfig
         importFile(invalPreludeFile, verbose = false)
-  /** Constraint types command. */
+
+  /** CTML command. */
   val ctmlOpt = new NullaryCommand("ctml")
 
   override def init(): Unit =
@@ -56,21 +51,4 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
-      ctml.core.outputter = (message) => output(message)
-
-      val expr = try
-        term.parseExpr()
-      catch
-        case error: ParseError =>
-          output(s"PARSE ERROR: ${error.getMessage()}")
-          return
-
-      try
-        ctml.core.freshVarCounter = 0
-        val (type_, bounds) = ctml.core.infer(expr, Context.primitive)
-        output(type_.show())
-        if bounds != Nil then
-          output(bounds.show())
-      catch
-        case error: TypeError =>
-          output(s"TYPE ERROR: ${error.getMessage()}")
+      hkmc2.ctml.test.test(term, (message) => output(message))

@@ -16,8 +16,10 @@ extension (type_ : Type)
         s"${union.left.show()} ∨ ${union.right.show()}"
       case inter: TInter =>
         s"${inter.left.show()} ∧ ${inter.right.show()}"
+      case constrained: TConstrained =>
+        s"∀${showVars(constrained.vars)}. ${constrained.base.show()} ⇐ {${showBounds(constrained.bounds)}}"
       case constraining: TConstraining =>
-        s"${constraining.base.show()} ⇒ ${constraining.bounds.show()}"
+        s"${constraining.base.show()} ⇒ {${showBounds(constraining.bounds)}}"
 
 extension (bound: Bound)
   /** Convert the bound to its string representation. */
@@ -45,7 +47,10 @@ extension (mode: Mode)
       case Mode.Constrain => "constrain"
       case Mode.Check     => "check"
 
-extension (bounds: List[Bound])
-  /** Convert a list of bounds to its string representation. */
-  def show(): String =
-    return bounds.map(_.show()).mkString(", ")
+/** Convert a list of bounds to its string representation. */
+def showBounds(bounds: List[Bound]): String =
+  bounds.map(_.show()).mkString(", ")
+
+/** Convert a list of variable names to its string representation. */
+def showVars(vars: List[String]): String =
+  vars.mkString(", ")

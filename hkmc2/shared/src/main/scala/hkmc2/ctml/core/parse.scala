@@ -2,6 +2,7 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Branch
+import hkmc2.semantics.Fld
 import hkmc2.semantics.Pattern
 import hkmc2.semantics.Split
 import hkmc2.semantics.Term
@@ -72,50 +73,73 @@ extension (term: Term)
         val type_ = typeTerm.parseType()
         EAscr(expr, type_)
       // Parse pattern matching.
-      case Term.IfLike(_, Split.Let(_, exprTerm, casesTerm)) =>
+      case Term.IfLike(_, Split.Let(_, exprTerm, casesSplit)) =>
         val expr = exprTerm.parseExpr()
-        val cases = casesTerm.parseCases()
+        val cases = parseSplitCases(casesSplit)
         EMatch(expr, cases)
       case Term.IfLike(_, split) =>
-        split.parseMatch()
+        parseSplitMatch(split)
       case _ =>
           throw new ParseError(term)
 
-extension (split: Split)
-  /** Convert an MLScript split to a CTML pattern matching expression */
-  def parseMatch(): EMatch =
-    split match
-      case Split.Let(_, exprTerm, casesTerm) =>
-        val expr = exprTerm.parseExpr()
-        val cases = casesTerm.parseCases()
-        EMatch(expr, cases)
-      case Split.Cons(branch @ Branch(exprTerm, _, _), consTerm) =>
-        val expr = exprTerm.parseExpr()
-        val case_ = branch.parseCase()
-        val cases = consTerm.parseCases()
-        EMatch(expr, case_ :: cases)
-      case _ =>
-        throw new ParseError(Term.Error)
+/** Convert a MLScript term to a CTML meta expression. */
+def parseMeta(term: Term): Meta =
+  term match
+    // Only parse the final term of blocks.
+    case Term.Blk(_, term) =>
+      parseMeta(term)
+    case Term.App(Term.Ref(symbol), Term.Tup(List(Fld(_, leftTerm, _), Fld(_, rightTerm, _)))) if symbol.nme == "==" =>
+      val leftType  = leftTerm.parseType()
+      val rightType = rightTerm.parseType()
+      MetaType(TypeRel.Eq, leftType, rightType)
+    case Term.App(Term.Ref(symbol), Term.Tup(List(Fld(_, leftTerm, _), Fld(_, rightTerm, _)))) if symbol.nme == "!=" =>
+      val leftType  = leftTerm.parseType()
+      val rightType = rightTerm.parseType()
+      MetaType(TypeRel.Ne, leftType, rightType)
+    case Term.App(Term.Ref(symbol), Term.Tup(List(Fld(_, leftTerm, _), Fld(_, rightTerm, _)))) if symbol.nme == "<=" =>
+      val leftType  = leftTerm.parseType()
+      val rightType = rightTerm.parseType()
+      MetaType(TypeRel.Sub, leftType, rightType)
+    case Term.App(Term.Ref(symbol), Term.Tup(List(Fld(_, leftTerm, _), Fld(_, rightTerm, _)))) if symbol.nme == ">=" =>
+      val leftType  = leftTerm.parseType()
+      val rightType = rightTerm.parseType()
+      MetaType(TypeRel.Sup, leftType, rightType)
+    case _ =>
+      MetaExpr(term.parseExpr())
 
-  /** Convert an MLScript split to a list of CTML pattern matching cases. */
-  def parseCases(): List[EMatchCase] =
-    split match
-      case Split.End =>
-        Nil
-      case Split.Cons(Branch(_, Pattern.ClassLike(_, typeTerm, _, _), Split.Else(exprTerm)), consTerm) =>
-        val type_ = typeTerm.parseType()
-        val expr = exprTerm.parseExpr()
-        EMatchCase(type_, expr) :: consTerm.parseCases()
-      case _ =>
-        throw new ParseError(Term.Error)
+/** Convert an MLScript split to a CTML pattern matching expression */
+def parseSplitMatch(split: Split): EMatch =
+  split match
+    case Split.Let(_, exprTerm, casesSplit) =>
+      val expr = exprTerm.parseExpr()
+      val cases = parseSplitCases(casesSplit)
+      EMatch(expr, cases)
+    case Split.Cons(branch @ Branch(exprTerm, _, _), consSplit) =>
+      val expr = exprTerm.parseExpr()
+      val case_ = parseBranchCase(branch)
+      val cases = parseSplitCases(consSplit)
+      EMatch(expr, case_ :: cases)
+    case _ =>
+      throw new ParseError(Term.Error)
 
-extension (branch: Branch)
-  /** Convert an MLScript branch to a CTML pattern matching case. */
-  def parseCase(): EMatchCase =
-    branch match
-      case Branch(_, Pattern.ClassLike(_, typeTerm, _, _), Split.Else(exprTerm)) =>
-        val type_ = typeTerm.parseType()
-        val expr = exprTerm.parseExpr()
-        EMatchCase(type_, expr)
-      case _ =>
-        throw new ParseError(Term.Error)
+/** Convert an MLScript split to a list of CTML pattern matching cases. */
+def parseSplitCases(split: Split): List[EMatchCase] =
+  split match
+    case Split.End =>
+      Nil
+    case Split.Cons(Branch(_, Pattern.ClassLike(_, typeTerm, _, _), Split.Else(exprTerm)), consSplit) =>
+      val type_ = typeTerm.parseType()
+      val expr = exprTerm.parseExpr()
+      EMatchCase(type_, expr) :: parseSplitCases(consSplit)
+    case _ =>
+      throw new ParseError(Term.Error)
+
+/** Convert an MLScript branch to a CTML pattern matching case. */
+def parseBranchCase(branch: Branch): EMatchCase =
+  branch match
+    case Branch(_, Pattern.ClassLike(_, typeTerm, _, _), Split.Else(exprTerm)) =>
+      val type_ = typeTerm.parseType()
+      val expr = exprTerm.parseExpr()
+      EMatchCase(type_, expr)
+    case _ =>
+      throw new ParseError(Term.Error)

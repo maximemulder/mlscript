@@ -15,7 +15,7 @@ extension (ctx: Context)
       val (newType, newBounds) = polarities match
         case Polarities(true, true) =>
           // TODO: Polymorphism.
-          (type_, bounds)
+          (TConstrained(List(varName), type_, Nil), bounds)
         case Polarities(true, false) =>
           val upperBound = newCtx.getVarUpperBound(varName)
           given Context = newCtx

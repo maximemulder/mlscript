@@ -1,6 +1,7 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
+import hkmc2.syntax.Keyword.pattern
 
 extension (ctx: Context)
   /** Evaluate a function within a context with a new fresh type variable. */
@@ -100,7 +101,7 @@ def inferMatch(match_ : EMatch, ctx: Context): (Type, List[Bound]) =
       (type_, bounds)
     )
 
-  (casesType, casesBounds)
+  (casesType, casesBounds ::: patternsBounds ::: scrutineeBounds)
 
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Context): (Type, List[Bound]) =
@@ -108,4 +109,5 @@ def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Context): (Type
     given Context = ctx
     constrainSub(scrutineeType, case_.pattern)
   val caseCtx = ctx.concatBounds(patternBounds)
-  infer(case_.body, caseCtx)
+  val (bodyType, bodyBounds) = infer(case_.body, caseCtx)
+  (bodyType, bodyBounds ::: patternBounds)

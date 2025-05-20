@@ -1,0 +1,18 @@
+:ctml
+
+//│ Unit
+
+1
+//│ Int
+
+()
+//│ Unit
+
+true
+//│ Bool
+
+1.2
+//│ Decimal
+
+"Hello world"
+//│ String

@@ -1,9 +1,16 @@
 :ctml
+//│ Unit
 
 //│ Unit
 
 Int == Int
 //│ OK
 
-Int != String
+Int != Str
+//│ OK
+
+Int <= Top
+//│ OK
+
+Bot <= Top
 //│ OK

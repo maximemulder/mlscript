@@ -40,8 +40,8 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         parseTypeVar(mlSymbol, mlType)
       case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
         parseExprDecl(mlSymbol, mlType)
-      case TermDefinition(_, _, mlSymbol, _, _, mlType, Some(mlExpr), _, _, _, _) =>
-        parseExprVar(mlSymbol, mlType, mlExpr)
+      case TermDefinition(_, _, mlSymbol, mlParams, _, mlType, Some(mlExpr), _, _, _, _) =>
+        parseExprVar(mlSymbol, mlParams.map(_.allParams).flatten.toList, mlType, mlExpr)
       case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "==" =>
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)
@@ -87,17 +87,27 @@ def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
   StmtExprDecl(name, type_)
 
 /** Convert a MLScript term declaration to a CTML expression variable assignment. */
-def parseExprVar(mlSymbol: BlockMemberSymbol, mlType: Option[Term], mlExpr: Term): Stmt =
+def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType.map(parseType(_))
-  val baseExpr = parseExpr(mlExpr)
-  val expr = type_ match
-    case Some(type_) =>
-      EAscr(baseExpr, type_)
-    case None =>
-      baseExpr
-
+  val expr = parseExprVarBody(mlParams, mlType, mlExpr)
   StmtExprVar(name, expr)
+
+/** Convert a MLScript term declaration to a CTML expression body. */
+def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Expr =
+  mlParams match
+    case Nil =>
+      val type_ = mlType.map(parseType(_))
+      val expr = parseExpr(mlExpr)
+      type_ match
+        case Some(type_) =>
+          EAscr(expr, type_)
+        case None =>
+          expr
+    case mlParam :: mlParams =>
+      val paramName = mlParam.sym.nme
+      val body = parseExprVarBody(mlParams, mlType, mlExpr)
+      ELam(paramName, body)
 
 /** Convert a MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =

@@ -1,7 +1,4 @@
 :ctml
-//│ Unit
-
-//│ Unit
 
 (a, b) =>
     if a is
@@ -10,10 +7,10 @@
 //│ Int ⇒ {β ≤ Int, α ≤ Int} ∨ Str ⇒ {β ≤ Str, α ≤ Str} → Int ⇒ {β ≤ Int} ∨ Str ⇒ {β ≤ Str} → Int ∨ Str
 
 declare val a: Int
-//│ Unit
+//│ OK a: Int
 
 fun f(x) = a
-//│ Unit
+//│ OK f: Int
 
 Int == Int
 //│ OK

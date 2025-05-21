@@ -1,9 +1,0 @@
-:ctml
-
-//│ Unit
-
-(a) => (b) =>
-    if a is
-        Int    then (b as Int)
-        String then (b as String)
-//│ Int ⇒ {β ≤ Int, α ≤ Int} ∨ String ⇒ {β ≤ String, α ≤ String} → Int ⇒ {β ≤ Int} ∨ String ⇒ {β ≤ String} → Int ∨ String

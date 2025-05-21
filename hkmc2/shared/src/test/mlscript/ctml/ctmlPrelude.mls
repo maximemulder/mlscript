@@ -1,0 +1,21 @@
+declare class Object
+declare class Function
+declare class Str
+declare class untyped
+
+declare class Top
+declare class Bot
+
+declare class Unit
+declare class Bool
+declare class Int
+declare class Num
+
+val top: Top
+val bot: Bot
+
+val unit   : Unit
+val bool   : Bool
+val int    : Int
+val num    : Num
+val string : Str

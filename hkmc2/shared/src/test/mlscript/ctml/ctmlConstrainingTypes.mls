@@ -1,0 +1,25 @@
+:ctml
+//│ Unit
+
+//│ Unit
+
+(a) => (b) =>
+    if a is
+        Int then (b as Int)
+        Str then (b as Str)
+//│ Int ⇒ {β ≤ Int, α ≤ Int} ∨ Str ⇒ {β ≤ Str, α ≤ Str} → Int ⇒ {β ≤ Int} ∨ Str ⇒ {β ≤ Str} → Int ∨ Str
+
+declare val a: Int
+//│ Unit
+
+fun f(x) = a
+//│ Unit
+
+Int == Int
+//│ OK
+
+1
+//│ Int
+
+()
+//│ Unit

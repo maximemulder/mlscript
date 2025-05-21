@@ -7,6 +7,7 @@ import hkmc2.semantics.Branch
 import hkmc2.semantics.ClassDef
 import hkmc2.semantics.Fld
 import hkmc2.semantics.Import
+import hkmc2.semantics.Param
 import hkmc2.semantics.Pattern
 import hkmc2.semantics.Split
 import hkmc2.semantics.Statement
@@ -30,19 +31,19 @@ def parseDeclStmt(mlStmt: Statement): Option[Stmt] =
     case Import(_, _) =>
       None
     case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
-      Some(parseTypeDecl(mlSymbol))
+      Some(parseDeclType(mlSymbol))
     case TermDefinition(_, _, mlSymbol, _, _, mlType, _, _, _, _, _) =>
-      Some(parseExprDecl(mlSymbol, mlType))
+      Some(parseDeclExpr(mlSymbol, mlType))
     case _ =>
       throw new ParseError(mlStmt)
 
 /** Convert a MLScript symbol to a CTML type declaration. */
-def parseTypeDecl(mlSymbol: BlockMemberSymbol) =
+def parseDeclType(mlSymbol: BlockMemberSymbol) =
   val name = mlSymbol.nme
   StmtTypeDecl(name)
 
 /** Convert a MLScript symbol and type to a CTML variable declaration. */
-def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]) =
+def parseDeclExpr(mlSymbol: BlockMemberSymbol, mlType: Option[Term]) =
   val name = mlSymbol.nme
   val type_ = mlType match
     case Some(mlType) =>
@@ -133,13 +134,7 @@ def parseExpr(mlExpr: Term): Expr =
       EVar(name)
     // Parse lambda abstractions.
     case Term.Lam(mlParams, mlBody) =>
-      val paramsCount = mlParams.paramCountLB
-      if paramsCount != 1 then
-        throw new ParseError(mlExpr)
-
-      val param = mlParams.allParams(0).sym.name
-      val body  = parseExpr(mlBody)
-      ELam(param, body)
+      parseLambda(mlParams.allParams, mlBody)
     // Parse lambda applications.
     case Term.App(mlLambda, mlArg) =>
       val lam = parseExpr(mlLambda)
@@ -159,6 +154,26 @@ def parseExpr(mlExpr: Term): Expr =
       parseMatch(mlMatch)
     case _ =>
       throw new ParseError(mlExpr)
+
+/** Convert some MLScript function components to a CTML lambda expression. */
+def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
+  mlParams match
+    case Nil =>
+      throw new ParseError(mlBody)
+    case mlParam :: mlParams =>
+      val paramName = mlParam.sym.nme
+      val body = parseLambdaBody(mlParams, mlBody)
+      ELam(paramName, body)
+
+/** Convert some MLScript function components to a CTML lambda expression body. */
+def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
+  mlParams match
+    case Nil =>
+      parseExpr(mlBody)
+    case mlParam :: mlParams =>
+      val paramName = mlParam.sym.nme
+      val body = parseLambdaBody(mlParams, mlBody)
+      ELam(paramName, body)
 
 /** Convert an MLScript split to a CTML pattern matching expression */
 def parseMatch(mlMatch: Split): EMatch =

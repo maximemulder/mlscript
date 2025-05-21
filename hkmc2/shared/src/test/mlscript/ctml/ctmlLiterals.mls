@@ -3,17 +3,20 @@
 
 //│ Unit
 
-unit
+()
 //│ Unit
 
-bool
+true
 //│ Bool
 
-int
+false
+//│ Bool
+
+1
 //│ Int
 
-num
+1.1
 //│ Num
 
-string
+"Hello world"
 //│ Str

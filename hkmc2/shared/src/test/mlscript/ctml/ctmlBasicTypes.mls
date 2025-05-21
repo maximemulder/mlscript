@@ -3,10 +3,16 @@
 
 //│ Unit
 
-Int == Int
+Bot == Bot
 //│ OK
 
-Int != Str
+Top == Top
+//│ OK
+
+Bot <= Top
+//│ OK
+
+Int == Int
 //│ OK
 
 Int <= Top

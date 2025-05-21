@@ -5,14 +5,14 @@ import hkmc2.ctml.types.*
 /** A CTML statement, which is used in the type system. */
 sealed trait Stmt
 
+/** A type type variable. */
+case class StmtTypeVar(name: String) extends Stmt
+
+/** An expression variable. */
+case class StmtExprVar(name: String, type_ : Option[Type], expr: Option[Expr]) extends Stmt
+
 /** An expression. */
 case class StmtExpr(expr: Expr) extends Stmt
-
-/** A variable declaration. */
-case class StmtExprDecl(name: String, type_ : Type) extends Stmt
-
-/** A type declaration. */
-case class StmtTypeDecl(name: String) extends Stmt
 
 /** A relation between two types. */
 case class StmtTypeRel(rel: TypeRel, left: Type, right: Type) extends Stmt

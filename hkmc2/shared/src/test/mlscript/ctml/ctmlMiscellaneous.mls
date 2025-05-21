@@ -1,10 +1,13 @@
 :ctml
-//│ Unit
-
-//│ Unit
 
 fun id(x) = x
-//│ Unit
+//│ TYPE ERROR: Variable 'x' not found in the context.
 
 id(1)
-//│ TYPE ERROR: Fail default case ⊤ ≤ Int → α.
+//│ TYPE ERROR: Variable 'id' not found in the context.
+
+val a: Top = 1
+//│ OK a: ⊤
+
+()
+//│ Unit

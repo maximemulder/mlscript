@@ -7,10 +7,10 @@
 //│ Int ⇒ {β ≤ Int, α ≤ Int} ∨ Str ⇒ {β ≤ Str, α ≤ Str} → Int ⇒ {β ≤ Int} ∨ Str ⇒ {β ≤ Str} → Int ∨ Str
 
 declare val a: Int
-//│ OK a: Int
+//│ a: Int
 
 fun f(x) = a
-//│ OK f: Int
+//│ f: Int
 
 Int == Int
 //│ OK

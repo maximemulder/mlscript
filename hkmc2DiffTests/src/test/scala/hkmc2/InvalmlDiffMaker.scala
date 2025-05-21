@@ -21,8 +21,21 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
         given Config = mkConfig
         importFile(invalPreludeFile, verbose = false)
 
-  /** CTML command. */
-  val ctmlOpt = new NullaryCommand("ctml")
+
+  /** The CTML prelude file path. */
+  val ctmlPreludeFilePath = io.Path(rootPath) / "hkmc2" / "shared" / "src" / "test" / "mlscript" / "ctml" / "ctmlPrelude.mls"
+
+  /** The CTML command. */
+  val ctmlOpt = new NullaryCommand("ctml"):
+    override def onSet(): Unit =
+      super.onSet()
+      if file =/= ctmlPreludeFilePath then
+        curCtx = Elaborator.State.init
+        given Config = mkConfig
+        importFile(ctmlPreludeFilePath, verbose = false)
+
+  /** The CTML typing context. */
+  var ctmlCtx = hkmc2.ctml.types.Context.empty
 
   override def init(): Unit =
     super.init()
@@ -51,4 +64,4 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
-      hkmc2.ctml.test.test(term, (message) => output(message))
+      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, (message) => output(message))

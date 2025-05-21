@@ -3,7 +3,7 @@
 
 //│ Unit
 
-(a) => (b) =>
+(a, b) =>
     if a is
         Int then (b as Int)
         Str then (b as Str)

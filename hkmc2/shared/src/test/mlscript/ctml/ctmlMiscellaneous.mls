@@ -1,0 +1,10 @@
+:ctml
+//│ Unit
+
+//│ Unit
+
+fun id(x) = x
+//│ Unit
+
+id(1)
+//│ TYPE ERROR: Fail default case ⊤ ≤ Int → α.

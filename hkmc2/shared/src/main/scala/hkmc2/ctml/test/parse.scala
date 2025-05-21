@@ -5,6 +5,7 @@ import hkmc2.ctml.types.*
 import hkmc2.semantics.BlockMemberSymbol
 import hkmc2.semantics.Branch
 import hkmc2.semantics.ClassDef
+import hkmc2.semantics.Elem
 import hkmc2.semantics.Fld
 import hkmc2.semantics.Import
 import hkmc2.semantics.Param
@@ -137,9 +138,7 @@ def parseExpr(mlExpr: Term): Expr =
       parseLambda(mlParams.allParams, mlBody)
     // Parse lambda applications.
     case Term.App(mlLambda, mlArg) =>
-      val lam = parseExpr(mlLambda)
-      val arg = parseExpr(mlArg)
-      EApp(lam, arg)
+      parseApp(mlLambda, mlArg)
     // Parse type ascriptions.
     case Term.Asc(mlExpr, mlType) =>
       val expr  = parseExpr(mlExpr)
@@ -155,7 +154,7 @@ def parseExpr(mlExpr: Term): Expr =
     case _ =>
       throw new ParseError(mlExpr)
 
-/** Convert some MLScript function components to a CTML lambda expression. */
+/** Convert a MLScript lambda abstraction to a CTML expression. */
 def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
   mlParams match
     case Nil =>
@@ -165,7 +164,7 @@ def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
       val body = parseLambdaBody(mlParams, mlBody)
       ELam(paramName, body)
 
-/** Convert some MLScript function components to a CTML lambda expression body. */
+/** Convert a MLScript lambda abstraction to a CTML lambda abstraction body. */
 def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
   mlParams match
     case Nil =>
@@ -174,6 +173,26 @@ def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
       val paramName = mlParam.sym.nme
       val body = parseLambdaBody(mlParams, mlBody)
       ELam(paramName, body)
+
+/** Convert a MLScript lambda application to a CTML expresssion. */
+def parseApp(mlLambda: Term, mlArgs: Term): Expr =
+  mlArgs match
+    case Term.Tup(mlArgs :+ Fld(_, mlArg, _)) =>
+      val lambda = parseAppLambda(mlLambda, mlArgs)
+      val arg = parseExpr(mlArg)
+      EApp(lambda, arg)
+    case _ =>
+      throw new ParseError(mlLambda)
+
+/** Convert a MLScript lambda application to a CTML lambda application lambda. */
+def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
+  mlArgs match
+  case mlArgs :+ Fld(_, mlArg, _) =>
+    val lambda = parseAppLambda(mlLambda, mlArgs)
+    val arg = parseExpr(mlArg)
+    EApp(lambda, arg)
+  case _ =>
+    parseExpr(mlLambda)
 
 /** Convert an MLScript split to a CTML pattern matching expression */
 def parseMatch(mlMatch: Split): EMatch =

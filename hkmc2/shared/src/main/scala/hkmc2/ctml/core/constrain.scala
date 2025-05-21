@@ -82,7 +82,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode
   if sub.is[TLam] && sup.is[TLam] then
     return constrainSubLam(sub.as[TLam], sup.as[TLam])
 
-  throw new TypeError(s"Fail default case ${sub} <= ${sup}.")
+  throw new TypeError(s"Fail default case ${sub} ≤ ${sup}.")
 
 def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): List[Bound] =
   if sub.name == sup.name then

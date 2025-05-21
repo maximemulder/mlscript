@@ -37,40 +37,41 @@ class Tester(var ctx: Context, output: (String) => Unit):
   /** Test a statement */
   def testStatement(stmt: Stmt) =
     stmt match
-      case StmtTypeVar(name) =>
-        this.testTypeVar(name)
-      case StmtExprVar(name, type_, expr) =>
-        this.testExprVar(name, type_, expr)
+      case StmtTypeDecl(name) =>
+        this.testTypeDecl(name)
+      case StmtTypeVar(name, type_) =>
+        this.testTypeVar(name, type_)
+      case StmtExprDecl(name, type_) =>
+        this.testExprDecl(name, type_)
+      case StmtExprVar(name, expr) =>
+        this.testExprVar(name, expr)
       case StmtExpr(expr) =>
         this.testExpr(expr)
       case StmtTypeRel(rel, left, right) =>
         this.testTypeRel(rel, left, right)
 
   /** Add a type variable to the context. */
-  def testTypeVar(name: String) =
+  def testTypeDecl(name: String) =
     this.ctx = CtxTypeVar(name, TypeVarKind.Rigid) :: this.ctx
 
-  /** Test an expression variable and add it to the context. */
-  def testExprVar(name: String, type_ : Option[Type], expr: Option[Expr]) =
-    val varType = expr match
-      case Some(expr) =>
-        val (inferredType, bounds) = infer(expr, this.ctx)
-        type_ match
-          case Some(type_) =>
-            given Context = this.ctx
-            checkSub(inferredType, type_)
-            type_
-          case None =>
-            inferredType
-      case None =>
-        type_ match
-          case Some(type_) =>
-            type_
-          case None =>
-            TTop
+  /** Add a type alias to the context. */
+  def testTypeVar(name: String, type_ : Type) =
+    this.output(s"${name} = ${type_}")
+    this.ctx = CtxBound(Bound(name, Direction.Super, type_))
+      :: CtxBound(Bound(name, Direction.Sub, type_))
+      :: CtxTypeVar(name, TypeVarKind.Rigid)
+      :: this.ctx
 
-    this.output(s"OK ${name}: ${varType}")
-    this.ctx = CtxVar(name, varType) :: this.ctx
+  /** Add an expression variable to the context. */
+  def testExprDecl(name: String, type_ : Type) =
+    this.output(s"${name}: ${type_}")
+    this.ctx = CtxVar(name, type_) :: this.ctx
+
+  /** Test an expression variable type inference and add it to the context. */
+  def testExprVar(name: String, expr: Expr) =
+    val (type_, bounds) = infer(expr, this.ctx)
+    this.output(s"${name}: ${type_}")
+    this.ctx = CtxVar(name, type_) :: this.ctx
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =

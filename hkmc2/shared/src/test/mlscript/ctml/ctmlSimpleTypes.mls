@@ -1,0 +1,25 @@
+:ctml
+
+declare class A
+declare class B
+
+type T = Bot
+//│ T = ⊥
+
+type T = Top
+//│ T = ⊤
+
+type T = A
+//│ T = A
+
+type T = B
+//│ T = B
+
+type T = A -> B
+//│ T = A → B
+
+type T = A | B
+//│ T = A ∨ B
+
+type T = A & B
+//│ T = A ∧ B

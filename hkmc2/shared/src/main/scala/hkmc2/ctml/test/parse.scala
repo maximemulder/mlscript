@@ -20,61 +20,55 @@ import hkmc2.syntax.Tree
 def parseStmts(mlStmts: Term): List[Stmt] =
   mlStmts match
     case Term.Blk(mlStmts, mlStmt) =>
-      val stmts = mlStmts.flatMap(parseDeclStmt)
+      val stmts = mlStmts.flatMap(parseStmt)
       val stmt  = parseStmt(mlStmt)
-      stmts ::: List(stmt)
+      stmts ::: stmt.toList
     case _ =>
-      parseStmt(mlStmts) :: Nil
-
-/** Convert a MLScript statement to a CTML declaration statement. */
-def parseDeclStmt(mlStmt: Statement): Option[Stmt] =
-  mlStmt match
-    case Import(_, _) =>
-      None
-    case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
-      Some(parseDeclType(mlSymbol))
-    case TermDefinition(_, _, mlSymbol, _, _, mlType, _, _, _, _, _) =>
-      Some(parseDeclExpr(mlSymbol, mlType))
-    case _ =>
-      throw new ParseError(mlStmt)
+      parseStmt(mlStmts).toList
 
 /** Convert a MLScript symbol to a CTML type declaration. */
-def parseDeclType(mlSymbol: BlockMemberSymbol) =
+def parseTypeVar(mlSymbol: BlockMemberSymbol): Stmt =
   val name = mlSymbol.nme
-  StmtTypeDecl(name)
+  StmtTypeVar(name)
 
 /** Convert a MLScript symbol and type to a CTML variable declaration. */
-def parseDeclExpr(mlSymbol: BlockMemberSymbol, mlType: Option[Term]) =
-  val name = mlSymbol.nme
-  val type_ = mlType match
-    case Some(mlType) =>
-      parseType(mlType)
-    case None =>
-      TTop
+def parseExprVar(mlSymbol: BlockMemberSymbol, mlType: Option[Term], mlExpr: Option[Term]): Stmt =
+  val name  = mlSymbol.nme
+  val type_ = mlType.map(parseType(_))
+  val expr  = mlExpr.map(parseExpr(_))
+  StmtExprVar(name, type_, expr)
 
-  StmtExprDecl(name, type_)
-
-/** Convert a MLScript term to a CTML statement. */
-def parseStmt(mlStmt: Term): Stmt =
-  mlStmt match
-    case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "==" =>
-      val left  = parseType(mlLeft)
-      val right = parseType(mlRight)
-      StmtTypeRel(TypeRel.Eq, left, right)
-    case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "!=" =>
-      val left  = parseType(mlLeft)
-      val right = parseType(mlRight)
-      StmtTypeRel(TypeRel.Ne, left, right)
-    case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "<=" =>
-      val left  = parseType(mlLeft)
-      val right = parseType(mlRight)
-      StmtTypeRel(TypeRel.Sub, left, right)
-    case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == ">=" =>
-      val left  = parseType(mlLeft)
-      val right = parseType(mlRight)
-      StmtTypeRel(TypeRel.Sup, left, right)
-    case _ =>
-      StmtExpr(parseExpr(mlStmt))
+/** Convert a MLScript statement to a CTML statement. */
+def parseStmt(mlStmt: Statement): Option[Stmt] =
+  Some(
+    mlStmt match
+      case Term.Lit(Tree.UnitLit(false)) | Import(_, _) =>
+        return None
+      case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
+        parseTypeVar(mlSymbol)
+      case TermDefinition(_, _, mlSymbol, _, _, mlType, mlExpr, _, _, _, _) =>
+        parseExprVar(mlSymbol, mlType, mlExpr)
+      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "==" =>
+        val left  = parseType(mlLeft)
+        val right = parseType(mlRight)
+        StmtTypeRel(TypeRel.Eq, left, right)
+      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "!=" =>
+        val left  = parseType(mlLeft)
+        val right = parseType(mlRight)
+        StmtTypeRel(TypeRel.Ne, left, right)
+      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "<=" =>
+        val left  = parseType(mlLeft)
+        val right = parseType(mlRight)
+        StmtTypeRel(TypeRel.Sub, left, right)
+      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == ">=" =>
+        val left  = parseType(mlLeft)
+        val right = parseType(mlRight)
+        StmtTypeRel(TypeRel.Sup, left, right)
+      case mlTerm: Term =>
+        StmtExpr(parseExpr(mlTerm))
+      case _ =>
+        throw new ParseError(mlStmt)
+  )
 
 /** Convert a MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =

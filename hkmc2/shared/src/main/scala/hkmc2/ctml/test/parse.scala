@@ -14,6 +14,8 @@ import hkmc2.semantics.Split
 import hkmc2.semantics.Statement
 import hkmc2.semantics.Term
 import hkmc2.semantics.TermDefinition
+import hkmc2.semantics.TypeAliasSymbol
+import hkmc2.semantics.TypeDef
 import hkmc2.syntax.Tree
 
 /** Convert a MLScript block to CTML statements. */
@@ -26,18 +28,6 @@ def parseStmts(mlStmts: Term): List[Stmt] =
     case _ =>
       parseStmt(mlStmts).toList
 
-/** Convert a MLScript symbol to a CTML type declaration. */
-def parseTypeVar(mlSymbol: BlockMemberSymbol): Stmt =
-  val name = mlSymbol.nme
-  StmtTypeVar(name)
-
-/** Convert a MLScript symbol and type to a CTML variable declaration. */
-def parseExprVar(mlSymbol: BlockMemberSymbol, mlType: Option[Term], mlExpr: Option[Term]): Stmt =
-  val name  = mlSymbol.nme
-  val type_ = mlType.map(parseType(_))
-  val expr  = mlExpr.map(parseExpr(_))
-  StmtExprVar(name, type_, expr)
-
 /** Convert a MLScript statement to a CTML statement. */
 def parseStmt(mlStmt: Statement): Option[Stmt] =
   Some(
@@ -45,8 +35,12 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _) =>
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
-        parseTypeVar(mlSymbol)
-      case TermDefinition(_, _, mlSymbol, _, _, mlType, mlExpr, _, _, _, _) =>
+        parseTypeDecl(mlSymbol)
+      case TypeDef(mlSymbol, _, Some(mlType ), _, _) =>
+        parseTypeVar(mlSymbol, mlType)
+      case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
+        parseExprDecl(mlSymbol, mlType)
+      case TermDefinition(_, _, mlSymbol, _, _, mlType, Some(mlExpr), _, _, _, _) =>
         parseExprVar(mlSymbol, mlType, mlExpr)
       case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "==" =>
         val left  = parseType(mlLeft)
@@ -69,6 +63,41 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
       case _ =>
         throw new ParseError(mlStmt)
   )
+
+/** Convert a MLScript type alias to a CTML type variable declaration. */
+def parseTypeDecl(mlSymbol: BlockMemberSymbol): Stmt =
+  val name = mlSymbol.nme
+  StmtTypeDecl(name)
+
+/** Convert a MLScript type alias to a CTML type variable assignment. */
+def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term): Stmt =
+  val name  = mlSymbol.nme
+  val type_ = parseType(mlType)
+  StmtTypeVar(name, type_)
+
+/** Convert a MLScript term declaration to a CTML expression variable declaration. */
+def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
+  val name  = mlSymbol.nme
+  val type_ = mlType match
+    case Some(mlType) =>
+      parseType(mlType)
+    case None =>
+      TTop
+
+  StmtExprDecl(name, type_)
+
+/** Convert a MLScript term declaration to a CTML expression variable assignment. */
+def parseExprVar(mlSymbol: BlockMemberSymbol, mlType: Option[Term], mlExpr: Term): Stmt =
+  val name  = mlSymbol.nme
+  val type_ = mlType.map(parseType(_))
+  val baseExpr = parseExpr(mlExpr)
+  val expr = type_ match
+    case Some(type_) =>
+      EAscr(baseExpr, type_)
+    case None =>
+      baseExpr
+
+  StmtExprVar(name, expr)
 
 /** Convert a MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =
@@ -102,7 +131,7 @@ def parseType(mlType: Term): Type =
     case Term.CompType(mlLeft, mlRight, false) =>
       val left  = parseType(mlLeft)
       val right = parseType(mlRight)
-      TUnion(left, right)
+      TInter(left, right)
     case _ =>
       throw ParseError(mlType)
 

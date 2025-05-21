@@ -61,4 +61,8 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
-      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, (message) => output(message))
+      val testOutput = if !inImport
+        then (message)   => output(message)
+        else (_: String) => ()
+
+      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, testOutput)

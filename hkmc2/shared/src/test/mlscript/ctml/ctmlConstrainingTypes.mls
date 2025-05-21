@@ -9,8 +9,8 @@
 declare val a: Int
 //│ a: Int
 
-fun f(x) = a
-//│ f: Int
+fun f(x) = x
+//│ f: ∀α. α → α ⇐ {}
 
 Int == Int
 //│ OK

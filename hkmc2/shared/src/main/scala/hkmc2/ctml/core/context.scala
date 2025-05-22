@@ -167,6 +167,36 @@ extension (ctx: Context)
         meet(type_, bound.type_)
       )
 
+  /** Extract a variable and its bounds from the context. */
+  def extractVarBounds(varName: String): (Context, (Type, Type)) =
+    // TODO: Shadowing.
+    val (varCtx, filteredCtx) = ctx.partition(_ match
+      case CtxBound(bound) if bound.name == varName =>
+        true
+      case _ =>
+        false
+    )
+
+    val varBounds = varCtx.flatMap(_ match
+      case CtxBound(bound) =>
+        Some(bound)
+      case _ =>
+        None
+    )
+
+    val (lowerBounds, upperBounds) = varBounds.partition(_.dir match
+      case Direction.Sub =>
+        true
+      case Direction.Super =>
+        false
+    )
+
+    given Context = ctx
+    val lowerBound = meetMany(lowerBounds.map(_.type_))
+    val upperBound = joinMany(upperBounds.map(_.type_))
+
+    return (filteredCtx, (lowerBound, upperBound))
+
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))

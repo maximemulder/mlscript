@@ -8,27 +8,24 @@ extension (ctx: Context)
   def withFreshVarLevel(f: (String, Context) => (Type, List[Bound])): (Type, List[Bound]) =
     withFreshVar((varName, varCtx) =>
       val (type_ , bounds) = f(varName, varCtx)
-      val newCtx = ctx.concatBounds(bounds)
+      val typeCtx = ctx.concatBounds(bounds)
       val polarities =
         given Polarity = Polarity.Positive
-        getVarPolarities(type_, varName)
-      val (newType, newBounds) = polarities match
+        getTypePolarities(type_, varName)
+      val (newCtx, (lowerBound, upperBound)) = typeCtx.extractVarBounds(varName)
+      val newType = polarities match
         case Polarities(true, true) =>
-          // TODO: Polymorphism.
-          (TConstrained(List(varName), type_, Nil), bounds)
+          val bounds = List(Bound(varName, Direction.Super, lowerBound), Bound(varName, Direction.Sub, upperBound))
+          TConstrained(List(varName), type_, bounds)
         case Polarities(true, false) =>
-          val upperBound = newCtx.getVarUpperBound(varName)
           given Context = newCtx
-          val newType = substitute(type_, varName, upperBound)
-          (newType, bounds)
+          substitute(type_, varName, upperBound)
         case Polarities(false, true) =>
-          val lowerBound = newCtx.getVarLowerBound(varName)
           given Context = newCtx
-          val newType = substitute(type_, varName, lowerBound)
-          (newType, bounds)
+          substitute(type_, varName, lowerBound)
         case Polarities(false, false) =>
-          (type_, bounds)
-      (newType, newBounds.removeVar(varName))
+          type_
+      (newType, bounds)
     )
 
 /** Infer the type of an expression. */

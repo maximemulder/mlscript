@@ -17,7 +17,7 @@ extension (type_ : Type)
       case inter: TInter =>
         s"${inter.left.show()} ∧ ${inter.right.show()}"
       case constrained: TConstrained =>
-        s"∀${showVars(constrained.vars)}. ${constrained.base.show()} ⇐ {${showBounds(constrained.bounds)}}"
+        s"∀${showVars(constrained.vars)} ⇐ {${showBounds(constrained.bounds)}}. ${constrained.base.show()}"
       case constraining: TConstraining =>
         s"${constraining.base.show()} ⇒ {${showBounds(constraining.bounds)}}"
 

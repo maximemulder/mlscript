@@ -35,3 +35,7 @@ def meetDisjoint(left: Type, right: Type)(using ctx: Context): Option[Type] =
       None
     case _ =>
       None
+
+/** Get the simplified meet of many types. */
+def meetMany(types: List[Type])(using ctx: Context): Type =
+  types.foldRight(TBot)(meet)

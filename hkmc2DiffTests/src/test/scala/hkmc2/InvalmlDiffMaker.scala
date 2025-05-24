@@ -35,7 +35,7 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
         importFile(ctmlPreludeFilePath, verbose = false)
 
   /** The CTML typing context. */
-  var ctmlCtx = hkmc2.ctml.types.Context.empty
+  var ctmlCtx = hkmc2.ctml.types.Context()
 
   override def init(): Unit =
     super.init()

@@ -2,73 +2,82 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 
-// TODO: Do not use a global mutable counter.
-var freshVarCounter = 0
-
 extension (ctx: Context)
-  // Iterators
+  // Basic iterators
 
   /** Iterate over the term variables of the context. */
-  def vars: Iterator[CtxVar] =
-    ctx.iterator.flatMap((level) =>
-      level match
-        case var_ : CtxVar =>
-          Some(var_)
-        case _ =>
-          None
+  def termVars: Iterator[TermVar] =
+    ctx.entries.iterator.flatMap(_ match
+      case var_ : TermVar =>
+        Some(var_)
+      case _ =>
+        None
     )
 
   /** Iterate over the type variables of the context. */
-  def typeVars: Iterator[CtxTypeVar] =
-    ctx.iterator.flatMap((level) =>
-      level match
-        case typeVar: CtxTypeVar =>
-          Some(typeVar)
-        case _ =>
-          None
+  def typeVars: Iterator[TypeVar] =
+    ctx.entries.iterator.flatMap(_ match
+      case var_ : TypeVar =>
+        Some(var_)
+      case _ =>
+        None
     )
 
   /** Iterate over the bounds of the context. */
   def bounds: Iterator[Bound] =
-    ctx.iterator.flatMap((level) =>
-      level match
-        case bound: CtxBound =>
-          Some(bound.bound)
-        case _ =>
-          None
+    ctx.entries.iterator.flatMap(_ match
+      case bound : Bound =>
+        Some(bound)
+      case _ =>
+        None
     )
 
-  /** Iterate over the bounds of a type variable in the context*/
+  /** Iterate over the bounds of a type variable in the context. */
   def varBounds(varName: String): Iterator[Bound] =
+    // TODO: Shadowing.
     ctx.bounds.filter((bound) => bound.name == varName)
 
   // Getters
 
   /** Get the type of a term variable in the context. */
   def getVarType(varName: String): Type =
-    ctx.vars.find((var_) => var_.name == varName) match
+    ctx.termVars.find(var_ => var_.name == varName) match
       case Some(var_) =>
         var_.type_
       case None =>
         throw new TypeError(s"Variable '${varName}' not found in the context.")
 
   /** Get a type variable in the context. */
-  def getTypeVar(varName: String): CtxTypeVar =
+  def getTypeVarKind(varName: String): TypeVarKind =
     ctx.typeVars.find((var_) => var_.name == varName) match
       case Some(var_) =>
-        var_
+        var_.kind
       case None =>
         throw new TypeError(s"Type variable '${varName}' not found in the context.")
+
+  /** Setters */
+
+  def addEntry(entry: ContextEntry*): Context =
+    ctx.addEntries(entry.toList)
+
+  def addEntries(entries: List[ContextEntry]*): Context =
+    val newEntries = entries.reverse.flatten.toList
+    Context(newEntries ::: ctx.entries)
+
+  /** Join two lists of variables by removing duplicates. */
+  def joinVars(lefts: List[String], rights: List[String]): List[String] =
+    val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
+    lefts ::: filteredRights
 
   // Merge bounds
 
   /** Merge two lists of bounds such that they must both be satisfied. */
   def meetBounds(lefts: List[Bound], rights: List[Bound]): List[Bound] =
     // Check if each right bound is satisfied in the left bounds to remove subsumed constraints.
-    val filteredRights = ctx.concat(lefts.c).filterUnsatisfiedBounds(rights)
+    val filteredRights = ctx.addEntries(lefts).filterUnsatisfiedBounds(rights)
     // Be careful to check satisfaction against the *filtered* list of constraints to not remove duplicate
     // constraints entirely.
-    val filteredLefts = ctx.concat(filteredRights.c).filterUnsatisfiedBounds(lefts)
+    val filteredLefts = ctx.addEntries(filteredRights).filterUnsatisfiedBounds(lefts)
     // Return the concatenation of the filtered bounds.
     filteredLefts ::: filteredRights
 
@@ -105,10 +114,10 @@ extension (ctx: Context)
     val leftBound  = combineMany(leftBounds,  dir)
     val rightBound = combineMany(rightBounds, dir)
     val leftType  =
-      given Context = (Bound(varName, dir, leftBound).c :: ctx)
+      given Context = ctx.addEntry(Bound(varName, dir, leftBound))
       attachConstrainingBounds(leftBound, lefts)
     val rightType =
-      given Context = (Bound(varName, dir, rightBound).c :: ctx)
+      given Context = ctx.addEntry(Bound(varName, dir, rightBound))
       attachConstrainingBounds(rightBound, rights)
     join(leftType, rightType)
 
@@ -143,11 +152,11 @@ extension (ctx: Context)
 
   /** Check whether a type variable is a fresh variable in the context. */
   def isTypeVarFresh(varName: String): Boolean =
-    ctx.getTypeVar(varName).kind == TypeVarKind.Fresh
+    ctx.getTypeVarKind(varName) == TypeVarKind.Fresh
 
   /** Check whether a type variable is a rigid variable in the context. */
   def isTypeVarRigid(varName: String): Boolean =
-    ctx.getTypeVar(varName).kind == TypeVarKind.Rigid
+    ctx.getTypeVarKind(varName) == TypeVarKind.Rigid
 
   /** Get the lower bound of a type variable in the context. */
   def getVarLowerBound(varName: String): Type =
@@ -168,17 +177,17 @@ extension (ctx: Context)
       )
 
   /** Extract a variable and its bounds from the context. */
-  def extractVarBounds(varName: String): (Context, (Type, Type)) =
+  def extractVarBounds(varName: String): (List[ContextEntry], (Type, Type)) =
     // TODO: Shadowing.
-    val (varCtx, filteredCtx) = ctx.partition(_ match
-      case CtxBound(bound) if bound.name == varName =>
+    val (varCtx, filteredCtx) = ctx.entries.partition(_ match
+      case bound : Bound if bound.name == varName =>
         true
       case _ =>
         false
     )
 
     val varBounds = varCtx.flatMap(_ match
-      case CtxBound(bound) =>
+      case bound : Bound =>
         Some(bound)
       case _ =>
         None
@@ -201,27 +210,6 @@ extension (ctx: Context)
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
 
-  /** Concatenate some bounds to the context. */
-  def concatBounds(bounds: List[Bound]*): Context =
-    bounds.reverse.flatten.toList.c ::: ctx
-
-  /** Concatenate some contexts to the context. */
-  def concatContext(contexts: Context*): Context =
-    contexts.reverse.flatten.toList ::: ctx
-
-/** Evaluate a function within a context with a new term variable. */
-def withVar[T](varName: String, varType : Type, f: (Context) => T): T =
-  var varCtx = CtxVar(varName, varType) :: Nil
-  f(varCtx)
-
-/** Evaluate a function within a context with a new fresh type variable. */
-def withFreshVar[T](f: (String, Context) => T): T =
-  var varName = getFreshVarName(freshVarCounter)
-  freshVarCounter += 1
-  var varCtx = CtxTypeVar(varName, TypeVarKind.Fresh) :: Nil
-  f(varName, varCtx)
-
-/** Join two lists of variables by removing duplicates. */
-def joinVars(lefts: List[String], rights: List[String]): List[String] =
-  val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
-  lefts ::: filteredRights
+def newFreshVar(): TypeVar =
+  val varName = newFreshVarName()
+  TypeVar(varName, TypeVarKind.Fresh)

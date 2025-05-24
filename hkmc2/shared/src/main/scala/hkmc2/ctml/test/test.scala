@@ -52,37 +52,38 @@ class Tester(var ctx: Context, output: (String) => Unit):
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
-    this.ctx = CtxTypeVar(name, TypeVarKind.Rigid) :: this.ctx
+    this.ctx = this.ctx.addEntry(TypeVar(name, TypeVarKind.Rigid))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_}")
-    this.ctx = CtxBound(Bound(name, Direction.Super, type_))
-      :: CtxBound(Bound(name, Direction.Sub, type_))
-      :: CtxTypeVar(name, TypeVarKind.Rigid)
-      :: this.ctx
+    this.ctx = this.ctx.addEntry(
+      TypeVar(name, TypeVarKind.Rigid),
+      Bound(name, Direction.Sub, type_),
+      Bound(name, Direction.Super, type_),
+    )
 
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
     this.output(s"${name}: ${type_}")
-    this.ctx = CtxVar(name, type_) :: this.ctx
+    this.ctx = this.ctx.addEntry(TermVar(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
     val (type_, bounds) = infer(expr, this.ctx)
     this.output(s"${name}: ${type_}")
-    this.ctx = CtxVar(name, type_) :: this.ctx
+    this.ctx = this.ctx.addEntry(TermVar(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
-    val (type_, bounds) = infer(expr, this.ctx)
+    val (type_, entries) = infer(expr, this.ctx)
     this.outputType(type_)
-    this.outputBounds(bounds)
+    this.outputEntries(entries)
 
   /** Test the relation between two types. */
   def testTypeRel(rel: TypeRel, left: Type, right: Type) =
-    given Context = Context.primitive
-    val bounds = rel match
+    given Context = this.ctx
+    val entries = rel match
       case TypeRel.Eq =>
         if !checkEq(left, right) then
           throw new TypeError("FAIL")
@@ -97,13 +98,13 @@ class Tester(var ctx: Context, output: (String) => Unit):
         constrainSub(right, left)
 
     this.output("OK")
-    this.outputBounds(bounds)
+    this.outputEntries(entries)
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =
     this.output(type_.show())
 
   /** Output the generated type bounds if there are some. */
-  def outputBounds(bounds: List[Bound]) =
-    if bounds != Nil then
-      this.output(showBounds(bounds))
+  def outputEntries(entries: List[ContextEntry]) =
+    if entries != Nil then
+      this.output(showEntries(entries))

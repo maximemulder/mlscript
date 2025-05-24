@@ -19,3 +19,13 @@ extension (bounds: List[Bound])
     bounds
       .filter((bound) => bound.name == varName && bound.dir == dir)
       .map(_.type_)
+
+extension (entries: List[ContextEntry])
+  // TODO: Remove ?
+  def b: List[Bound] =
+    entries.flatMap(_ match
+      case bound: Bound =>
+        Some(bound)
+      case _ =>
+        None
+    )

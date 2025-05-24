@@ -47,8 +47,36 @@ extension (mode: Mode)
       case Mode.Constrain => "constrain"
       case Mode.Check     => "check"
 
+extension (ctx: Context)
+  /** Convert a type context to its string representation. */
+  def show(): String =
+    "TODO"
+
+extension (ctx: ContextEntry)
+  def show(): String =
+    "TODO"
+
+extension (ctx: TermVar)
+  def show(): String =
+    "TODO"
+
+extension (ctx: TypeVar)
+  def show(): String =
+    "TODO"
+
+extension (kind: TypeVarKind)
+  /** Convert a type variable kind to its string representation. */
+  def show(): String =
+    kind match
+      case TypeVarKind.Rigid => "rigid"
+      case TypeVarKind.Fresh => "fresh"
+
 /** Convert a list of bounds to its string representation. */
 def showBounds(bounds: List[Bound]): String =
+  bounds.map(_.show()).mkString(", ")
+
+/** Convert a list of bounds to its string representation. */
+def showEntries(bounds: List[ContextEntry]): String =
   bounds.map(_.show()).mkString(", ")
 
 /** Convert a list of variable names to its string representation. */

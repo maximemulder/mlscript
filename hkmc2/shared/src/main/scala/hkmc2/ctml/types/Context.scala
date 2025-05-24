@@ -1,41 +1,62 @@
 package hkmc2.ctml.types
 
 /** The typing context, which is a collection of variables and bounds. */
-type Context = List[CtxLevel]
+case class Context(
+  /** The entries of the typing context. */
+  entries: List[ContextEntry] = Nil,
+):
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
 
-object Context:
-  /** The context with the primitive type variables of the language. */
-  val primitive: Context = List(
-    CtxVar("Unit",    TVar("Unit")),
-    CtxVar("Bool",    TVar("Bool")),
-    CtxVar("Int",     TVar("Int")),
-    CtxVar("Decimal", TVar("Decimal")),
-    CtxVar("String",  TVar("String")),
-    CtxTypeVar("Unit",    TypeVarKind.Rigid),
-    CtxTypeVar("Bool",    TypeVarKind.Rigid),
-    CtxTypeVar("Int",     TypeVarKind.Rigid),
-    CtxTypeVar("Decimal", TypeVarKind.Rigid),
-    CtxTypeVar("String",  TypeVarKind.Rigid),
-  )
-
-  /** The empty context. */
-  val empty: Context = Nil
-
-/** A context level. */
-sealed class CtxLevel
+/** A typing context entry. */
+sealed trait ContextEntry:
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
 
 /** A term variable. */
-case class CtxVar(val name: String, val type_ : Type) extends CtxLevel
+case class TermVar (
+  /** The term variable name. */
+  name: String,
+  /** The term variable type. */
+  type_ : Type,
+) extends ContextEntry:
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
 
-/** A type variable, which can be either rigid or fresh. */
-case class CtxTypeVar(val name: String, val kind: TypeVarKind) extends CtxLevel
-
-/** A type variable bound, which should be respected by any term typed in this context. */
-case class CtxBound(val bound: Bound) extends CtxLevel
+/** A type variable. */
+case class TypeVar(
+  /** The type variable name. */
+  name: String,
+  /** The type variable kind. */
+  kind: TypeVarKind,
+) extends ContextEntry:
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
 
 /** The kind of a type variable. */
 enum TypeVarKind:
-  /** A rigid type variables, whose bounds cannot be refined during type checking. */
+  /** A rigid type variable, whose bounds cannot be refined during type checking. */
   case Rigid
-  /** A rigid type variables, whose bounds may be refined during type checking. */
+  /** A rigid type variable, whose bounds may be refined during type checking. */
   case Fresh
+
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
+
+/** A type variable bound. */
+class Bound(
+  /** The name of the type variable being bound. */
+  var name: String,
+  /** The direction in which the type variable is bound.*/
+  var dir: Direction,
+  /** The type that bounds the type variable. */
+  var type_ : Type,
+) extends ContextEntry:
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()

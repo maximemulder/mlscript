@@ -1,16 +1,20 @@
 package hkmc2.ctml.types
 
-/** The typing context, which is a collection of variables and bounds. */
-case class Context(
-  /** The entries of the typing context. */
-  entries: List[ContextEntry] = Nil,
+/** A list of typing clauses, which can either be an input (context) or output (constraints) for a
+ *  typing function. */
+case class Clauses(
+  /** The list of clauses itself. */
+  elems: List[Clause] = Nil,
 ):
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()
 
-/** A typing context entry. */
-sealed trait ContextEntry:
+object Clauses:
+  def none = Clauses(Nil)
+
+/** A typing clause, which gives a single information about types. */
+sealed trait Clause:
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()
@@ -21,7 +25,7 @@ case class TermVar (
   name: String,
   /** The term variable type. */
   type_ : Type,
-) extends ContextEntry:
+) extends Clause:
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()
@@ -32,7 +36,7 @@ case class TypeVar(
   name: String,
   /** The type variable kind. */
   kind: TypeVarKind,
-) extends ContextEntry:
+) extends Clause:
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()
@@ -56,7 +60,7 @@ class Bound(
   var dir: Direction,
   /** The type that bounds the type variable. */
   var type_ : Type,
-) extends ContextEntry:
+) extends Clause:
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()

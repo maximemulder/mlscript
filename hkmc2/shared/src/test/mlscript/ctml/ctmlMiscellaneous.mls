@@ -1,13 +1,19 @@
 :ctml
 
+fun idInt(x) = (x as Int)
+//│ idInt: Int → Int
+
+idInt(1)
+//│ ⊥
+
 fun id(x) = x
-//│ TYPE ERROR: Variable 'x' not found in the context.
+//│ id: ∀α ⇐ {α ≥ ⊥, α ≤ ⊤}. α → α
 
 id(1)
-//│ TYPE ERROR: Variable 'id' not found in the context.
+//│ TYPE ERROR: Fail default case ∀α ⇐ {α ≥ ⊥, α ≤ ⊤}. α → α ≤ Int → α.
 
 val a: Top = 1
-//│ OK a: ⊤
+//│ a: ⊤
 
 ()
 //│ Unit

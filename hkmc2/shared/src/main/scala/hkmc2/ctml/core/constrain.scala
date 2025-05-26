@@ -4,23 +4,23 @@ import hkmc2.ctml.types.*
 
 
 /** Constrain a type to be a subtype of another type in a context. */
-def constrainSub(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
+def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   constrainSubImpl(sub, sup)
 
 /** Implementation of `constrainSub`. */
-def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): List[Bound] =
+def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   // Check the top and bottom types.
 
   if sub.is[TBot] then
-    return Nil
+    return Clauses.none
 
   if sup.is[TTop] then
-    return Nil
+    return Clauses.none
 
   // Check equal variables
 
   if sub.is[TVar] && sup.is[TVar] && sub.as[TVar].name == sup.as[TVar].name then
-    return Nil
+    return Clauses.none
 
   // Check fresh variables in constraining mode.
 
@@ -28,11 +28,11 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode
 
     if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
       // TODO: Check and propagate bounds.
-      return List(Bound(sub.as[TVar].name, Direction.Sub, sup))
+      return Clauses(List(Bound(sub.as[TVar].name, Direction.Sub, sup)))
 
     if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
       // TODO: Check and propagate bounds.
-      return List(Bound(sub.as[TVar].name, Direction.Super, sub))
+      return Clauses(List(Bound(sub.as[TVar].name, Direction.Super, sub)))
 
   // Check union and intersection types.
 
@@ -84,19 +84,19 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode
 
   throw new TypeError(s"Fail default case ${sub} ≤ ${sup}.")
 
-def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Context): List[Bound] =
+def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Clauses): Clauses =
   if sub.name == sup.name then
-    return Nil
+    return Clauses.none
 
   throw new TypeError("Fail constrain rigid var.")
 
-def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): List[Bound] =
-  val paramBounds = constrainSub(sup.param, sub.param)
-  val retBounds   = constrainSub(sub.ret,   sup.param)
-  return retBounds ::: paramBounds
+def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
+  val paramClauses = constrainSub(sup.param, sub.param)
+  val retClauses   = constrainSub(sub.ret,   sup.param)
+  return paramClauses.addClauses(retClauses)
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
-def checkSub(sub: Type, sup: Type)(using ctx: Context): Boolean =
+def checkSub(sub: Type, sup: Type)(using ctx: Clauses): Boolean =
   given Mode = Mode.Check
   try
     constrainSub(sub, sup)
@@ -107,17 +107,17 @@ def checkSub(sub: Type, sup: Type)(using ctx: Context): Boolean =
   return true
 
 /** Check whether tow types are equal without requiring any additional constraint. */
-def checkEq(left: Type, right: Type)(using ctx: Context): Boolean =
+def checkEq(left: Type, right: Type)(using ctx: Clauses): Boolean =
   checkSub(left, right) && checkSub(right, left)
 
-extension (ctx: Context)
+extension (ctx: Clauses)
   /** Check if a bound is satisified in the context. */
   def checkBoundSatisfied(bound: Bound) =
     val var_ = TVar(bound.name)
     bound.dir match
       case Direction.Sub =>
-        given Context = ctx
+        given Clauses = ctx
         checkSub(var_, bound.type_)
       case Direction.Super =>
-        given Context = ctx
+        given Clauses = ctx
         checkSub(bound.type_, var_)

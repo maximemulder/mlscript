@@ -3,7 +3,7 @@ package hkmc2.ctml.core
 import hkmc2.ctml.types.*
 
 /** Replace a type variable by a subtitute type in a type. */
-def substitute(type_ : Type, varName: String, subsitute: Type)(using ctx: Context): Type =
+def substitute(type_ : Type, varName: String, subsitute: Type)(using ctx: Clauses): Type =
   type_ match
     case TBot =>
       TBot
@@ -31,7 +31,7 @@ def substitute(type_ : Type, varName: String, subsitute: Type)(using ctx: Contex
       TConstraining(base, bounds)
 
 /** Substitute a variable by a type in a list bounds. */
-def substituteBounds(bounds: List[Bound], varName: String, subsitute: Type)(using ctx: Context): List[Bound] =
+def substituteBounds(bounds: List[Bound], varName: String, subsitute: Type)(using ctx: Clauses): List[Bound] =
   bounds.iterator
     .filter((bound) => bound.name != varName)
     .map((bound) => Bound(bound.name, bound.dir, substitute(bound.type_, varName, subsitute)))

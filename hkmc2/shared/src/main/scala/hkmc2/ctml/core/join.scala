@@ -3,11 +3,11 @@ package hkmc2.ctml.core
 import hkmc2.ctml.types.*
 
 /** Get the simplified join of two types. */
-def join(left: Type, right: Type)(using ctx: Context): Type =
+def join(left: Type, right: Type)(using ctx: Clauses): Type =
   joinImpl(left, right)
 
 /** Implementation of `join`. */
-def joinImpl(left: Type, right: Type)(using ctx: Context): Type =
+def joinImpl(left: Type, right: Type)(using ctx: Clauses): Type =
   if checkSub(left, right) then
     return right
 
@@ -17,5 +17,5 @@ def joinImpl(left: Type, right: Type)(using ctx: Context): Type =
   TUnion(left, right)
 
 /** Get the simplified join of many types. */
-def joinMany(types: List[Type])(using ctx: Context): Type =
-  types.foldRight(TTop)(join)
+def joinMany(types: List[Type])(using ctx: Clauses): Type =
+  types.foldRight(TBot)(join)

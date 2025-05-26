@@ -5,12 +5,12 @@ import hkmc2.ctml.types.*
 import hkmc2.semantics.Term
 
 /** Run a CTML test on an input term. */
-def test(term: Term, ctx: Context, output: (String) => Unit): Context =
+def test(term: Term, ctx: Clauses, output: (String) => Unit): Clauses =
   val tester = Tester(ctx, output)
   tester.test(term)
   tester.ctx
 
-class Tester(var ctx: Context, output: (String) => Unit):
+class Tester(var ctx: Clauses, output: (String) => Unit):
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
@@ -52,12 +52,12 @@ class Tester(var ctx: Context, output: (String) => Unit):
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
-    this.ctx = this.ctx.addEntry(TypeVar(name, TypeVarKind.Rigid))
+    this.ctx = this.ctx.addClause(TypeVar(name, TypeVarKind.Rigid))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_}")
-    this.ctx = this.ctx.addEntry(
+    this.ctx = this.ctx.addClause(
       TypeVar(name, TypeVarKind.Rigid),
       Bound(name, Direction.Sub, type_),
       Bound(name, Direction.Super, type_),
@@ -66,45 +66,45 @@ class Tester(var ctx: Context, output: (String) => Unit):
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.addEntry(TermVar(name, type_))
+    this.ctx = this.ctx.addClause(TermVar(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
     val (type_, bounds) = infer(expr, this.ctx)
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.addEntry(TermVar(name, type_))
+    this.ctx = this.ctx.addClause(TermVar(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
-    val (type_, entries) = infer(expr, this.ctx)
+    val (type_, outs) = infer(expr, this.ctx)
     this.outputType(type_)
-    this.outputEntries(entries)
+    this.outputClauses(outs)
 
   /** Test the relation between two types. */
   def testTypeRel(rel: TypeRel, left: Type, right: Type) =
-    given Context = this.ctx
-    val entries = rel match
+    given Clauses = this.ctx
+    val outs = rel match
       case TypeRel.Eq =>
         if !checkEq(left, right) then
           throw new TypeError("FAIL")
-        Nil
+        Clauses.none
       case TypeRel.Ne =>
         if checkEq(left, right) then
           throw new TypeError("FAIL")
-        Nil
+        Clauses.none
       case TypeRel.Sub =>
         constrainSub(left, right)
       case TypeRel.Sup =>
         constrainSub(right, left)
 
     this.output("OK")
-    this.outputEntries(entries)
+    this.outputClauses(outs)
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =
     this.output(type_.show())
 
   /** Output the generated type bounds if there are some. */
-  def outputEntries(entries: List[ContextEntry]) =
-    if entries != Nil then
-      this.output(showEntries(entries))
+  def outputClauses(clauses: Clauses) =
+    if clauses != Clauses.none then
+      this.output(clauses.show())

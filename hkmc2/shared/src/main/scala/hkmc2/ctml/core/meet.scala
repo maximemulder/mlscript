@@ -3,11 +3,11 @@ package hkmc2.ctml.core
 import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
-def meet(left: Type, right: Type)(using ctx: Context): Type =
+def meet(left: Type, right: Type)(using ctx: Clauses): Type =
   meetImpl(left, right)
 
 /** Implementation of `meet`. */
-def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
+def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
   if checkSub(right, left) then
     return right
 
@@ -21,7 +21,7 @@ def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
   TInter(left, right)
 
 /** Get the meet of two disjoint types in a non-intersection form if possible. */
-def meetDisjoint(left: Type, right: Type)(using ctx: Context): Option[Type] =
+def meetDisjoint(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
   (left, right) match
     case (left: TLam, right: TLam) =>
       if checkEq(left.param, right.param) then
@@ -37,5 +37,5 @@ def meetDisjoint(left: Type, right: Type)(using ctx: Context): Option[Type] =
       None
 
 /** Get the simplified meet of many types. */
-def meetMany(types: List[Type])(using ctx: Context): Type =
-  types.foldRight(TBot)(meet)
+def meetMany(types: List[Type])(using ctx: Clauses): Type =
+  types.foldRight(TTop)(meet)

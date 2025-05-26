@@ -20,10 +20,10 @@ extension (bounds: List[Bound])
       .filter((bound) => bound.name == varName && bound.dir == dir)
       .map(_.type_)
 
-extension (entries: List[ContextEntry])
+extension (statements: List[Clause])
   // TODO: Remove ?
   def b: List[Bound] =
-    entries.flatMap(_ match
+    statements.flatMap(_ match
       case bound: Bound =>
         Some(bound)
       case _ =>

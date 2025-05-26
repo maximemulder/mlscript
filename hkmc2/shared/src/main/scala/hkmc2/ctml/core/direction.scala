@@ -3,13 +3,13 @@ package hkmc2.ctml.core
 import hkmc2.ctml.types.*
 
 /** Combine two types according to a given type direction. */
-def combine(left: Type, right: Type, dir: Direction)(using ctx: Context): Type =
+def combine(left: Type, right: Type, dir: Direction)(using ctx: Clauses): Type =
   dir match
     case Direction.Sub   => meet(left, right)
     case Direction.Super => join(left, right)
 
 /** Combineof many types according to a given type direction. */
-def combineMany(types: List[Type], dir: Direction)(using ctx: Context): Type =
+def combineMany(types: List[Type], dir: Direction)(using ctx: Clauses): Type =
   val extremalType = getExtremalType(dir)
   types.foldRight(extremalType)(combine(_, _, dir))
 

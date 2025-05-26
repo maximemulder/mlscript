@@ -2,103 +2,83 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 
-extension (ctx: Context)
-  /** Evaluate a function within a context with a new fresh type variable. */
-  def withLevel(f: Context => (Type, List[ContextEntry])): (Type, List[ContextEntry]) =
-    val (type_ , entries) = f(ctx)
-    val typeCtx = ctx.addEntries(entries)
-    val varName ="TODO"
-    val polarities =
-      given Polarity = Polarity.Positive
-      getTypePolarities(type_, varName)
-    val (newBounds, (lowerBound, upperBound)) = typeCtx.extractVarBounds(varName)
-    val newType = polarities match
-      case Polarities(true, true) =>
-        val bounds = List(Bound(varName, Direction.Super, lowerBound), Bound(varName, Direction.Sub, upperBound))
-        TConstrained(List(varName), type_, bounds)
-      case Polarities(true, false) =>
-        given Context = typeCtx.addEntries(newBounds)
-        substitute(type_, varName, upperBound)
-      case Polarities(false, true) =>
-        given Context = typeCtx.addEntries(newBounds)
-        substitute(type_, varName, lowerBound)
-      case Polarities(false, false) =>
-        type_
-    (newType, entries)
-
 /** Infer the type of an expression. */
-def infer(expr: Expr, ctx: Context): (Type, List[ContextEntry]) =
+def infer(expr: Expr, ctx: Clauses): (Type, Clauses) =
   expr match
     // Variable
     case var_ : EVar =>
-      (ctx.getVarType(var_.name), Nil)
+      (ctx.getVarType(var_.name), Clauses.none)
 
     // Lambda abstraction
     case lam: ELam =>
-      val freshVar = newFreshVar()
-      val var_ = TVar(freshVar.name)
-      val paramCtx = ctx.addEntry(freshVar, TermVar(lam.paramName, var_))
-      val (bodyType, bodyBounds) = infer(lam.body, paramCtx)
-      (TLam(var_, bodyType), bodyBounds)
+      ctx.withLevel(ctx =>
+        val freshVar = newFreshVar()
+        val paramVar = TVar(freshVar.name)
+        val paramCtx = ctx.addClause(freshVar, TermVar(lam.paramName, paramVar))
+        val (bodyType, bodyBounds) = infer(lam.body, paramCtx)
+        (TLam(paramVar, bodyType), Clauses(List(freshVar)).addClauses(bodyBounds))
+      )
 
     // Lambda application
     case app: EApp =>
-      val freshVar = newFreshVar()
-      val freshCtx = ctx.addEntry(freshVar)
-      val (lamType, lamBounds) = infer(app.lam, freshCtx)
-      val (argType, argBounds) = infer(app.arg, freshCtx)
-      val mockLamType = TLam(argType, TVar(freshVar.name))
-
-      val inferBounds =
-        given Context = freshCtx.addEntries(lamBounds, argBounds)
-        constrainSub(lamType, mockLamType)
-      (TVar(freshVar.name), inferBounds ::: argBounds ::: lamBounds)
+      ctx.withLevel(ctx =>
+        val freshVar = newFreshVar()
+        val freshCtx = ctx.addClause(freshVar)
+        val (lamType, lamClauses) = infer(app.lam, freshCtx)
+        val (argType, argClauses) = infer(app.arg, freshCtx)
+        val retVar = TVar(freshVar.name)
+        val mockLamType = TLam(argType, retVar)
+        val consrainClauses =
+          given Clauses = freshCtx.addClauses(lamClauses, argClauses)
+          constrainSub(lamType, mockLamType)
+        (TVar(retVar.name), Clauses(List(freshVar)).addClauses(lamClauses, argClauses, consrainClauses))
+      )
 
     // Type ascription
     case ascr: EAscr =>
-      val (inferType, inferBounds) = infer(ascr.expr, ctx)
-      val constrainBounds =
-        given Context = ctx.addEntries(inferBounds)
+      val (inferType, inferClauses) = infer(ascr.expr, ctx)
+      val constrainClauses =
+        given Clauses = ctx.addClauses(inferClauses)
         constrainSub(inferType, ascr.type_)
-      (ascr.type_, constrainBounds ::: inferBounds)
+      (ascr.type_, constrainClauses.addClauses(inferClauses))
 
     case match_ : EMatch =>
       inferMatch(match_, ctx)
 
 /** Infer the type of a match expression. */
-def inferMatch(match_ : EMatch, ctx: Context): (Type, List[ContextEntry]) =
+def inferMatch(match_ : EMatch, ctx: Clauses): (Type, Clauses) =
   // Infer the type and bounds of the scrutinee.
-  val (scrutineeType, scrutineeEntries) = infer(match_.scrutinee, ctx)
-  val scrutineeCtx = ctx.addEntries(scrutineeEntries)
+  val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee, ctx)
+  val scrutineeCtx = ctx.addClauses(scrutineeClauses)
   // Get the union of the cases.
   val patternsType =
-    given Context = scrutineeCtx
+    given Clauses = scrutineeCtx
     joinMany(match_.cases.map(_.pattern))
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
-  val patternsBounds =
-    given Context = scrutineeCtx
+  val patternsClauses =
+    given Clauses = scrutineeCtx
     given Mode = Mode.Constrain
     constrainSub(scrutineeType, patternsType)
-  val patternsCtx = scrutineeCtx.addEntries(patternsBounds)
+  val patternsCtx = scrutineeCtx.addClauses(patternsClauses)
   // Infer each match case.
-  given Context = patternsCtx
-  val (casesType, casesBounds) = match_.cases
+  given Clauses = patternsCtx
+  val (casesType, casesClauses) = match_.cases
     .map(inferMatchCase(_, scrutineeType, patternsCtx))
     .fold1Right((case_, cases) =>
       val (caseType, caseBounds) = case_
       val (casesType, casesBounds) = cases
       val type_ = join(caseType, casesType)
-      val bounds = patternsCtx.joinBounds(caseBounds.b, casesBounds.b)
+      val bounds = Clauses(patternsCtx.joinBounds(caseBounds, casesBounds))
       (type_, bounds)
     )
 
-  (casesType, casesBounds ::: patternsBounds ::: scrutineeEntries)
+  (casesType, scrutineeClauses.addClauses(patternsClauses, casesClauses))
 
 /** Infer the type of a match case. */
-def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Context): (Type, List[ContextEntry]) =
-  val patternBounds =
-    given Context = ctx
+def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Clauses): (Type, Clauses) =
+  val patternClauses =
+    given Clauses = ctx
     constrainSub(scrutineeType, case_.pattern)
-  val caseCtx = ctx.addEntries(patternBounds)
-  val (bodyType, bodyBounds) = infer(case_.body, caseCtx)
-  (bodyType, bodyBounds ::: patternBounds)
+  val caseCtx = ctx.addClauses(patternClauses)
+  val (bodyType, bodyClauses) = infer(case_.body, caseCtx)
+  (bodyType, patternClauses.addClauses(bodyClauses))

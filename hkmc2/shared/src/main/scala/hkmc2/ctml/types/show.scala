@@ -17,7 +17,7 @@ extension (type_ : Type)
       case inter: TInter =>
         s"${inter.left.show()} ∧ ${inter.right.show()}"
       case constrained: TConstrained =>
-        s"∀${showVars(constrained.vars)} ⇐ {${showBounds(constrained.bounds)}}. ${constrained.base.show()}"
+        s"∀${showVarNames(constrained.vars)} ⇐ {${showBounds(constrained.bounds)}}. ${constrained.base.show()}"
       case constraining: TConstraining =>
         s"${constraining.base.show()} ⇒ {${showBounds(constraining.bounds)}}"
 
@@ -41,31 +41,40 @@ extension (pol: Polarity)
       case Polarity.Positive => "+"
 
 extension (mode: Mode)
-  /** Convert a typing mode to its string representation. */
+  /** Convert the typing mode to its string representation. */
   def show(): String =
     mode match
       case Mode.Constrain => "constrain"
       case Mode.Check     => "check"
 
-extension (ctx: Context)
-  /** Convert a type context to its string representation. */
+extension (clauses: Clauses)
+  /** Convert the clauses to their string representation. */
   def show(): String =
-    "TODO"
+    clauses.elems.map(_.show()).mkString(", ")
 
-extension (ctx: ContextEntry)
+extension (clause: Clause)
+  /** Convert the clause to its string representation. */
   def show(): String =
-    "TODO"
+    clause match
+      case var_ : TermVar =>
+        var_.show()
+      case var_ : TypeVar =>
+        var_.show()
+      case bound: Bound =>
+        bound.show()
 
-extension (ctx: TermVar)
+extension (var_ : TermVar)
+  /** Convert the term variable to its string representation. */
   def show(): String =
-    "TODO"
+    s"${var_.name}: ${var_.type_.show()}"
 
-extension (ctx: TypeVar)
+extension (var_ : TypeVar)
+  /** Convert the type variable to its string representation. */
   def show(): String =
-    "TODO"
+    s"${var_.name} ${var_.kind.show()}"
 
 extension (kind: TypeVarKind)
-  /** Convert a type variable kind to its string representation. */
+  /** Convert thea type variable kind to its string representation. */
   def show(): String =
     kind match
       case TypeVarKind.Rigid => "rigid"
@@ -75,10 +84,6 @@ extension (kind: TypeVarKind)
 def showBounds(bounds: List[Bound]): String =
   bounds.map(_.show()).mkString(", ")
 
-/** Convert a list of bounds to its string representation. */
-def showEntries(bounds: List[ContextEntry]): String =
-  bounds.map(_.show()).mkString(", ")
-
 /** Convert a list of variable names to its string representation. */
-def showVars(vars: List[String]): String =
+def showVarNames(vars: List[String]): String =
   vars.mkString(", ")

@@ -33,7 +33,7 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
         importFile(ctmlPreludeFilePath, verbose = false)
 
   /** The CTML typing context. */
-  var ctmlCtx = hkmc2.ctml.types.Context()
+  var ctmlCtx = hkmc2.ctml.types.Clauses()
 
   override def init(): Unit =
     super.init()

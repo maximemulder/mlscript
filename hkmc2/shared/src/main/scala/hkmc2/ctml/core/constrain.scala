@@ -9,11 +9,18 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Con
     constrainSubImpl(sub, sup)
   catch
     case error: TypeError =>
-      error.steps.append((sub, sup))
+      error.addStep(sub, sup)
       throw error
 
 /** Implementation of `constrainSub`. */
 def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
+  //
+
+  if sub.is[TConstraining] || sup.is[TConstraining] then
+    val (subBase, subBounds) = splitConstrainings(sub)
+    val (supBase, supBounds) = splitConstrainings(sup)
+    constrainSub(subBase, supBase)
+
   // Check the top and bottom types.
 
   if sub.is[TBot] then
@@ -68,7 +75,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if subInterSplit.isDefined then
     val (subLeft, subRight) = subInterSplit.get
     return ctx.any(
-      () => constrainSub(subLeft, sup),
+      () => constrainSub(subLeft,  sup),
       () => constrainSub(subRight, sup),
     )
 

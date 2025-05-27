@@ -71,6 +71,8 @@ extension (clauses: Clauses)
 
   /** Evaluate all the given functions and join their returned bounds. */
   def any(fs: (() => Clauses)*): Clauses =
+    val errorTrees = ListBuffer[TypingTree]()
+
     val result = fs.foldRight(None: Option[Clauses])((f, result) =>
       try
         val bounds = f()
@@ -80,7 +82,8 @@ extension (clauses: Clauses)
           case None =>
             Some(bounds)
       catch
-        case error : TypeError =>
+        case error: TypeError =>
+          errorTrees.appendAll(error.trees)
           result
     )
 
@@ -88,7 +91,7 @@ extension (clauses: Clauses)
       case Some(bounds) =>
         bounds
       case None =>
-        throw new TypeError()
+        throw TypeError(None, errorTrees.toList)
 
   // Others
 

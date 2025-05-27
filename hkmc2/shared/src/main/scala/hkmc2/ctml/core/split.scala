@@ -47,13 +47,13 @@ def splitInter(type_ : Type): Option[(Type, Type)] =
       (splitUnion(lam.param), splitInter(lam.ret)) match
         case (Some(left, right), _) =>
           Some((
-            TUnion(left,  lam.ret),
-            TUnion(right, lam.ret)
+            TLam(left,  lam.ret),
+            TLam(right, lam.ret)
           ))
         case (_, Some(left, right)) =>
           Some(
-            TUnion(left,  lam.ret),
-            TUnion(right, lam.ret)
+            TLam(left,  lam.ret),
+            TLam(right, lam.ret)
           )
         case _ =>
           None

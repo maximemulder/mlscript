@@ -88,7 +88,7 @@ extension (clauses: Clauses)
       case Some(bounds) =>
         bounds
       case None =>
-        throw new TypeError("No alternative for any.")
+        throw new TypeError()
 
   // Others
 

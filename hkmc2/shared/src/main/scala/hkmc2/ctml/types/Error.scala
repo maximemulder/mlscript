@@ -4,31 +4,41 @@ import hkmc2.semantics.Statement
 import scala.collection.mutable.ListBuffer
 
 /** A CTML error. */
-trait Error extends Exception
+abstract class Error extends Exception
 
 /** A CTML parsing error. */
-case class ParseError(stmt: Statement) extends Error:
+class ParseError(stmt: Statement) extends Error:
   override def getMessage(): String =
     s"Unsupported CTML term: ${this.stmt}"
 
-/** A CTML typing error. */
-case class TypeError(
-  val message: String,
-  val judgements: ListBuffer[Judgment] = ListBuffer(),
+/** A CTML type error. */
+class TypeError(
+  val steps: ListBuffer[(Type, Type)] = ListBuffer(),
 ) extends Error:
   override def getMessage(): String =
-    var message = this.message
-    for judgment <- this.judgements do
-      message += s"\n  ${judgment}"
+    if this.steps.isEmpty then
+      return s"Unknown type error."
+
+    val step = this.steps(0)
+    var message = s"Cannot solve type equation ${step._1} ≤ ${step._2}."
+    message += this.getTypingTrace()
+    message
+
+  def getTypingTrace(): String =
+    if this.steps.isEmpty then
+      return ""
+
+    var message = "\nTyping trace:"
+    for step <- steps.reverse do
+      message += s"\n  ${step._1} ≤ ${step._2}"
 
     message
 
-trait Judgment
-
-case class ConstrainSubJudgment(
-  val sub: Type,
-  val sup: Type,
-  val mode: Mode,
-) extends Judgment:
-  override def toString(): String =
-    s"${mode.show()} ${sub.show()} ≤ ${sup.show()}"
+/** A CTML type error with a custom message. */
+case class TypeMessageError(
+  val message: String,
+) extends TypeError:
+  override def getMessage(): String =
+    var message = this.message
+    message += this.getTypingTrace()
+    message

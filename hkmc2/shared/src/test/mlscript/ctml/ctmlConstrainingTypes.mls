@@ -4,7 +4,7 @@ fun foo(a, b) =
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ foo: ∀β ◁ {β ≤ Int ∨ Str}. β → Int ▷ {δ ≤ Int, β ≤ Int} ∨ Str ▷ {δ ≤ Str, β ≤ Str} → Int ∨ Str
+//│ foo: ∀β ◁ {β ≤ Int}. β → ((Int ▷ {δ ≤ Int, β ≤ Int})) → (Int)
 
 foo(1, 2)
 //│ FAILURE: Unexpected exception

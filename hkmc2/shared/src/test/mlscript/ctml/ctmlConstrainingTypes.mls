@@ -4,13 +4,13 @@
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ Int ⇒ {β ≤ Int, α ≤ Int} ∨ Str ⇒ {β ≤ Str, α ≤ Str} → Int ⇒ {β ≤ Int} ∨ Str ⇒ {β ≤ Str} → Int ∨ Str
+//│ ∀α ⇐ {α ≤ Int ⇒ {β ≤ Int, α ≤ Int} ∨ Str ⇒ {β ≤ Str, α ≤ Str} ∧ Int ∨ Str}. α → Int ⇒ {β ≤ Int, α ≤ Int} ∨ Str ⇒ {β ≤ Str, α ≤ Str} → Int ∨ Str
 
 declare val a: Int
 //│ a: Int
 
 fun f(x) = x
-//│ f: ∀α. α → α ⇐ {}
+//│ f: ∀α ⇐ {}. α → α
 
 Int == Int
 //│ OK

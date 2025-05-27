@@ -7,10 +7,10 @@ idInt(1)
 //│ Int
 
 fun id(x) = x
-//│ id: ∀α ⇐ {α ≥ ⊥, α ≤ ⊤}. α → α
+//│ id: ∀α ⇐ {}. α → α
 
 id(1)
-//│ TYPE ERROR: Fail default case ∀α ⇐ {α ≥ ⊥, α ≤ ⊤}. α → α ≤ Int → α.
+//│ TYPE ERROR: Fail default case ∀α ⇐ {}. α → α ≤ Int → α.
 
 val a: Top = 1
 //│ a: ⊤

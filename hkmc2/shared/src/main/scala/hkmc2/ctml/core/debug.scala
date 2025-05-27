@@ -6,9 +6,8 @@ var outputter: (String) => Unit = (message) => print(message)
 
 var tab = 0
 
-def debug(value : Any) =
-  outputter(("  " * tab) + value.toString())
-
+def debug(value : Any*) =
+  outputter(("  " * tab) + value.map(_.toString()).mkString(" "))
 
 def debugConstrainSub(impl: (Type, Type) => Clauses, sub: Type, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
   try

@@ -5,7 +5,12 @@ import hkmc2.ctml.types.*
 
 /** Constrain a type to be a subtype of another type in a context. */
 def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
-  constrainSubImpl(sub, sup)
+  try
+    constrainSubImpl(sub, sup)
+  catch
+    case error: TypeError =>
+      error.judgements.append(ConstrainSubJudgment(sub, sup, mode))
+      throw error
 
 /** Implementation of `constrainSub`. */
 def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
@@ -76,6 +81,16 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
     return constrainSubConstrainedSup(sub.as[TConstrained], sup)
 
   // Check constraining types.
+
+  if sub.is[TConstraining] then
+    // TODO: Improve.
+    val constrainingSub = sub.as[TConstraining]
+    return constrainSub(constrainingSub.base, sup)
+
+  if sup.is[TConstraining] then
+    // TODO: Improve.
+    val constrainingSup = sup.as[TConstraining]
+    return constrainSub(sub, constrainingSup.base)
 
   // TODO
 

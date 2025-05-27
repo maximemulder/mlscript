@@ -17,3 +17,5 @@ id("")
 
 idInt("")
 //│ TYPE ERROR: Fail constrain rigid var.
+//│   constrain Str ≤ Int
+//│   constrain Int → Int ≤ Str → β

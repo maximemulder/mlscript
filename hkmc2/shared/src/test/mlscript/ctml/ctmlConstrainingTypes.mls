@@ -1,22 +1,12 @@
 :ctml
 
-(a, b) =>
+fun foo(a, b) =
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ ∀β ⇐ {β ≤ Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} ∧ Int ∨ Str}. β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str
+//│ foo: ∀β ⇐ {β ≤ Int ∨ Str}. β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str
 
-declare val a: Int
-//│ a: Int
-
-fun f(x) = x
-//│ f: ∀β ⇐ {}. β → β
-
-Int == Int
-//│ OK
-
-1
-//│ Int
-
-()
-//│ Unit
+foo(1, 2)
+//│ TYPE ERROR: No alternative for any.
+//│   constrain β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ
+//│   constrain ∀β ⇐ {β ≤ Int ∨ Str}. β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ

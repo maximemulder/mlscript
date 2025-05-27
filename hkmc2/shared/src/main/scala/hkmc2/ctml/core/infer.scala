@@ -12,7 +12,7 @@ def infer(expr: Expr, ctx: Clauses): (Type, Clauses) =
     // Lambda abstraction
     case lam: ELam =>
       ctx.withLevel(ctx =>
-        val freshVar = newFreshVar()
+        val freshVar = newInferFreshVar()
         val paramVar = TVar(freshVar.name)
         val paramCtx = ctx.addClause(freshVar, TermVar(lam.paramName, paramVar))
         val (bodyType, bodyBounds) = infer(lam.body, paramCtx)
@@ -22,7 +22,7 @@ def infer(expr: Expr, ctx: Clauses): (Type, Clauses) =
     // Lambda application
     case app: EApp =>
       ctx.withLevel(ctx =>
-        val freshVar = newFreshVar()
+        val freshVar = newInferFreshVar()
         val freshCtx = ctx.addClause(freshVar)
         val (lamType, lamClauses) = infer(app.lam, freshCtx)
         val (argType, argClauses) = infer(app.arg, freshCtx)

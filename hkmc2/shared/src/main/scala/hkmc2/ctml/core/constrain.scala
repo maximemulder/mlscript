@@ -67,6 +67,14 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
       () => constrainSub(subRight, sup),
     )
 
+  // Check constrained types.
+
+  if sup.is[TConstrained] then
+    return constrainSubConstrainedSup(sub, sup.as[TConstrained])
+
+  if sub.is[TConstrained] then
+    return constrainSubConstrainedSup(sub.as[TConstrained], sup)
+
   // Check constraining types.
 
   // TODO
@@ -89,6 +97,19 @@ def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Clauses): Clauses =
 
   throw new TypeError("Fail constrain rigid var.")
 
+/** Constrain a constrained type to be a subtype of another type. */
+def constrainSubConstrainedSup(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
+  val varsClauses = sub.vars.map(newFreshVar(_))
+  given Clauses = ctx.addElems(varsClauses, sub.bounds)
+  constrainSub(sub.base, sup)
+
+/** Constrain a type to be a subtype of a constrained type. */
+def constrainSubConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
+  val varsClauses = sup.vars.map(newRigidVar(_))
+  given Clauses = ctx.addElems(varsClauses, sup.bounds)
+  constrainSub(sub, sup.base)
+
+/** Constrain a lambda type to be a subtype of another lambda type. */
 def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
   val paramClauses = constrainSub(sup.param, sub.param)
   val retClauses   = constrainSub(sub.ret,   sup.ret)

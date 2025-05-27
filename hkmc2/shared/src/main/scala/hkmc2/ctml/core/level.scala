@@ -44,7 +44,3 @@ extension (ctx: Clauses)
         type_
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
-
-def newFreshVar(): TypeVar =
-  val varName = newFreshVarName()
-  TypeVar(varName, TypeVarKind.Fresh)

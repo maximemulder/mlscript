@@ -7,38 +7,44 @@ import scala.collection.mutable.ListBuffer
 abstract class Error extends Exception
 
 /** A CTML parsing error. */
-class ParseError(stmt: Statement) extends Error:
+case class ParseError(stmt: Statement) extends Error:
   override def getMessage(): String =
     s"Unsupported CTML term: ${this.stmt}"
 
+case class TypingTree(
+  val sub: Type,
+  val sup: Type,
+  val premises: List[TypingTree],
+):
+  def show(level: Int): String =
+    var tree = s"\n${"  " * level} ${this.sub} ≤ ${this.sup}"
+    for premise <- this.premises do
+      tree += premise.show(level + 1)
+
+    tree
+
 /** A CTML type error. */
-class TypeError(
-  val steps: ListBuffer[(Type, Type)] = ListBuffer(),
+case class TypeError(
+  val message: Option[String] = None,
+  var trees: List[TypingTree] = Nil,
 ) extends Error:
   override def getMessage(): String =
-    if this.steps.isEmpty then
-      return s"Unknown type error."
+    var message = this.message match
+      case Some(message) =>
+        message
+      case None =>
+        this.trees match
+          case tree :: _ =>
+            s"Cannot solve type equation ${tree.sub} ≤ ${tree.sup}."
+          case Nil =>
+            "Unknown type error."
 
-    val step = this.steps(0)
-    var message = s"Cannot solve type equation ${step._1} ≤ ${step._2}."
-    message += this.getTypingTrace()
+    if !this.trees.isEmpty then
+      message += "\nTyping error tree:"
+      for tree <- trees do
+        message += tree.show(1)
+
     message
 
-  def getTypingTrace(): String =
-    if this.steps.isEmpty then
-      return ""
-
-    var message = "\nTyping trace:"
-    for step <- steps.reverse do
-      message += s"\n  ${step._1} ≤ ${step._2}"
-
-    message
-
-/** A CTML type error with a custom message. */
-case class TypeMessageError(
-  val message: String,
-) extends TypeError:
-  override def getMessage(): String =
-    var message = this.message
-    message += this.getTypingTrace()
-    message
+  def addStep(sub: Type, sup: Type) =
+    this.trees = List(TypingTree(sub, sup, premises = trees))

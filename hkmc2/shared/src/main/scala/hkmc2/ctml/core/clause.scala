@@ -45,7 +45,7 @@ extension (clauses: Clauses)
       case Some(var_) =>
         var_.type_
       case None =>
-        throw new TypeMessageError(s"Variable '${varName}' not found in the clauses.")
+        throw new TypeError(Some(s"Variable '${varName}' not found in the clauses."))
 
   /** Get a kind of a type variable defined in the clauses. */
   def getTypeVarKind(varName: String): TypeVarKind =
@@ -53,7 +53,7 @@ extension (clauses: Clauses)
       case Some(var_) =>
         var_.kind
       case None =>
-        throw new TypeMessageError(s"Type variable '${varName}' not found in the clauses.")
+        throw new TypeError(Some(s"Type variable '${varName}' not found in the clauses."))
 
   /** Setters */
 

@@ -1,5 +1,7 @@
 package hkmc2.ctml.types
 
+
+
 extension (type_ : Type)
   /** Convert the type to its string representation. */
   def show(): String =

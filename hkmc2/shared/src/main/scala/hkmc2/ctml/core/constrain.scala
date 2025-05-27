@@ -25,14 +25,13 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   // Check fresh variables in constraining mode.
 
   if mode == Mode.Constrain then
-
     if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
       // TODO: Check and propagate bounds.
       return Clauses(List(Bound(sub.as[TVar].name, Direction.Sub, sup)))
 
     if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
       // TODO: Check and propagate bounds.
-      return Clauses(List(Bound(sub.as[TVar].name, Direction.Super, sub)))
+      return Clauses(List(Bound(sup.as[TVar].name, Direction.Super, sub)))
 
   // Check union and intersection types.
 
@@ -92,7 +91,7 @@ def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Clauses): Clauses =
 
 def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
   val paramClauses = constrainSub(sup.param, sub.param)
-  val retClauses   = constrainSub(sub.ret,   sup.param)
+  val retClauses   = constrainSub(sub.ret,   sup.ret)
   return paramClauses.addClauses(retClauses)
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */

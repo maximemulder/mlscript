@@ -35,12 +35,7 @@ extension (ctx: Clauses)
     val upperBound = meetMany(upperBounds)
     val newType = polarities match
       case Polarities(true, true) =>
-        val bounds = List(
-          Bound(var_.name, Direction.Super, lowerBound),
-          Bound(var_.name, Direction.Sub, upperBound)
-        )
-
-        TConstrained(List(var_.name), type_, bounds)
+        attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
       case Polarities(true, false) =>
         substitute(type_, var_.name, upperBound)
       case Polarities(false, true) =>

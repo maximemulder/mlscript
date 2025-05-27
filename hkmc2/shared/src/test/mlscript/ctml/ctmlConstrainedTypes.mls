@@ -1,7 +1,7 @@
 :ctml
 
 fun id(x) = x
-//│ id: ∀β ⇐ {}. β → β
+//│ id: ∀β ◁ {}. β → β
 
 fun idInt(x) = (x as Int)
 //│ idInt: Int → Int
@@ -16,15 +16,15 @@ id("")
 //│ Str
 
 idInt("")
-//│ TYPE ERROR: Cannot solve type equation Str ≤ Int.
-//│ Typing trace:
+//│ TYPE ERROR: Cannot solve type equation Int → Int ≤ Str → β.
+//│ Typing error tree:
 //│   Int → Int ≤ Str → β
-//│   Str ≤ Int
+//│     Str ≤ Int
 
 val a = 1
 //│ a: Int
 
 a as Str
 //│ TYPE ERROR: Cannot solve type equation Int ≤ Str.
-//│ Typing trace:
+//│ Typing error tree:
 //│   Int ≤ Str

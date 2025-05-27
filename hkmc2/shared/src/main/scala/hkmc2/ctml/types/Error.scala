@@ -17,7 +17,7 @@ case class TypingTree(
   val premises: List[TypingTree],
 ):
   def show(level: Int): String =
-    var tree = s"\n${"  " * level} ${this.sub} ≤ ${this.sup}"
+    var tree = s"\n${"  " * level}${this.sub} ≤ ${this.sup}"
     for premise <- this.premises do
       tree += premise.show(level + 1)
 

@@ -1,27 +1,62 @@
 package hkmc2.ctml.types
 
 
+class TypePrinter(val open: Boolean)
 
 extension (type_ : Type)
   /** Convert the type to its string representation. */
-  def show(): String =
-    type_ match
+  def show(parentOpen: Boolean = false): String =
+    val (string, selfOpen) = type_ match
       case _: TBot =>
-        "⊥"
+        ("⊥", false)
       case _: TTop =>
-        "⊤"
-      case var_ : TVar =>
-        var_.name
-      case lam: TLam =>
-        s"${lam.param.show()} → ${lam.ret.show()}"
-      case union: TUnion =>
-        s"${union.left.show()} ∨ ${union.right.show()}"
-      case inter: TInter =>
-        s"${inter.left.show()} ∧ ${inter.right.show()}"
+        ("⊤", false)
+      case TVar(name) =>
+        (name, false)
+      case TLam(param, ret) =>
+        val components = param :: ret.getLambdaComponents()
+        (components.map(_.show(true)).mkString(" → "), true)
+      case TUnion(left, right) =>
+        val components = left :: right.getUnionComponents()
+        (components.map(_.show(true)).mkString(" ∨ "), true)
+      case TInter(left, right) =>
+        val components = left :: right.getInterComponents()
+        (components.map(_.show(true)).mkString(" ∧ "), true)
       case constrained: TConstrained =>
-        s"∀${showVarNames(constrained.vars)} ◁ {${showBounds(constrained.bounds)}}. ${constrained.base.show()}"
+        (s"∀${showVarNames(constrained.vars)} ◁ {${showBounds(constrained.bounds)}}. ${constrained.base.show(false)}", true)
       case constraining: TConstraining =>
-        s"${constraining.base.show()} ▷ {${showBounds(constraining.bounds)}}"
+        (s"${constraining.base.show(false)} ▷ {${showBounds(constraining.bounds)}}", true)
+
+    // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
+    // around it.
+    if parentOpen && selfOpen then
+      s"(${string})"
+    else
+      string
+
+  /** Get the right-recursive components of a lambda type. */
+  def getLambdaComponents(): List[Type] =
+    type_ match
+      case TLam(param, ret) =>
+        param :: ret.getInterComponents()
+      case _ =>
+        type_ :: Nil
+
+  /** Get the right-recursive components of an union type. */
+  def getUnionComponents(): List[Type] =
+    type_ match
+      case TUnion(left, right) =>
+        left :: right.getUnionComponents()
+      case _ =>
+        type_ :: Nil
+
+  /** Get the right-recursive components of an intersection type. */
+  def getInterComponents(): List[Type] =
+    type_ match
+      case TInter(left, right) =>
+        left :: right.getInterComponents()
+      case _ =>
+        type_ :: Nil
 
 extension (bound: Bound)
   /** Convert the bound to its string representation. */

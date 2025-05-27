@@ -20,7 +20,7 @@ declare val e: A & B
 //│ e: A ∧ B
 
 declare val foo: (A -> A) & (B -> B)
-//│ foo: A → A ∧ B → B
+//│ foo: (A → A) ∧ (B → B)
 
 foo(a)
 //│ A
@@ -29,9 +29,9 @@ foo(b)
 //│ B
 
 foo(c)
-//│ TYPE ERROR: Cannot solve type equation A → A ∧ B → B ≤ C → β.
+//│ TYPE ERROR: Cannot solve type equation (A → A) ∧ (B → B) ≤ C → β.
 //│ Typing error tree:
-//│   A → A ∧ B → B ≤ C → β
+//│   (A → A) ∧ (B → B) ≤ C → β
 //│     B → B ≤ C → β
 //│       C ≤ B
 //│     A → A ≤ C → β
@@ -41,4 +41,4 @@ foo(d)
 //│ A ∨ B
 
 foo(e)
-//│ B ▷ {β ≥ B} ∨ A ▷ {β ≥ A}
+//│ (B ▷ {β ≥ B}) ∨ (A ▷ {β ≥ A})

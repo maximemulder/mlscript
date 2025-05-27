@@ -4,18 +4,8 @@ fun foo(a, b) =
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ foo: ∀β ⇐ {β ≤ Int ∨ Str}. β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str
+//│ foo: ∀β ◁ {β ≤ Int ∨ Str}. β → Int ▷ {δ ≤ Int, β ≤ Int} ∨ Str ▷ {δ ≤ Str, β ≤ Str} → Int ∨ Str
 
 foo(1, 2)
-//│ TYPE ERROR: Cannot solve type equation ∀β ⇐ {β ≤ Int ∨ Str}. β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ.
-//│ Typing error tree:
-//│    ∀β ⇐ {β ≤ Int ∨ Str}. β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ
-//│      β → Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ
-//│        Str ⇒ {δ ≤ Str, β ≤ Str} ∨ Int ∨ Str ∨ Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ
-//│          Str ⇒ {δ ≤ Str, β ≤ Str} ∨ Int ∨ Str ≤ Int → δ
-//│            Str ⇒ {δ ≤ Str, β ≤ Str} ≤ Int → δ
-//│              Str ≤ Int → δ
-//│        Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Int ∨ Str ∨ Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Str ⇒ {δ ≤ Str, β ≤ Str} → Int ∨ Str ≤ Int → δ
-//│          Int ⇒ {δ ≤ Int, β ≤ Int} ∨ Int ∨ Str ≤ Int → δ
-//│            Int ⇒ {δ ≤ Int, β ≤ Int} ≤ Int → δ
-//│              Int ≤ Int → δ
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError

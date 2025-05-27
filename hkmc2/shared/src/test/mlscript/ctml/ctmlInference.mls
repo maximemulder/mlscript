@@ -31,14 +31,14 @@ foo(b)
 foo(c)
 //│ TYPE ERROR: Cannot solve type equation A → A ∧ B → B ≤ C → β.
 //│ Typing error tree:
-//│    A → A ∧ B → B ≤ C → β
-//│      B → B ≤ C → β
-//│        C ≤ B
-//│      A → A ≤ C → β
-//│        C ≤ A
+//│   A → A ∧ B → B ≤ C → β
+//│     B → B ≤ C → β
+//│       C ≤ B
+//│     A → A ≤ C → β
+//│       C ≤ A
 
 foo(d)
-//│ A → A ∧ B → B
+//│ A ∨ B
 
 foo(e)
-//│ B ⇒ {β ≥ B} ∨ A ⇒ {β ≥ A}
+//│ B ▷ {β ≥ B} ∨ A ▷ {β ≥ A}

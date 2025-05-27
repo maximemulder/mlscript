@@ -16,6 +16,15 @@ id("")
 //│ Str
 
 idInt("")
-//│ TYPE ERROR: Fail constrain rigid var.
-//│   constrain Str ≤ Int
-//│   constrain Int → Int ≤ Str → β
+//│ TYPE ERROR: Cannot solve type equation Str ≤ Int.
+//│ Typing trace:
+//│   Int → Int ≤ Str → β
+//│   Str ≤ Int
+
+val a = 1
+//│ a: Int
+
+a as Str
+//│ TYPE ERROR: Cannot solve type equation Int ≤ Str.
+//│ Typing trace:
+//│   Int ≤ Str

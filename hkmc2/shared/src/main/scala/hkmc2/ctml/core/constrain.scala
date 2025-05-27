@@ -9,7 +9,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Con
     constrainSubImpl(sub, sup)
   catch
     case error: TypeError =>
-      error.judgements.append(ConstrainSubJudgment(sub, sup, mode))
+      error.steps.append((sub, sup))
       throw error
 
 /** Implementation of `constrainSub`. */
@@ -104,13 +104,13 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if sub.is[TLam] && sup.is[TLam] then
     return constrainSubLam(sub.as[TLam], sup.as[TLam])
 
-  throw new TypeError(s"Fail default case ${sub} ≤ ${sup}.")
+  throw TypeError()
 
 def constrainSubRigidVar(sub: TVar, sup: TVar)(using ctx: Clauses): Clauses =
   if sub.name == sup.name then
     return Clauses.none
 
-  throw new TypeError("Fail constrain rigid var.")
+  throw TypeError()
 
 /** Constrain a constrained type to be a subtype of another type. */
 def constrainSubConstrainedSup(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =

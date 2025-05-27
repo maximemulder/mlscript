@@ -3,7 +3,7 @@ package hkmc2.ctml.core
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 
-/** Attach some bounds to a constraining type. */
+/** Attach some constraining bounds to a type. */
 def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Clauses): Type =
   val filteredBounds = ctx.filterUnsatisfiedBounds(bounds)
   if filteredBounds == Nil then
@@ -11,6 +11,7 @@ def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Claus
   else
     TConstraining(type_, bounds)
 
+/** Attached some constrained bounds to a type. */
 def attachConstrainedBounds(type_ : Type, varName: String, lowerBound: Type, upperBound: Type): Type =
   val bounds = ListBuffer[Bound]()
   if upperBound != TTop then
@@ -20,3 +21,10 @@ def attachConstrainedBounds(type_ : Type, varName: String, lowerBound: Type, upp
     bounds.append(Bound(varName, Direction.Super, lowerBound))
 
   TConstrained(List(varName), type_, bounds.toList)
+
+def splitConstrainings(type_ : Type): (Type, List[Bound]) =
+  type_ match
+    case constraining : TConstraining =>
+      (constraining.base, constraining.bounds)
+    case _ =>
+      (type_, Nil)

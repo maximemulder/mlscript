@@ -1,0 +1,44 @@
+:ctml
+
+declare class A
+declare class B
+declare class C
+
+declare val a: A
+//│ a: A
+
+declare val b: B
+//│ b: B
+
+declare val c: C
+//│ c: C
+
+declare val d: A | B
+//│ d: A ∨ B
+
+declare val e: A & B
+//│ e: A ∧ B
+
+declare val foo: (A -> A) & (B -> B)
+//│ foo: A → A ∧ B → B
+
+foo(a)
+//│ A
+
+foo(b)
+//│ B
+
+foo(c)
+//│ TYPE ERROR: Cannot solve type equation A → A ∧ B → B ≤ C → β.
+//│ Typing error tree:
+//│    A → A ∧ B → B ≤ C → β
+//│      B → B ≤ C → β
+//│        C ≤ B
+//│      A → A ≤ C → β
+//│        C ≤ A
+
+foo(d)
+//│ A → A ∧ B → B
+
+foo(e)
+//│ B ⇒ {β ≥ B} ∨ A ⇒ {β ≥ A}

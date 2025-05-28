@@ -2,7 +2,6 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 
-
 /** Constrain a type to be a subtype of another type in a context. */
 def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   try

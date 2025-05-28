@@ -1,0 +1,82 @@
+:ctml
+
+declare class A
+declare class B
+
+// Top and bottom types.
+
+Bot == Bot
+//│ OK
+
+Top == Top
+//│ OK
+
+Bot <= Top
+//│ OK
+
+Top <= Bot
+//│ TYPE ERROR: Cannot solve type equation ⊤ ≤ ⊥.
+//│ Typing error tree:
+//│   ⊤ ≤ ⊥
+
+// Rigid type variables.
+
+A == A
+//│ OK
+
+A <= Top
+//│ OK
+
+Bot <= A
+//│ OK
+
+Top <= A
+//│ TYPE ERROR: Cannot solve type equation ⊤ ≤ A.
+//│ Typing error tree:
+//│   ⊤ ≤ A
+
+A <= Bot
+//│ TYPE ERROR: Cannot solve type equation A ≤ ⊥.
+//│ Typing error tree:
+//│   A ≤ ⊥
+
+A == B
+//│ TYPE ERROR: Cannot solve type equation A = B.
+
+// Lambda types.
+
+(Top -> Bot) <= (A -> Bot)
+//│ OK
+
+(Top -> Bot) <= (Top -> A)
+//│ OK
+
+(A -> Bot) <= (Top -> Bot)
+//│ TYPE ERROR: Cannot solve type equation A → ⊥ ≤ ⊤ → ⊥.
+//│ Typing error tree:
+//│   A → ⊥ ≤ ⊤ → ⊥
+//│     ⊤ ≤ A
+
+(Top -> A) <= (Top -> Bot)
+//│ TYPE ERROR: Cannot solve type equation ⊤ → A ≤ ⊤ → ⊥.
+//│ Typing error tree:
+//│   ⊤ → A ≤ ⊤ → ⊥
+//│     A ≤ ⊥
+
+(A -> Top) <= (Bot -> Top)
+//│ OK
+
+(Bot -> A) <= (Bot -> Top)
+//│ OK
+
+(Bot -> Top) <= (A -> Top)
+//│ TYPE ERROR: Cannot solve type equation ⊥ → ⊤ ≤ A → ⊤.
+//│ Typing error tree:
+//│   ⊥ → ⊤ ≤ A → ⊤
+//│     A ≤ ⊥
+
+(Bot -> Top) <= (Bot -> A)
+//│ TYPE ERROR: Cannot solve type equation ⊥ → ⊤ ≤ ⊥ → A.
+//│ Typing error tree:
+//│   ⊥ → ⊤ ≤ ⊥ → A
+//│     ⊤ ≤ A

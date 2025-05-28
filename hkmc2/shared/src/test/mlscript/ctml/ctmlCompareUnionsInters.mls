@@ -1,0 +1,74 @@
+:ctml
+
+declare class A
+declare class B
+declare class C
+declare class D
+
+// Simple unions and intersections.
+
+Top == (Top | A)
+//│ OK
+
+Bot == (Bot & A)
+//│ OK
+
+A == (A | A)
+//│ OK
+
+A == (A & A)
+//│ OK
+
+A <= (A | B)
+//│ OK
+
+(A & B) <= A
+//│ OK
+
+(A | B) <= A
+//│ TYPE ERROR: Cannot solve type equation A ∨ B ≤ A.
+//│ Typing error tree:
+//│   A ∨ B ≤ A
+//│     B ≤ A
+
+A <= (A & B)
+//│ TYPE ERROR: Cannot solve type equation A ≤ A ∧ B.
+//│ Typing error tree:
+//│   A ≤ A ∧ B
+//│     A ≤ B
+
+(A | B) == (B | A)
+//│ OK
+
+(A & B) == (B & A)
+//│ OK
+
+// Unions and intersections distributvity.
+
+(A | (B & C)) == ((A | B) & (A | C))
+//│ OK
+
+(A & (B | C)) == ((A & B) | (A & C))
+//│ OK
+
+// Lambdas and intersections distributvity.
+
+((A -> B) & (A -> C)) == (A -> (B & C))
+//│ OK
+
+((A -> C) & (B -> C)) == ((A | B) -> C)
+//│ OK
+
+((A | C) -> (B & D)) <= ((A -> B) & (C -> D))
+//│ OK
+
+((A -> B) & (C -> D)) <= ((A | C) -> (B & D))
+//│ TYPE ERROR: Cannot solve type equation (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D).
+//│ Typing error tree:
+//│   (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D)
+//│     (A → B) ∧ (C → D) ≤ A → (B ∧ D)
+//│       (A → B) ∧ (C → D) ≤ A → D
+//│         C → D ≤ A → D
+//│           A ≤ C
+//│         A → B ≤ A → D
+//│           B ≤ D

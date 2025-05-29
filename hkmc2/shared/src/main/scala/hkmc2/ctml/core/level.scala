@@ -1,6 +1,7 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.traverse.*
 
 extension (ctx: Clauses)
   /** Evaluate a function within a context with a new fresh type variable. */
@@ -11,7 +12,7 @@ extension (ctx: Clauses)
     // Get the new type variables present in the generated constraints.
     val newVars = outs.typeVars
     // Remove the variables that appear in lower polymorphism levels.
-    val filteredVars = removeLowVars(ctx, newVars.toList)
+    val filteredVars = ctx.filterLevelVars(newVars.toList, outs)
 
     // TODO:
     // 1. Find variables declared in statements.
@@ -34,13 +35,21 @@ extension (ctx: Clauses)
       given Polarity = Polarity.Positive
       getTypePolarities(type_, var_.name)
     val newType = polarities match
-      case Polarities(true, true) =>
-        attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
-      case Polarities(true, false) =>
-        substitute(type_, var_.name, upperBound)
-      case Polarities(false, true) =>
-        substitute(type_, var_.name, lowerBound)
       case Polarities(false, false) =>
         type_
+      case Polarities(true, false) if !upperBound.isConstraining() =>
+        substitute(type_, var_.name, upperBound)
+      case Polarities(false, true) if !lowerBound.isConstraining()  =>
+        substitute(type_, var_.name, lowerBound)
+      case Polarities(_, _) =>
+        attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
+
+  /** Remove the variables in the context that appear before a certain level. */
+  def filterLevelVars(vars: List[TypeVar], outs: Clauses): List[TypeVar] =
+    val fullCtx = ctx.addClauses(outs)
+    vars.filter(var_ =>
+      val dependentVars = fullCtx.getDependentVars(var_.name)
+      !dependentVars.exists(dependentVar => ctx.hasVar(dependentVar))
+    )

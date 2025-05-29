@@ -139,5 +139,7 @@ extension (clauses: Clauses)
 
 /** Remove the variables in the context that appear before a certain level. */
 def removeLowVars(ctx: Clauses, vars: List[TypeVar]): List[TypeVar] =
-  // TODO
-  vars
+  // TODO:
+  // 1. Get variables that depend on a variable.
+  // 2. Filter based on if these variables are in the parent context.
+  vars.filter(var_ => !ctx.hasVar(var_.name))

@@ -1,5 +1,6 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.core.traverse
 
+import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
@@ -13,6 +14,8 @@ extension (clause: Clause)
     clause match
       case bound: Bound =>
         bound.hasVar(varName)
+      case var_ : TermVar =>
+        var_.type_.hasVar(varName)
       case _ =>
         false
 

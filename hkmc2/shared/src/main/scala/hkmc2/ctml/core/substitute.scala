@@ -25,6 +25,10 @@ def substitute(type_ : Type, varName: String, subsitute: Type)(using ctx: Clause
       val left  = substitute(inter.left,  varName, subsitute)
       val right = substitute(inter.right, varName, subsitute)
       join(left, right)
+    case constrained: TConstrained =>
+      val base = substitute(constrained.base, varName, subsitute)
+      val bounds = substituteBounds(constrained.bounds, varName, subsitute)
+      TConstrained(constrained.vars, base, bounds)
     case constraining: TConstraining =>
       val base = substitute(constraining.base, varName, subsitute)
       val bounds = substituteBounds(constraining.bounds, varName, subsitute)

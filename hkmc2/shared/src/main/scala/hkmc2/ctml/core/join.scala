@@ -16,6 +16,7 @@ def joinImpl(left: Type, right: Type)(using ctx: Clauses): Type =
 
   TUnion(left, right)
 
-/** Get the simplified join of many types. */
-def joinMany(types: List[Type])(using ctx: Clauses): Type =
-  types.foldRight(TBot)(join)
+extension (types: List[Type])
+  /** Get the simplified join of many types. */
+  def joinMany()(using ctx: Clauses): Type =
+    types.foldRight(TBot)(join)

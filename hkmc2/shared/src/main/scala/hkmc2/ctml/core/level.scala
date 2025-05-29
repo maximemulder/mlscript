@@ -26,13 +26,13 @@ extension (ctx: Clauses)
     )
 
   def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses): (Type, Clauses) =
+    val fullCtx = ctx.addClauses(outs)
+    given Clauses = fullCtx
+    val lowerBound = fullCtx.getVarLowerBound(var_.name)
+    val upperBound = fullCtx.getVarUpperBound(var_.name)
     val polarities =
       given Polarity = Polarity.Positive
       getTypePolarities(type_, var_.name)
-    val (lowerBounds, upperBounds) = outs.getVarBounds(var_)
-    given Clauses = ctx.addClauses(outs)
-    val lowerBound = joinMany(lowerBounds)
-    val upperBound = meetMany(upperBounds)
     val newType = polarities match
       case Polarities(true, true) =>
         attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)

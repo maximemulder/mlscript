@@ -36,6 +36,7 @@ def meetDisjoint(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
     case _ =>
       None
 
-/** Get the simplified meet of many types. */
-def meetMany(types: List[Type])(using ctx: Clauses): Type =
-  types.foldRight(TTop)(meet)
+extension (types: List[Type])
+  /** Get the simplified meet of many types. */
+  def meetMany()(using ctx: Clauses): Type =
+    types.foldRight(TTop)(meet)

@@ -25,6 +25,12 @@ def getTypePolarities(type_ : Type, varName : String)(using polarity: Polarity):
       val leftOccurences  = getTypePolarities(inter.left, varName)
       val rightOccurences = getTypePolarities(inter.right, varName)
       Polarities.join(leftOccurences, rightOccurences)
+    case constrained: TConstrained =>
+      val baseOccurences   = getTypePolarities(constrained.base, varName)
+      val boundsOccurences = constrained.bounds
+        .map(getBoundPolarities(_, varName))
+        .fold(Polarities.empty)(Polarities.join)
+      Polarities.join(baseOccurences, boundsOccurences)
     case constraining: TConstraining =>
       val baseOccurences   = getTypePolarities(constraining.base, varName)
       val boundsOccurences = constraining.bounds

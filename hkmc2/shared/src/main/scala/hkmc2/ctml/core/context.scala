@@ -1,5 +1,6 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.traverse.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 
@@ -136,10 +137,3 @@ extension (clauses: Clauses)
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !clauses.checkBoundSatisfied(bound))
-
-/** Remove the variables in the context that appear before a certain level. */
-def removeLowVars(ctx: Clauses, vars: List[TypeVar]): List[TypeVar] =
-  // TODO:
-  // 1. Get variables that depend on a variable.
-  // 2. Filter based on if these variables are in the parent context.
-  vars.filter(var_ => !ctx.hasVar(var_.name))

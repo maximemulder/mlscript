@@ -105,6 +105,14 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if sub.is[TVar] && sup.is[TVar] then
     return constrainSubRigidVar(sub.as[TVar], sup.as[TVar])
 
+  if sub.is[TVar] then
+    val upperBound = ctx.getVarUpperBound(sub.as[TVar].name)
+    return constrainSub(upperBound, sup)
+
+  if sup.is[TVar] then
+    val lowerBound = ctx.getVarLowerBound(sup.as[TVar].name)
+    return constrainSub(sub, lowerBound)
+
   // Check other types.
 
   if sub.is[TLam] && sup.is[TLam] then
@@ -153,7 +161,7 @@ def checkEq(left: Type, right: Type)(using ctx: Clauses): Boolean =
 
 extension (ctx: Clauses)
   /** Check if a bound is satisified in the context. */
-  def checkBoundSatisfied(bound: Bound) =
+  def checkBoundSatisfied(bound: Bound): Boolean =
     val var_ = TVar(bound.name)
     bound.dir match
       case Direction.Sub =>

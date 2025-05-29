@@ -103,71 +103,39 @@ extension (clauses: Clauses)
   def isTypeVarRigid(varName: String): Boolean =
     clauses.getTypeVarKind(varName) == TypeVarKind.Rigid
 
+  /** Get all the lower bounds of a type variable. */
+  def getVarLowerBounds(varName: String): List[Type] =
+    clauses
+      .varBounds(varName)
+      .filter(_.dir == Direction.Super)
+      .map(_.type_)
+      .toList
+
+  /** Get all the upper bounds of a type variable. */
+  def getVarUpperBounds(varName: String): List[Type] =
+    clauses
+      .varBounds(varName)
+      .filter(_.dir == Direction.Sub)
+      .map(_.type_)
+      .toList
+
   /** Get the lower bound of a type variable in the context. */
   def getVarLowerBound(varName: String): Type =
-    clauses.varBounds(varName)
-      .filter(_.dir == Direction.Super)
-      .foldRight(TBot: Type)((bound, type_) =>
-        given Clauses = clauses
-        join(type_, bound.type_)
-      )
+    given Clauses = clauses
+    clauses
+      .getVarLowerBounds(varName)
+      .joinMany()
 
   /** Get the upper bound of a type variable in the context. */
   def getVarUpperBound(varName: String): Type =
-    clauses.varBounds(varName)
-      .filter(_.dir == Direction.Sub)
-      .foldRight(TTop: Type)((bound, type_) =>
-        given Clauses = clauses
-        meet(type_, bound.type_)
-      )
-
-  /** Extract a variable and its bounds from the context. */
-  def extractVarBounds(varName: String): (List[Clause], (Type, Type)) =
-    // TODO: Shadowing.
-    val (varCtx, filteredCtx) = clauses.elems.partition(_ match
-      case bound : Bound if bound.name == varName =>
-        true
-      case _ =>
-        false
-    )
-
-    val varBounds = varCtx.flatMap(_ match
-      case bound : Bound =>
-        Some(bound)
-      case _ =>
-        None
-    )
-
-    val (lowerBounds, upperBounds) = varBounds.partition(_.dir match
-      case Direction.Sub =>
-        true
-      case Direction.Super =>
-        false
-    )
-
     given Clauses = clauses
-    val lowerBound = meetMany(lowerBounds.map(_.type_))
-    val upperBound = joinMany(upperBounds.map(_.type_))
-
-    return (filteredCtx, (lowerBound, upperBound))
+    clauses
+      .getVarUpperBounds(varName)
+      .meetMany()
 
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !clauses.checkBoundSatisfied(bound))
-
-  def getVarBounds(var_ : TypeVar): (List[Type], List[Type]) =
-    val lowerBounds: ListBuffer[Type] = new ListBuffer()
-    val upperBounds: ListBuffer[Type] = new ListBuffer()
-
-    for bound <- clauses.varBounds(var_.name) do
-      bound.dir match
-        case Direction.Sub =>
-          upperBounds.append(bound.type_)
-        case Direction.Super =>
-          lowerBounds.append(bound.type_)
-
-    (lowerBounds.toList, upperBounds.toList)
-
 
 /** Remove the variables in the context that appear before a certain level. */
 def removeLowVars(ctx: Clauses, vars: List[TypeVar]): List[TypeVar] =

@@ -53,11 +53,12 @@ def inferMatch(match_ : EMatch, ctx: Clauses): (Type, Clauses) =
   // Get the union of the cases.
   val patternsType =
     given Clauses = scrutineeCtx
-    joinMany(match_.cases.map(_.pattern))
+    match_.cases
+      .map(_.pattern)
+      .joinMany()
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
   val patternsClauses =
     given Clauses = scrutineeCtx
-    given Mode = Mode.Constrain
     constrainSub(scrutineeType, patternsType)
   val patternsCtx = scrutineeCtx.addClauses(patternsClauses)
   // Infer each match case.

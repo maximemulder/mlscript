@@ -15,17 +15,7 @@ extension (bounds: List[Bound])
   def isTypeVarBounded(varName: String, dir: Direction): Boolean =
     bounds.exists((bound) => bound.name == varName && bound.dir == dir)
 
-  def collectVarBounds(varName: String, dir: Direction): List[Type] =
+  def filterVarDir(varName: String, dir: Direction): List[Type] =
     bounds
       .filter((bound) => bound.name == varName && bound.dir == dir)
       .map(_.type_)
-
-extension (statements: List[Clause])
-  // TODO: Remove ?
-  def b: List[Bound] =
-    statements.flatMap(_ match
-      case bound: Bound =>
-        Some(bound)
-      case _ =>
-        None
-    )

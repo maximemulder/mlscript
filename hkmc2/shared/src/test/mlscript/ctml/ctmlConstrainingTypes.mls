@@ -4,11 +4,13 @@ fun foo(a, b) =
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ foo: ∀β ◁ {β ≤ Int ∨ Str}. β → ((Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str})) → (Int ∨ Str)
+//│ foo: ∀δ ◁ {δ ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str})}. ∀β ◁ {β ≤ (Int ▷ {δ ≤ Int}) ∨ (Str ▷ {δ ≤ Str})}. β → δ → (Int ∨ Str)
 
 foo(1, 2)
-//│ ∀β ◁ {β ≥ (Int ▷ {δ ≥ (Str ▷ {β ≤ Str}) → (Int ∨ Str), β ≥ Int}) ∨ (Int ▷ {δ ≥ (Int ▷ {β ≤ Int}) → (Int ∨ Str), β ≥ Int})}. β
-//│ δ ≤ Int → β, δ ≥ ((Str ▷ {β ≤ Str}) → (Int ∨ Str) ▷ {β ≥ Int}) ∨ ((Int ▷ {β ≤ Int}) → (Int ∨ Str) ▷ {β ≥ Int}), δ fresh
+//│ TYPE ERROR: Type variable 'δ' not found in the clauses.
+//│ Typing error tree:
+//│   δ → (Int ∨ Str) ≤ Int → β
+//│     Int ≤ δ
 
 ""
 //│ Str

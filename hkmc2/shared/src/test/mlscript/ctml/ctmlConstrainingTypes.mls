@@ -7,10 +7,10 @@ fun foo(a, b) =
 //│ foo: ∀α, β ◁ {α ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β ≤ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. α → β → (Int ∨ Str)
 
 foo(1, 2)
-//│ TYPE ERROR: Type variable 'β' not found in the clauses.
-//│ Typing error tree:
-//│   β → (Int ∨ Str) ≤ Int → α
-//│     Int ≤ β
+//│ Int ∨ Str
+//│ β ≥ Int, α ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str}), α ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β fresh, α fresh
 
-""
-//│ Str
+2
+//│ Int
+3
+//│ Int

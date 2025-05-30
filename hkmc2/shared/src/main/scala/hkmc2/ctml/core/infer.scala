@@ -5,6 +5,10 @@ import hkmc2.ctml.types.*
 
 /** Infer the type of an expression. */
 def infer(expr: Expr, ctx: Clauses): (Type, Clauses) =
+  inferImpl(expr, ctx)
+
+/** Implementation of `constrainSub`. */
+def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
   expr match
     // Variable
     case var_ : EVar =>

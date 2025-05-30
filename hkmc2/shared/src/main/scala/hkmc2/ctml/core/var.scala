@@ -9,7 +9,6 @@ def newInferFreshVar(): TypeVar =
 
 /** Get a fresh type variable with a given name. */
 def newFreshVar(varName: String): TypeVar =
-  val varName = newFreshVarName()
   TypeVar(varName, TypeVarKind.Fresh)
 
 /** Get a rigid type variable with a given name. */

@@ -95,7 +95,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
     return constrainSubConstrainedSup(sub, sup.as[TConstrained])
 
   if sub.is[TConstrained] then
-    return constrainSubConstrainedSup(sub.as[TConstrained], sup)
+    return constrainSubConstrainedSub(sub.as[TConstrained], sup)
 
   // Check constraining types.
 
@@ -133,15 +133,15 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   throw TypeError()
 
 /** Constrain a constrained type to be a subtype of another type. */
-def constrainSubConstrainedSup(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
-  val varsClauses = sub.vars.map(newFreshVar(_))
-  given Clauses = ctx.addElems(varsClauses, sub.bounds)
+def constrainSubConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
+  val subVars = sub.vars.map(newFreshVar(_))
+  given Clauses = ctx.addElems(subVars, sub.bounds)
   constrainSub(sub.base, sup)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def constrainSubConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
-  val varsClauses = sup.vars.map(newRigidVar(_))
-  given Clauses = ctx.addElems(varsClauses, sup.bounds)
+  val supVars = sup.vars.map(newRigidVar(_))
+  given Clauses = ctx.addElems(supVars, sup.bounds)
   constrainSub(sub, sup.base)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */

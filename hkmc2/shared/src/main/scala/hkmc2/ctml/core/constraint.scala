@@ -13,14 +13,20 @@ def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Claus
 
 /** Attached some constrained bounds to a type. */
 def attachConstrainedBounds(type_ : Type, varName: String, lowerBound: Type, upperBound: Type): Type =
-  val bounds = ListBuffer[Bound]()
+  val boundsBuffer = ListBuffer[Bound]()
   if upperBound != TTop then
-    bounds.append(Bound(varName, Direction.Sub, upperBound))
+    boundsBuffer.append(Bound(varName, Direction.Sub, upperBound))
 
   if lowerBound != TBot then
-    bounds.append(Bound(varName, Direction.Super, lowerBound))
+    boundsBuffer.append(Bound(varName, Direction.Super, lowerBound))
 
-  TConstrained(List(varName), type_, bounds.toList)
+  val bounds = boundsBuffer.toList
+
+  type_ match
+    case constrained: TConstrained =>
+      TConstrained(varName :: constrained.vars, constrained.base, bounds ::: constrained.bounds)
+    case _ =>
+      TConstrained(List(varName), type_, bounds)
 
 def splitConstrainings(type_ : Type): (Type, List[Bound]) =
   type_ match

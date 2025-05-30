@@ -15,14 +15,33 @@ def debugConstrainSub(impl: (Type, Type) => Clauses, sub: Type, sup: Type)(using
     throw TypeError(Some("Reached maximum recursion"))
 
   try
+    debug(s"${mode} ${sub} ≤ ${sup}")
     val outs = try
       currentRecursion += 1
       constrainSubImpl(sub, sup)
     finally
       currentRecursion -= 1
-    debug(s"${mode} ${sub} ≤ ${sup} OK ${outs}")
+    debug(s"OK ${outs}")
     outs
   catch
     case error: TypeError =>
-      debug(s"${mode} ${sub} ≤ ${sup} FAIL")
+      debug("FAIL")
+      throw error
+
+def debugInfer(impl: (Expr, Clauses) => (Type, Clauses), expr: Expr, ctx: Clauses): (Type, Clauses) =
+  if currentRecursion > maxRecursion then
+    throw TypeError(Some("Reached maximum recursion"))
+
+  try
+    debug(s"infer ${expr}")
+    val (type_, outs) = try
+      currentRecursion += 1
+      inferImpl(expr, ctx)
+    finally
+      currentRecursion -= 1
+    debug(s"OK ${type_} ⇝ ${outs}")
+    (type_, outs)
+  catch
+    case error: TypeError =>
+      debug("FAIL")
       throw error

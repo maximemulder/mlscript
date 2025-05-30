@@ -136,13 +136,17 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
 def constrainSubConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
   given Clauses = ctx.addElems(subVars, sub.bounds)
-  constrainSub(sub.base, sup)
+  val test = constrainSub(sub.base, sup)
+  // TODO: Correctly handle escaping.
+  Clauses(subVars).addElems(sub.bounds).addClauses(test)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def constrainSubConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
   given Clauses = ctx.addElems(supVars, sup.bounds)
-  constrainSub(sub, sup.base)
+  val test = constrainSub(sub, sup.base)
+  // TODO: Correctly handle escaping.
+  Clauses(supVars).addElems(sup.bounds).addClauses(test)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =

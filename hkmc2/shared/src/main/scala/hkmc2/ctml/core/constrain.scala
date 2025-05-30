@@ -3,6 +3,14 @@ package hkmc2.ctml.core
 import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
 
+/** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
+def constrainDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: Mode): Clauses =
+  dir match
+    case Direction.Sub =>
+      constrainSub(sub, sup)
+    case Direction.Super =>
+      constrainSub(sup, sub)
+
 /** Constrain a type to be a subtype of another type in a context. */
 def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   try
@@ -144,13 +152,10 @@ def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Claus
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
 def constrainBounds(subs: List[Bound], sups: List[Bound])(using ctx: Clauses, mode: Mode): Clauses =
-  // For all sup
-  // constrain equivalent sub to be subtype of sup
   sups
-    .filter(_.dir == Direction.Super)
     .foldRight(Clauses.none)((sup, clauses) =>
-      val subTypes = subs.filterVarDir(sup.name, Direction.Sub)
-      val subType = subTypes.meetMany()
+      val subTypes = subs.filterVarDir(sup.name, sup.dir)
+      val subType = subTypes.mergeMany(sup.dir)
       constrainSub(subType, sup.type_)
     )
 

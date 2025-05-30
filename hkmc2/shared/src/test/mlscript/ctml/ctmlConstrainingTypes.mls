@@ -4,7 +4,7 @@ fun foo(a, b) =
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ foo: ∀δ ◁ {δ ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str})}. ∀β ◁ {β ≤ (Int ▷ {δ ≤ Int}) ∨ (Str ▷ {δ ≤ Str})}. β → δ → (Int ∨ Str)
+//│ foo: ∀β, δ ◁ {β ≤ (Int ▷ {δ ≤ Int}) ∨ (Str ▷ {δ ≤ Str}), δ ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str})}. β → δ → (Int ∨ Str)
 
 foo(1, 2)
 //│ TYPE ERROR: Type variable 'δ' not found in the clauses.

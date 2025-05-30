@@ -23,7 +23,7 @@ extension (type_ : Type)
         val components = left :: right.getInterComponents()
         (components.map(_.show(true)).mkString(" ∧ "), true)
       case constrained: TConstrained =>
-        (s"∀${showVarNames(constrained.vars)} ◁ {${showBounds(constrained.bounds)}}. ${constrained.base.show(false)}", true)
+        (s"∀${showVarNames(constrained.vars.reverse)} ◁ {${showBounds(constrained.bounds.reverse)}}. ${constrained.base.show(false)}", true)
       case constraining: TConstraining =>
         (s"${constraining.base.show(false)} ▷ {${showBounds(constraining.bounds)}}", true)
 

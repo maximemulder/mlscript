@@ -23,10 +23,10 @@ extension (ctx: Clauses)
     //     Substitute in context.
     //     Substitute in type.
     filteredVars.foldRight((type_, outs))((var_, te) =>
-      processLevelVar(te._1, var_, te._2)
+      processLevelVar(te._1, var_, filteredVars.map(_.name).toSet, te._2)
     )
 
-  def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses): (Type, Clauses) =
+  def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[String], outs: Clauses): (Type, Clauses) =
     val fullCtx = ctx.addClauses(outs)
     given Clauses = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_.name)
@@ -34,15 +34,20 @@ extension (ctx: Clauses)
     val polarities =
       given Polarity = Polarity.Positive
       getTypePolarities(type_, var_.name)
+    if fullCtx.isVarConstrained(var_.name, levelVars) then
+      return (
+        attachConstrainedBounds(type_, var_.name, lowerBound, upperBound),
+        outs.removeTypeVar(var_.name)
+      )
     val newType = polarities match
+      case Polarities(true, true) =>
+        attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
       case Polarities(false, false) =>
         type_
-      case Polarities(true, false) if !upperBound.isConstraining() =>
+      case Polarities(true, false) =>
         substitute(type_, var_.name, upperBound)
-      case Polarities(false, true) if !lowerBound.isConstraining()  =>
+      case Polarities(false, true)  =>
         substitute(type_, var_.name, lowerBound)
-      case Polarities(_, _) =>
-        attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
 
@@ -53,3 +58,12 @@ extension (ctx: Clauses)
       val dependentVars = fullCtx.getDependentVars(var_.name)
       !dependentVars.exists(dependentVar => ctx.hasVar(dependentVar))
     )
+
+  /** Check whether a type variable is constrained by any of the other variables of the same level. */
+  def isVarConstrained(varName: String, levelVars: Set[String]): Boolean =
+    val types = levelVars.toList.flatMap(var_ => List.concat(
+      ctx.getVarLowerBounds(var_),
+      ctx.getVarUpperBounds(var_),
+    ))
+
+    types.exists(_.getConstrainedVars().contains(varName))

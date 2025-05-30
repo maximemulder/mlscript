@@ -1,5 +1,6 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.core.traverse.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
@@ -52,10 +53,10 @@ extension (clauses: Clauses)
   /** Get the join of the bounds of a variable in two lists of constraints. */
   def joinVarBounds(varName: String, lefts: List[Bound], rights: List[Bound], dir: Direction) =
     given Clauses = clauses
-    val leftBounds  = lefts.collectVarBounds(varName, dir)
-    val rightBounds = rights.collectVarBounds(varName, dir)
-    val leftBound  = combineMany(leftBounds,  dir)
-    val rightBound = combineMany(rightBounds, dir)
+    val leftBounds  = lefts.filterVarDir(varName, dir)
+    val rightBounds = rights.filterVarDir(varName, dir)
+    val leftBound  = leftBounds.mergeMany(dir)
+    val rightBound = rightBounds.mergeMany(dir)
     val leftType  =
       given Clauses = clauses.addClause(Bound(varName, dir, leftBound))
       attachConstrainingBounds(leftBound, lefts)

@@ -9,7 +9,7 @@ def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Claus
   if filteredBounds == Nil then
     type_
   else
-    TConstraining(type_, bounds)
+    TConstraining(type_, filteredBounds)
 
 /** Attached some constrained bounds to a type. */
 def attachConstrainedBounds(type_ : Type, varName: String, lowerBound: Type, upperBound: Type): Type =

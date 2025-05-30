@@ -1,5 +1,6 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
 
 /** Replace a type variable by a subtitute type in a type. */

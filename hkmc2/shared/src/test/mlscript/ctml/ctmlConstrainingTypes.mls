@@ -7,8 +7,8 @@ fun foo(a, b) =
 //│ foo: ∀β ◁ {β ≤ Int ∨ Str}. β → ((Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str})) → (Int ∨ Str)
 
 foo(1, 2)
-//│ ∀β ◁ {β ≥ Int ▷ {δ ≥ (Int ▷ {β ≤ Int}) → (Int ∨ Str), β ≥ Int}}. β
+//│ ∀β ◁ {β ≥ (Int ▷ {δ ≥ (Str ▷ {β ≤ Str}) → (Int ∨ Str), β ≥ Int}) ∨ (Int ▷ {δ ≥ (Int ▷ {β ≤ Int}) → (Int ∨ Str), β ≥ Int})}. β
 //│ δ ≤ Int → β, δ ≥ ((Str ▷ {β ≤ Str}) → (Int ∨ Str) ▷ {β ≥ Int}) ∨ ((Int ▷ {β ≤ Int}) → (Int ∨ Str) ▷ {β ≥ Int}), δ fresh
 
-10
-//│ Int
+""
+//│ Str

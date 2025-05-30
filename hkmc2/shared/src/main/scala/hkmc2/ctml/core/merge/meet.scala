@@ -1,5 +1,6 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.core.merge
 
+import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */

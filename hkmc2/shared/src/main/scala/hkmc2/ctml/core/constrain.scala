@@ -1,5 +1,6 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
 
 /** Constrain a type to be a subtype of another type in a context. */
@@ -18,7 +19,9 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if sub.is[TConstraining] || sup.is[TConstraining] then
     val (subBase, subBounds) = splitConstrainings(sub)
     val (supBase, supBounds) = splitConstrainings(sup)
-    constrainSub(subBase, supBase)
+    val baseClauses = constrainSub(subBase, supBase)
+    val boundsClauses = constrainBounds(subBounds, supBounds)
+    return baseClauses.addClauses(boundsClauses)
 
   // Check the top and bottom types.
 
@@ -138,6 +141,18 @@ def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Claus
   val paramClauses = constrainSub(sup.param, sub.param)
   val retClauses   = constrainSub(sub.ret,   sup.ret)
   return paramClauses.addClauses(retClauses)
+
+/** Constrain a set of bounds to be subsumed by another set of bounds. */
+def constrainBounds(subs: List[Bound], sups: List[Bound])(using ctx: Clauses, mode: Mode): Clauses =
+  // For all sup
+  // constrain equivalent sub to be subtype of sup
+  sups
+    .filter(_.dir == Direction.Super)
+    .foldRight(Clauses.none)((sup, clauses) =>
+      val subTypes = subs.filterVarDir(sup.name, Direction.Sub)
+      val subType = subTypes.meetMany()
+      constrainSub(subType, sup.type_)
+    )
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSub(sub: Type, sup: Type)(using ctx: Clauses): Boolean =

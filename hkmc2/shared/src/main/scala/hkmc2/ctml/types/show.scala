@@ -1,7 +1,6 @@
 package hkmc2.ctml.types
 
-
-class TypePrinter(val open: Boolean)
+import scala.collection.mutable.HashMap
 
 extension (type_ : Type)
   /** Convert the type to its string representation. */
@@ -87,7 +86,11 @@ extension (mode: Mode)
 extension (clauses: Clauses)
   /** Convert the clauses to their string representation. */
   def show(): String =
-    clauses.elems.map(_.show()).mkString(", ")
+    clauses.elems match
+      case Nil =>
+        "∅"
+      case elems =>
+        elems.map(_.show()).mkString(", ")
 
 extension (clause: Clause)
   /** Convert the clause to its string representation. */

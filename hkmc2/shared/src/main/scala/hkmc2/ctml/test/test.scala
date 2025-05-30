@@ -25,9 +25,6 @@ class Tester(var ctx: Clauses, output: (String) => Unit):
         return
 
     try
-      // Assign the global CTML fresh variable counter.
-      freshVarCounter = 0
-
       for stmt <- stmts do
         testStatement(stmt)
     catch

@@ -51,11 +51,11 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if mode == Mode.Constrain then
     if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
       // TODO: Check and propagate bounds.
-      return Clauses(List(Bound(sub.as[TVar].name, Direction.Sub, sup)))
+      return Bound(sub.as[TVar].name, Direction.Sub, sup).asClauses
 
     if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
       // TODO: Check and propagate bounds.
-      return Clauses(List(Bound(sup.as[TVar].name, Direction.Super, sub)))
+      return Bound(sup.as[TVar].name, Direction.Super, sub).asClauses
 
   // Subtyping of union and intersection types.
 

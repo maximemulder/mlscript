@@ -27,8 +27,10 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if sub.is[TConstraining] || sup.is[TConstraining] then
     val (subBase, subBounds) = splitConstrainings(sub)
     val (supBase, supBounds) = splitConstrainings(sup)
-    val baseClauses = constrainSub(subBase, supBase)
     val boundsClauses = constrainBounds(subBounds, supBounds)
+    val baseClauses =
+      given Clauses = ctx.addElems(subBounds)
+      constrainSub(subBase, supBase)
     return baseClauses.addClauses(boundsClauses)
 
   // Check the top and bottom types.

@@ -21,7 +21,7 @@ def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
         val paramVar = TVar(freshVar.name)
         val paramCtx = ctx.addClause(freshVar, TermVar(lam.paramName, paramVar))
         val (bodyType, bodyBounds) = infer(lam.body, paramCtx)
-        (TLam(paramVar, bodyType), Clauses(List(freshVar)).addClauses(bodyBounds))
+        (TLam(paramVar, bodyType), freshVar.asClauses.addClauses(bodyBounds))
       )
 
     // Lambda application
@@ -36,7 +36,7 @@ def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
         val consrainClauses =
           given Clauses = freshCtx.addClauses(lamClauses, argClauses)
           constrainSub(lamType, mockLamType)
-        (TVar(retVar.name), Clauses(List(freshVar)).addClauses(lamClauses, argClauses, consrainClauses))
+        (TVar(retVar.name), freshVar.asClauses.addClauses(lamClauses, argClauses, consrainClauses))
       )
 
     // Type ascription

@@ -2,46 +2,60 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 
+/** Global debug print function. */
 var outputter: (String) => Unit = (message) => print(message)
 
-var currentRecursion = 0
-val maxRecursion = 20
+/** The current call depth. */
+var currentCallDepth = 0
 
+/** The maximum call depth. */
+val maxCallDepth = 30
+
+/** Convert a value to a string and print it with the debug print function. */
 def debug(value : Any*) =
-  outputter(("  " * currentRecursion) + value.map(_.toString()).mkString(" "))
+  outputter(("  " * currentCallDepth) + value.map(_.toString()).mkString(" "))
 
-def debugConstrainSub(impl: (Type, Type) => Clauses, sub: Type, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
-  if currentRecursion > maxRecursion then
-    throw TypeError(Some("Reached maximum recursion"))
+/** Decorate the subtype constraining function to print debug information. */
+def debugConstrainSub(
+  impl: (Type, Type) => Clauses,
+)(
+  using ctx: Clauses, mode: Mode
+): (Type, Type) => Clauses =
+  (sub: Type, sup: Type) =>
+    try
+      debug(s"${mode} ${sub} ≤ ${sup} IN ${ctx}")
+      val outs = debugCall(() => constrainSubImpl(sub, sup))
+      debug(s"OK ⇝ ${outs}")
+      outs
+    catch
+      case error: TypeError =>
+        debug("FAIL")
+        throw error
 
-  try
-    debug(s"${mode} ${sub} ≤ ${sup}")
-    val outs = try
-      currentRecursion += 1
-      constrainSubImpl(sub, sup)
-    finally
-      currentRecursion -= 1
-    debug(s"OK ${outs}")
-    outs
-  catch
-    case error: TypeError =>
-      debug("FAIL")
-      throw error
-
-def debugInfer(impl: (Expr, Clauses) => (Type, Clauses), expr: Expr, ctx: Clauses): (Type, Clauses) =
-  if currentRecursion > maxRecursion then
-    throw TypeError(Some("Reached maximum recursion"))
-
-  try
+/** Decorate the type inference function to print debug information. */
+def debugInfer(
+  impl: (Expr, Clauses) => (Type, Clauses),
+): (Expr, Clauses) => (Type, Clauses) =
+  (expr: Expr, ctx: Clauses) =>
     debug(s"infer ${expr}")
-    val (type_, outs) = try
-      currentRecursion += 1
-      inferImpl(expr, ctx)
-    finally
-      currentRecursion -= 1
-    debug(s"OK ${type_} ⇝ ${outs}")
-    (type_, outs)
-  catch
-    case error: TypeError =>
-      debug("FAIL")
-      throw error
+
+    try
+      val (type_, outs) = debugCall(() => inferImpl(expr, ctx))
+      debug(s"OK ${type_} ⇝ ${outs}")
+      (type_, outs)
+    catch
+      case error: TypeError =>
+        debug("FAIL")
+        throw error
+
+/** Register and call a function in the debug environment. */
+def debugCall[T](f: () => T): T =
+  if currentCallDepth > maxCallDepth then
+    throw Exception("Reached maximum call depth.")
+
+  currentCallDepth += 1
+
+  try
+    f()
+  finally
+    currentCallDepth -= 1

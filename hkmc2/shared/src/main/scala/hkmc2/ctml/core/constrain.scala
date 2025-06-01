@@ -22,7 +22,7 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Con
 
 /** Implementation of `constrainSub`. */
 def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
-  //
+  // Subtyping of constraining types.
 
   if sub.is[TConstraining] || sup.is[TConstraining] then
     val (subBase, subBounds) = splitConstrainings(sub)
@@ -33,7 +33,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
       constrainSub(subBase, supBase)
     return baseClauses.addClauses(boundsClauses)
 
-  // Check the top and bottom types.
+  // Subtyping of top and bottom types.
 
   if sub.is[TBot] then
     return Clauses.none
@@ -41,12 +41,12 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if sup.is[TTop] then
     return Clauses.none
 
-  // Check equal variables
+  // Subtyping of equal variables.
 
   if sub.is[TVar] && sup.is[TVar] && sub.as[TVar].name == sup.as[TVar].name then
     return Clauses.none
 
-  // Check fresh variables in constraining mode.
+  // Subtyping of fresh variables in constraining mode.
 
   if mode == Mode.Constrain then
     if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
@@ -57,7 +57,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
       // TODO: Check and propagate bounds.
       return Clauses(List(Bound(sup.as[TVar].name, Direction.Super, sub)))
 
-  // Check union and intersection types.
+  // Subtyping of union and intersection types.
 
   var subUnionSplit = splitUnion(sub)
   if subUnionSplit.isDefined then
@@ -91,7 +91,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
       () => constrainSub(subRight, sup),
     )
 
-  // Check constrained types.
+  // Subtyping of constrained types.
 
   if sup.is[TConstrained] then
     return constrainSubConstrainedSup(sub, sup.as[TConstrained])
@@ -99,21 +99,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if sub.is[TConstrained] then
     return constrainSubConstrainedSub(sub.as[TConstrained], sup)
 
-  // Check constraining types.
-
-  if sub.is[TConstraining] then
-    // TODO: Improve.
-    val constrainingSub = sub.as[TConstraining]
-    return constrainSub(constrainingSub.base, sup)
-
-  if sup.is[TConstraining] then
-    // TODO: Improve.
-    val constrainingSup = sup.as[TConstraining]
-    return constrainSub(sub, constrainingSup.base)
-
-  // TODO
-
-  // Check rigid variables, or fresh variables in checking mode.
+  // Subtyping of rigid variables or fresh variables in checking mode.
 
   if sub.is[TVar] && sup.is[TVar] && sub.as[TVar] == sup.as[TVar] then
     // TODO: If two variables, check both bounds, or the correct ones ?
@@ -127,7 +113,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
     val lowerBound = ctx.getVarLowerBound(sup.as[TVar].name)
     return constrainSub(sub, lowerBound)
 
-  // Check other types.
+  // Subtyping of lambda types.
 
   if sub.is[TLam] && sup.is[TLam] then
     return constrainSubLam(sub.as[TLam], sup.as[TLam])

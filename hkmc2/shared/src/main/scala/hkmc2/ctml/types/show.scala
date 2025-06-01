@@ -60,7 +60,7 @@ extension (type_ : Type)
 extension (bound: Bound)
   /** Convert the bound to its string representation. */
   def show(): String =
-    return s"${bound.name} ${bound.dir.show()} ${bound.type_.show()}"
+    return s"${bound.name} ${bound.dir} ${bound.type_}"
 
 extension (dir: Direction)
   /** Convert the subtyping direction to its string representation. */
@@ -106,12 +106,12 @@ extension (clause: Clause)
 extension (var_ : TermVar)
   /** Convert the term variable to its string representation. */
   def show(): String =
-    s"${var_.name}: ${var_.type_.show()}"
+    s"${var_.name}: ${var_.type_}"
 
 extension (var_ : TypeVar)
   /** Convert the type variable to its string representation. */
   def show(): String =
-    s"${var_.name} ${var_.kind.show()}"
+    s"${var_.name} ${var_.kind}"
 
 extension (kind: TypeVarKind)
   /** Convert thea type variable kind to its string representation. */

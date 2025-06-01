@@ -11,10 +11,16 @@ case class Clauses(
     this.show()
 
 object Clauses:
-  def none = Clauses(Nil)
+  /** The empty set of clauses. */
+  def none =
+    Clauses(Nil)
 
 /** A typing clause, which gives a single information about types. */
 sealed trait Clause:
+  /** Get the clause as a singleton list of clauses. */
+  def asClauses: Clauses =
+    Clauses(List(this))
+
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()

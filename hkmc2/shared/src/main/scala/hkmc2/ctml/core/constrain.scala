@@ -24,14 +24,25 @@ def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Con
 def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   // Subtyping of constraining types.
 
-  if sub.is[TConstraining] || sup.is[TConstraining] then
-    val (subBase, subBounds) = splitConstrainings(sub)
-    val (supBase, supBounds) = splitConstrainings(sup)
-    val boundsClauses = constrainBounds(subBounds, supBounds)
-    val baseClauses =
-      given Clauses = ctx.addElems(subBounds)
-      constrainSub(subBase, supBase)
-    return baseClauses.addClauses(boundsClauses)
+  if mode == Mode.Constrain then
+    if sup.is[TConstraining] then
+      val (supBase, supBounds) = splitConstrainings(sup)
+      val baseClauses = constrainSub(sub, supBase)
+      return Clauses(supBounds).addClauses(baseClauses)
+
+    if sub.is[TConstraining] then
+      val (subBase, subBounds) = splitConstrainings(sub)
+      val baseClauses = constrainSub(subBase, sup)
+      return Clauses(subBounds).addClauses(baseClauses)
+  else
+    if sub.is[TConstraining] || sup.is[TConstraining] then
+      val (subBase, subBounds) = splitConstrainings(sub)
+      val (supBase, supBounds) = splitConstrainings(sup)
+      val boundsClauses = constrainBounds(subBounds, supBounds)
+      val baseClauses =
+        given Clauses = ctx.addElems(subBounds)
+        constrainSub(subBase, supBase)
+      return Clauses.none
 
   // Subtyping of top and bottom types.
 
@@ -50,12 +61,26 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
 
   if mode == Mode.Constrain then
     if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
-      // TODO: Check and propagate bounds.
-      return Bound(sub.as[TVar].name, Direction.Sub, sup).asClauses
+      val varName = sub.as[TVar].name
+      val upperBound = Bound(varName, Direction.Sub, sup)
+      val fullCtx = ctx.addClause(upperBound)
+      val lowerBound = ctx.getVarLowerBound(varName)
+      val newBounds =
+        given Clauses = fullCtx
+        constrainSub(lowerBound, sup)
+
+      return upperBound.asClauses.addClauses(newBounds)
 
     if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
-      // TODO: Check and propagate bounds.
-      return Bound(sup.as[TVar].name, Direction.Super, sub).asClauses
+      val varName = sup.as[TVar].name
+      val lowerBound = Bound(varName, Direction.Super, sub)
+      val fullCtx = ctx.addClause(lowerBound)
+      val upperBound = ctx.getVarUpperBound(varName)
+      val newBounds =
+        given Clauses = fullCtx
+        constrainSub(sub, upperBound)
+
+      return lowerBound.asClauses.addClauses(newBounds)
 
   // Subtyping of union and intersection types.
 

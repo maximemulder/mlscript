@@ -48,9 +48,8 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
 
   var invalmlTyper: Opt[InvalTyper] = None
 
-
-  override def processTerm(trm: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
-    super.processTerm(trm, inImport)
+  override def processTerm(term: semantics.Term.Blk, inImport: Bool)(using ctx: Config, raise: Raise): Unit =
+    super.processTerm(term, inImport)
     if invalmlOpt.isSet then
       given Scope = Scope.empty(Scope.Cfg.default)
       if invalmlTyper.isEmpty then
@@ -58,7 +57,7 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
         invalmlTyper = S(InvalTyper())
       given hkmc2.invalml.InvalCtx = invalCtx.copy(raise = summon)
       val typer = invalmlTyper.get
-      val ty = typer.typePurely(trm)
+      val ty = typer.typePurely(term)
       val printer = PrettyPrinter((msg: String) => output(msg))
       if debug.isSet then printer.print(ty)
       val simplif = TypeSimplifier(tl)
@@ -66,8 +65,4 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
-      val testOutput = if !inImport
-        then (message)   => output(message)
-        else (_: String) => ()
-
-      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, testOutput)
+      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, inImport, output.apply, raise)

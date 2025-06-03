@@ -16,27 +16,22 @@ def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
 
     // Lambda abstraction
     case lam: ELam =>
-      ctx.withLevel(ctx =>
-        val freshVar = newInferFreshVar()
-        val paramVar = TVar(freshVar.name)
-        val paramCtx = ctx.addClause(freshVar, TermVar(lam.paramName, paramVar))
+      ctx.withFreshVarLevel((paramVar, ctx) =>
+        val paramCtx = ctx.addClause(TermVar(lam.paramName, paramVar))
         val (bodyType, bodyBounds) = infer(lam.body, paramCtx)
-        (TLam(paramVar, bodyType), freshVar.asClauses.addClauses(bodyBounds))
+        (TLam(paramVar, bodyType), bodyBounds)
       )
 
     // Lambda application
     case app: EApp =>
-      ctx.withLevel(ctx =>
-        val freshVar = newInferFreshVar()
-        val freshCtx = ctx.addClause(freshVar)
-        val (lamType, lamClauses) = infer(app.lam, freshCtx)
-        val (argType, argClauses) = infer(app.arg, freshCtx)
-        val retVar = TVar(freshVar.name)
+      ctx.withFreshVarLevel((retVar, ctx) =>
+        val (lamType, lamClauses) = infer(app.lam, ctx)
+        val (argType, argClauses) = infer(app.arg, ctx)
         val mockLamType = TLam(argType, retVar)
         val consrainClauses =
-          given Clauses = freshCtx.addClauses(lamClauses, argClauses)
+          given Clauses = ctx.addClauses(lamClauses, argClauses)
           constrainSub(lamType, mockLamType)
-        (TVar(retVar.name), freshVar.asClauses.addClauses(lamClauses, argClauses, consrainClauses))
+        (retVar, lamClauses.addClauses(argClauses, consrainClauses))
       )
 
     // Type ascription

@@ -10,8 +10,9 @@ foo(1, 2)
 //│ Int ∨ Str
 //│ α ≤ Int, β ≥ Int, β ≤ Int, α ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str}), α ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β fresh, α fresh
 
+:e
 foo(1, "")
-//│ TYPE ERROR: Cannot solve type equation β → (Int ∨ Str) ≤ Str → ε.
+//│ ═══[ERROR] Cannot solve type equation β → (Int ∨ Str) ≤ Str → ε.
 //│ Typing error tree:
 //│   β → (Int ∨ Str) ≤ Str → ε
 //│     Str ≤ β
@@ -25,11 +26,9 @@ foo(1, "")
 //│             ⊤ ≤ Int
 //│               ⊤ ≤ ⊥
 
-1
-//│ Int
-
+:e
 foo(true, false)
-//│ TYPE ERROR: Cannot solve type equation ∀α, β ◁ {α ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β ≤ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. α → β → (Int ∨ Str) ≤ Bool → θ.
+//│ ═══[ERROR] Cannot solve type equation ∀α, β ◁ {α ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β ≤ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. α → β → (Int ∨ Str) ≤ Bool → θ.
 //│ Typing error tree:
 //│   ∀α, β ◁ {α ≤ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β ≤ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. α → β → (Int ∨ Str) ≤ Bool → θ
 //│     α → β → (Int ∨ Str) ≤ Bool → θ

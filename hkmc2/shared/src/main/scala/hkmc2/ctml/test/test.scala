@@ -1,16 +1,32 @@
 package hkmc2.ctml.test
 
+import hkmc2.Diagnostic.Source
+import hkmc2.ErrorReport
+import hkmc2.Raise
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Term
 
 /** Run a CTML test on an input term. */
-def test(term: Term, ctx: Clauses, output: (String) => Unit): Clauses =
-  val tester = Tester(ctx, output)
+def test(
+  term: Term,
+  ctx: Clauses,
+  import_ : Boolean,
+  outputter: (String) => Unit,
+  raiser: Raise,
+): Clauses =
+  // Do not output results in import files (such as the CTML prelude).
+  val output = if !import_
+    then (message)   => outputter(message)
+    else (_: String) => ()
+
+  val raise = (source: Source, message: String) => raiser(ErrorReport(List((message, None)), source = source))
+
+  val tester = Tester(ctx, output, raise)
   tester.test(term)
   tester.ctx
 
-class Tester(var ctx: Clauses, output: (String) => Unit):
+class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Source, String) => Unit):
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
@@ -21,7 +37,7 @@ class Tester(var ctx: Clauses, output: (String) => Unit):
       parseStmts(term)
     catch
       case error: ParseError =>
-        this.output(s"PARSE ERROR: ${error.getMessage()}")
+        raise(Source.Parsing, error.getMessage())
         return
 
     try
@@ -29,7 +45,8 @@ class Tester(var ctx: Clauses, output: (String) => Unit):
         testStatement(stmt)
     catch
       case error: TypeError =>
-        output(s"TYPE ERROR: ${error.getMessage()}")
+        raise(Source.Typing, error.getMessage())
+        return
 
   /** Test a statement */
   def testStatement(stmt: Stmt) =

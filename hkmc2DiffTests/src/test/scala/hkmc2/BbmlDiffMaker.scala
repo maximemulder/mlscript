@@ -46,7 +46,7 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
 
   var bbmlTyper: Opt[BBTyper] = None
 
-  override def processTerm(term: semantics.Term.Blk, inImport: Bool)(using Config, Raise): Unit =
+  override def processTerm(term: semantics.Term.Blk, inImport: Bool)(using ctx: Config, raise: Raise): Unit =
     super.processTerm(term, inImport)
     if bbmlOpt.isSet then
       given Scope = Scope.empty
@@ -63,8 +63,4 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlOpt.isSet then
-      val testOutput = if !inImport
-        then (message)   => output(message)
-        else (_: String) => ()
-
-      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, testOutput)
+      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, inImport, output.apply, raise)

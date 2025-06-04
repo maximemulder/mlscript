@@ -193,7 +193,9 @@ def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
   val paramClauses = subtype(sup.param, sub.param)
-  val retClauses   = subtype(sub.ret,   sup.ret)
+  val retClauses   =
+    given Clauses = ctx.addClauses(paramClauses)
+    subtype(sub.ret,   sup.ret)
   return paramClauses.addClauses(retClauses)
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */

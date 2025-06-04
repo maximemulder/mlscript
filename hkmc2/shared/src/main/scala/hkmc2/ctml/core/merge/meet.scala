@@ -9,10 +9,10 @@ def meet(left: Type, right: Type)(using ctx: Clauses): Type =
 
 /** Implementation of `meet`. */
 def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
-  if checkSub(right, left) then
+  if checkSubtype(right, left) then
     return right
 
-  if checkSub(left, right) then
+  if checkSubtype(left, right) then
     return left
 
   var fusedMeet = meetDisjoint(left, right)
@@ -25,11 +25,11 @@ def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
 def meetDisjoint(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
   (left, right) match
     case (left: TLam, right: TLam) =>
-      if checkEq(left.param, right.param) then
+      if checkEqual(left.param, right.param) then
         var body = meet(left.ret, right.ret)
         return Some(TLam(left.param, body))
 
-      if checkEq(left.ret, right.ret) then
+      if checkEqual(left.ret, right.ret) then
         var param = join(left.param, right.param)
         return Some(TLam(param, left.ret))
 

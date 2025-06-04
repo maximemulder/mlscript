@@ -30,7 +30,7 @@ def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
         val mockLamType = TLam(argType, retVar)
         val consrainClauses =
           given Clauses = ctx.addClauses(lamClauses, argClauses)
-          constrainSub(lamType, mockLamType)
+          subtype(lamType, mockLamType)
         (retVar, lamClauses.addClauses(argClauses, consrainClauses))
       )
 
@@ -39,7 +39,7 @@ def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
       val (inferType, inferClauses) = infer(ascr.expr, ctx)
       val constrainClauses =
         given Clauses = ctx.addClauses(inferClauses)
-        constrainSub(inferType, ascr.type_)
+        subtype(inferType, ascr.type_)
       (ascr.type_, constrainClauses.addClauses(inferClauses))
 
     case match_ : EMatch =>
@@ -59,7 +59,7 @@ def inferMatch(match_ : EMatch, ctx: Clauses): (Type, Clauses) =
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
   val patternsClauses =
     given Clauses = scrutineeCtx
-    constrainSub(scrutineeType, patternsType)
+    subtype(scrutineeType, patternsType)
   val patternsCtx = scrutineeCtx.addClauses(patternsClauses)
   // Infer each match case.
   given Clauses = patternsCtx
@@ -79,7 +79,7 @@ def inferMatch(match_ : EMatch, ctx: Clauses): (Type, Clauses) =
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Clauses): (Type, Clauses) =
   val patternClauses =
     given Clauses = ctx
-    constrainSub(scrutineeType, case_.pattern)
+    subtype(scrutineeType, case_.pattern)
   val caseCtx = ctx.addClauses(patternClauses)
   val (bodyType, bodyClauses) = infer(case_.body, caseCtx)
   (bodyType, patternClauses.addClauses(bodyClauses))

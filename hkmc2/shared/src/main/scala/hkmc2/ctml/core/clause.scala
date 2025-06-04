@@ -82,3 +82,19 @@ extension (clauses: Clauses)
       case _ =>
         true
     ))
+
+  def compareVarLevels(left: String, right: String): Either[Unit, Unit] =
+    val first = clauses.typeVars.findMap((var_) =>
+      if var_.name == left then
+        Some(Left(()))
+      else if var_.name == right then
+        Some(Right(()))
+      else
+        None
+    )
+
+    first match
+      case Some(either) =>
+        either
+      case None =>
+        throw new TypeError(Some(s"Type variable '${left}' or '${right}' not found in the clauses."))

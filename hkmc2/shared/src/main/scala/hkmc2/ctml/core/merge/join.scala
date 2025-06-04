@@ -9,10 +9,10 @@ def join(left: Type, right: Type)(using ctx: Clauses): Type =
 
 /** Implementation of `join`. */
 def joinImpl(left: Type, right: Type)(using ctx: Clauses): Type =
-  if checkSub(left, right) then
+  if checkSubtype(left, right) then
     return right
 
-  if checkSub(right, left) then
+  if checkSubtype(right, left) then
     return left
 
   TUnion(left, right)

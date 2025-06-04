@@ -4,44 +4,44 @@ import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
-def constrainDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: Mode): Clauses =
+def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: Mode): Clauses =
   dir match
     case Direction.Sub =>
-      constrainSub(sub, sup)
+      subtype(sub, sup)
     case Direction.Super =>
-      constrainSub(sup, sub)
+      subtype(sup, sub)
 
 /** Constrain a type to be a subtype of another type in a context. */
-def constrainSub(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
+def subtype(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   try
-    constrainSubImpl(sub, sup)
+    subtypeImpl(sub, sup)
   catch
     case error: TypeError =>
       error.addStep(sub, sup)
       throw error
 
 /** Implementation of `constrainSub`. */
-def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
+def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   // Subtyping of constraining types.
 
   if mode == Mode.Constrain then
     if sup.is[TConstraining] then
       val (supBase, supBounds) = splitConstrainings(sup)
-      val baseClauses = constrainSub(sub, supBase)
+      val baseClauses = subtype(sub, supBase)
       return Clauses(supBounds).addClauses(baseClauses)
 
     if sub.is[TConstraining] then
       val (subBase, subBounds) = splitConstrainings(sub)
-      val baseClauses = constrainSub(subBase, sup)
+      val baseClauses = subtype(subBase, sup)
       return Clauses(subBounds).addClauses(baseClauses)
   else
     if sub.is[TConstraining] || sup.is[TConstraining] then
       val (subBase, subBounds) = splitConstrainings(sub)
       val (supBase, supBounds) = splitConstrainings(sup)
-      val boundsClauses = constrainBounds(subBounds, supBounds)
+      val boundsClauses = subtypeBounds(subBounds, supBounds)
       val baseClauses =
         given Clauses = ctx.addElems(subBounds)
-        constrainSub(subBase, supBase)
+        subtype(subBase, supBase)
       return Clauses.none
 
   // Subtyping of top and bottom types.
@@ -67,7 +67,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
       val lowerBound = ctx.getVarLowerBound(varName)
       val newBounds =
         given Clauses = fullCtx
-        constrainSub(lowerBound, sup)
+        subtype(lowerBound, sup)
 
       return upperBound.asClauses.addClauses(newBounds)
 
@@ -78,7 +78,7 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
       val upperBound = ctx.getVarUpperBound(varName)
       val newBounds =
         given Clauses = fullCtx
-        constrainSub(sub, upperBound)
+        subtype(sub, upperBound)
 
       return lowerBound.asClauses.addClauses(newBounds)
 
@@ -88,63 +88,63 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
   if subUnionSplit.isDefined then
     val (subLeft, subRight) = subUnionSplit.get
     return ctx.all(
-      () => constrainSub(subLeft,  sup),
-      () => constrainSub(subRight, sup),
+      () => subtype(subLeft,  sup),
+      () => subtype(subRight, sup),
     )
 
   var supUnionSplit = splitUnion(sup)
   if supUnionSplit.isDefined then
     val (supLeft, supRight) = supUnionSplit.get
     return ctx.any(
-      () => constrainSub(sub, supLeft),
-      () => constrainSub(sub, supRight),
+      () => subtype(sub, supLeft),
+      () => subtype(sub, supRight),
     )
 
   var supInterSplit = splitInter(sup)
   if supInterSplit.isDefined then
     val (supLeft, supRight) = supInterSplit.get
     return ctx.all(
-      () => constrainSub(sub, supLeft),
-      () => constrainSub(sub, supRight),
+      () => subtype(sub, supLeft),
+      () => subtype(sub, supRight),
     )
 
   var subInterSplit = splitInter(sub)
   if subInterSplit.isDefined then
     val (subLeft, subRight) = subInterSplit.get
     return ctx.any(
-      () => constrainSub(subLeft,  sup),
-      () => constrainSub(subRight, sup),
+      () => subtype(subLeft,  sup),
+      () => subtype(subRight, sup),
     )
 
   // Subtyping of constrained types.
 
   if sup.is[TConstrained] then
-    return constrainSubConstrainedSup(sub, sup.as[TConstrained])
+    return subtypeConstrainedSup(sub, sup.as[TConstrained])
 
   if sub.is[TConstrained] then
-    return constrainSubConstrainedSub(sub.as[TConstrained], sup)
+    return subtypeConstrainedSub(sub.as[TConstrained], sup)
 
   // Subtyping of rigid variables or fresh variables in checking mode.
 
   if sub.is[TVar] && sup.is[TVar] then
-    return constrainSubRigidVars(sub.as[TVar], sup.as[TVar])
+    return subtypeRigidVars(sub.as[TVar], sup.as[TVar])
 
   if sub.is[TVar] then
     val upperBound = ctx.getVarUpperBound(sub.as[TVar].name)
-    return constrainSub(upperBound, sup)
+    return subtype(upperBound, sup)
 
   if sup.is[TVar] then
     val lowerBound = ctx.getVarLowerBound(sup.as[TVar].name)
-    return constrainSub(sub, lowerBound)
+    return subtype(sub, lowerBound)
 
   // Subtyping of lambda types.
 
   if sub.is[TLam] && sup.is[TLam] then
-    return constrainSubLam(sub.as[TLam], sup.as[TLam])
+    return subtypeLam(sub.as[TLam], sup.as[TLam])
 
   throw TypeError()
 
-def constrainSubRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
+def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub.name == sup.name then
     return Clauses.none
@@ -153,47 +153,47 @@ def constrainSubRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode):
   lowest match
     case Left(()) =>
       val upperBound = ctx.getVarUpperBound(sub.name)
-      constrainSub(upperBound, sup)
+      subtype(upperBound, sup)
     case Right(()) =>
       val lowerBound = ctx.getVarUpperBound(sup.name)
-      constrainSub(sup, lowerBound)
+      subtype(sup, lowerBound)
 
 /** Constrain a constrained type to be a subtype of another type. */
-def constrainSubConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
+def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
   given Clauses = ctx.addElems(subVars, sub.bounds)
-  val test = constrainSub(sub.base, sup)
+  val test = subtype(sub.base, sup)
   // TODO: Correctly handle escaping.
   Clauses(subVars).addElems(sub.bounds).addClauses(test)
 
 /** Constrain a type to be a subtype of a constrained type. */
-def constrainSubConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
+def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
   given Clauses = ctx.addElems(supVars, sup.bounds)
-  val test = constrainSub(sub, sup.base)
+  val test = subtype(sub, sup.base)
   // TODO: Correctly handle escaping.
   Clauses(supVars).addElems(sup.bounds).addClauses(test)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
-def constrainSubLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
-  val paramClauses = constrainSub(sup.param, sub.param)
-  val retClauses   = constrainSub(sub.ret,   sup.ret)
+def subtypeLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
+  val paramClauses = subtype(sup.param, sub.param)
+  val retClauses   = subtype(sub.ret,   sup.ret)
   return paramClauses.addClauses(retClauses)
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
-def constrainBounds(subs: List[Bound], sups: List[Bound])(using ctx: Clauses, mode: Mode): Clauses =
+def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Clauses, mode: Mode): Clauses =
   sups
     .foldRight(Clauses.none)((sup, clauses) =>
       val subTypes = subs.filterVarDir(sup.name, sup.dir)
       val subType = subTypes.mergeMany(sup.dir)
-      constrainSub(subType, sup.type_)
+      subtype(subType, sup.type_)
     )
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
-def checkSub(sub: Type, sup: Type)(using ctx: Clauses): Boolean =
+def checkSubtype(sub: Type, sup: Type)(using ctx: Clauses): Boolean =
   given Mode = Mode.Check
   try
-    constrainSub(sub, sup)
+    subtype(sub, sup)
   catch
     case _: TypeError =>
       return false
@@ -201,8 +201,8 @@ def checkSub(sub: Type, sup: Type)(using ctx: Clauses): Boolean =
   return true
 
 /** Check whether tow types are equal without requiring any additional constraint. */
-def checkEq(left: Type, right: Type)(using ctx: Clauses): Boolean =
-  checkSub(left, right) && checkSub(right, left)
+def checkEqual(left: Type, right: Type)(using ctx: Clauses): Boolean =
+  checkSubtype(left, right) && checkSubtype(right, left)
 
 extension (ctx: Clauses)
   /** Check if a bound is satisified in the context. */
@@ -211,7 +211,7 @@ extension (ctx: Clauses)
     bound.dir match
       case Direction.Sub =>
         given Clauses = ctx
-        checkSub(var_, bound.type_)
+        checkSubtype(var_, bound.type_)
       case Direction.Super =>
         given Clauses = ctx
-        checkSub(bound.type_, var_)
+        checkSubtype(bound.type_, var_)

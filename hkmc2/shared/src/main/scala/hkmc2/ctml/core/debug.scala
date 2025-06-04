@@ -16,18 +16,14 @@ def debug(value : Any*) =
   outputter(("  " * currentCallDepth) + value.map(_.toString()).mkString(" "))
 
 /** Decorate the subtype constraining function to print debug information. */
-def debugConstrainSub(
-  impl: (Type, Type) => Clauses,
-)(
-  using ctx: Clauses, mode: Mode
-): (Type, Type) => Clauses =
+def debugSubtype(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode): (Type, Type) => Clauses =
   if mode == Mode.Check then
     return impl
 
   (sub: Type, sup: Type) =>
     try
       debug(s"${mode} ${sub} ≤ ${sup} IN ${ctx}")
-      val outs = debugCall(() => constrainSubImpl(sub, sup))
+      val outs = debugCall(() => subtypeImpl(sub, sup))
       debug(s"OK ⇝ ${outs}")
       outs
     catch
@@ -36,9 +32,7 @@ def debugConstrainSub(
         throw error
 
 /** Decorate the type inference function to print debug information. */
-def debugInfer(
-  impl: (Expr, Clauses) => (Type, Clauses),
-): (Expr, Clauses) => (Type, Clauses) =
+def debugInfer(impl: (Expr, Clauses) => (Type, Clauses)): (Expr, Clauses) => (Type, Clauses) =
   (expr: Expr, ctx: Clauses) =>
     debug(s"infer ${expr}")
 

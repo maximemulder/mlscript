@@ -99,17 +99,17 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Source, String)
     given Clauses = this.ctx
     val outs = rel match
       case TypeRel.Eq =>
-        if !checkEq(left, right) then
+        if !checkEqual(left, right) then
           throw TypeError(Some(s"Cannot solve type equation ${left} = ${right}."))
         Clauses.none
       case TypeRel.Ne =>
-        if checkEq(left, right) then
+        if checkEqual(left, right) then
           throw TypeError(Some(s"Cannot solve type equation ${left} ≠ ${right}."))
         Clauses.none
       case TypeRel.Sub =>
-        constrainSub(left, right)
+        subtype(left, right)
       case TypeRel.Sup =>
-        constrainSub(right, left)
+        subtype(right, left)
 
     this.output("OK")
     this.outputClauses(outs)

@@ -52,35 +52,17 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
   if sup.is[TTop] then
     return Clauses.none
 
-  // Subtyping of equal variables.
-
-  if sub.is[TVar] && sup.is[TVar] && sub.as[TVar].name == sup.as[TVar].name then
-    return Clauses.none
-
   // Subtyping of fresh variables in constraining mode.
 
   if mode == Mode.Constrain then
-    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
-      val varName = sub.as[TVar].name
-      val upperBound = Bound(varName, Direction.Sub, sup)
-      val fullCtx = ctx.addClause(upperBound)
-      val lowerBound = ctx.getVarLowerBound(varName)
-      val newBounds =
-        given Clauses = fullCtx
-        subtype(lowerBound, sup)
+    if sub.is[TVar] && sup.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) && ctx.isTypeVarFresh(sup.as[TVar].name) then
+      return subtypeFreshVars(sub.as[TVar], sup.as[TVar])
 
-      return upperBound.asClauses.addClauses(newBounds)
+    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
+      return subtypeFreshVarSub(sub.as[TVar], sup)
 
     if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
-      val varName = sup.as[TVar].name
-      val lowerBound = Bound(varName, Direction.Super, sub)
-      val fullCtx = ctx.addClause(lowerBound)
-      val upperBound = ctx.getVarUpperBound(varName)
-      val newBounds =
-        given Clauses = fullCtx
-        subtype(sub, upperBound)
-
-      return lowerBound.asClauses.addClauses(newBounds)
+      return subtypeFreshVarSup(sub, sup.as[TVar])
 
   // Subtyping of union and intersection types.
 
@@ -144,6 +126,40 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
 
   throw TypeError()
 
+def subtypeFreshVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
+  // If both variables are equal then they are subtype.
+  if sub.name == sup.name then
+    return Clauses.none
+
+  var lowest = ctx.compareVarLevels(sub.name, sup.name)
+  lowest match
+    case Left(()) =>
+      subtypeFreshVarSub(sub, sup)
+    case Right(()) =>
+      subtypeFreshVarSup(sub, sup)
+
+def subtypeFreshVarSub(sub: TVar, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
+  val varName = sub.as[TVar].name
+  val upperBound = Bound(varName, Direction.Sub, sup)
+  val fullCtx = ctx.addClause(upperBound)
+  val lowerBound = ctx.getVarLowerBound(varName)
+  val newBounds =
+    given Clauses = fullCtx
+    subtype(lowerBound, sup)
+
+  return upperBound.asClauses.addClauses(newBounds)
+
+def subtypeFreshVarSup(sub: Type, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
+  val varName = sup.as[TVar].name
+  val lowerBound = Bound(varName, Direction.Super, sub)
+  val fullCtx = ctx.addClause(lowerBound)
+  val upperBound = ctx.getVarUpperBound(varName)
+  val newBounds =
+    given Clauses = fullCtx
+    subtype(sub, upperBound)
+
+  return lowerBound.asClauses.addClauses(newBounds)
+
 def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub.name == sup.name then
@@ -155,7 +171,7 @@ def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clau
       val upperBound = ctx.getVarUpperBound(sub.name)
       subtype(upperBound, sup)
     case Right(()) =>
-      val lowerBound = ctx.getVarUpperBound(sup.name)
+      val lowerBound = ctx.getVarLowerBound(sup.name)
       subtype(sup, lowerBound)
 
 /** Constrain a constrained type to be a subtype of another type. */

@@ -19,11 +19,11 @@ foo(1, "")
 //│       Str ≤ Int ∧ ((Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str}))
 //│         Str ≤ Int ∧ (Str ▷ {α ≤ Str})
 //│           Str ≤ Int
-//│             ⊤ ≤ Int
+//│             Int ≤ ⊥
 //│               ⊤ ≤ ⊥
 //│         Str ≤ Int ∧ (Int ▷ {α ≤ Int})
 //│           Str ≤ Int
-//│             ⊤ ≤ Int
+//│             Int ≤ ⊥
 //│               ⊤ ≤ ⊥
 
 :e
@@ -40,7 +40,7 @@ foo(true, false)
 //│                 ⊤ ≤ ⊥
 //│           Bool ≤ Int ▷ {β ≤ Int}
 //│             Bool ≤ Int
-//│               ⊤ ≤ Int
+//│               Int ≤ ⊥
 //│                 ⊤ ≤ ⊥
 
 fun bar(a, b) =

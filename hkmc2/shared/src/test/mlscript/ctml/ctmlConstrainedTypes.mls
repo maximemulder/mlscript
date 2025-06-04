@@ -1,27 +1,108 @@
 :ctml
 
 fun id(x) = x
+//│ infer ELam(x,EVar(x))
+//│   infer EVar(x)
+//│   OK α ⇝ ∅
+//│ OK ∀α ◁ {}. α → α ⇝ ∅
 //│ id: ∀α ◁ {}. α → α
 
 id(1)
-//│ β
-//│ β fresh
+//│ infer EApp(EVar(id),EVar(int))
+//│   infer EVar(id)
+//│   OK ∀α ◁ {}. α → α ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain ∀α ◁ {}. α → α ≤ Int → β IN β fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│     constrain α → α ≤ Int → β IN α fresh, β fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       constrain Int ≤ α IN α fresh, β fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         constrain Int ≤ ⊤ IN α ≥ Int, α fresh, β fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≥ Int
+//│       constrain α ≤ β IN α fresh, β fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         constrain ⊥ ≤ β IN α ≤ β, α fresh, β fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ β
+//│     OK ⇝ α ≤ β, α ≥ Int
+//│   OK ⇝ α ≤ β, α ≥ Int, α fresh
+//│ OK ⊥ ⇝ ∅
+//│ ⊥
 
 id("Hello")
-//│ γ
-//│ γ fresh
+//│ infer EApp(EVar(id),EVar(string))
+//│   infer EVar(id)
+//│   OK ∀α ◁ {}. α → α ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain ∀α ◁ {}. α → α ≤ Str → γ IN γ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│     constrain α → α ≤ Str → γ IN α fresh, γ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       constrain Str ≤ α IN α fresh, γ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         constrain Str ≤ ⊤ IN α ≥ Str, α fresh, γ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≥ Str
+//│       constrain α ≤ γ IN α fresh, γ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         constrain ⊥ ≤ γ IN α ≤ γ, α fresh, γ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ γ
+//│     OK ⇝ α ≤ γ, α ≥ Str
+//│   OK ⇝ α ≤ γ, α ≥ Str, α fresh
+//│ OK ⊥ ⇝ ∅
+//│ ⊥
 
 fun idInt(x) = (x as Int)
+//│ infer ELam(x,EAscr(EVar(x),Int))
+//│   infer EAscr(EVar(x),Int)
+//│     infer EVar(x)
+//│     OK δ ⇝ ∅
+//│     constrain δ ≤ Int IN x: δ, δ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       constrain ⊥ ≤ Int IN δ ≤ Int, x: δ, δ fresh, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       OK ⇝ ∅
+//│     OK ⇝ δ ≤ Int
+//│   OK Int ⇝ δ ≤ Int
+//│ OK Int → Int ⇝ ∅
 //│ idInt: Int → Int
 
 idInt(1)
+//│ infer EApp(EVar(idInt),EVar(int))
+//│   infer EVar(idInt)
+//│   OK Int → Int ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain Int → Int ≤ Int → ε IN ε fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│     constrain Int ≤ Int IN ε fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│     OK ⇝ ∅
+//│     constrain Int ≤ ε IN ε fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       constrain Int ≤ ⊤ IN ε ≥ Int, ε fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       OK ⇝ ∅
+//│     OK ⇝ ε ≥ Int
+//│   OK ⇝ ε ≥ Int
+//│ OK Int ⇝ ∅
 //│ Int
 
 :e
 idInt("Hello")
+//│ infer EApp(EVar(idInt),EVar(string))
+//│   infer EVar(idInt)
+//│   OK Int → Int ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain Int → Int ≤ Str → ζ IN ζ fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│     constrain Str ≤ Int IN ζ fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│       constrain ⊤ ≤ Int IN ζ fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         constrain ⊤ ≤ ⊥ IN ζ fresh, idInt: Int → Int, id: ∀α ◁ {}. α → α, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
 //│ ═══[ERROR] Cannot solve type equation Int → Int ≤ Str → ζ.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → ζ
 //│     Str ≤ Int
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
+
+2
+//│ infer EVar(int)
+//│ OK Int ⇝ ∅
+//│ Int

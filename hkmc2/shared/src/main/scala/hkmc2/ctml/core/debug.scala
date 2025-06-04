@@ -21,6 +21,9 @@ def debugConstrainSub(
 )(
   using ctx: Clauses, mode: Mode
 ): (Type, Type) => Clauses =
+  if mode == Mode.Check then
+    return impl
+
   (sub: Type, sup: Type) =>
     try
       debug(s"${mode} ${sub} ≤ ${sup} IN ${ctx}")

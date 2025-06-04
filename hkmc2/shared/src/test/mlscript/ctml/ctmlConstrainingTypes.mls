@@ -46,5 +46,41 @@ foo(true, false)
 fun bar(a, b) =
     if a is
         Int then (b as Int)
-        Str then (b as Str)
-//│ bar: ∀ι, κ ◁ {ι ≤ (Int ▷ {κ ≤ Int}) ∨ (Str ▷ {κ ≤ Str}), κ ≤ (Int ▷ {ι ≤ Int}) ∨ (Str ▷ {ι ≤ Str})}. ι → κ → (Int ∨ Str)
+        Top then (b as Str)
+//│ bar: ∀ι, κ ◁ {ι ≤ (Int ▷ {κ ≤ Int}) ∨ (⊤ ▷ {κ ≤ Str}), κ ≤ (Int ▷ {ι ≤ Int}) ∨ Str}. ι → κ → (Int ∨ Str)
+
+bar(1, 1)
+//│ Int ∨ Str
+//│ ι ≤ Int, κ ≥ Int, κ ≤ Str ∨ Int, ι ≥ Int, κ ≤ (Int ▷ {ι ≤ Int}) ∨ Str, ι ≤ (Int ▷ {κ ≤ Int}) ∨ (⊤ ▷ {κ ≤ Str}), κ fresh, ι fresh
+
+bar(1, "")
+//│ Int ∨ Str
+//│ κ ≥ Str, κ ≤ Str ∨ Int, ι ≥ Int, κ ≤ (Int ▷ {ι ≤ Int}) ∨ Str, ι ≤ (Int ▷ {κ ≤ Int}) ∨ (⊤ ▷ {κ ≤ Str}), κ fresh, ι fresh
+
+bar("", "")
+//│ Int ∨ Str
+//│ κ ≥ Str, κ ≤ Str, ι ≥ Str, κ ≤ (Int ▷ {ι ≤ Int}) ∨ Str, ι ≤ (Int ▷ {κ ≤ Int}) ∨ (⊤ ▷ {κ ≤ Str}), κ fresh, ι fresh
+
+bar(true, "")
+//│ Int ∨ Str
+//│ κ ≥ Str, κ ≤ Str, ι ≥ Bool, κ ≤ (Int ▷ {ι ≤ Int}) ∨ Str, ι ≤ (Int ▷ {κ ≤ Int}) ∨ (⊤ ▷ {κ ≤ Str}), κ fresh, ι fresh
+
+:e
+bar(true, 1)
+//│ ═══[ERROR] Cannot solve type equation κ → (Int ∨ Str) ≤ Int → τ.
+//│ Typing error tree:
+//│   κ → (Int ∨ Str) ≤ Int → τ
+//│     Int ≤ κ
+//│       Int ≤ Str
+//│         ⊤ ≤ Str
+//│           ⊤ ≤ ⊥
+
+:e
+bar(true, true)
+//│ ═══[ERROR] Cannot solve type equation κ → (Int ∨ Str) ≤ Bool → φ.
+//│ Typing error tree:
+//│   κ → (Int ∨ Str) ≤ Bool → φ
+//│     Bool ≤ κ
+//│       Bool ≤ Str
+//│         ⊤ ≤ Str
+//│           ⊤ ≤ ⊥

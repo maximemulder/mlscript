@@ -4,10 +4,10 @@ fun id(x) = x
 //│ id: ∀α ◁ {}. α → α
 
 id(1)
-//│ ⊥
+//│ Int
 
 id("Hello")
-//│ ⊥
+//│ Str
 
 fun idInt(x) = (x as Int)
 //│ idInt: Int → Int

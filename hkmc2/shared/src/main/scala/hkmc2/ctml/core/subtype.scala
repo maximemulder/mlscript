@@ -172,7 +172,7 @@ def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clau
       subtype(upperBound, sup)
     case Right(()) =>
       val lowerBound = ctx.getVarLowerBound(sup.name)
-      subtype(sup, lowerBound)
+      subtype(sub, lowerBound)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =

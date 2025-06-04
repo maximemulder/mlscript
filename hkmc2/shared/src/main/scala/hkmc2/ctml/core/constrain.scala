@@ -126,9 +126,8 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
 
   // Subtyping of rigid variables or fresh variables in checking mode.
 
-  if sub.is[TVar] && sup.is[TVar] && sub.as[TVar] == sup.as[TVar] then
-    // TODO: If two variables, check both bounds, or the correct ones ?
-    return Clauses.none
+  if sub.is[TVar] && sup.is[TVar] then
+    return constrainSubRigidVars(sub.as[TVar], sup.as[TVar])
 
   if sub.is[TVar] then
     val upperBound = ctx.getVarUpperBound(sub.as[TVar].name)
@@ -144,6 +143,20 @@ def constrainSubImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode
     return constrainSubLam(sub.as[TLam], sup.as[TLam])
 
   throw TypeError()
+
+def constrainSubRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
+  // If both variables are equal then they are subtype.
+  if sub.name == sup.name then
+    return Clauses.none
+
+  var lowest = ctx.compareVarLevels(sub.name, sup.name)
+  lowest match
+    case Left(()) =>
+      val upperBound = ctx.getVarUpperBound(sub.name)
+      constrainSub(upperBound, sup)
+    case Right(()) =>
+      val lowerBound = ctx.getVarUpperBound(sup.name)
+      constrainSub(sup, lowerBound)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def constrainSubConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =

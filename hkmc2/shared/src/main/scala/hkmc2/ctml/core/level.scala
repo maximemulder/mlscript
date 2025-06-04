@@ -6,24 +6,28 @@ import hkmc2.ctml.core.traverse.*
 extension (ctx: Clauses)
   /** Solve a type inference level by processing each new variable of that level. */
   def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
-    // TODO: Repeat while new variables to process ?
-
     // Get the new type variables present in the generated constraints.
     val newVars = outs.typeVars.toList
     // Remove the variables that appear in lower polymorphism levels.
     val filteredVars = ctx.filterLevelVars(newVars.toList, outs)
+    if filteredVars == Nil then
+      return (type_, outs)
+    else
+      // TODO:
+      // 1. Find variables declared in statements.
+      // 2. Remove variables that are indirectly referenced in ctx
+      // 3. For each variable
+      //     Get polarities.
+      //     Extract variable declarion and bounds from statements (???)
+      //     Substitute in context.
+      //     Substitute in type.
+      val (newType, newOuts) = filteredVars.foldRight((type_, outs))((var_, te) =>
+        ctx.processLevelVar(te._1, var_, filteredVars.map(_.name).toSet, te._2)
+      )
 
-    // TODO:
-    // 1. Find variables declared in statements.
-    // 2. Remove variables that are indirectly referenced in ctx
-    // 3. For each variable
-    //     Get polarities.
-    //     Extract variable declarion and bounds from statements (???)
-    //     Substitute in context.
-    //     Substitute in type.
-    filteredVars.foldRight((type_, outs))((var_, te) =>
-      ctx.processLevelVar(te._1, var_, filteredVars.map(_.name).toSet, te._2)
-    )
+      // Repeat the process until no other variables need to be processed.
+      ctx.solveLevel(newType, newOuts)
+
 
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */

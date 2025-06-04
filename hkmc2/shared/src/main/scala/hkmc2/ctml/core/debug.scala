@@ -22,8 +22,8 @@ def debugSubtype(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode):
 
   (sub: Type, sup: Type) =>
     try
-      debug(s"${mode} ${sub} ≤ ${sup} IN ${ctx}")
-      val outs = debugCall(() => subtypeImpl(sub, sup))
+      debug(s"${mode} ${sub} ≤ ${sup}")
+      val outs = debugCall(() => impl(sub, sup))
       debug(s"OK ⇝ ${outs}")
       outs
     catch
@@ -37,7 +37,7 @@ def debugInfer(impl: (Expr, Clauses) => (Type, Clauses)): (Expr, Clauses) => (Ty
     debug(s"infer ${expr}")
 
     try
-      val (type_, outs) = debugCall(() => inferImpl(expr, ctx))
+      val (type_, outs) = debugCall(() => impl(expr, ctx))
       debug(s"OK ${type_} ⇝ ${outs}")
       (type_, outs)
     catch
@@ -45,10 +45,26 @@ def debugInfer(impl: (Expr, Clauses) => (Type, Clauses)): (Expr, Clauses) => (Ty
         debug("FAIL")
         throw error
 
+/** Decorate the type join function to print debug information. */
+def debugJoin(impl: (Type, Type) => Type): (Type, Type) => Type =
+    (left: Type, right: Type) =>
+    debug(s"join ${left} and ${right}")
+    val type_ = debugCall(() => impl(left, right))
+    debug(s"= ${type_}")
+    type_
+
+/** Decorate the type meet function to print debug information. */
+def debugMeet(impl: (Type, Type) => Type): (Type, Type) => Type =
+  (left: Type, right: Type) =>
+    debug(s"meet ${left} and ${right}")
+    val type_ = debugCall(() => impl(left, right))
+    debug(s"= ${type_}")
+    type_
+
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
-  if currentCallDepth > maxCallDepth then
-    throw Exception("Reached maximum call depth.")
+  if currentCallDepth >= maxCallDepth then
+    throw Exception("Exceeded maximum call depth.")
 
   currentCallDepth += 1
 

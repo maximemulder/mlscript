@@ -33,7 +33,7 @@ def substitute(type_ : Type, varName: String, subsitute: Type)(using ctx: Clause
     case constraining: TConstraining =>
       val base = substitute(constraining.base, varName, subsitute)
       val bounds = substituteBounds(constraining.bounds, varName, subsitute)
-      TConstraining(base, bounds)
+      attachConstrainingBounds(base, bounds)
 
 /** Substitute a variable by a type in a list bounds. */
 def substituteBounds(bounds: List[Bound], varName: String, subsitute: Type)(using ctx: Clauses): List[Bound] =

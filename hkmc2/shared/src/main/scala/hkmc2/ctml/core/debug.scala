@@ -17,12 +17,12 @@ def debug(value : Any*) =
 
 /** Decorate the subtype constraining function to print debug information. */
 def debugSubtype(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode): (Type, Type) => Clauses =
-  if mode == Mode.Check then
-    return impl
+  /* if mode == Mode.Check then
+    return impl */
 
   (sub: Type, sup: Type) =>
     try
-      debug(s"${mode} ${sub} ≤ ${sup} IN ${ctx}")
+      debug(s"${mode} ${sub} ≤ ${sup}")
       val outs = debugCall(() => subtypeImpl(sub, sup))
       debug(s"OK ⇝ ${outs}")
       outs

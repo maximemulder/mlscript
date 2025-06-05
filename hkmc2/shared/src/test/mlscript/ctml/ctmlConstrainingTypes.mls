@@ -1,11 +1,9 @@
 :ctml
 
-
-
 fun foo(a, b) =
-    if a is
-        Int then (b as Int)
-        Str then (b as Str)
+  if a is
+    Int then (b as Int)
+    Str then (b as Str)
 //│ foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
 
 foo(1, 2)
@@ -46,9 +44,9 @@ foo(true, false)
 //│                 ⊤ ≤ ⊥
 
 fun bar(a, b) =
-    if a is
-        Int then (b as Int)
-        Top then (b as Str)
+  if a is
+    Int then (b as Int)
+    Top then (b as Str)
 //│ bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
 
 bar(1, 1)

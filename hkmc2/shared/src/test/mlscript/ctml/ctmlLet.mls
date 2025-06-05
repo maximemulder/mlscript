@@ -1,0 +1,13 @@
+:ctml
+
+fun foo(a) =
+  let b = a
+  let c = b
+  c
+//│ foo: ∀α ◁ {}. α → α
+
+fun bar(a) =
+  let b = 1
+  let c = 1
+  b + c
+//│ bar: ⊤ → Int

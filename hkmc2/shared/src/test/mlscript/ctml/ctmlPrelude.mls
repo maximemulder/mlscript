@@ -19,3 +19,6 @@ val bool   : Bool
 val int    : Int
 val num    : Num
 val string : Str
+
+declare val (+): Int -> Int -> Int
+declare val (-): Int -> Int -> Int

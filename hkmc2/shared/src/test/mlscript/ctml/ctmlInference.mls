@@ -28,17 +28,22 @@ foo(a)
 foo(b)
 //│ B
 
+:e
 foo(c)
-//│ TYPE ERROR: Cannot solve type equation (A → A) ∧ (B → B) ≤ C → β.
+//│ ═══[ERROR] Cannot solve type equation (A → A) ∧ (B → B) ≤ C → γ.
 //│ Typing error tree:
-//│   (A → A) ∧ (B → B) ≤ C → β
-//│     B → B ≤ C → β
+//│   (A → A) ∧ (B → B) ≤ C → γ
+//│     B → B ≤ C → γ
 //│       C ≤ B
-//│     A → A ≤ C → β
+//│         ⊤ ≤ B
+//│           ⊤ ≤ ⊥
+//│     A → A ≤ C → γ
 //│       C ≤ A
+//│         ⊤ ≤ A
+//│           ⊤ ≤ ⊥
 
 foo(d)
 //│ A ∨ B
 
 foo(e)
-//│ (B ▷ {β ≥ B}) ∨ (A ▷ {β ≥ A})
+//│ B ∨ A

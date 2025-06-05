@@ -5,7 +5,7 @@ import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
 def meet(left: Type, right: Type)(using ctx: Clauses): Type =
-  debugMeet(meetImpl)(left, right)
+  meetImpl(left, right)
 
 /** Implementation of `meet`. */
 def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =

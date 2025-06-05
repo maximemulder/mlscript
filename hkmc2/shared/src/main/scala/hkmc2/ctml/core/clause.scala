@@ -1,6 +1,7 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 extension (clauses: Clauses)
   // Iterators

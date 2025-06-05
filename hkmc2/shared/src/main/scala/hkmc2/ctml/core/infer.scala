@@ -2,84 +2,83 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
+
+def inferSeq(expr: Expr, ins: Clauses)(using ctx: Clauses): (Type, Clauses) =
+  given Clauses = ctx.addClauses(ins)
+  val (type_, outs) = infer(expr)
+  (type_, ins.addClauses(outs))
 
 /** Infer the type of an expression. */
-def infer(expr: Expr, ctx: Clauses): (Type, Clauses) =
-  inferImpl(expr, ctx)
+def infer(expr: Expr)(using ctx: Clauses): (Type, Clauses) =
+  inferImpl(expr)
 
 /** Implementation of `constrainSub`. */
-def inferImpl(expr: Expr, ctx: Clauses): (Type, Clauses) =
+def inferImpl(expr: Expr)(using ctx: Clauses): (Type, Clauses) =
   expr match
-    // Variable
+    // Variable.
     case var_ : EVar =>
       (ctx.getVarType(var_.name), Clauses.none)
 
-    // Lambda abstraction
+    // Lambda abstraction.
     case lam: ELam =>
       ctx.withFreshVarLevel((paramVar, ctx) =>
-        val paramCtx = ctx.addClause(TermVar(lam.paramName, paramVar))
-        val (bodyType, bodyBounds) = infer(lam.body, paramCtx)
-        (TLam(paramVar, bodyType), bodyBounds)
+        given Clauses = ctx
+        val paramClauses = Clauses(List(TermVar(lam.paramName, paramVar)))
+        val (bodyType, bodyClauses) = inferSeq(lam.body, paramClauses)
+        (TLam(paramVar, bodyType), bodyClauses)
       )
 
-    // Lambda application
+    // Lambda application.
     case app: EApp =>
       ctx.withFreshVarLevel((retVar, ctx) =>
-        val (lamType, lamClauses) = infer(app.lam, ctx)
-        val (argType, argClauses) = infer(app.arg, ctx)
+        given Clauses = ctx
+        val (lamType, lamClauses) = infer(app.lam)
+        val (argType, argClauses) = inferSeq(app.arg, lamClauses)
         val mockLamType = TLam(argType, retVar)
-        val consrainClauses =
-          given Clauses = ctx.addClauses(lamClauses, argClauses)
-          subtype(lamType, mockLamType)
-        (retVar, lamClauses.addClauses(argClauses, consrainClauses))
+        val consrainClauses = subtypeSeq(lamType, mockLamType, argClauses)
+        (retVar, consrainClauses)
       )
 
-    // Type ascription
+    // Type ascription.
     case ascr: EAscr =>
-      val (inferType, inferClauses) = infer(ascr.expr, ctx)
-      val constrainClauses =
-        given Clauses = ctx.addClauses(inferClauses)
-        subtype(inferType, ascr.type_)
-      (ascr.type_, constrainClauses.addClauses(inferClauses))
+      val (inferType, inferClauses) = infer(ascr.expr)
+      val constrainClauses = subtypeSeq(inferType, ascr.type_, inferClauses)
+      (ascr.type_, constrainClauses)
 
+    // Match.
     case match_ : EMatch =>
-      inferMatch(match_, ctx)
+      inferMatch(match_)
 
 /** Infer the type of a match expression. */
-def inferMatch(match_ : EMatch, ctx: Clauses): (Type, Clauses) =
+def inferMatch(match_ : EMatch)(using ctx: Clauses): (Type, Clauses) =
   // Infer the type and bounds of the scrutinee.
-  val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee, ctx)
-  val scrutineeCtx = ctx.addClauses(scrutineeClauses)
+  val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee)
   // Get the union of the cases.
-  val patternsType =
-    given Clauses = scrutineeCtx
-    match_.cases
-      .map(_.pattern)
-      .joinMany()
+  val patternsType = match_.cases
+    .map(_.pattern)
+    .joinManySeq(scrutineeClauses)
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
-  val patternsClauses =
-    given Clauses = scrutineeCtx
-    subtype(scrutineeType, patternsType)
-  val patternsCtx = scrutineeCtx.addClauses(patternsClauses)
+  val patternsClauses = subtypeSeq(scrutineeType, patternsType, scrutineeClauses)
+  val patternsCtx = ctx.addClauses(patternsClauses)
   // Infer each match case.
-  given Clauses = patternsCtx
   val (casesType, casesClauses) = match_.cases
-    .map(inferMatchCase(_, scrutineeType, patternsCtx))
+    .map(case_ =>
+      given Clauses = patternsCtx
+      inferMatchCase(case_, scrutineeType)
+    )
     .fold1Right((case_, cases) =>
-      val (caseType, caseBounds) = case_
-      val (casesType, casesBounds) = cases
+      given Clauses = patternsCtx
+      val (caseType, caseClauses) = case_
+      val (casesType, casesClauses) = cases
       val type_ = join(caseType, casesType)
-      val bounds = Clauses(patternsCtx.joinBounds(caseBounds, casesBounds))
-      (type_, bounds)
+      val clauses = Clauses(patternsCtx.joinBounds(caseClauses, casesClauses))
+      (type_, clauses)
     )
 
-  (casesType, scrutineeClauses.addClauses(patternsClauses, casesClauses))
+  (casesType, patternsClauses.addClauses(casesClauses))
 
 /** Infer the type of a match case. */
-def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, ctx: Clauses): (Type, Clauses) =
-  val patternClauses =
-    given Clauses = ctx
-    subtype(scrutineeType, case_.pattern)
-  val caseCtx = ctx.addClauses(patternClauses)
-  val (bodyType, bodyClauses) = infer(case_.body, caseCtx)
-  (bodyType, patternClauses.addClauses(bodyClauses))
+def inferMatchCase(case_ : EMatchCase, scrutineeType: Type)(using ctx: Clauses): (Type, Clauses) =
+  val patternClauses = subtype(scrutineeType, case_.pattern)
+  inferSeq(case_.body, patternClauses)

@@ -4,12 +4,18 @@ import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
-def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: Mode): Clauses =
+def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   dir match
     case Direction.Sub =>
       subtype(sub, sup)
     case Direction.Super =>
       subtype(sup, sub)
+
+/** Constrain a type to be a subtype of another type in a context. */
+def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
+  given Clauses = ctx.addClauses(ins)
+  val outs = subtype(sub, sup)
+  ins.addClauses(outs)
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
@@ -141,24 +147,14 @@ def subtypeFreshVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clau
 def subtypeFreshVarSub(sub: TVar, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
   val varName = sub.as[TVar].name
   val upperBound = Bound(varName, Direction.Sub, sup)
-  val fullCtx = ctx.addClause(upperBound)
   val lowerBound = ctx.getVarLowerBound(varName)
-  val newBounds =
-    given Clauses = fullCtx
-    subtype(lowerBound, sup)
-
-  return upperBound.asClauses.addClauses(newBounds)
+  subtypeSeq(lowerBound, sup, upperBound.asClauses)
 
 def subtypeFreshVarSup(sub: Type, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
   val varName = sup.as[TVar].name
   val lowerBound = Bound(varName, Direction.Super, sub)
-  val fullCtx = ctx.addClause(lowerBound)
   val upperBound = ctx.getVarUpperBound(varName)
-  val newBounds =
-    given Clauses = fullCtx
-    subtype(sub, upperBound)
-
-  return lowerBound.asClauses.addClauses(newBounds)
+  subtypeSeq(sub, upperBound, lowerBound.asClauses)
 
 def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
@@ -193,10 +189,7 @@ def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =
   val paramClauses = subtype(sup.param, sub.param)
-  val retClauses   =
-    given Clauses = ctx.addClauses(paramClauses)
-    subtype(sub.ret,   sup.ret)
-  return paramClauses.addClauses(retClauses)
+  subtypeSeq(sub.ret, sup.ret, paramClauses)
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
 def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Clauses, mode: Mode): Clauses =

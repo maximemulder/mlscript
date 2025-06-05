@@ -10,25 +10,11 @@ extension (ctx: Clauses)
     // Get the new type variables of this level.
     val levelVars = ctx.getLevelVars(outs)
     if levelVars == Nil then
-      debug(s"LOWER LEVEL: ${ctx}")
-      debug(s"CURRENT LEVEL: ${outs}")
       return (type_, outs)
-    else
-      // TODO:
-      // 1. Find variables declared in statements.
-      // 2. Remove variables that are indirectly referenced in ctx
-      // 3. For each variable
-      //     Get polarities.
-      //     Extract variable declarion and bounds from statements (???)
-      //     Substitute in context.
-      //     Substitute in type.
-      val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, te) =>
-        ctx.processLevelVar(te._1, var_, levelVars.map(_.name).toSet, te._2)
-      )
 
-      // Repeat the process until no other variables need to be processed.
-      ctx.solveLevel(newType, newOuts)
-
+    levelVars.foldRight((type_, outs))((var_, te) =>
+      ctx.processLevelVar(te._1, var_, levelVars.map(_.name).toSet, te._2)
+    )
 
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */

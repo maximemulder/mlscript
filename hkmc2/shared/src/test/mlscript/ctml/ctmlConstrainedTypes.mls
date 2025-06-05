@@ -21,8 +21,5 @@ idInt("Hello")
 //│ Typing error tree:
 //│   Int → Int ≤ Str → ζ
 //│     Str ≤ Int
-//│       Int ≤ ⊥
+//│       Str ≤ ⊥
 //│         ⊤ ≤ ⊥
-
-2
-//│ Int

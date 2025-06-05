@@ -28,9 +28,11 @@ def attachConstrainedBounds(type_ : Type, varName: String, lowerBound: Type, upp
     case _ =>
       TConstrained(List(varName), type_, bounds)
 
-def splitConstrainings(type_ : Type): (Type, List[Bound]) =
-  type_ match
-    case constraining : TConstraining =>
-      (constraining.base, constraining.bounds)
-    case _ =>
-      (type_, Nil)
+extension (type_ : Type)
+  /** Split a type into a base type and its constraining bounds. */
+  def splitConstrainings(): (Type, List[Bound]) =
+    type_ match
+      case constraining : TConstraining =>
+        (constraining.base, constraining.bounds)
+      case _ =>
+        (type_, Nil)

@@ -46,7 +46,7 @@ def debugInfer(impl: (Expr, Clauses) => (Type, Clauses)): (Expr, Clauses) => (Ty
         throw error
 
 /** Decorate the type join function to print debug information. */
-def debugJoin(impl: (Type, Type) => Type): (Type, Type) => Type =
+def debugJoin(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
     (left: Type, right: Type) =>
     debug(s"join ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))
@@ -54,7 +54,7 @@ def debugJoin(impl: (Type, Type) => Type): (Type, Type) => Type =
     type_
 
 /** Decorate the type meet function to print debug information. */
-def debugMeet(impl: (Type, Type) => Type): (Type, Type) => Type =
+def debugMeet(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
   (left: Type, right: Type) =>
     debug(s"meet ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))

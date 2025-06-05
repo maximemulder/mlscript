@@ -26,18 +26,18 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
 
   if mode == Mode.Constrain then
     if sup.is[TConstraining] then
-      val (supBase, supBounds) = splitConstrainings(sup)
+      val (supBase, supBounds) = sup.splitConstrainings()
       val baseClauses = subtype(sub, supBase)
       return Clauses(supBounds).addClauses(baseClauses)
 
     if sub.is[TConstraining] then
-      val (subBase, subBounds) = splitConstrainings(sub)
+      val (subBase, subBounds) = sub.splitConstrainings()
       val baseClauses = subtype(subBase, sup)
       return Clauses(subBounds).addClauses(baseClauses)
   else
     if sub.is[TConstraining] || sup.is[TConstraining] then
-      val (subBase, subBounds) = splitConstrainings(sub)
-      val (supBase, supBounds) = splitConstrainings(sup)
+      val (subBase, subBounds) = sub.splitConstrainings()
+      val (supBase, supBounds) = sup.splitConstrainings()
       val boundsClauses = subtypeBounds(subBounds, supBounds)
       val baseClauses =
         given Clauses = ctx.addElems(subBounds)

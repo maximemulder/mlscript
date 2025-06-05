@@ -1,24 +1,13 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.util
 
-val greekLetters = List(
-  "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ",
-  "ν", "ξ", "ο", "π", "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω"
-)
+import java.io.{PrintWriter, StringWriter}
 
-// TODO: Do not use a global mutable counter.
-var freshVarCounter = 0
-
-/** Get a pretty new fresh variable name. */
-def newFreshVarName(): String = {
-  val i = freshVarCounter
-  freshVarCounter += 1
-
-  if i < greekLetters.size then {
-    greekLetters(i)
-  } else {
-    i.toString()
-  }
-}
+/** . */
+def getStackTraceString(throwable: Throwable): String =
+  val stringWriter = new StringWriter()
+  val printWriter = new PrintWriter(stringWriter)
+  throwable.printStackTrace(printWriter)
+  stringWriter.toString
 
 extension [T](iterator: Iterator[T])
   /** Iterate over the elements of an iterator until a predicate fails, including the element for

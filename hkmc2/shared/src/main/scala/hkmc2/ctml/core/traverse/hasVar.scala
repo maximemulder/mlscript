@@ -52,11 +52,12 @@ extension (type_ : Type)
         val right = inter.right.hasVar(varName)
         left || right
       case constrained: TConstrained =>
-        val base   = constrained.base.hasVar(varName)
-        val bounds = constrained.bounds
-          .map(_.hasVar(varName))
-          .fold(false)(_ || _)
-        base || bounds
+        if constrained.base.hasVar(varName) then
+          false
+        else
+          constrained.bounds
+            .map(_.hasVar(varName))
+            .fold(false)(_ || _)
       case constraining: TConstraining =>
         val base   = constraining.base.hasVar(varName)
         val bounds = constraining.bounds

@@ -6,122 +6,30 @@ fun foo(a, b) =
     if a is
         Int then (b as Int)
         Str then (b as Str)
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet Int and Int ∨ Str
-//│ = Int
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet Str and Int ∨ Str
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ LOWER LEVEL: α ≤ Int ∨ Str, b: β, β fresh, a: α, α fresh, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ fresh
-//│ LOWER LEVEL: a: α, α fresh, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ fresh, α ≤ Int ∨ Str, b: β, β fresh
-//│ meet Int ∨ Str and ⊤
-//│ = Int ∨ Str
-//│ meet (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) and Int ∨ Str
-//│ = (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│ meet (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}) and ⊤
-//│ = (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│ LOWER LEVEL: string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: b: β, a: α
 //│ foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
 
-""
-//│ Str
-
 foo(1, 2)
-//│ meet (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) and ⊤
-//│ = (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│ LOWER LEVEL: δ fresh, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh
-//│ meet (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}) and ⊤
-//│ = (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│ meet Int and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│ = Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}))
-//│ LOWER LEVEL: foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ, γ ≥ Int, α ≤ Int, β ≥ Int, γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh, δ fresh
-//│ δ
-//│ δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ, γ ≥ Int, α ≤ Int, β ≥ Int, γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh, δ fresh
-
-// δ
-// δ fresh
-// α fresh,
-// β fresh,
-// γ fresh,
-// α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-// β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}),
-// γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}),
-// α ≥ Int,
-// β ≤ Int,
-// γ ≥ Int,
-// β ≥ Int,
-// α ≤ Int,
-// γ ≥ Int,
-// γ ≤ δ,
-// δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}),
+//│ ∀α, β ◁ {α ≥ Int, α ≤ Int ∨ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β ≥ Int, β ≤ Int ∨ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
 
 :e
 foo(1, "")
-//│ meet (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) and ⊤
-//│ = (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│ LOWER LEVEL: ζ fresh, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh
-//│ meet (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}) and ⊤
-//│ = (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│ meet Int and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│ = Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}))
-//│ ═══[ERROR] Cannot solve type equation β → γ ≤ Str → ζ.
+//│ ═══[ERROR] Cannot solve type equation ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
 //│ Typing error tree:
-//│   β → γ ≤ Str → ζ
-//│     Str ≤ β
-//│       Str ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}))
-//│         Str ≤ Int ∧ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│           Str ≤ Int
-//│             Str ≤ ⊥
-//│               ⊤ ≤ ⊥
-//│         Str ≤ Int ∧ (Int ▷ {γ ≥ Int, α ≤ Int})
-//│           Str ≤ Int
-//│             Str ≤ ⊥
-//│               ⊤ ≤ ⊥
+//│   ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
+//│     β → γ ≤ Str → ζ
+//│       Str ≤ β
+//│         Str ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}))
+//│           Str ≤ Int ∧ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│             Str ≤ Int
+//│               Str ≤ ⊥
+//│                 ⊤ ≤ ⊥
+//│           Str ≤ Int ∧ (Int ▷ {γ ≥ Int, α ≤ Int})
+//│             Str ≤ Int
+//│               Str ≤ ⊥
+//│                 ⊤ ≤ ⊥
 
 :e
 foo(true, false)
-//│ meet (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) and ⊤
-//│ = (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
 //│ ═══[ERROR] Cannot solve type equation ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι.
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι
@@ -141,164 +49,38 @@ fun bar(a, b) =
     if a is
         Int then (b as Int)
         Top then (b as Str)
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Int and ⊤
-//│ = Int
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ LOWER LEVEL: b: λ, λ fresh, a: κ, κ fresh, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ fresh
-//│ LOWER LEVEL: a: κ, κ fresh, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ fresh, b: λ, λ fresh
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ LOWER LEVEL: foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: b: λ, a: κ
 //│ bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
 
 bar(1, 1)
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Str
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Int and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Int ∧ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}))
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ LOWER LEVEL: ν fresh, bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}) and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ LOWER LEVEL: bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: ν ≥ Int ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ν, μ ≥ Int, κ ≤ Int, λ ≥ Int, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, ν fresh
-//│ ν
-//│ ν ≥ Int ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ν, μ ≥ Int, κ ≤ Int, λ ≥ Int, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, ν fresh
+//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ Int ∨ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Int, λ ≤ (Int ▷ {κ ≤ Int}) ∨ Str}. Int ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
 
 bar(1, "")
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Str
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Int and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Int ∧ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}))
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and ⊤
-//│ = Str
-//│ meet Int and ⊤
-//│ = Int
-//│ LOWER LEVEL: ο fresh, bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}) and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ LOWER LEVEL: bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: ο ≥ Str ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ο, μ ≥ Str, λ ≥ Str, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, ο fresh
-//│ ο
-//│ ο ≥ Str ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ο, μ ≥ Str, λ ≥ Str, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, ο fresh
+//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ (Int ▷ {κ ≤ Int}) ∨ Str}. Str ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
 
 bar("", "")
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ LOWER LEVEL: ρ fresh, bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: μ ≥ Str, λ ≤ Str, κ ≥ Str, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Str
-//│ LOWER LEVEL: bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: ρ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ρ, λ ≥ Str, μ ≥ Str, λ ≤ Str, κ ≥ Str, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, ρ fresh
-//│ ρ
-//│ ρ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ρ, λ ≥ Str, μ ≥ Str, λ ≤ Str, κ ≥ Str, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, ρ fresh
+//│ ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
 
 bar(true, "")
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ LOWER LEVEL: τ fresh, bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Str
-//│ LOWER LEVEL: bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: τ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ τ, λ ≥ Str, μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, τ fresh
-//│ τ
-//│ τ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ τ, λ ≥ Str, μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh, τ fresh
+//│ ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
 
 :e
 bar(true, 1)
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ LOWER LEVEL: φ fresh, bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Str
-//│ ═══[ERROR] Cannot solve type equation λ → μ ≤ Int → φ.
+//│ ═══[ERROR] Cannot solve type equation ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ.
 //│ Typing error tree:
-//│   λ → μ ≤ Int → φ
-//│     Int ≤ λ
-//│       Int ≤ Str
-//│         ⊤ ≤ Str
-//│           ⊤ ≤ ⊥
+//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ
+//│     λ → μ ≤ Int → φ
+//│       Int ≤ λ
+//│         Int ≤ Str
+//│           ⊤ ≤ Str
+//│             ⊤ ≤ ⊥
 
 :e
 bar(true, true)
-//│ meet (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
-//│ LOWER LEVEL: ψ fresh, bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ, foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Num rigid, Int rigid, Bool rigid, Unit rigid, Bot rigid, Top rigid, untyped rigid, Str rigid, Function rigid, Object rigid
-//│ CURRENT LEVEL: μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
-//│ meet (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) and ⊤
-//│ = (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ meet Str and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
-//│ = Str
-//│ ═══[ERROR] Cannot solve type equation λ → μ ≤ Bool → ψ.
+//│ ═══[ERROR] Cannot solve type equation ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ.
 //│ Typing error tree:
-//│   λ → μ ≤ Bool → ψ
-//│     Bool ≤ λ
-//│       Bool ≤ Str
-//│         ⊤ ≤ Str
-//│           ⊤ ≤ ⊥
+//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ
+//│     λ → μ ≤ Bool → ψ
+//│       Bool ≤ λ
+//│         Bool ≤ Str
+//│           ⊤ ≤ Str
+//│             ⊤ ≤ ⊥

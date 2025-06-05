@@ -32,12 +32,12 @@ def debugSubtype(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode):
         throw error
 
 /** Decorate the type inference function to print debug information. */
-def debugInfer(impl: (Expr, Clauses) => (Type, Clauses)): (Expr, Clauses) => (Type, Clauses) =
-  (expr: Expr, ctx: Clauses) =>
+def debugInfer(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (Type, Clauses) =
+  (expr: Expr) =>
     debug(s"infer ${expr}")
 
     try
-      val (type_, outs) = debugCall(() => impl(expr, ctx))
+      val (type_, outs) = debugCall(() => impl(expr))
       debug(s"OK ${type_} ⇝ ${outs}")
       (type_, outs)
     catch

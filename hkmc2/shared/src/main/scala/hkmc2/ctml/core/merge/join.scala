@@ -21,3 +21,7 @@ extension (types: List[Type])
   /** Get the simplified join of many types. */
   def joinMany()(using ctx: Clauses): Type =
     types.foldRight(TBot)(join)
+
+  def joinManySeq(ins: Clauses)(using ctx: Clauses): Type =
+    given Clauses = ctx.addClauses(ins)
+    types.foldRight(TBot)(join)

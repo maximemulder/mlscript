@@ -14,8 +14,9 @@ Top == Top
 Bot <= Top
 //│ OK
 
+:e
 Top <= Bot
-//│ TYPE ERROR: Cannot solve type equation ⊤ ≤ ⊥.
+//│ ═══[ERROR] Cannot solve type equation ⊤ ≤ ⊥.
 //│ Typing error tree:
 //│   ⊤ ≤ ⊥
 
@@ -30,18 +31,23 @@ A <= Top
 Bot <= A
 //│ OK
 
+:e
 Top <= A
-//│ TYPE ERROR: Cannot solve type equation ⊤ ≤ A.
+//│ ═══[ERROR] Cannot solve type equation ⊤ ≤ A.
 //│ Typing error tree:
 //│   ⊤ ≤ A
+//│     ⊤ ≤ ⊥
 
+:e
 A <= Bot
-//│ TYPE ERROR: Cannot solve type equation A ≤ ⊥.
+//│ ═══[ERROR] Cannot solve type equation A ≤ ⊥.
 //│ Typing error tree:
 //│   A ≤ ⊥
+//│     ⊤ ≤ ⊥
 
+:e
 A == B
-//│ TYPE ERROR: Cannot solve type equation A = B.
+//│ ═══[ERROR] Cannot solve type equation A = B.
 
 // Lambda types.
 
@@ -51,32 +57,40 @@ A == B
 (Top -> Bot) <= (Top -> A)
 //│ OK
 
-(A -> Bot) <= (Top -> Bot)
-//│ TYPE ERROR: Cannot solve type equation A → ⊥ ≤ ⊤ → ⊥.
-//│ Typing error tree:
-//│   A → ⊥ ≤ ⊤ → ⊥
-//│     ⊤ ≤ A
-
-(Top -> A) <= (Top -> Bot)
-//│ TYPE ERROR: Cannot solve type equation ⊤ → A ≤ ⊤ → ⊥.
-//│ Typing error tree:
-//│   ⊤ → A ≤ ⊤ → ⊥
-//│     A ≤ ⊥
-
 (A -> Top) <= (Bot -> Top)
 //│ OK
 
 (Bot -> A) <= (Bot -> Top)
 //│ OK
 
+:e
+(A -> Bot) <= (Top -> Bot)
+//│ ═══[ERROR] Cannot solve type equation A → ⊥ ≤ ⊤ → ⊥.
+//│ Typing error tree:
+//│   A → ⊥ ≤ ⊤ → ⊥
+//│     ⊤ ≤ A
+//│       ⊤ ≤ ⊥
+
+:e
+(Top -> A) <= (Top -> Bot)
+//│ ═══[ERROR] Cannot solve type equation ⊤ → A ≤ ⊤ → ⊥.
+//│ Typing error tree:
+//│   ⊤ → A ≤ ⊤ → ⊥
+//│     A ≤ ⊥
+//│       ⊤ ≤ ⊥
+
+:e
 (Bot -> Top) <= (A -> Top)
-//│ TYPE ERROR: Cannot solve type equation ⊥ → ⊤ ≤ A → ⊤.
+//│ ═══[ERROR] Cannot solve type equation ⊥ → ⊤ ≤ A → ⊤.
 //│ Typing error tree:
 //│   ⊥ → ⊤ ≤ A → ⊤
 //│     A ≤ ⊥
+//│       ⊤ ≤ ⊥
 
+:e
 (Bot -> Top) <= (Bot -> A)
-//│ TYPE ERROR: Cannot solve type equation ⊥ → ⊤ ≤ ⊥ → A.
+//│ ═══[ERROR] Cannot solve type equation ⊥ → ⊤ ≤ ⊥ → A.
 //│ Typing error tree:
 //│   ⊥ → ⊤ ≤ ⊥ → A
 //│     ⊤ ≤ A
+//│       ⊤ ≤ ⊥

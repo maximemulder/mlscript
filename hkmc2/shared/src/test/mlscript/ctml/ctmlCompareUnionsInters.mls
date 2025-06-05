@@ -25,24 +25,6 @@ A <= (A | B)
 (A & B) <= A
 //│ OK
 
-:e
-(A | B) <= A
-//│ ═══[ERROR] Cannot solve type equation A ∨ B ≤ A.
-//│ Typing error tree:
-//│   A ∨ B ≤ A
-//│     B ≤ A
-//│       ⊤ ≤ A
-//│         ⊤ ≤ ⊥
-
-:e
-A <= (A & B)
-//│ ═══[ERROR] Cannot solve type equation A ≤ A ∧ B.
-//│ Typing error tree:
-//│   A ≤ A ∧ B
-//│     A ≤ B
-//│       A ≤ ⊥
-//│         ⊤ ≤ ⊥
-
 (A | B) == (B | A)
 //│ OK
 
@@ -65,9 +47,29 @@ A <= (A & B)
 ((A -> C) & (B -> C)) == ((A | B) -> C)
 //│ OK
 
+((A | C) -> (B & D)) <= ((A -> B) & (C -> D))
+//│ OK
+
+:e
+(A | B) <= A
+//│ ═══[ERROR] Cannot solve type equation A ∨ B ≤ A.
+//│ Typing error tree:
+//│   A ∨ B ≤ A
+//│     B ≤ A
+//│       ⊤ ≤ A
+//│         ⊤ ≤ ⊥
+
+:e
+A <= (A & B)
+//│ ═══[ERROR] Cannot solve type equation A ≤ A ∧ B.
+//│ Typing error tree:
+//│   A ≤ A ∧ B
+//│     A ≤ B
+//│       A ≤ ⊥
+//│         ⊤ ≤ ⊥
+
+:e
 ((A -> B) & (C -> D)) <= ((A | C) -> (B & D))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:24)
 //│ ═══[ERROR] Cannot solve type equation (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D).
 //│ Typing error tree:
 //│   (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D)
@@ -81,8 +83,3 @@ A <= (A & B)
 //│           B ≤ D
 //│             B ≤ ⊥
 //│               ⊤ ≤ ⊥
-
-:e
-((A | C) -> (B & D)) <= ((A -> B) & (C -> D))
-//│ OK
-//│ FAILURE: Unexpected lack of type error

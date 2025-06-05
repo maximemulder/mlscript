@@ -6,6 +6,7 @@ import hkmc2.Raise
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Term
+import hkmc2.ctml.util.getStackTraceString
 
 /** Run a CTML test on an input term. */
 def test(
@@ -84,13 +85,17 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Source, String)
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
-    val (type_, bounds) = infer(expr, this.ctx)
+    val (type_, bounds) =
+      given Clauses = this.ctx
+      infer(expr)
     this.output(s"${name}: ${type_}")
     this.ctx = this.ctx.addClause(TermVar(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
-    val (type_, outs) = infer(expr, this.ctx)
+    val (type_, outs) =
+      given Clauses = this.ctx
+      infer(expr)
     this.outputType(type_)
     this.outputClauses(outs)
 

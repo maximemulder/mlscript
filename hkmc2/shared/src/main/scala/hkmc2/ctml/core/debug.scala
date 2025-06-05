@@ -47,7 +47,7 @@ def debugInfer(impl: (Expr, Clauses) => (Type, Clauses)): (Expr, Clauses) => (Ty
 
 /** Decorate the type join function to print debug information. */
 def debugJoin(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
-    (left: Type, right: Type) =>
+  (left: Type, right: Type) =>
     debug(s"join ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))
     debug(s"= ${type_}")

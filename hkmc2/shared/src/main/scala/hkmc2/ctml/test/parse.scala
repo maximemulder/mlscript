@@ -5,9 +5,11 @@ import hkmc2.ctml.types.*
 import hkmc2.semantics.BlockMemberSymbol
 import hkmc2.semantics.Branch
 import hkmc2.semantics.ClassDef
+import hkmc2.semantics.DefineVar
 import hkmc2.semantics.Elem
 import hkmc2.semantics.Fld
 import hkmc2.semantics.Import
+import hkmc2.semantics.LetDecl
 import hkmc2.semantics.Param
 import hkmc2.semantics.Pattern
 import hkmc2.semantics.Split
@@ -149,8 +151,8 @@ def parseType(mlType: Term): Type =
 def parseExpr(mlExpr: Term): Expr =
   mlExpr match
     // Only parse the final term of blocks.
-    case Term.Blk(_, mlExpr) =>
-      parseExpr(mlExpr)
+    case Term.Blk(mlStmts, mlExpr) =>
+      parseExprs(mlStmts, mlExpr)
     // Parse literals as variables.
     case Term.UnitVal() | Term.Lit(Tree.UnitLit(_)) =>
       EVar("unit")
@@ -186,6 +188,24 @@ def parseExpr(mlExpr: Term): Expr =
       parseMatch(mlMatch)
     case _ =>
       throw new ParseError(mlExpr)
+
+/***/
+def parseExprs(mlStmts: List[Statement], mlExpr: Term): Expr =
+  mlStmts match
+    case Nil =>
+      parseExpr(mlExpr)
+    case mlStmt :: mlStmts =>
+      val next = parseExprs(mlStmts, mlExpr)
+      mlStmt match
+        case DefineVar(mlSymbol, mlExpr) =>
+          val name = mlSymbol.nme
+          val expr = parseExpr(mlExpr)
+          val lambda = ELam(name, next)
+          EApp(lambda, expr)
+        case LetDecl(_, _) =>
+          next
+        case _ =>
+          throw new ParseError(mlStmt)
 
 /** Convert a MLScript lambda abstraction to a CTML expression. */
 def parseLambda(mlParams: List[Param], mlBody: Term): Expr =

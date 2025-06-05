@@ -7,34 +7,34 @@ extension (clauses: Clauses)
   // Iterators
 
   /** Iterate over the term variables defined in the clauses. */
-  def termVars: Iterator[TermVar] =
+  def termVars: List[TermVar] =
     clauses.elems.iterator.flatMap(_ match
       case var_ : TermVar =>
         Some(var_)
       case _ =>
         None
-    )
+    ).toList
 
   /** Iterate over the type variables defined in the clauses. */
-  def typeVars: Iterator[TypeVar] =
+  def typeVars: List[TypeVar] =
     clauses.elems.iterator.flatMap(_ match
       case var_ : TypeVar =>
         Some(var_)
       case _ =>
         None
-    )
+    ).toList
 
   /** Iterate over the bounds defined in the clauses. */
-  def bounds: Iterator[Bound] =
+  def bounds: List[Bound] =
     clauses.elems.iterator.flatMap(_ match
       case bound : Bound =>
         Some(bound)
       case _ =>
         None
-    )
+    ).toList
 
   /** Iterate over the bounds of a type variable defined in the clauses. */
-  def varBounds(varName: String): Iterator[Bound] =
+  def varBounds(varName: String): List[Bound] =
     // TODO: Shadowing.
     clauses.bounds.filter(_.name == varName)
 

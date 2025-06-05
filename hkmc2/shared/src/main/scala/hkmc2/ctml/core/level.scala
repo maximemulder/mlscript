@@ -2,15 +2,16 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.traverse.*
+import traverse.getTypePolarities
 
 extension (ctx: Clauses)
   /** Solve a type inference level by processing each new variable of that level. */
   def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
-    // Get the new type variables present in the generated constraints.
-    val newVars = outs.typeVars.toList
-    // Remove the variables that appear in lower polymorphism levels.
-    val filteredVars = ctx.filterLevelVars(newVars.toList, outs)
-    if filteredVars == Nil then
+    // Get the new type variables of this level.
+    val levelVars = ctx.getLevelVars(outs)
+    if levelVars == Nil then
+      debug(s"LOWER LEVEL: ${ctx}")
+      debug(s"CURRENT LEVEL: ${outs}")
       return (type_, outs)
     else
       // TODO:
@@ -21,8 +22,8 @@ extension (ctx: Clauses)
       //     Extract variable declarion and bounds from statements (???)
       //     Substitute in context.
       //     Substitute in type.
-      val (newType, newOuts) = filteredVars.foldRight((type_, outs))((var_, te) =>
-        ctx.processLevelVar(te._1, var_, filteredVars.map(_.name).toSet, te._2)
+      val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, te) =>
+        ctx.processLevelVar(te._1, var_, levelVars.map(_.name).toSet, te._2)
       )
 
       // Repeat the process until no other variables need to be processed.
@@ -69,12 +70,18 @@ extension (ctx: Clauses)
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
 
-  /** Remove the variables in the context that appear before a certain level. */
-  def filterLevelVars(vars: List[TypeVar], outs: Clauses): List[TypeVar] =
-    val fullCtx = ctx.addClauses(outs)
+  /** Get the type variables of this level. */
+  def getLevelVars(outs: Clauses): List[TypeVar] =
+    // Get the type variables declared at this level.
+    val vars = outs.typeVars
+
+    // Remove the variables that have dependent variabled declared at a lower level.
     vars.filter(var_ =>
-      val dependentVars = fullCtx.getDependentVars(var_.name)
-      !dependentVars.exists(dependentVar => ctx.hasVar(dependentVar))
+      // Get the list of type variables that depend on the type variable of this level.
+      val dependentVars = outs.getDependentVars(var_.name)
+
+      // Check whether any of the dependent variables is declared at a lower level.
+      !dependentVars.exists(ctx.hasVar(_))
     )
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */

@@ -9,12 +9,12 @@ def getStackTraceString(throwable: Throwable): String =
   throwable.printStackTrace(printWriter)
   stringWriter.toString
 
-extension [T](iterator: Iterator[T])
-  /** Iterate over the elements of an iterator until a predicate fails, including the element for
-   *  which the predicate failed. */
-  def takeWhileInclusive(p: T => Boolean): Iterator[T] =
+extension [T](list: List[T])
+  /** Iterate over the elements of a list until a predicate fails, including the element for which
+   *  the predicate failed. */
+  def takeWhileInclusive(p: T => Boolean): List[T] =
     var shouldContinue = true
-    iterator.takeWhile((elem) =>
+    list.takeWhile((elem) =>
       if !shouldContinue then
         false
       else
@@ -25,7 +25,7 @@ extension [T](iterator: Iterator[T])
 
   /** Apply a function to the elements of an iterator and return the first non-none result. */
   def findMap[U](f: T => Option[U]): Option[U] =
-    iterator.flatMap(f).nextOption()
+    list.iterator.flatMap(f).nextOption()
 
 extension [T](list: List[T])
   def fold1Right(f: (T, T) => T): T =

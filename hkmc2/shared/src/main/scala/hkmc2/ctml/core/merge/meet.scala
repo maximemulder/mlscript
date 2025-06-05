@@ -5,7 +5,7 @@ import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
 def meet(left: Type, right: Type)(using ctx: Clauses): Type =
-  meetImpl(left, right)
+  debugMeet(meetImpl)(left, right)
 
 /** Implementation of `meet`. */
 def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
@@ -23,19 +23,29 @@ def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
 
 /** Get the meet of two disjoint types in a non-intersection form if possible. */
 def meetDisjoint(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
-  (left, right) match
-    case (left: TLam, right: TLam) =>
-      if checkEqual(left.param, right.param) then
-        var body = meet(left.ret, right.ret)
-        return Some(TLam(left.param, body))
+  if left.is[TConstraining] || right.is[TConstraining] then
+    val (leftBase,  leftBounds)  = left.splitConstrainings()
+    val (rightBase, rightBounds) = right.splitConstrainings()
+    debug(s"YOOOO ${left} AND ${right}")
+    val base = meet(leftBase, rightBase)
+    val bounds = ctx.meetBounds(leftBounds, rightBounds)
+    return Some(attachConstrainingBounds(base, bounds))
 
-      if checkEqual(left.ret, right.ret) then
-        var param = join(left.param, right.param)
-        return Some(TLam(param, left.ret))
+  if left.is[TLam] && right.is[TLam] then
+    meetDisjointLam(left.as[TLam], right.as[TLam])
 
-      None
-    case _ =>
-      None
+  None
+
+def meetDisjointLam(left: TLam, right: TLam)(using ctx: Clauses): Option[Type] =
+  if checkEqual(left.param, right.param) then
+    var body = meet(left.ret, right.ret)
+    return Some(TLam(left.param, body))
+
+  if checkEqual(left.ret, right.ret) then
+    var param = join(left.param, right.param)
+    return Some(TLam(param, left.ret))
+
+  None
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */

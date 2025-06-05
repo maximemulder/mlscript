@@ -62,23 +62,26 @@ def inferMatch(match_ : EMatch)(using ctx: Clauses): (Type, Clauses) =
   val patternsClauses = subtypeSeq(scrutineeType, patternsType, scrutineeClauses)
   val patternsCtx = ctx.addClauses(patternsClauses)
   // Infer each match case.
-  val (casesType, casesClauses) = match_.cases
-    .map(case_ =>
-      given Clauses = patternsCtx
-      inferMatchCase(case_, scrutineeType)
-    )
-    .fold1Right((case_, cases) =>
-      given Clauses = patternsCtx
-      val (caseType, caseClauses) = case_
-      val (casesType, casesClauses) = cases
-      val type_ = join(caseType, casesType)
-      val clauses = Clauses(patternsCtx.joinBounds(caseClauses, casesClauses))
-      (type_, clauses)
-    )
+
+  // Create a new fresh type variable for the type of the match expression.
+  val (casesType, casesClauses) = patternsCtx.withFreshVarLevel((casesVar, casesCtx) =>
+
+    val casesClauses = match_.cases
+      .map(case_ =>
+        given Clauses = casesCtx
+        inferMatchCase(case_, scrutineeType, casesVar)
+      )
+      .fold1Right((caseClauses, casesClauses) =>
+        Clauses(casesCtx.joinBounds(caseClauses, casesClauses))
+      )
+
+    (casesVar, casesClauses)
+  )
 
   (casesType, patternsClauses.addClauses(casesClauses))
 
 /** Infer the type of a match case. */
-def inferMatchCase(case_ : EMatchCase, scrutineeType: Type)(using ctx: Clauses): (Type, Clauses) =
+def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, casesVar: TVar)(using ctx: Clauses): Clauses =
   val patternClauses = subtype(scrutineeType, case_.pattern)
-  inferSeq(case_.body, patternClauses)
+  val (bodyType, bodyClauses) = inferSeq(case_.body, patternClauses)
+  subtypeSeq(bodyType, casesVar, bodyClauses)

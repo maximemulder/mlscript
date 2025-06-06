@@ -73,7 +73,7 @@ extension (clauses: Clauses)
 
   /** Evaluate all the given functions and join their returned bounds. */
   def any(fs: (() => Clauses)*): Clauses =
-    val errorTrees = ListBuffer[TypingTree]()
+    val errorTrees = ListBuffer[ProofTree]()
 
     val result = fs.foldRight(None: Option[Clauses])((f, result) =>
       try
@@ -96,6 +96,10 @@ extension (clauses: Clauses)
         throw TypeError(None, errorTrees.toList)
 
   // Others
+
+  /** Check whether a type variable is a class in the context. */
+  def isVarClass(varName: String): Boolean =
+    clauses.getTypeVarKind(varName) == TypeVarKind.Class
 
   /** Check whether a type variable is a fresh variable in the context. */
   def isTypeVarFresh(varName: String): Boolean =

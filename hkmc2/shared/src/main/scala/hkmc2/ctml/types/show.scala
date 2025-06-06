@@ -117,6 +117,7 @@ extension (kind: TypeVarKind)
   /** Convert thea type variable kind to its string representation. */
   def show(): String =
     kind match
+      case TypeVarKind.Class => "class"
       case TypeVarKind.Rigid => "rigid"
       case TypeVarKind.Fresh => "fresh"
 

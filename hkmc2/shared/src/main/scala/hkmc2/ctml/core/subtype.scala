@@ -23,32 +23,33 @@ def subtype(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrai
     subtypeImpl(sub, sup)
   catch
     case error: TypeError =>
-      error.addStep(sub, sup)
+      error.addStep(SubtypingJudgment(sub, sup))
       throw error
 
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   // Subtyping of constraining types.
 
-  if mode == Mode.Constrain then
-    if sup.is[TConstraining] then
-      val (supBase, supBounds) = sup.splitConstrainings()
-      val baseClauses = subtype(sub, supBase)
-      return Clauses(supBounds).addClauses(baseClauses)
+  mode match
+    case Mode.Constrain =>
+      if sup.is[TConstraining] then
+        val (supBase, supBounds) = sup.splitConstrainings()
+        val baseClauses = subtype(sub, supBase)
+        return Clauses(supBounds).addClauses(baseClauses)
 
-    if sub.is[TConstraining] then
-      val (subBase, subBounds) = sub.splitConstrainings()
-      val baseClauses = subtype(subBase, sup)
-      return Clauses(subBounds).addClauses(baseClauses)
-  else
-    if sub.is[TConstraining] || sup.is[TConstraining] then
-      val (subBase, subBounds) = sub.splitConstrainings()
-      val (supBase, supBounds) = sup.splitConstrainings()
-      val boundsClauses = subtypeBounds(subBounds, supBounds)
-      val baseClauses =
-        given Clauses = ctx.addElems(subBounds)
-        subtype(subBase, supBase)
-      return Clauses.none
+      if sub.is[TConstraining] then
+        val (subBase, subBounds) = sub.splitConstrainings()
+        val baseClauses = subtype(subBase, sup)
+        return Clauses(subBounds).addClauses(baseClauses)
+    case Mode.Check =>
+      if sub.is[TConstraining] || sup.is[TConstraining] then
+        val (subBase, subBounds) = sub.splitConstrainings()
+        val (supBase, supBounds) = sup.splitConstrainings()
+        val boundsClauses = subtypeBounds(subBounds, supBounds)
+        val baseClauses =
+          given Clauses = ctx.addElems(subBounds)
+          subtype(subBase, supBase)
+        return Clauses.none
 
   // Subtyping of top and bottom types.
 

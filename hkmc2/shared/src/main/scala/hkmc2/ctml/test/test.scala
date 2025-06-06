@@ -21,7 +21,7 @@ def test(
   val output = if !import_
     then (message)   => outputter(message)
     else (_: String) => ()
-  
+
   val raise = (ln: Line, fn: FileName) ?=> (source: Source, message: String) =>
     raiser(ErrorReport(List((message, None)), source = source))
 
@@ -54,6 +54,8 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
   /** Test a statement */
   def testStatement(stmt: Stmt) =
     stmt match
+      case StmtClassDecl(name) =>
+        this.testClassDecl(name)
       case StmtTypeDecl(name) =>
         this.testTypeDecl(name)
       case StmtTypeVar(name, type_) =>
@@ -66,6 +68,10 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
         this.testExpr(expr)
       case StmtTypeRel(rel, left, right) =>
         this.testTypeRel(rel, left, right)
+
+  /** Add a class to the context. */
+  def testClassDecl(name: String) =
+    this.ctx = this.ctx.addClause(TypeVar(name, TypeVarKind.Class))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
@@ -103,23 +109,49 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
 
   /** Test the relation between two types. */
   def testTypeRel(rel: TypeRel, left: Type, right: Type) =
-    given Clauses = this.ctx
     val outs = rel match
-      case TypeRel.Eq =>
-        if !checkEqual(left, right) then
-          throw TypeError(Some(s"Cannot solve type equation ${left} = ${right}."))
-        Clauses.none
-      case TypeRel.Ne =>
-        if checkEqual(left, right) then
-          throw TypeError(Some(s"Cannot solve type equation ${left} ≠ ${right}."))
-        Clauses.none
       case TypeRel.Sub =>
-        subtype(left, right)
+        testSubtyping(left, right)
       case TypeRel.Sup =>
-        subtype(right, left)
+        testSupertyping(right, left)
+      case TypeRel.Eq =>
+        testTypeEquivalence(left, right)
+      case TypeRel.Ne =>
+        testTypeIncomparability(left, right)
 
     this.output("OK")
     this.outputClauses(outs)
+
+  /** Test subtyping between two types. */
+  def testSubtyping(sub: Type, sup: Type): Clauses =
+    given Clauses = this.ctx
+    subtype(sub, sup)
+
+  /** Test supertyping between two types. */
+  def testSupertyping(sup: Type, sub: Type): Clauses =
+    given Clauses = this.ctx
+    subtype(sub, sup)
+
+  /** Test equivalence between two types. */
+  def testTypeEquivalence(left: Type, right: Type): Clauses =
+    given Clauses = this.ctx
+    try
+      val subClauses = subtype(left, right)
+      subtypeSeq(right, left, subClauses)
+    catch
+      case error: TypeError =>
+        error.addStep(TypeEquivalenceJudgment(left, right))
+        throw error
+
+  /** Test incomparability between two types. */
+  def testTypeIncomparability(left: Type, right: Type): Clauses =
+    given Clauses = this.ctx
+    if !checkEqual(left, right) then
+      val error = TypeError()
+      error.addStep(TypeIncomparabilityJudgment(left, right))
+      throw error
+
+    Clauses.none
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =

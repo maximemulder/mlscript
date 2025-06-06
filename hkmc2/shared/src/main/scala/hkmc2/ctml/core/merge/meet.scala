@@ -15,28 +15,25 @@ def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
   if checkSubtype(left, right) then
     return left
 
-  var fusedMeet = meetDisjoint(left, right)
-  if fusedMeet.isDefined then
-    return fusedMeet.get
+  meetFuse(left, right) match
+    case Some(fusedType) =>
+      fusedType
+    case None =>
+      TInter(left, right)
 
-  TInter(left, right)
-
-/** Get the meet of two disjoint types in a non-intersection form if possible. */
-def meetDisjoint(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
-  if left.is[TConstraining] || right.is[TConstraining] then
-    val (leftBase,  leftBounds)  = left.splitConstrainings()
-    val (rightBase, rightBounds) = right.splitConstrainings()
-    debug(s"YOOOO ${left} AND ${right}")
-    val base = meet(leftBase, rightBase)
-    val bounds = ctx.meetBounds(leftBounds, rightBounds)
-    return Some(attachConstrainingBounds(base, bounds))
+/** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
+def meetFuse(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
+  // If the two types are different classes then they are disjoint.
+  if left.isClass && right.isClass && left != right then
+    return Some(TBot)
 
   if left.is[TLam] && right.is[TLam] then
-    meetDisjointLam(left.as[TLam], right.as[TLam])
+    return meetLambdas(left.as[TLam], right.as[TLam])
 
   None
 
-def meetDisjointLam(left: TLam, right: TLam)(using ctx: Clauses): Option[Type] =
+/** Get the meet of two lambdas in a non-intersection shape if there is one. */
+def meetLambdas(left: TLam, right: TLam)(using ctx: Clauses): Option[Type] =
   if checkEqual(left.param, right.param) then
     var body = meet(left.ret, right.ret)
     return Some(TLam(left.param, body))

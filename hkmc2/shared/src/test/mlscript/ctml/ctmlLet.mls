@@ -11,3 +11,12 @@ fun bar(a) =
   let c = 1
   b + c
 //│ bar: ⊤ → Int
+
+fun baz(a, b) =
+  let c = if a is
+    Int then (b as Int)
+    Str then (b as Str)
+  if a is
+    Int then a + b
+    Str then b + b
+//│ baz: ∀ν, ξ ◁ {ν ≤ (Int ∨ (Str ▷ {ξ ≤ Str})) ∨ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Int, ξ ≤ Int}), ξ ≤ ((Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})) ∨ (Int ▷ {ν ≤ Int, ν ≤ Int}) ∨ (Int ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int, ν ≤ Int}) ∨ (Int ▷ {ξ ≤ Int, ξ ≤ Int, ν ≤ Str}))

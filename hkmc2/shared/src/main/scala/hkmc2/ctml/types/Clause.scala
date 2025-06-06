@@ -49,6 +49,8 @@ case class TypeVar(
 
 /** The kind of a type variable. */
 enum TypeVarKind:
+  /** A class name, which is disjoint with other classes. */
+  case Class
   /** A rigid type variable, whose bounds cannot be refined during type checking. */
   case Rigid
   /** A rigid type variable, whose bounds may be refined during type checking. */

@@ -12,7 +12,7 @@ foo(1, 2)
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Cannot solve type equation ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
 //│     β → γ ≤ Str → ζ
@@ -29,7 +29,7 @@ foo(1, "")
 
 :e
 foo(true, false)
-//│ ═══[ERROR] Cannot solve type equation ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι.
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι
 //│     α → β → γ ≤ Bool → ι
@@ -65,7 +65,7 @@ bar(true, "")
 
 :e
 bar(true, 1)
-//│ ═══[ERROR] Cannot solve type equation ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ.
+//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ.
 //│ Typing error tree:
 //│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ
 //│     λ → μ ≤ Int → φ
@@ -76,7 +76,7 @@ bar(true, 1)
 
 :e
 bar(true, true)
-//│ ═══[ERROR] Cannot solve type equation ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ.
+//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ.
 //│ Typing error tree:
 //│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ
 //│     λ → μ ≤ Bool → ψ
@@ -84,7 +84,6 @@ bar(true, true)
 //│         Bool ≤ Str
 //│           ⊤ ≤ Str
 //│             ⊤ ≤ ⊥
-
 
 // fun baz: ((Int, Int) -> Int) & ((Str, Str) -> Str) // TODO
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
@@ -97,7 +96,7 @@ fun baz(a, b) =
 
 :fixme
 baz(0, 1)
-//│ ═══[ERROR] Cannot solve type equation ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33.
+//│ ═══[ERROR] Cannot solve judgment ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33.
 //│ Typing error tree:
 //│   ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33
 //│     34 ≤ Int → 33
@@ -111,7 +110,7 @@ baz(0, 1)
 
 :fixme
 baz("0", "1")
-//│ ═══[ERROR] Cannot solve type equation ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35.
+//│ ═══[ERROR] Cannot solve judgment ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35.
 //│ Typing error tree:
 //│   ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35
 //│     36 ≤ Str → 35
@@ -122,5 +121,3 @@ baz("0", "1")
 //│               Str ≤ Int
 //│                 Str ≤ ⊥
 //│                   ⊤ ≤ ⊥
-
-

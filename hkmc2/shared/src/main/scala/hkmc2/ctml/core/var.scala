@@ -32,3 +32,12 @@ def newFreshVar(varName: String): TypeVar =
 /** Get a rigid type variable with a given name. */
 def newRigidVar(varName: String): TypeVar =
   TypeVar(varName, TypeVarKind.Rigid)
+
+extension (type_ : Type)(using ctx: Clauses)
+  /** Check whether the type is a class reference. */
+  def isClass: Boolean =
+    type_ match
+      case TVar(name) =>
+        ctx.isVarClass(name)
+      case _ =>
+        false

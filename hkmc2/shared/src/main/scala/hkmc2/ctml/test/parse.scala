@@ -37,7 +37,7 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _) =>
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
-        parseTypeDecl(mlSymbol)
+        parseClassDecl(mlSymbol)
       case TypeDef(mlSymbol, _, Some(mlType ), _, _) =>
         parseTypeVar(mlSymbol, mlType)
       case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
@@ -66,8 +66,8 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         throw new ParseError(mlStmt)
   )
 
-/** Convert a MLScript type alias to a CTML type variable declaration. */
-def parseTypeDecl(mlSymbol: BlockMemberSymbol): Stmt =
+/** Convert a MLScript class declaration to a CTML type variable declaration. */
+def parseClassDecl(mlSymbol: BlockMemberSymbol): Stmt =
   val name = mlSymbol.nme
   StmtTypeDecl(name)
 

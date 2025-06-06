@@ -7,6 +7,7 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Term
 import hkmc2.ctml.util.getStackTraceString
+import sourcecode.{FileName,Line}
 
 /** Run a CTML test on an input term. */
 def test(
@@ -20,14 +21,15 @@ def test(
   val output = if !import_
     then (message)   => outputter(message)
     else (_: String) => ()
-
-  val raise = (source: Source, message: String) => raiser(ErrorReport(List((message, None)), source = source))
+  
+  val raise = (ln: Line, fn: FileName) ?=> (source: Source, message: String) =>
+    raiser(ErrorReport(List((message, None)), source = source))
 
   val tester = Tester(ctx, output, raise)
   tester.test(term)
   tester.ctx
 
-class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Source, String) => Unit):
+class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName) ?=> (Source, String) => Unit):
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.

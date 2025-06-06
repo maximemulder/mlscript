@@ -15,6 +15,9 @@ case object TTop extends Type
 /** A type variable type. */
 case class TVar(val name: String) extends Type
 
+// TODO:
+case class TCtor(val sym: Symbol, targs: List[Type]) extends Type
+
 /** A lambda type. */
 case class TLam(val param: Type, val ret: Type) extends Type
 

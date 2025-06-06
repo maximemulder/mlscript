@@ -1,5 +1,6 @@
 :ctml
 
+
 fun foo(a, b) =
   if a is
     Int then (b as Int)
@@ -43,10 +44,11 @@ foo(true, false)
 //│               Bool ≤ ⊥
 //│                 ⊤ ≤ ⊥
 
+
 fun bar(a, b) =
   if a is
-    Int then (b as Int)
-    Top then (b as Str)
+    Int then b as Int
+    Top then b as Str
 //│ bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
 
 bar(1, 1)
@@ -82,3 +84,43 @@ bar(true, true)
 //│         Bool ≤ Str
 //│           ⊤ ≤ Str
 //│             ⊤ ≤ ⊥
+
+
+// fun baz: ((Int, Int) -> Int) & ((Str, Str) -> Str) // TODO
+// fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
+fun baz(a, b) =
+  let x = foo(a, b)
+  if x is
+    Int then x + a
+    Str then x
+//│ baz: ∀24, 27, β ◁ {24 ≤ (Int ∨ Str) ∨ (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (⊤ ▷ {27 ≤ Str}), 27 ≥ Int ∨ Str, 27 ≤ (Int ▷ {24 ≤ Int}) ∨ Str, β ≥ 25, β ≤ Int ∨ Str ∨ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. 24 → ((Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})) → 27
+
+:fixme
+baz(0, 1)
+//│ ═══[ERROR] Cannot solve type equation ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33.
+//│ Typing error tree:
+//│   ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33
+//│     34 ≤ Int → 33
+//│       ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}) ≤ Int → 33
+//│         (Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int} ≤ Int → 33
+//│           (Str ▷ {α ≤ Str}) → (Int ∨ Str) ≤ Int → 33
+//│             Int ≤ Str ▷ {α ≤ Str}
+//│               Int ≤ Str
+//│                 ⊤ ≤ Str
+//│                   ⊤ ≤ ⊥
+
+:fixme
+baz("0", "1")
+//│ ═══[ERROR] Cannot solve type equation ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35.
+//│ Typing error tree:
+//│   ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35
+//│     36 ≤ Str → 35
+//│       ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}) ≤ Str → 35
+//│         (Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str} ≤ Str → 35
+//│           (Int ▷ {α ≤ Int}) → (Int ∨ Str) ≤ Str → 35
+//│             Str ≤ Int ▷ {α ≤ Int}
+//│               Str ≤ Int
+//│                 Str ≤ ⊥
+//│                   ⊤ ≤ ⊥
+
+

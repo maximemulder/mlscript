@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.traverse
+package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.types.*
 

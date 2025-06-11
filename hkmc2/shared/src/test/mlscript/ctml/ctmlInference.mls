@@ -30,7 +30,7 @@ foo(b)
 
 :e
 foo(c)
-//│ ═══[ERROR] Cannot solve type equation (A → A) ∧ (B → B) ≤ C → γ.
+//│ ═══[ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → γ.
 //│ Typing error tree:
 //│   (A → A) ∧ (B → B) ≤ C → γ
 //│     B → B ≤ C → γ

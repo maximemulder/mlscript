@@ -4,9 +4,10 @@ import hkmc2.Diagnostic.Source
 import hkmc2.ErrorReport
 import hkmc2.Raise
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.types.*
-import hkmc2.semantics.Term
 import hkmc2.ctml.util.getStackTraceString
+import hkmc2.semantics.Term
 import sourcecode.{FileName,Line}
 
 /** Run a CTML test on an input term. */

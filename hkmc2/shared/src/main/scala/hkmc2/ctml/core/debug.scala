@@ -5,6 +5,21 @@ import hkmc2.ctml.types.*
 /** Global debug print function. */
 var outputter: (String) => Unit = (message) => print(message)
 
+/** Global type inference debug flag. */
+var inferDebugFlag = false
+
+/** Global subtype constraining debug flag. */
+var constrainDebugFlag = false
+
+/** Global subtype checking debug flag. */
+var checkDebugFlag = false
+
+/** Global type joining debug flag. */
+var joinDebugFlag = false
+
+/** Global type meeting debug flag. */
+var meetDebugFlag = false
+
 /** The current call depth. */
 var currentCallDepth = 0
 
@@ -16,8 +31,11 @@ def debug(value : Any*) =
   outputter(("  " * currentCallDepth) + value.map(_.toString()).mkString(" "))
 
 /** Decorate the subtype constraining function to print debug information. */
-def debugSubtype(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode): (Type, Type) => Clauses =
-  if mode == Mode.Check then
+def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode): (Type, Type) => Clauses =
+  if mode == Mode.Constrain && !constrainDebugFlag then
+    return impl
+
+  if mode == Mode.Check && !checkDebugFlag then
     return impl
 
   (sub: Type, sup: Type) =>
@@ -32,7 +50,10 @@ def debugSubtype(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode):
         throw error
 
 /** Decorate the type inference function to print debug information. */
-def debugInfer(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (Type, Clauses) =
+def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (Type, Clauses) =
+  if !inferDebugFlag then
+    return impl
+
   (expr: Expr) =>
     debug(s"infer ${expr}")
 
@@ -46,7 +67,10 @@ def debugInfer(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (Type
         throw error
 
 /** Decorate the type join function to print debug information. */
-def debugJoin(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
+def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
+  if !joinDebugFlag then
+    return impl
+
   (left: Type, right: Type) =>
     debug(s"join ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))
@@ -54,7 +78,10 @@ def debugJoin(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => T
     type_
 
 /** Decorate the type meet function to print debug information. */
-def debugMeet(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
+def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
+  if !meetDebugFlag then
+    return impl
+
   (left: Type, right: Type) =>
     debug(s"meet ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))

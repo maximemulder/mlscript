@@ -11,7 +11,7 @@ def inferSeq(expr: Expr, ins: Clauses)(using ctx: Clauses): (Type, Clauses) =
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: Clauses): (Type, Clauses) =
-  inferImpl(expr)
+  inferWithDebug(inferImpl)(expr)
 
 /** Implementation of `constrainSub`. */
 def inferImpl(expr: Expr)(using ctx: Clauses): (Type, Clauses) =

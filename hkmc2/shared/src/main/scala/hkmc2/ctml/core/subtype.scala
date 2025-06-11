@@ -20,7 +20,7 @@ def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Clauses, mode: Mod
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
   try
-    subtypeImpl(sub, sup)
+    subtypeWithDebug(subtypeImpl)(sub, sup)
   catch
     case error: TypeError =>
       error.addStep(SubtypingJudgment(sub, sup))

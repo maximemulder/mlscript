@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.merge
 
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified join of two types. */

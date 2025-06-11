@@ -1,7 +1,8 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.core.clauses
 
+import hkmc2.ctml.core.*
 import hkmc2.ctml.core.merge.*
-import hkmc2.ctml.core.traverse.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 

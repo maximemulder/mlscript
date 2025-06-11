@@ -1,6 +1,8 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
@@ -177,7 +179,7 @@ def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode
   given Clauses = ctx.addElems(subVars, sub.bounds)
   val test = subtype(sub.base, sup)
   // TODO: Correctly handle escaping.
-  Clauses(subVars).addElems(sub.bounds).addClauses(test)
+  Clauses(subVars).addClauses(test)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
@@ -185,7 +187,7 @@ def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode
   given Clauses = ctx.addElems(supVars, sup.bounds)
   val test = subtype(sub, sup.base)
   // TODO: Correctly handle escaping.
-  Clauses(supVars).addElems(sup.bounds).addClauses(test)
+  Clauses(supVars).addClauses(test)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =

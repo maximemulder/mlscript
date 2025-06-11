@@ -1,5 +1,6 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 

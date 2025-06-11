@@ -1,8 +1,8 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.traverse.*
-import traverse.getTypePolarities
 
 extension (ctx: Clauses)
   /** Solve a type inference level by processing each new variable of that level. */
@@ -50,9 +50,9 @@ extension (ctx: Clauses)
         case Polarities(false, false) =>
           type_
         case Polarities(true, false) =>
-          substitute(type_, var_.name, upperBound)
+          type_.substitute(var_.name, upperBound)
         case Polarities(false, true)  =>
-          substitute(type_, var_.name, lowerBound)
+          type_.substitute(var_.name, lowerBound)
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
 

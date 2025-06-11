@@ -8,24 +8,16 @@ fun foo(a, b) =
 //│ foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
 
 foo(1, 2)
-//│ ∀α, β ◁ {α ≥ Int, α ≤ Int ∨ (Int ▷ {β ≤ Int}) ∨ (Str ▷ {β ≤ Str}), β ≥ Int, β ≤ Int ∨ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│ Int
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → ζ.
 //│ Typing error tree:
-//│   ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})), γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
-//│     β → γ ≤ Str → ζ
-//│       Str ≤ β
-//│         Str ≤ Int ∧ ((Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}))
-//│           Str ≤ Int ∧ (Str ▷ {γ ≥ Str, α ≤ Str})
-//│             Str ≤ Int
-//│               Str ≤ ⊥
-//│                 ⊤ ≤ ⊥
-//│           Str ≤ Int ∧ (Int ▷ {γ ≥ Int, α ≤ Int})
-//│             Str ≤ Int
-//│               Str ≤ ⊥
-//│                 ⊤ ≤ ⊥
+//│   Int → Int ≤ Str → ζ
+//│     Str ≤ Int
+//│       Str ≤ ⊥
+//│         ⊤ ≤ ⊥
 
 :e
 foo(true, false)
@@ -52,38 +44,34 @@ fun bar(a, b) =
 //│ bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
 
 bar(1, 1)
-//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ Int ∨ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Int, λ ≤ (Int ▷ {κ ≤ Int}) ∨ Str}. Int ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ Str ∨ Int
 
 bar(1, "")
-//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ (Int ▷ {κ ≤ Int}) ∨ Str}. Str ∨ ((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ Str ∨ Int
 
 bar("", "")
-//│ ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ Str
 
 bar(true, "")
-//│ ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ Str
 
 :e
 bar(true, 1)
-//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ.
+//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → φ.
 //│ Typing error tree:
-//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ
-//│     λ → μ ≤ Int → φ
-//│       Int ≤ λ
-//│         Int ≤ Str
-//│           ⊤ ≤ Str
-//│             ⊤ ≤ ⊥
+//│   Str → Str ≤ Int → φ
+//│     Int ≤ Str
+//│       ⊤ ≤ Str
+//│         ⊤ ≤ ⊥
 
 :e
 bar(true, true)
-//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ.
+//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Bool → ψ.
 //│ Typing error tree:
-//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ
-//│     λ → μ ≤ Bool → ψ
-//│       Bool ≤ λ
-//│         Bool ≤ Str
-//│           ⊤ ≤ Str
-//│             ⊤ ≤ ⊥
+//│   Str → Str ≤ Bool → ψ
+//│     Bool ≤ Str
+//│       ⊤ ≤ Str
+//│         ⊤ ≤ ⊥
 
 // fun baz: ((Int, Int) -> Int) & ((Str, Str) -> Str) // TODO
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
@@ -92,32 +80,10 @@ fun baz(a, b) =
   if x is
     Int then x + a
     Str then x
-//│ baz: ∀24, 27, β ◁ {24 ≤ (Int ∨ Str) ∨ (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (⊤ ▷ {27 ≤ Str}), 27 ≥ Int ∨ Str, 27 ≤ (Int ▷ {24 ≤ Int}) ∨ Str, β ≥ 25, β ≤ Int ∨ Str ∨ (Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})}. 24 → ((Int ▷ {α ≤ Int}) ∨ (Str ▷ {α ≤ Str})) → 27
+//│ baz: ∀24, 27 ◁ {24 ≤ (Int ∨ Str) ∨ (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (⊤ ▷ {27 ≤ Str}), 27 ≤ (Int ▷ {24 ≤ Int}) ∨ Str}. 24 → ⊤ → ((Int ▷ {24 ≤ Int, 27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str}))
 
-:fixme
 baz(0, 1)
-//│ ═══[ERROR] Cannot solve judgment ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33.
-//│ Typing error tree:
-//│   ∀34, 24 ◁ {34 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}), 24 ≥ (Int ▷ {34 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Int ▷ {34 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 34 ≤ Int → 33
-//│     34 ≤ Int → 33
-//│       ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Int}) ≤ Int → 33
-//│         (Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Int} ≤ Int → 33
-//│           (Str ▷ {α ≤ Str}) → (Int ∨ Str) ≤ Int → 33
-//│             Int ≤ Str ▷ {α ≤ Str}
-//│               Int ≤ Str
-//│                 ⊤ ≤ Str
-//│                   ⊤ ≤ ⊥
+//│ ∀27 ◁ {}. (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str})
 
-:fixme
 baz("0", "1")
-//│ ═══[ERROR] Cannot solve judgment ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35.
-//│ Typing error tree:
-//│   ∀36, 24 ◁ {36 ≥ ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}), 24 ≥ (Str ▷ {36 ≥ (Str ▷ {α ≤ Str}) → (Int ∨ Str)}) ∨ (Str ▷ {36 ≥ (Int ▷ {α ≤ Int}) → (Int ∨ Str)}), 24 ≤ ⊤}. 36 ≤ Str → 35
-//│     36 ≤ Str → 35
-//│       ((Str ▷ {α ≤ Str}) → (Int ∨ Str) ▷ {24 ≥ Str}) ∨ ((Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str}) ≤ Str → 35
-//│         (Int ▷ {α ≤ Int}) → (Int ∨ Str) ▷ {24 ≥ Str} ≤ Str → 35
-//│           (Int ▷ {α ≤ Int}) → (Int ∨ Str) ≤ Str → 35
-//│             Str ≤ Int ▷ {α ≤ Int}
-//│               Str ≤ Int
-//│                 Str ≤ ⊥
-//│                   ⊤ ≤ ⊥
+//│ ∀27 ◁ {}. (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str})

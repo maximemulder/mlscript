@@ -38,9 +38,7 @@ extension (ctx: Clauses)
     given Clauses = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_.name)
     val upperBound = fullCtx.getVarUpperBound(var_.name)
-    val polarities =
-      given Polarity = Polarity.Positive
-      getTypePolarities(type_, var_.name)
+    val polarities = type_.getVarPolarities(var_.name)(using Polarity.Positive)
     val newType = if fullCtx.isVarConstrained(var_.name, levelVars) then
       attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
     else

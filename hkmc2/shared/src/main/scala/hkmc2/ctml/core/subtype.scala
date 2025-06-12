@@ -1,7 +1,7 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.core.clauses.*
-import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
@@ -199,7 +199,7 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Clauses, mode
   sups
     .foldRight(Clauses.none)((sup, clauses) =>
       val subTypes = subs.filterVarDir(sup.name, sup.dir)
-      val subType = subTypes.mergeMany(sup.dir)
+      val subType = subTypes.combineMany(sup.dir)
       subtype(subType, sup.type_)
     )
 

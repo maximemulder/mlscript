@@ -75,34 +75,6 @@ extension (clauses: Clauses)
   def isTypeVarRigid(varName: String): Boolean =
     clauses.getTypeVarKind(varName) == TypeVarKind.Rigid
 
-  /** Get all the lower bounds of a type variable. */
-  def getVarLowerBounds(varName: String): List[Type] =
-    clauses
-      .varBounds(varName)
-      .filter(_.dir == Direction.Super)
-      .map(_.type_)
-      .toList
-
-  /** Get all the upper bounds of a type variable. */
-  def getVarUpperBounds(varName: String): List[Type] =
-    clauses
-      .varBounds(varName)
-      .filter(_.dir == Direction.Sub)
-      .map(_.type_)
-      .toList
-
-  /** Get the lower bound of a type variable in the context. */
-  def getVarLowerBound(varName: String): Type =
-    clauses
-      .getVarLowerBounds(varName)
-      .joinMany()(using clauses)
-
-  /** Get the upper bound of a type variable in the context. */
-  def getVarUpperBound(varName: String): Type =
-    clauses
-      .getVarUpperBounds(varName)
-      .meetMany()(using clauses)
-
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !clauses.checkBoundSatisfied(bound))

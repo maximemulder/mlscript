@@ -1,6 +1,6 @@
 package hkmc2.ctml.core.clauses
 
-import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
@@ -32,7 +32,7 @@ extension (clauses: Clauses)
   def getVarBound(name: String, dir: Direction): Type =
     clauses
       .getVarBounds(name: String, dir: Direction)
-      .mergeMany(dir)(using clauses)
+      .combineMany(dir)(using clauses)
 
   /** Get all the lower bounds of a type variable. */
   def getVarLowerBounds(name: String): List[Type] =

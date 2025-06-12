@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.merge
+package hkmc2.ctml.core.combine
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
@@ -15,14 +15,14 @@ def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
   if checkSubtype(left, right) then
     return left
 
-  meetFuse(left, right) match
-    case Some(fusedType) =>
-      fusedType
+  meetMerge(left, right) match
+    case Some(mergedType) =>
+      mergedType
     case None =>
       TInter(left, right)
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
-def meetFuse(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
+def meetMerge(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
   // If the two types are different classes then they are disjoint.
   if left.isClass && right.isClass && left != right then
     return Some(TBot)

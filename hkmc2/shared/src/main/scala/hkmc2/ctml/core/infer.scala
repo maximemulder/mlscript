@@ -1,7 +1,7 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.core.clauses.*
-import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 

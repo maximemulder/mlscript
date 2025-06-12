@@ -1,31 +1,46 @@
 package hkmc2.ctml.util
 
 import java.io.{PrintWriter, StringWriter}
+import scala.util.boundary, boundary.break
+import scala.collection.mutable.ListBuffer
 
-/** . */
+/** Get the stack trace of an exception as a string. */
 def getStackTraceString(throwable: Throwable): String =
   val stringWriter = new StringWriter()
-  val printWriter = new PrintWriter(stringWriter)
+  val printWriter  = new PrintWriter(stringWriter)
   throwable.printStackTrace(printWriter)
-  stringWriter.toString
+  stringWriter.toString()
 
-extension [T](list: List[T])
-  /** Iterate over the elements of a list until a predicate fails, including the element for which
-   *  the predicate failed. */
-  def takeWhileInclusive(p: T => Boolean): List[T] =
-    var shouldContinue = true
-    list.takeWhile((elem) =>
-      if !shouldContinue then
-        false
-      else
-        if !p(elem) then
-          shouldContinue = false
-        true
+extension [T](iterable: Iterable[T])
+  /** Find and map th first element of an iterable that satisfies a function. */
+  def findMap[U](f: T => Option[U]): Option[U] =
+    iterable.iterator.flatMap(f).nextOption()
+
+  /** Extract some elements of an iterable using an extraction function. */
+  def extract[U](extract: T => Option[U]): (Iterable[U], Iterable[T]) =
+    iterable.partitionMap(element => extract(element) match
+      case Some(value) =>
+        Left(value)
+      case None =>
+        Right(element)
     )
 
-  /** Apply a function to the elements of an iterator and return the first non-none result. */
-  def findMap[U](f: T => Option[U]): Option[U] =
-    list.iterator.flatMap(f).nextOption()
+  /** Extract some elements of an iterable using an extraction function until a condition is met.
+   */
+  def extractUntil[U](p: T => Boolean, f: T => Option[U]): (Iterable[U], Iterable[T]) =
+    var finished = false
+
+    def extractClosure(element: T): Option[U] =
+      if finished then
+        return None
+
+      if p(element) then
+        finished = true
+        return None
+
+      f(element)
+
+    iterable.extract(extractClosure)
 
 extension [T](list: List[T])
   def fold1Right(f: (T, T) => T): T =

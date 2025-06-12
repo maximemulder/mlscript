@@ -47,6 +47,19 @@ case class TypeVar(
   override def toString(): String =
     this.show()
 
+/** A type variable bound. */
+case class Bound(
+  /** The name of the type variable being bound. */
+  var name: String,
+  /** The direction in which the type variable is bound.*/
+  var dir: Direction,
+  /** The type that bounds the type variable. */
+  var type_ : Type,
+) extends Clause:
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this.show()
+
 /** The kind of a type variable. */
 enum TypeVarKind:
   /** A class name, which is disjoint with other classes. */
@@ -56,19 +69,6 @@ enum TypeVarKind:
   /** A rigid type variable, whose bounds may be refined during type checking. */
   case Fresh
 
-  /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
-
-/** A type variable bound. */
-class Bound(
-  /** The name of the type variable being bound. */
-  var name: String,
-  /** The direction in which the type variable is bound.*/
-  var dir: Direction,
-  /** The type that bounds the type variable. */
-  var type_ : Type,
-) extends Clause:
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()

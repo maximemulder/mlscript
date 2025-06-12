@@ -24,5 +24,5 @@ extension (types: List[Type])
     types.foldRight(TBot)(join)
 
   def joinManySeq(ins: Clauses)(using ctx: Clauses): Type =
-    given Clauses = ctx.addClauses(ins)
+    given Clauses = ctx.concat(ins)
     types.foldRight(TBot)(join)

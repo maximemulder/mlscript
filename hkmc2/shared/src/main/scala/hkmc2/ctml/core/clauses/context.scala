@@ -4,17 +4,12 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
-import scala.collection.mutable.ListBuffer
+import hkmc2.ctml.util.*
 
 extension (clauses: Clauses)
-  /** Join two lists of variables by removing duplicates. */
-  def joinVars(lefts: List[String], rights: List[String]): List[String] =
-    val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
-    lefts ::: filteredRights
-
   // Merge bounds
 
-  /** Merge two lists of bounds such that they must both be satisfied. */
+  /* /** Merge two lists of bounds such that they must both be satisfied. */
   def meetBounds(lefts: List[Bound], rights: List[Bound]): List[Bound] =
     // Check if each right bound is satisfied in the left bounds to remove subsumed constraints.
     val filteredRights = clauses.addElems(lefts).filterUnsatisfiedBounds(rights)
@@ -22,7 +17,7 @@ extension (clauses: Clauses)
     // constraints entirely.
     val filteredLefts = clauses.addElems(filteredRights).filterUnsatisfiedBounds(lefts)
     // Return the concatenation of the filtered bounds.
-    filteredLefts ::: filteredRights
+    filteredLefts ::: filteredRights */
 
   /** Merge two lists of bounds such that either of those must be satisfied. */
   def joinBounds(leftClauses: Clauses, rightClauses: Clauses): List[Bound] =
@@ -59,42 +54,12 @@ extension (clauses: Clauses)
     val leftBound  = leftBounds.mergeMany(dir)
     val rightBound = rightBounds.mergeMany(dir)
     val leftType  =
-      given Clauses = clauses.addClause(Bound(varName, dir, leftBound))
+      given Clauses = clauses.append(Bound(varName, dir, leftBound))
       attachConstrainingBounds(leftBound, lefts)
     val rightType =
-      given Clauses = clauses.addClause(Bound(varName, dir, rightBound))
+      given Clauses = clauses.append(Bound(varName, dir, rightBound))
       attachConstrainingBounds(rightBound, rights)
     join(leftType, rightType)
-
-  // Combinators
-
-  /** Evaluate all the given functions and meet their returned bounds. */
-  def all(fs: (() => Clauses)*): Clauses =
-    Clauses(fs.flatMap(_().elems).toList)
-
-  /** Evaluate all the given functions and join their returned bounds. */
-  def any(fs: (() => Clauses)*): Clauses =
-    val errorTrees = ListBuffer[ProofTree]()
-
-    val result = fs.foldRight(None: Option[Clauses])((f, result) =>
-      try
-        val bounds = f()
-        result match
-          case Some(resultBounds) =>
-            Some(Clauses(joinBounds(resultBounds, bounds)))
-          case None =>
-            Some(bounds)
-      catch
-        case error: TypeError =>
-          errorTrees.appendAll(error.trees)
-          result
-    )
-
-    result match
-      case Some(bounds) =>
-        bounds
-      case None =>
-        throw TypeError(None, errorTrees.toList)
 
   // Others
 
@@ -128,18 +93,43 @@ extension (clauses: Clauses)
 
   /** Get the lower bound of a type variable in the context. */
   def getVarLowerBound(varName: String): Type =
-    given Clauses = clauses
     clauses
       .getVarLowerBounds(varName)
-      .joinMany()
+      .joinMany()(using clauses)
 
   /** Get the upper bound of a type variable in the context. */
   def getVarUpperBound(varName: String): Type =
-    given Clauses = clauses
     clauses
       .getVarUpperBounds(varName)
-      .meetMany()
+      .meetMany()(using clauses)
 
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !clauses.checkBoundSatisfied(bound))
+
+  def removeTypeVar(varName: String): Clauses =
+    // TODO: Shadowing.
+    Clauses(clauses.elems.filter(_ match
+      case var_ : TypeVar if var_.name == varName =>
+        false
+      case bound: Bound if bound.name == varName =>
+        false
+      case _ =>
+        true
+    ))
+
+  def compareVarLevels(left: String, right: String): Either[Unit, Unit] =
+    val first = clauses.typeVars.findMap((var_) =>
+      if var_.name == left then
+        Some(Left(()))
+      else if var_.name == right then
+        Some(Right(()))
+      else
+        None
+    )
+
+    first match
+      case Some(either) =>
+        either
+      case None =>
+        throw new TypeError(Some(s"Type variable '${left}' or '${right}' not found in the clauses."))

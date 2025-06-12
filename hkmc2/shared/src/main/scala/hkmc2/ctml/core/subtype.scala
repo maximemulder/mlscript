@@ -15,9 +15,9 @@ def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: M
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
-  given Clauses = ctx.addClauses(ins)
+  given Clauses = ctx.concat(ins)
   val outs = subtype(sub, sup)
-  ins.addClauses(outs)
+  ins.concat(outs)
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
@@ -37,12 +37,12 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
       if sup.is[TConstraining] then
         val (supBase, supBounds) = sup.splitConstrainings()
         val baseClauses = subtype(sub, supBase)
-        return Clauses(supBounds).addClauses(baseClauses)
+        return Clauses(supBounds).concat(baseClauses)
 
       if sub.is[TConstraining] then
         val (subBase, subBounds) = sub.splitConstrainings()
         val baseClauses = subtype(subBase, sup)
-        return Clauses(subBounds).addClauses(baseClauses)
+        return Clauses(subBounds).concat(baseClauses)
     case Mode.Check =>
       if sub.is[TConstraining] || sup.is[TConstraining] then
         val (subBase, subBounds) = sub.splitConstrainings()
@@ -179,7 +179,7 @@ def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode
   given Clauses = ctx.addElems(subVars, sub.bounds)
   val test = subtype(sub.base, sup)
   // TODO: Correctly handle escaping.
-  Clauses(subVars).addClauses(test)
+  Clauses(subVars).concat(test)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
@@ -187,7 +187,7 @@ def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode
   given Clauses = ctx.addElems(supVars, sup.bounds)
   val test = subtype(sub, sup.base)
   // TODO: Correctly handle escaping.
-  Clauses(supVars).addClauses(test)
+  Clauses(supVars).concat(test)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =

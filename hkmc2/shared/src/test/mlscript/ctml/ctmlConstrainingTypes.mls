@@ -1,6 +1,5 @@
 :ctml
 
-
 fun foo(a, b) =
   if a is
     Int then (b as Int)

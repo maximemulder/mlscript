@@ -34,6 +34,11 @@ def newFreshVar(varName: String): TypeVar =
 def newRigidVar(varName: String): TypeVar =
   TypeVar(varName, TypeVarKind.Rigid)
 
+/** Join two lists of variables by removing duplicates between those lists. */
+def joinVars(lefts: List[String], rights: List[String]): List[String] =
+  val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
+  lefts ::: filteredRights
+
 extension (type_ : Type)(using ctx: Clauses)
   /** Check whether the type is a class reference. */
   def isClass: Boolean =

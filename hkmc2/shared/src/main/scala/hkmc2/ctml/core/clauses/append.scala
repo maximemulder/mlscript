@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.clauses
 
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.merge.*
 import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
@@ -18,15 +19,11 @@ extension (clauses: Clauses)
   /** Append a clause at the end of the clauses. */
   def appendOne(newClause: Clause): Clauses =
     newClause match
-      case bound: Bound =>
-        // Do not add a bound to the context if it is already satisfied.
-        // TODO: Remove existing bounds if subsumed ?
-        //   1. Get existing bounds.
-        //   2. If this bound subsumed, do not add it.
-        //   3. Filter subsumed bounds.
-        //if !clauses.checkBoundSatisfied(bound) then
-          Clauses(bound :: clauses.elems)
-        //else
-        //  clauses
+      case Bound(name, dir, type_) =>
+        val boundTypes = clauses.getVarBounds(name, dir)
+        // TODO: Propagate constraining bounds.
+        val boundType = (type_ :: boundTypes).mergeMany(dir)(using clauses)
+        val bound = Bound(name, dir, type_)
+        Clauses(bound :: clauses.elems)
       case clause =>
         Clauses(clause :: clauses.elems)

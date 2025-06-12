@@ -21,20 +21,20 @@ extension (ctx: Clauses)
   def withFreshVarLevel(f: (TVar, Clauses) => (Type, Clauses)): (Type, Clauses) =
     // Create a new fresh type variable, make it a type, and add it to the context.
     val freshVar = newInferFreshVar()
-    val freshCtx = ctx.addClause(freshVar)
+    val freshCtx = ctx.append(freshVar)
     val freshType = TVar(freshVar.name)
 
     // Evaluate the type inference function with the fresh type variable.
     val (type_ , typeOuts) = f(freshType, freshCtx)
 
     // Count the fresh type variable as belonging to this level.
-    val outs = freshVar.asClauses.addClauses(typeOuts)
+    val outs = freshVar.asClauses.concat(typeOuts)
 
     // Solve the level.
     ctx.solveLevel(type_, outs)
 
   def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[String], outs: Clauses): (Type, Clauses) =
-    val fullCtx = ctx.addClauses(outs)
+    val fullCtx = ctx.concat(outs)
     given Clauses = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_.name)
     val upperBound = fullCtx.getVarUpperBound(var_.name)

@@ -19,7 +19,7 @@ extension (clauses: Clauses)
 
   /** Iterate over the bounds of a type variable defined in the clauses. */
   def varBounds(varName: String): List[Bound] =
-    clauses.elems.iterator.typeVarClauses(varName).bounds.toList
+    clauses.elems.iterator.typeVarClauses(varName).typeVarBounds(varName).toList
 
 extension (clauses: Iterator[Clause])
   /** Iterate over the term variables defined in the clauses. */
@@ -44,6 +44,15 @@ extension (clauses: Iterator[Clause])
   def bounds: Iterator[Bound] =
     clauses.flatMap(_ match
       case bound : Bound =>
+        Some(bound)
+      case _ =>
+        None
+    )
+
+  /** Iterate over the bounds of a variable in the clauses. */
+  def typeVarBounds(varName: String): Iterator[Bound] =
+    clauses.flatMap(_ match
+      case bound : Bound if bound.name == varName =>
         Some(bound)
       case _ =>
         None

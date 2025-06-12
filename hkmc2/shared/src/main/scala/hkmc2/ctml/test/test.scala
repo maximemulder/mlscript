@@ -50,7 +50,9 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
     catch
       case error: TypeError =>
         raise(Source.Typing, error.getMessage())
-        return
+      case error: Throwable =>
+        output(getStackTraceString(error))
+        throw error
 
   /** Test a statement */
   def testStatement(stmt: Stmt) =
@@ -72,25 +74,25 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
 
   /** Add a class to the context. */
   def testClassDecl(name: String) =
-    this.ctx = this.ctx.addClause(TypeVar(name, TypeVarKind.Class))
+    this.ctx = this.ctx.append(TypeVar(name, TypeVarKind.Class))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
-    this.ctx = this.ctx.addClause(TypeVar(name, TypeVarKind.Rigid))
+    this.ctx = this.ctx.append(TypeVar(name, TypeVarKind.Rigid))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_}")
-    this.ctx = this.ctx.addClause(
+    this.ctx = this.ctx.append(
       TypeVar(name, TypeVarKind.Rigid),
-      Bound(name, Direction.Sub, type_),
+      Bound(name, Direction.Sub,   type_),
       Bound(name, Direction.Super, type_),
     )
 
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.addClause(TermVar(name, type_))
+    this.ctx = this.ctx.append(TermVar(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
@@ -98,7 +100,7 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
       given Clauses = this.ctx
       infer(expr)
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.addClause(TermVar(name, type_))
+    this.ctx = this.ctx.append(TermVar(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =

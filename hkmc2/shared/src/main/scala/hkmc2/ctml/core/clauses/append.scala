@@ -8,6 +8,13 @@ extension (clauses: Clauses)
   def append(newClauses: Clause*): Clauses =
     newClauses.foldLeft(clauses)((clauses, newClause) => clauses.appendOne(newClause))
 
+  /** Concatenate some clauses at the end of the clauses. */
+  def concat(newClauses: (Clauses | List[Clause])*): Clauses =
+    newClauses
+      .reverse
+      .flatMap(_.asElems)
+      .foldRight(clauses)((newClause, clauses) => clauses.appendOne(newClause))
+
   /** Append a clause at the end of the clauses. */
   def appendOne(newClause: Clause): Clauses =
     newClause match
@@ -23,13 +30,3 @@ extension (clauses: Clauses)
         //  clauses
       case clause =>
         Clauses(clause :: clauses.elems)
-
-  /** Concatenate some clauses at the end of the clauses. */
-  def concat(newClauses: Clauses*): Clauses =
-    newClauses
-      .reverse
-      .flatMap(_.elems)
-      .foldRight(clauses)((newClause, clauses) => clauses.appendOne(newClause))
-
-  def addElems(newElems: List[Clause]*): Clauses =
-    clauses.concat(newElems.map(new Clauses(_))*)

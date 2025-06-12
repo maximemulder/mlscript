@@ -66,3 +66,12 @@ extension (clauses: Iterator[Clause])
       case _ =>
         true
     )
+
+extension (clauses: Clauses | List[Clause])
+  /** Get the clauses as a list of clauses. */
+  def asElems: List[Clause] =
+    clauses match
+      case Clauses(elems) =>
+        elems
+      case elems: List[Clause] =>
+        elems

@@ -49,7 +49,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
         val (supBase, supBounds) = sup.splitConstrainings()
         val boundsClauses = subtypeBounds(subBounds, supBounds)
         val baseClauses =
-          given Clauses = ctx.addElems(subBounds)
+          given Clauses = ctx.concat(subBounds)
           subtype(subBase, supBase)
         return Clauses.none
 
@@ -176,7 +176,7 @@ def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clau
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
-  given Clauses = ctx.addElems(subVars, sub.bounds)
+  given Clauses = ctx.concat(subVars, sub.bounds)
   val test = subtype(sub.base, sup)
   // TODO: Correctly handle escaping.
   Clauses(subVars).concat(test)
@@ -184,7 +184,7 @@ def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
-  given Clauses = ctx.addElems(supVars, sup.bounds)
+  given Clauses = ctx.concat(supVars, sup.bounds)
   val test = subtype(sub, sup.base)
   // TODO: Correctly handle escaping.
   Clauses(supVars).concat(test)

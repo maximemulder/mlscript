@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.merge
+package hkmc2.ctml.core.combine
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*

@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.types.*
 
 extension (type_ : Type)

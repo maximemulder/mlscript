@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.clauses
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
@@ -22,7 +22,7 @@ extension (clauses: Clauses)
       case Bound(name, dir, type_) =>
         val boundTypes = clauses.getVarBounds(name, dir)
         // TODO: Propagate constraining bounds.
-        val boundType = (type_ :: boundTypes).mergeMany(dir)(using clauses)
+        val boundType = (type_ :: boundTypes).combineMany(dir)(using clauses)
         val bound = Bound(name, dir, type_)
         Clauses(bound :: clauses.elems)
       case clause =>

@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.clauses
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.merge.*
+import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
@@ -51,8 +51,8 @@ extension (clauses: Clauses)
     given Clauses = clauses
     val leftBounds  = lefts.filterVarDir(varName, dir)
     val rightBounds = rights.filterVarDir(varName, dir)
-    val leftBound  = leftBounds.mergeMany(dir)
-    val rightBound = rightBounds.mergeMany(dir)
+    val leftBound  = leftBounds.combineMany(dir)
+    val rightBound = rightBounds.combineMany(dir)
     val leftType  =
       given Clauses = clauses.append(Bound(varName, dir, leftBound))
       attachConstrainingBounds(leftBound, lefts)

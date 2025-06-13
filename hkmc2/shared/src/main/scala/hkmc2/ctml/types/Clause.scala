@@ -1,5 +1,8 @@
 package hkmc2.ctml.types
 
+/** Type alias for wrapped and unwrapped clauses. */
+type AsClauses = Clauses | List[Clause]
+
 /** A list of typing clauses, which can either be an input (context) or output (constraints) for a
  *  typing function. */
 case class Clauses(

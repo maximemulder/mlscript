@@ -10,7 +10,7 @@ extension (clauses: Clauses)
     newClauses.foldLeft(clauses)((clauses, newClause) => clauses.appendOne(newClause))
 
   /** Concatenate some clauses at the end of the clauses. */
-  def concat(newClauses: (Clauses | List[Clause])*): Clauses =
+  def concat(newClauses: AsClauses*): Clauses =
     newClauses
       .reverse
       .flatMap(_.asElems)

@@ -35,7 +35,6 @@ foo(true, false)
 //│               Bool ≤ ⊥
 //│                 ⊤ ≤ ⊥
 
-
 fun bar(a, b) =
   if a is
     Int then b as Int
@@ -72,6 +71,10 @@ bar(true, true)
 //│       ⊤ ≤ Str
 //│         ⊤ ≤ ⊥
 
+
+
+// TODO from last meeting:
+
 // fun baz: ((Int, Int) -> Int) & ((Str, Str) -> Str) // TODO
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
 fun baz(a, b) =
@@ -79,7 +82,7 @@ fun baz(a, b) =
   if x is
     Int then x + a
     Str then x
-//│ baz: ∀24, 27 ◁ {24 ≤ (Int ∨ Str) ∨ (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (⊤ ▷ {27 ≤ Str}), 27 ≤ (Int ▷ {24 ≤ Int}) ∨ Str}. 24 → ⊤ → ((Int ▷ {24 ≤ Int, 27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str}))
+//│ baz: ∀24, 27 ◁ {24 ≤ (Int ∨ (⊤ ▷ {27 ≤ Str})) ∨ (Str ∨ (Int ▷ {27 ≤ Int, 27 ≤ Int})) ∨ Str ∨ (⊤ ▷ {27 ≤ Str}), 27 ≤ (Int ▷ {24 ≤ Int}) ∨ Str}. 24 → ⊤ → ((Int ▷ {24 ≤ Int, 27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str}))
 
 baz(0, 1)
 //│ ∀27 ◁ {}. (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str})

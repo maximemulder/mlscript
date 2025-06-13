@@ -31,6 +31,7 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       super.onSet()
       // Assign the global CTML fresh variable counter.
       hkmc2.ctml.core.freshVarCounter = 0
+      hkmc2.ctml.core.resetDebugFlags()
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init
         given Config = mkConfig

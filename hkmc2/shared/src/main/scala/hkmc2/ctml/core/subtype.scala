@@ -48,9 +48,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
         val (subBase, subBounds) = sub.splitConstrainings()
         val (supBase, supBounds) = sup.splitConstrainings()
         val boundsClauses = subtypeBounds(subBounds, supBounds)
-        val baseClauses =
-          given Clauses = ctx.concat(subBounds)
-          subtype(subBase, supBase)
+        val baseClauses = subtype(subBase, supBase)
         return Clauses.none
 
   // Subtyping of top and bottom types.

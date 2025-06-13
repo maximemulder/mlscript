@@ -84,7 +84,7 @@ extension (clauses: Iterator[Clause])
         true
     )
 
-extension (clauses: Clauses | List[Clause])
+extension (clauses: AsClauses)
   /** Get the clauses as a list of clauses. */
   def asElems: List[Clause] =
     clauses match

@@ -1,6 +1,8 @@
 package hkmc2.ctml.core.combine
 
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
@@ -23,6 +25,22 @@ def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
 def meetMerge(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
+  var leftUnionSplit = splitUnion(left)
+  if leftUnionSplit.isDefined then
+    val (leftLeft, leftRight) = leftUnionSplit.get
+    return Some(join(
+      meet(leftLeft,  right),
+      meet(leftRight, right),
+    ))
+
+  var rightUnionSplit = splitUnion(right)
+  if rightUnionSplit.isDefined then
+    val (rightLeft, rightRight) = rightUnionSplit.get
+    return Some(join(
+      meet(left, rightLeft),
+      meet(left, rightRight),
+    ))
+
   // If the two types are different classes then they are disjoint.
   if left.isClass && right.isClass && left != right then
     return Some(TBot)

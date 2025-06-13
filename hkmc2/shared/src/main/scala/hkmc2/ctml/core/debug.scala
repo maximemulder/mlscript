@@ -3,7 +3,7 @@ package hkmc2.ctml.core
 import hkmc2.ctml.types.*
 
 /** Global debug print function. */
-var outputter: (String) => Unit = (message) => print(message)
+var outputter: String => Unit = (message) => print(message)
 
 /** Global type inference debug flag. */
 var inferDebugFlag = false
@@ -25,6 +25,22 @@ var currentCallDepth = 0
 
 /** The maximum call depth. */
 val maxCallDepth = 30
+
+/** The maximum step count. */
+var currentStepCount = 0
+
+/** The maximum step count. */
+val maxStepCount = 5000
+
+/** Reset the CTML debug flags. */
+def resetDebugFlags() =
+  currentCallDepth = 0
+  currentStepCount = 0
+  inferDebugFlag = false
+  constrainDebugFlag  = false
+  checkDebugFlag = false
+  joinDebugFlag = false
+  meetDebugFlag = false
 
 /** Convert a value to a string and print it with the debug print function. */
 def debug(value : Any*) =
@@ -90,9 +106,13 @@ def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) 
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
+  if currentStepCount >= maxStepCount then
+    throw Exception("Exceeded maximum step count.")
+
   if currentCallDepth >= maxCallDepth then
     throw Exception("Exceeded maximum call depth.")
 
+  currentStepCount += 1
   currentCallDepth += 1
 
   try

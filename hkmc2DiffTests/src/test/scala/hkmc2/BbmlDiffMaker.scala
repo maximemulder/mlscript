@@ -29,7 +29,7 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       super.onSet()
       // Assign the global CTML fresh variable counter.
       hkmc2.ctml.core.freshVarCounter = 0
-      hkmc2.ctml.core.resetDebugFlags()
+      hkmc2.ctml.core.DebugInfo.reset()
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init
         given Config = mkConfig
@@ -41,21 +41,19 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
     for part <- parts do
       part match
         case "" =>
-          hkmc2.ctml.core.inferDebugFlag     = false
-          hkmc2.ctml.core.constrainDebugFlag = false
-          hkmc2.ctml.core.checkDebugFlag     = false
-          hkmc2.ctml.core.joinDebugFlag      = false
-          hkmc2.ctml.core.meetDebugFlag      = false
+          hkmc2.ctml.core.DebugInfo.reset()
         case "infer" =>
-          hkmc2.ctml.core.inferDebugFlag     = true
+          hkmc2.ctml.core.DebugInfo.infer     = true
         case "constrain" =>
-          hkmc2.ctml.core.constrainDebugFlag = true
+          hkmc2.ctml.core.DebugInfo.constrain = true
         case "check" =>
-          hkmc2.ctml.core.checkDebugFlag     = true
+          hkmc2.ctml.core.DebugInfo.check     = true
         case "join" =>
-          hkmc2.ctml.core.joinDebugFlag      = true
+          hkmc2.ctml.core.DebugInfo.join      = true
         case "meet" =>
-          hkmc2.ctml.core.meetDebugFlag      = true
+          hkmc2.ctml.core.DebugInfo.meet      = true
+        case "var" =>
+          hkmc2.ctml.core.DebugInfo.var_      = true
         case _ =>
           output(s"Unknown CTML debug term '${part}'.")
   )

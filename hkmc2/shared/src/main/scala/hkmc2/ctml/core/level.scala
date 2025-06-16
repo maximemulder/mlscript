@@ -44,13 +44,17 @@ extension (ctx: Clauses)
     else
       polarities match
         case Polarities(true, true) =>
+          debug(s"quantify ${var_.name}")
           attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
-        case Polarities(false, false) =>
-          type_
         case Polarities(true, false) =>
+          debug(s"inline neg ${var_.name} with ${upperBound}")
           type_.substitute(var_.name, upperBound)
         case Polarities(false, true)  =>
+          debug(s"inline pos ${var_.name} with ${lowerBound}")
           type_.substitute(var_.name, lowerBound)
+        case Polarities(false, false) =>
+          debug(s"ignore ${var_.name}")
+          type_
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
 

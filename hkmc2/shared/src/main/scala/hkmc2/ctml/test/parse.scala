@@ -12,6 +12,7 @@ import hkmc2.semantics.Import
 import hkmc2.semantics.LetDecl
 import hkmc2.semantics.Param
 import hkmc2.semantics.Pattern
+import hkmc2.semantics.Spd
 import hkmc2.semantics.Split
 import hkmc2.semantics.Statement
 import hkmc2.semantics.Term
@@ -20,7 +21,7 @@ import hkmc2.semantics.TypeAliasSymbol
 import hkmc2.semantics.TypeDef
 import hkmc2.syntax.Tree
 
-/** Convert a MLScript block to CTML statements. */
+/** Convert an MLScript block to CTML statements. */
 def parseStmts(mlStmts: Term): List[Stmt] =
   mlStmts match
     case Term.Blk(mlStmts, mlStmt) =>
@@ -30,7 +31,7 @@ def parseStmts(mlStmts: Term): List[Stmt] =
     case _ =>
       parseStmt(mlStmts).toList
 
-/** Convert a MLScript statement to a CTML statement. */
+/** Convert an MLScript statement to a CTML statement. */
 def parseStmt(mlStmt: Statement): Option[Stmt] =
   Some(
     mlStmt match
@@ -66,18 +67,18 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         throw new ParseError(mlStmt)
   )
 
-/** Convert a MLScript class declaration to a CTML type variable declaration. */
+/** Convert an MLScript class declaration to a CTML type variable declaration. */
 def parseClassDecl(mlSymbol: BlockMemberSymbol): Stmt =
   val name = mlSymbol.nme
   StmtTypeDecl(name)
 
-/** Convert a MLScript type alias to a CTML type variable assignment. */
+/** Convert an MLScript type alias to a CTML type variable assignment. */
 def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term): Stmt =
   val name  = mlSymbol.nme
   val type_ = parseType(mlType)
   StmtTypeVar(name, type_)
 
-/** Convert a MLScript term declaration to a CTML expression variable declaration. */
+/** Convert an MLScript term declaration to a CTML expression variable declaration. */
 def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType match
@@ -88,14 +89,14 @@ def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
 
   StmtExprDecl(name, type_)
 
-/** Convert a MLScript term declaration to a CTML expression variable assignment. */
+/** Convert an MLScript term declaration to a CTML expression variable assignment. */
 def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType.map(parseType(_))
   val expr = parseExprVarBody(mlParams, mlType, mlExpr)
   StmtExprVar(name, expr)
 
-/** Convert a MLScript term declaration to a CTML expression body. */
+/** Convert an MLScript term declaration to a CTML expression body. */
 def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Expr =
   mlParams match
     case Nil =>
@@ -111,7 +112,7 @@ def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term):
       val body = parseExprVarBody(mlParams, mlType, mlExpr)
       ELam(paramName, body)
 
-/** Convert a MLScript term to a CTML type. */
+/** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =
   mlType match
     case Term.Tup(mlElems) =>
@@ -132,10 +133,8 @@ def parseType(mlType: Term): Type =
           TBot
         case name =>
           TVar(name)
-    case Term.FunTy(mlParam, mlRet, _) =>
-      val param = parseType(mlParam)
-      val ret   = parseType(mlRet)
-      TLam(param, ret)
+    case Term.FunTy(mlParams, mlRet, _) =>
+      parseTypeLambda(mlParams, mlRet)
     case Term.CompType(mlLeft, mlRight, true) =>
       val left  = parseType(mlLeft)
       val right = parseType(mlRight)
@@ -147,7 +146,27 @@ def parseType(mlType: Term): Type =
     case _ =>
       throw ParseError(mlType)
 
-/** Convert a MLScript term to a CTML expression. */
+/** Convert an MLScript function type to a CTML type. */
+def parseTypeLambda(mlParams: Term, mlRet: Term): Type =
+  mlParams match
+    case Term.Tup(mlParams) =>
+      parseTypeLambdaParams(mlParams, mlRet)
+    case _ =>
+      val param = parseType(mlParams)
+      val ret   = parseType(mlRet)
+      TLam(param, ret)
+
+/** Convert an MLScript multi-parameter function type to a CTML type. */
+def parseTypeLambdaParams(mlParams: List[Elem], mlRet: Term): Type =
+  mlParams match
+    case mlParam :: mlParams =>
+      val param = parseType(getElemTerm(mlParam))
+      val ret   = parseTypeLambdaParams(mlParams, mlRet)
+      TLam(param, ret)
+    case Nil =>
+      parseType(mlRet)
+
+/** Convert an MLScript term to a CTML expression. */
 def parseExpr(mlExpr: Term): Expr =
   mlExpr match
     // Only parse the final term of blocks.
@@ -207,7 +226,7 @@ def parseExprs(mlStmts: List[Statement], mlExpr: Term): Expr =
         case _ =>
           throw new ParseError(mlStmt)
 
-/** Convert a MLScript lambda abstraction to a CTML expression. */
+/** Convert an MLScript lambda abstraction to a CTML expression. */
 def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
   mlParams match
     case Nil =>
@@ -217,7 +236,7 @@ def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
       val body = parseLambdaBody(mlParams, mlBody)
       ELam(paramName, body)
 
-/** Convert a MLScript lambda abstraction to a CTML lambda abstraction body. */
+/** Convert an MLScript lambda abstraction to a CTML lambda abstraction body. */
 def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
   mlParams match
     case Nil =>
@@ -227,7 +246,7 @@ def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
       val body = parseLambdaBody(mlParams, mlBody)
       ELam(paramName, body)
 
-/** Convert a MLScript lambda application to a CTML expresssion. */
+/** Convert an MLScript lambda application to a CTML expresssion. */
 def parseApp(mlLambda: Term, mlArgs: Term): Expr =
   mlArgs match
     case Term.Tup(mlArgs :+ Fld(_, mlArg, _)) =>
@@ -237,7 +256,7 @@ def parseApp(mlLambda: Term, mlArgs: Term): Expr =
     case _ =>
       throw new ParseError(mlLambda)
 
-/** Convert a MLScript lambda application to a CTML lambda application lambda. */
+/** Convert an MLScript lambda application to a CTML lambda application lambda. */
 def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
   mlArgs match
   case mlArgs :+ Fld(_, mlArg, _) =>
@@ -283,3 +302,9 @@ def parseCase(mlCase: Branch): EMatchCase =
       EMatchCase(pattern, body)
     case _ =>
       throw new ParseError(Term.Error)
+
+/** Get the underlying term of an MLScript element. */
+def getElemTerm(elem: Elem): Term =
+  elem match
+    case Fld(_, term, _) => term
+    case Spd(_, term)    => term

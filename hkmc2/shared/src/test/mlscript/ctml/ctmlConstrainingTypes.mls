@@ -75,7 +75,6 @@ bar(true, true)
 
 // TODO from last meeting:
 
-// fun baz: ((Int, Int) -> Int) & ((Str, Str) -> Str) // TODO
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
 fun baz(a, b) =
   let x = foo(a, b)

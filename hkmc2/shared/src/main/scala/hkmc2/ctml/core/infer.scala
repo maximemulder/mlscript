@@ -6,9 +6,9 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
 def inferSeq(expr: Expr, ins: Clauses)(using ctx: Clauses): (Type, Clauses) =
-  given Clauses = ctx.concat(ins)
+  given Clauses = ctx.concatCtx(ins)
   val (type_, outs) = infer(expr)
-  (type_, ins.concat(outs))
+  (type_, ins.concatElems(outs))
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: Clauses): (Type, Clauses) =
@@ -61,7 +61,7 @@ def inferMatch(match_ : EMatch)(using ctx: Clauses): (Type, Clauses) =
     .joinManySeq(scrutineeClauses)
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
   val patternsClauses = subtypeSeq(scrutineeType, patternsType, scrutineeClauses)
-  val patternsCtx = ctx.concat(patternsClauses)
+  val patternsCtx = ctx.concatCtx(patternsClauses)
   // Infer each match case.
 
   // Create a new fresh type variable for the type of the match expression.
@@ -79,7 +79,7 @@ def inferMatch(match_ : EMatch)(using ctx: Clauses): (Type, Clauses) =
     (casesVar, casesClauses)
   )
 
-  (casesType, patternsClauses.concat(casesClauses))
+  (casesType, patternsClauses.concatElems(casesClauses))
 
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, casesVar: TVar)(using ctx: Clauses): Clauses =

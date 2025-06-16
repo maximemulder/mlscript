@@ -15,9 +15,9 @@ def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Clauses, mode: M
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
-  given Clauses = ctx.concat(ins)
+  given Clauses = ctx.concatCtx(ins)
   val outs = subtype(sub, sup)
-  ins.concat(outs)
+  ins.concatElems(outs)
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Constrain): Clauses =
@@ -37,12 +37,12 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Clauses, mode: Mode = Mode.Cons
       if sup.is[TConstraining] then
         val (supBase, supBounds) = sup.splitConstrainings()
         val baseClauses = subtype(sub, supBase)
-        return Clauses(supBounds).concat(baseClauses)
+        return Clauses(supBounds).concatElems(baseClauses)
 
       if sub.is[TConstraining] then
         val (subBase, subBounds) = sub.splitConstrainings()
         val baseClauses = subtype(subBase, sup)
-        return Clauses(subBounds).concat(baseClauses)
+        return Clauses(subBounds).concatElems(baseClauses)
     case Mode.Check =>
       if sub.is[TConstraining] || sup.is[TConstraining] then
         val (subBase, subBounds) = sub.splitConstrainings()
@@ -174,18 +174,20 @@ def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Clauses, mode: Mode): Clau
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Clauses, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
-  given Clauses = ctx.concat(subVars, sub.bounds)
+  given Clauses = ctx.concatCtx(subVars, sub.bounds)
   val test = subtype(sub.base, sup)
   // TODO: Correctly handle escaping.
-  Clauses(subVars).concat(test)
+  Clauses(subVars).concatElems(test)
+  // subtypeSeq(sub.base, sup, Clauses(sub.bounds ::: subVars))
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Clauses, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
-  given Clauses = ctx.concat(supVars, sup.bounds)
+  given Clauses = ctx.concatCtx(supVars, sup.bounds)
   val test = subtype(sub, sup.base)
   // TODO: Correctly handle escaping.
-  Clauses(supVars).concat(test)
+  Clauses(supVars).concatElems(test)
+  // subtypeSeq(sub, sup.base, Clauses(sup.bounds ::: supVars))
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Clauses, mode: Mode): Clauses =

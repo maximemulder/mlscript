@@ -28,13 +28,13 @@ extension (ctx: Clauses)
     val (type_ , typeOuts) = f(freshType, freshCtx)
 
     // Count the fresh type variable as belonging to this level.
-    val outs = freshVar.asClauses.concat(typeOuts)
+    val outs = freshVar.asClauses.concatElems(typeOuts)
 
     // Solve the level.
     ctx.solveLevel(type_, outs)
 
   def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[String], outs: Clauses): (Type, Clauses) =
-    val fullCtx = ctx.concat(outs)
+    val fullCtx = ctx.concatCtx(outs)
     given Clauses = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_.name)
     val upperBound = fullCtx.getVarUpperBound(var_.name)
@@ -44,16 +44,12 @@ extension (ctx: Clauses)
     else
       polarities match
         case Polarities(true, true) =>
-          debug(s"quantify ${var_.name}")
           attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
         case Polarities(true, false) =>
-          debug(s"inline neg ${var_.name} with ${upperBound}")
           type_.substitute(var_.name, upperBound)
         case Polarities(false, true)  =>
-          debug(s"inline pos ${var_.name} with ${lowerBound}")
           type_.substitute(var_.name, lowerBound)
         case Polarities(false, false) =>
-          debug(s"ignore ${var_.name}")
           type_
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))

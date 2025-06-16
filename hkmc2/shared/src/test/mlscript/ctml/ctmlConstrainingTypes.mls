@@ -94,13 +94,11 @@ val baz: (Int -> Int -> Int) & (Str -> Str -> Str) = foo
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
 
 
-:ctml-dbg
-
 bop(0, 1)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: term (Elaborator.scala:395)
 //│ ╔══[ERROR] Name not found: bop
-//│ ║  l.99: 	bop(0, 1)
+//│ ║  l.97: 	bop(0, 1)
 //│ ╙──      	^^^
 //│ FAILURE: Unexpected parse error
 //│ FAILURE LOCATION: raise (test.scala:44)
@@ -110,7 +108,7 @@ bop("0", "1")
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: term (Elaborator.scala:395)
 //│ ╔══[ERROR] Name not found: bop
-//│ ║  l.109: 	bop("0", "1")
+//│ ║  l.107: 	bop("0", "1")
 //│ ╙──       	^^^
 //│ FAILURE: Unexpected parse error
 //│ FAILURE LOCATION: raise (test.scala:44)

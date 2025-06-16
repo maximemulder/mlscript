@@ -23,3 +23,6 @@ type T = A | B
 
 type T = A & B
 //│ T = A ∧ B
+
+type T = (A, A) -> A
+//│ T = A → A → A

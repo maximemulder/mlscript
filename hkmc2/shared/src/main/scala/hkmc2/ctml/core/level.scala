@@ -1,10 +1,11 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
-extension (ctx: Clauses)
+extension (ctx: Context)
   /** Solve a type inference level by processing each new variable of that level. */
   def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
     // Get the new type variables of this level.
@@ -18,24 +19,24 @@ extension (ctx: Clauses)
 
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
-  def withFreshVarLevel(f: (TVar, Clauses) => (Type, Clauses)): (Type, Clauses) =
+  def withFreshVarLevel(f: (TVar, Context) => (Type, Clauses)): (Type, Clauses) =
     // Create a new fresh type variable, make it a type, and add it to the context.
     val freshVar = newInferFreshVar()
-    val freshCtx = ctx.append(freshVar)
+    val freshCtx = ctx.extend(freshVar)
     val freshType = TVar(freshVar.name)
 
     // Evaluate the type inference function with the fresh type variable.
     val (type_ , typeOuts) = f(freshType, freshCtx)
 
     // Count the fresh type variable as belonging to this level.
-    val outs = freshVar.asClauses.concatElems(typeOuts)
+    val outs = freshVar.asClauses.concat(typeOuts)
 
     // Solve the level.
     ctx.solveLevel(type_, outs)
 
   def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[String], outs: Clauses): (Type, Clauses) =
-    val fullCtx = ctx.concatCtx(outs)
-    given Clauses = fullCtx
+    val fullCtx = ctx.extend(outs)
+    given Context = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_.name)
     val upperBound = fullCtx.getVarUpperBound(var_.name)
     val polarities = type_.getVarPolarities(var_.name)(using Polarity.Positive)
@@ -65,7 +66,7 @@ extension (ctx: Clauses)
       val dependentVars = outs.getDependentVars(var_.name)
 
       // Check whether any of the dependent variables is declared at a lower level.
-      !dependentVars.exists(ctx.hasVar(_))
+      !dependentVars.exists(Clauses(ctx.clauses).hasVar(_))
     )
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */

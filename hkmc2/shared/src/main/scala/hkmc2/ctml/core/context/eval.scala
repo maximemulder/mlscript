@@ -1,12 +1,12 @@
-package hkmc2.ctml.core.clauses
+package hkmc2.ctml.core.context
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 
-// Methods used to evaluate some functions within a context.
+// Methods used to evaluate conjunctions and disjunctions within a typing context.
 
-extension (ctx: Clauses)
+extension (ctx: Context)
   /** Evaluate some functions and meet the bounds returned. */
   def all(fs: (() => Clauses)*): Clauses =
     Clauses(fs.flatMap(_().elems).toList)

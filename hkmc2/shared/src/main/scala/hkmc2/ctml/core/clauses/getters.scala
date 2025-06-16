@@ -12,14 +12,6 @@ extension (clauses: Clauses)
       case None =>
         throw new TypeError(Some(s"Variable '${name}' not found in the clauses."))
 
-  /** Get a kind of a type variable. */
-  def getTypeVarKind(name: String): TypeVarKind =
-    clauses.typeVars.find((var_) => var_.name == name) match
-      case Some(var_) =>
-        var_.kind
-      case None =>
-        throw new TypeError(Some(s"Type variable '${name}' not found in the clauses."))
-
   /** Get the bounds of a type variable in a given typing direction. */
   def getVarBounds(name: String, dir: Direction): List[Type] =
     clauses
@@ -28,28 +20,6 @@ extension (clauses: Clauses)
       .map(_.type_)
       .toList
 
-  /** Get the bounds of a type variable in a given typing direction as a single type. */
-  def getVarBound(name: String, dir: Direction): Type =
-    clauses
-      .getVarBounds(name: String, dir: Direction)
-      .combineMany(dir)(using clauses)
-
-  /** Get all the lower bounds of a type variable. */
-  def getVarLowerBounds(name: String): List[Type] =
-    clauses.getVarBounds(name, Direction.Super)
-
-  /** Get all the upper bounds of a type variable. */
-  def getVarUpperBounds(name: String): List[Type] =
-    clauses.getVarBounds(name, Direction.Sub)
-
-  /** Get the lower bound of a type variable as a single type. */
-  def getVarLowerBound(name: String): Type =
-    clauses.getVarBound(name, Direction.Super)
-
-  /** Get the upper bound of a type variable as a single type. */
-  def getVarUpperBound(name: String): Type =
-    clauses.getVarBound(name, Direction.Sub)
-
   /** Extract the lower bounds of a type variable from the clauses. */
   def extractVarLowerBounds(name: String): (List[Type], Clauses) =
     clauses.extractVarBounds(name, Direction.Super)
@@ -57,3 +27,14 @@ extension (clauses: Clauses)
   /** Extract the upper bounds of a type variable from the clauses. */
   def extractVarUpperBounds(name: String): (List[Type], Clauses) =
     clauses.extractVarBounds(name, Direction.Sub)
+
+  def removeTypeVar(varName: String): Clauses =
+    // TODO: Shadowing.
+    Clauses(clauses.elems.filter(_ match
+      case var_ : TypeVar if var_.name == varName =>
+        false
+      case bound: Bound if bound.name == varName =>
+        false
+      case _ =>
+        true
+    ))

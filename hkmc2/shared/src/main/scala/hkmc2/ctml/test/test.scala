@@ -4,7 +4,7 @@ import hkmc2.Diagnostic.Source
 import hkmc2.ErrorReport
 import hkmc2.Raise
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.getStackTraceString
 import hkmc2.semantics.Term
@@ -13,11 +13,11 @@ import sourcecode.{FileName,Line}
 /** Run a CTML test on an input term. */
 def test(
   term: Term,
-  ctx: Clauses,
+  ctx: Context,
   import_ : Boolean,
   outputter: (String) => Unit,
   raiser: Raise,
-): Clauses =
+): Context =
   // Do not output results in import files (such as the CTML prelude).
   val output = if !import_
     then (message)   => outputter(message)
@@ -30,7 +30,7 @@ def test(
   tester.test(term)
   tester.ctx
 
-class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName) ?=> (Source, String) => Unit):
+class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName) ?=> (Source, String) => Unit):
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
@@ -74,16 +74,16 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
 
   /** Add a class to the context. */
   def testClassDecl(name: String) =
-    this.ctx = this.ctx.append(TypeVar(name, TypeVarKind.Class))
+    this.ctx = this.ctx.extend(TypeVar(name, TypeVarKind.Class))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
-    this.ctx = this.ctx.append(TypeVar(name, TypeVarKind.Rigid))
+    this.ctx = this.ctx.extend(TypeVar(name, TypeVarKind.Rigid))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_}")
-    this.ctx = this.ctx.append(
+    this.ctx = this.ctx.extend(
       TypeVar(name, TypeVarKind.Rigid),
       Bound(name, Direction.Sub,   type_),
       Bound(name, Direction.Super, type_),
@@ -92,21 +92,17 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.append(TermVar(name, type_))
+    this.ctx = this.ctx.extend(TermVar(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
-    val (type_, bounds) =
-      given Clauses = this.ctx
-      infer(expr)
+    val (type_, bounds) = infer(expr)(using this.ctx)
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.append(TermVar(name, type_))
+    this.ctx = this.ctx.extend(TermVar(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
-    val (type_, outs) =
-      given Clauses = this.ctx
-      infer(expr)
+    val (type_, outs) = infer(expr)(using this.ctx)
     this.outputType(type_)
     this.outputClauses(outs)
 
@@ -127,17 +123,15 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
 
   /** Test subtyping between two types. */
   def testSubtyping(sub: Type, sup: Type): Clauses =
-    given Clauses = this.ctx
-    subtype(sub, sup)
+    subtype(sub, sup)(using this.ctx)
 
   /** Test supertyping between two types. */
   def testSupertyping(sup: Type, sub: Type): Clauses =
-    given Clauses = this.ctx
-    subtype(sub, sup)
+    subtype(sub, sup)(using this.ctx)
 
   /** Test equivalence between two types. */
   def testTypeEquivalence(left: Type, right: Type): Clauses =
-    given Clauses = this.ctx
+    given Context = this.ctx
     try
       val subClauses = subtype(left, right)
       subtypeSeq(right, left, subClauses)
@@ -148,8 +142,7 @@ class Tester(var ctx: Clauses, output: (String) => Unit, raise: (Line, FileName)
 
   /** Test incomparability between two types. */
   def testTypeIncomparability(left: Type, right: Type): Clauses =
-    given Clauses = this.ctx
-    if !checkEqual(left, right) then
+    if !checkEqual(left, right)(using this.ctx) then
       val error = TypeError()
       error.addStep(TypeIncomparabilityJudgment(left, right))
       throw error

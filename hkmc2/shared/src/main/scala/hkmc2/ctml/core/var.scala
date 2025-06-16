@@ -1,6 +1,6 @@
 package hkmc2.ctml.core
 
-import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
 val greekLetters = List(
@@ -39,7 +39,7 @@ def joinVars(lefts: List[String], rights: List[String]): List[String] =
   val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
   lefts ::: filteredRights
 
-extension (type_ : Type)(using ctx: Clauses)
+extension (type_ : Type)(using ctx: Context)
   /** Check whether the type is a class reference. */
   def isClass: Boolean =
     type_ match

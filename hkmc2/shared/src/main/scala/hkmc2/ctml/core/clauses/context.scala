@@ -12,10 +12,10 @@ extension (clauses: Clauses)
   /** Merge two lists of bounds such that they must both be satisfied. */
   def meetBounds(lefts: List[Bound], rights: List[Bound]): List[Bound] =
     // Check if each right bound is satisfied in the left bounds to remove subsumed constraints.
-    val filteredRights = clauses.concat(lefts).filterUnsatisfiedBounds(rights)
+    val filteredRights = clauses.concatCtx(lefts).filterUnsatisfiedBounds(rights)
     // Be careful to check satisfaction against the *filtered* list of constraints to not remove duplicate
     // constraints entirely.
-    val filteredLefts = clauses.concat(filteredRights).filterUnsatisfiedBounds(lefts)
+    val filteredLefts = clauses.concatCtx(filteredRights).filterUnsatisfiedBounds(lefts)
     // Return the concatenation of the filtered bounds.
     filteredLefts ::: filteredRights
 

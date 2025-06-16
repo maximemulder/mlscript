@@ -4,88 +4,11 @@ fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ quantify γ
 //│ foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
-
-:ctml-dbg infer constrain var
 
 fun bop(a, b) =
   let x = foo(a, b)
   x
-//│ infer ELam(a,ELam(b,EApp(ELam(x,EVar(x)),EApp(EApp(EVar(foo),EVar(a)),EVar(b)))))
-//│   δ fresh
-//│   infer ELam(b,EApp(ELam(x,EVar(x)),EApp(EApp(EVar(foo),EVar(a)),EVar(b))))
-//│     ε fresh
-//│     infer EApp(ELam(x,EVar(x)),EApp(EApp(EVar(foo),EVar(a)),EVar(b)))
-//│       ζ fresh
-//│       infer ELam(x,EVar(x))
-//│         η fresh
-//│         infer EVar(x)
-//│         OK η ⇝ ∅
-//│         quantify η
-//│       OK ∀η ◁ {}. η → η ⇝ x: η
-//│       infer EApp(EApp(EVar(foo),EVar(a)),EVar(b))
-//│         θ fresh
-//│         infer EApp(EVar(foo),EVar(a))
-//│           ι fresh
-//│           infer EVar(foo)
-//│           OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
-//│           infer EVar(a)
-//│           OK δ ⇝ ∅
-//│           constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ δ → ι
-//│             γ fresh
-//│             β fresh
-//│             α fresh
-//│             constrain α → β → γ ≤ δ → ι
-//│               constrain δ ≤ α
-//│                 constrain δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│                   constrain ⊥ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│                   OK ⇝ ∅
-//│                 OK ⇝ δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│               OK ⇝ δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), α ≥ δ
-//│               constrain β → γ ≤ ι
-//│                 constrain β → γ ≤ ⊤
-//│                 OK ⇝ ∅
-//│               OK ⇝ ι ≥ β → γ
-//│             OK ⇝ ι ≥ β → γ, δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), α ≥ δ
-//│           OK ⇝ ι ≥ β → γ, δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), α ≥ δ, γ fresh, β fresh, α fresh
-//│           inline pos ι with β → γ
-//│           ignore α
-//│         OK β → γ ⇝ δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh
-//│         infer EVar(b)
-//│         OK ε ⇝ ∅
-//│         constrain β → γ ≤ ε → θ
-//│           constrain ε ≤ β
-//│             constrain ε ≤ ⊤
-//│             OK ⇝ ∅
-//│           OK ⇝ β ≥ ε
-//│           constrain γ ≤ θ
-//│             constrain ⊥ ≤ θ
-//│             OK ⇝ ∅
-//│           OK ⇝ γ ≤ θ
-//│         OK ⇝ γ ≤ θ, β ≥ ε
-//│         inline pos θ with ⊥
-//│       OK ⊥ ⇝ γ ≤ θ, β ≥ ε, δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh
-//│       constrain ∀η ◁ {}. η → η ≤ ⊥ → ζ
-//│         η fresh
-//│         constrain η → η ≤ ⊥ → ζ
-//│           constrain ⊥ ≤ η
-//│           OK ⇝ ∅
-//│           constrain η ≤ ζ
-//│             constrain ⊥ ≤ ζ
-//│             OK ⇝ ∅
-//│           OK ⇝ η ≤ ζ
-//│         OK ⇝ η ≤ ζ
-//│       OK ⇝ η ≤ ζ, η fresh
-//│       inline pos ζ with ⊥
-//│       ignore η
-//│     OK ⊥ ⇝ γ ≤ θ, β ≥ ε, δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, x: η
-//│     inline neg ε with ⊤
-//│   OK ⊤ → ⊥ ⇝ γ ≤ θ, β ≥ ε, δ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, x: η, b: ε
-//│   inline neg δ with (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
-//│   inline pos β with ε
-//│   inline neg γ with θ
-//│ OK (Int ∨ Str) → ⊤ → ⊥ ⇝ x: η, b: ε, a: δ
 //│ bop: (Int ∨ Str) → ⊤ → ⊥
 
 // WIP: Problem is here:

@@ -75,16 +75,43 @@ bar(true, true)
 
 // TODO from last meeting:
 
+:fixme
+val baz: (Int -> Int -> Int) & (Str -> Str -> Str) = foo
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str).
+//│ Typing error tree:
+//│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str)
+//│     ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → Int → Int
+//│       α → β → γ ≤ Int → Int → Int
+//│         β → γ ≤ Int → Int
+//│           γ ≤ Int
+//│             Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│               (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                 Str ▷ {β ≤ Str, α ≤ Str} ≤ Int
+//│                   Str ≤ Int
+//│                     Str ≤ ⊥
+//│                       ⊤ ≤ ⊥
+
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
-fun baz(a, b) =
-  let x = foo(a, b)
-  if x is
-    Int then x + a
-    Str then x
-//│ baz: ∀24, 27 ◁ {24 ≤ (Int ∨ (⊤ ▷ {27 ≤ Str})) ∨ (Str ∨ (Int ▷ {27 ≤ Int, 27 ≤ Int})) ∨ Str ∨ (⊤ ▷ {27 ≤ Str}), 27 ≤ (Int ▷ {24 ≤ Int}) ∨ Str}. 24 → ⊤ → ((Int ▷ {24 ≤ Int, 27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str}))
 
-baz(0, 1)
-//│ ∀27 ◁ {}. (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str})
 
-baz("0", "1")
-//│ ∀27 ◁ {}. (Int ▷ {27 ≤ Int, 27 ≤ Int}) ∨ (27 ▷ {27 ≤ Str})
+:ctml-dbg
+
+bop(0, 1)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: term (Elaborator.scala:395)
+//│ ╔══[ERROR] Name not found: bop
+//│ ║  l.99: 	bop(0, 1)
+//│ ╙──      	^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:44)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+
+bop("0", "1")
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: term (Elaborator.scala:395)
+//│ ╔══[ERROR] Name not found: bop
+//│ ║  l.109: 	bop("0", "1")
+//│ ╙──       	^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:44)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error

@@ -1,11 +1,11 @@
 package hkmc2.ctml.core
 
-import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 
 /** Attach some constraining bounds to a type. */
-def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Clauses): Type =
+def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Context): Type =
   val filteredBounds = ctx.filterUnsatisfiedBounds(bounds)
   if filteredBounds == Nil then
     type_

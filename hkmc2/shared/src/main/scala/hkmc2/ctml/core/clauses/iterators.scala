@@ -5,25 +5,25 @@ import hkmc2.ctml.util.*
 
 // Iteration methods for clauses.
 
-extension (clauses: Clauses)
+extension (clauses: AsClauses)
   /** Iterate over the term variables defined in the clauses. */
   def termVars: List[TermVar] =
-    clauses.elems.iterator.termVars.toList
+    clauses.asClauses.iterator.termVars.toList
 
   /** Iterate over the type variables defined in the clauses. */
   def typeVars: List[TypeVar] =
-    clauses.elems.iterator.typeVars.toList
+    clauses.asClauses.iterator.typeVars.toList
 
   /** Iterate over the bounds defined in the clauses. */
   def bounds: List[Bound] =
-    clauses.elems.iterator.bounds.toList
+    clauses.asClauses.iterator.bounds.toList
 
   /** Iterate over the bounds of a type variable defined in the clauses. */
   def varBounds(name: String): List[Bound] =
-    clauses.elems.iterator.typeVarClauses(name).typeVarBounds(name).toList
+    clauses.asClauses.iterator.typeVarClauses(name).typeVarBounds(name).toList
 
   def extractVarBounds(name: String, dir: Direction): (List[Type], Clauses) =
-    val (types, newClauses) = clauses.elems.extractUntil(
+    val (types, newClauses) = clauses.asClauses.extractUntil(
       _ match
         case TypeVar(varName, _) if varName == name =>
           false
@@ -85,10 +85,11 @@ extension (clauses: Iterator[Clause])
     )
 
 extension (clauses: AsClauses)
-  /** Get the clauses as a list of clauses. */
-  def asElems: List[Clause] =
+  def asClauses: List[Clause] =
     clauses match
-      case Clauses(elems) =>
-        elems
-      case elems: List[Clause] =>
-        elems
+      case clause: Clause =>
+        List(clause)
+      case clauses: List[Clause] =>
+        clauses
+      case Clauses(clauses) =>
+        clauses

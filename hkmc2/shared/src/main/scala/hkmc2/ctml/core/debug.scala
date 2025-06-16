@@ -52,7 +52,7 @@ def debug(value : Any*) =
   outputter(("  " * DebugInfo.currentCallDepth) + value.map(_.toString()).mkString(" "))
 
 /** Decorate the subtype constraining function to print debug information. */
-def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode): (Type, Type) => Clauses =
+def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context, mode: Mode): (Type, Type) => Clauses =
   if mode == Mode.Constrain && !DebugInfo.constrain then
     return impl
 
@@ -71,7 +71,7 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mo
         throw error
 
 /** Decorate the type inference function to print debug information. */
-def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (Type, Clauses) =
+def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Context): Expr => (Type, Clauses) =
   if !DebugInfo.infer then
     return impl
 
@@ -88,7 +88,7 @@ def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (
         throw error
 
 /** Decorate the type join function to print debug information. */
-def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
+def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Context): (Type, Type) => Type =
   if !DebugInfo.join then
     return impl
 
@@ -99,7 +99,7 @@ def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) 
     type_
 
 /** Decorate the type meet function to print debug information. */
-def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
+def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Context): (Type, Type) => Type =
   if !DebugInfo.meet then
     return impl
 

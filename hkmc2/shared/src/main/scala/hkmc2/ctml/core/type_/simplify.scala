@@ -6,7 +6,7 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Simplify the type based on the information available in a context. */
-  def simplify()(using ctx: Clauses): Type =
+  def simplify()(using ctx: Context): Type =
     type_ match
       case TLam(param, ret) =>
         val newParam = param.simplify()

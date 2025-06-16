@@ -1,16 +1,16 @@
 package hkmc2.ctml.core.combine
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
-def meet(left: Type, right: Type)(using ctx: Clauses): Type =
+def meet(left: Type, right: Type)(using ctx: Context): Type =
   meetWithDebug(meetImpl)(left, right)
 
 /** Implementation of `meet`. */
-def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
+def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
   if checkSubtype(right, left) then
     return right
 
@@ -24,7 +24,7 @@ def meetImpl(left: Type, right: Type)(using ctx: Clauses): Type =
       TInter(left, right)
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
-def meetMerge(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
+def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
   var leftUnionSplit = splitUnion(left)
   if leftUnionSplit.isDefined then
     val (leftLeft, leftRight) = leftUnionSplit.get
@@ -51,7 +51,7 @@ def meetMerge(left: Type, right: Type)(using ctx: Clauses): Option[Type] =
   None
 
 /** Get the meet of two lambdas in a non-intersection shape if there is one. */
-def meetLambdas(left: TLam, right: TLam)(using ctx: Clauses): Option[Type] =
+def meetLambdas(left: TLam, right: TLam)(using ctx: Context): Option[Type] =
   if checkEqual(left.param, right.param) then
     var body = meet(left.ret, right.ret)
     return Some(TLam(left.param, body))
@@ -64,5 +64,5 @@ def meetLambdas(left: TLam, right: TLam)(using ctx: Clauses): Option[Type] =
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */
-  def meetMany()(using ctx: Clauses): Type =
+  def meetMany()(using ctx: Context): Type =
     types.foldRight(TTop)(meet)

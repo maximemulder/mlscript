@@ -5,53 +5,58 @@ import hkmc2.ctml.types.*
 /** Global debug print function. */
 var outputter: String => Unit = (message) => print(message)
 
-/** Global type inference debug flag. */
-var inferDebugFlag = false
+object DebugInfo:
+  /** Global type inference debug flag. */
+  var infer = false
 
-/** Global subtype constraining debug flag. */
-var constrainDebugFlag = false
+  /** Global subtype constraining debug flag. */
+  var constrain = false
 
-/** Global subtype checking debug flag. */
-var checkDebugFlag = false
+  /** Global subtype checking debug flag. */
+  var check = false
 
-/** Global type joining debug flag. */
-var joinDebugFlag = false
+  /** Global type joining debug flag. */
+  var join = false
 
-/** Global type meeting debug flag. */
-var meetDebugFlag = false
+  /** Global type meeting debug flag. */
+  var meet = false
 
-/** The current call depth. */
-var currentCallDepth = 0
+  /** Global type variable debug flag. */
+  var var_ = false
 
-/** The maximum call depth. */
-val maxCallDepth = 30
+  /** The current call depth. */
+  var currentCallDepth = 0
 
-/** The maximum step count. */
-var currentStepCount = 0
+  /** The maximum call depth. */
+  val maxCallDepth = 30
 
-/** The maximum step count. */
-val maxStepCount = 5000
+  /** The maximum step count. */
+  var currentStepCount = 0
 
-/** Reset the CTML debug flags. */
-def resetDebugFlags() =
-  currentCallDepth = 0
-  currentStepCount = 0
-  inferDebugFlag = false
-  constrainDebugFlag  = false
-  checkDebugFlag = false
-  joinDebugFlag = false
-  meetDebugFlag = false
+  /** The maximum step count. */
+  val maxStepCount = 5000
+
+  /** Reset the CTML debug information. */
+  def reset() =
+    this.currentCallDepth = 0
+    this.currentStepCount = 0
+    this.infer     = false
+    this.constrain = false
+    this.check     = false
+    this.join      = false
+    this.meet      = false
+    this.var_      = false
 
 /** Convert a value to a string and print it with the debug print function. */
 def debug(value : Any*) =
-  outputter(("  " * currentCallDepth) + value.map(_.toString()).mkString(" "))
+  outputter(("  " * DebugInfo.currentCallDepth) + value.map(_.toString()).mkString(" "))
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mode): (Type, Type) => Clauses =
-  if mode == Mode.Constrain && !constrainDebugFlag then
+  if mode == Mode.Constrain && !DebugInfo.constrain then
     return impl
 
-  if mode == Mode.Check && !checkDebugFlag then
+  if mode == Mode.Check && !DebugInfo.check then
     return impl
 
   (sub: Type, sup: Type) =>
@@ -67,7 +72,7 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Clauses, mode: Mo
 
 /** Decorate the type inference function to print debug information. */
 def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (Type, Clauses) =
-  if !inferDebugFlag then
+  if !DebugInfo.infer then
     return impl
 
   (expr: Expr) =>
@@ -84,7 +89,7 @@ def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Clauses): Expr => (
 
 /** Decorate the type join function to print debug information. */
 def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
-  if !joinDebugFlag then
+  if !DebugInfo.join then
     return impl
 
   (left: Type, right: Type) =>
@@ -95,7 +100,7 @@ def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) 
 
 /** Decorate the type meet function to print debug information. */
 def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) => Type =
-  if !meetDebugFlag then
+  if !DebugInfo.meet then
     return impl
 
   (left: Type, right: Type) =>
@@ -104,18 +109,26 @@ def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Clauses): (Type, Type) 
     debug(s"= ${type_}")
     type_
 
+/** Print a new type variable as a debug information. */
+def debugTypeVar(var_ : TypeVar): TypeVar =
+  if !DebugInfo.var_ then
+    return var_
+
+  debug(s"${var_.name} ${var_.kind}")
+  var_
+
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
-  if currentStepCount >= maxStepCount then
+  if DebugInfo.currentStepCount >= DebugInfo.maxStepCount then
     throw Exception("Exceeded maximum step count.")
 
-  if currentCallDepth >= maxCallDepth then
+  if DebugInfo.currentCallDepth >= DebugInfo.maxCallDepth then
     throw Exception("Exceeded maximum call depth.")
 
-  currentStepCount += 1
-  currentCallDepth += 1
+  DebugInfo.currentStepCount += 1
+  DebugInfo.currentCallDepth += 1
 
   try
     f()
   finally
-    currentCallDepth -= 1
+    DebugInfo.currentCallDepth -= 1

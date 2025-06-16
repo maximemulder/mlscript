@@ -28,11 +28,11 @@ def newInferFreshVar(): TypeVar =
 
 /** Get a fresh type variable with a given name. */
 def newFreshVar(varName: String): TypeVar =
-  TypeVar(varName, TypeVarKind.Fresh)
+  debugTypeVar(TypeVar(varName, TypeVarKind.Fresh))
 
 /** Get a rigid type variable with a given name. */
 def newRigidVar(varName: String): TypeVar =
-  TypeVar(varName, TypeVarKind.Rigid)
+  debugTypeVar(TypeVar(varName, TypeVarKind.Rigid))
 
 /** Join two lists of variables by removing duplicates between those lists. */
 def joinVars(lefts: List[String], rights: List[String]): List[String] =

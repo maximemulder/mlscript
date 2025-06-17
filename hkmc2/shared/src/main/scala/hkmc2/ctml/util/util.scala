@@ -42,6 +42,22 @@ extension [T](iterable: Iterable[T])
 
     iterable.extract(extractClosure)
 
+  /** Filter some elements of an iterable using a filtering function until a condition is met.
+   */
+  def filterUntilInclusive(p: T => Boolean, f: T => Boolean): Iterable[T] =
+    var finished = false
+
+    def filterClosure(element: T): Boolean =
+      if finished then
+        return true
+
+      if p(element) then
+        finished = true
+
+      f(element)
+
+    iterable.filter(filterClosure)
+
 extension [T](list: List[T])
   def fold1Right(f: (T, T) => T): T =
     list match

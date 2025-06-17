@@ -1,6 +1,7 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.types.*
 
 val greekLetters = List(

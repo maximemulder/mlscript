@@ -2,6 +2,7 @@ package hkmc2.ctml.core
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
@@ -40,18 +41,14 @@ extension (ctx: Context)
     val lowerBound = fullCtx.getVarLowerBound(var_.name)
     val upperBound = fullCtx.getVarUpperBound(var_.name)
     val polarities = type_.getVarPolarities(var_.name)(using Polarity.Positive)
-    val newType = if fullCtx.isVarConstrained(var_.name, levelVars) then
-      attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
+    val newType = if fullCtx.isVarConstrained(var_.name, levelVars) || polarities == Polarities(true, true) then
+      quantifyVar(type_, var_.name, lowerBound, upperBound)
+    else if polarities == Polarities(true, false) then
+      inlineVar(type_, var_.name, upperBound)
+    else if polarities == Polarities(false, true) then
+      inlineVar(type_, var_.name, lowerBound)
     else
-      polarities match
-        case Polarities(true, true) =>
-          attachConstrainedBounds(type_, var_.name, lowerBound, upperBound)
-        case Polarities(true, false) =>
-          type_.substitute(var_.name, upperBound)
-        case Polarities(false, true)  =>
-          type_.substitute(var_.name, lowerBound)
-        case Polarities(false, false) =>
-          type_
+      ignoreVar(type_, var_.name)
     // TODO: Remove variable
     (newType, outs.removeTypeVar(var_.name))
 
@@ -70,10 +67,34 @@ extension (ctx: Context)
     )
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */
-  def isVarConstrained(varName: String, levelVars: Set[String]): Boolean =
+  def isVarConstrained(name: String, levelVars: Set[String]): Boolean =
     val types = levelVars.toList.flatMap(var_ => List.concat(
       ctx.getVarLowerBounds(var_),
       ctx.getVarUpperBounds(var_),
     ))
 
-    types.exists(_.getConstrainedVars().contains(varName))
+    types.exists(_.getConstrainedVars().contains(name))
+
+/** Quantify a type variable in a type. */
+def quantifyVar(type_ : Type, name: String, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
+  debugQuantifyVar(quantifyVarImpl)(type_, name, lowerBound, upperBound)
+
+/** Implementation of `quantifyVar`. */
+def quantifyVarImpl(type_ : Type, name: String, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
+  attachConstrainedBounds(type_, name, lowerBound, upperBound)
+
+/** Inline a type variable in a type. */
+def inlineVar(type_ : Type, name: String, bound: Type)(using ctx: Context): Type =
+  debugInlineVar(inlineVarImpl)(type_, name, bound)
+
+/** Implementation of `inlineVar`. */
+def inlineVarImpl(type_ : Type, name: String, bound: Type)(using ctx: Context): Type =
+  type_.substitute(name, bound)
+
+/** Ignore a type variable in a type. */
+def ignoreVar(type_ : Type, name: String)(using ctx: Context): Type =
+  debugIgnoreVar(ignoreVarImpl)(type_, name)
+
+/** Implementation of `ignoreVar`. */
+def ignoreVarImpl(type_ : Type, name: String)(using ctx: Context): Type =
+  type_

@@ -22,21 +22,21 @@ extension (clauses: AsClauses)
   def varBounds(name: String): List[Bound] =
     clauses.asClauses.iterator.typeVarClauses(name).typeVarBounds(name).toList
 
-  def extractVarBounds(name: String, dir: Direction): (List[Type], Clauses) =
-    val (types, newClauses) = clauses.asClauses.extractUntil(
+  def removeTypeVar(name: String): Clauses =
+    Clauses(clauses.asClauses.filterUntilInclusive(
+      _ match
+        case TypeVar(varName, _) if varName == name =>
+          true
+        case _ =>
+          false,
       _ match
         case TypeVar(varName, _) if varName == name =>
           false
+        case Bound(boundName, _, _) if boundName == name =>
+          false
         case _ =>
-          true,
-      _ match
-        case Bound(boundName, boundDir, type_) if boundName == name && boundDir == dir =>
-          Some(type_)
-        case _ =>
-          None,
-    )
-
-    (types.toList, Clauses(newClauses.toList))
+          true
+    ).toList)
 
 extension (clauses: Iterator[Clause])
   /** Iterate over the term variables defined in the clauses. */

@@ -4,51 +4,51 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Get the polarities at which a variable occurs in the type. */
-  def getVarPolarities(varName : String)(using polarity: Polarity): Polarities =
+  def getVarPolarities(var_ : TVar)(using polarity: Polarity): Polarities =
     type_ match
-      case TVar(typeVarName) if typeVarName == varName =>
+      case typeVar : TVar if typeVar == var_ =>
         Polarities.fromPolarity(polarity)
       case TLam(param, ret) =>
-        val paramPolarities = param.getVarPolarities(varName)(using polarity.invert())
-        val retPolarities   = ret.getVarPolarities(varName)
+        val paramPolarities = param.getVarPolarities(var_)(using polarity.invert())
+        val retPolarities   = ret.getVarPolarities(var_)
         Polarities.join(paramPolarities, retPolarities)
       case TUnion(left, right) =>
-        val leftPolarities  = left.getVarPolarities(varName)
-        val rightPolarities = right.getVarPolarities(varName)
+        val leftPolarities  = left.getVarPolarities(var_)
+        val rightPolarities = right.getVarPolarities(var_)
         Polarities.join(leftPolarities, rightPolarities)
       case TInter(left, right) =>
-        val leftPolarities  = left.getVarPolarities(varName)
-        val rightPolarities = right.getVarPolarities(varName)
+        val leftPolarities  = left.getVarPolarities(var_)
+        val rightPolarities = right.getVarPolarities(var_)
         Polarities.join(leftPolarities, rightPolarities)
       case TConstrained(vars, base, bounds) =>
-        val basePolarities   = base.getVarPolarities(varName)
-        val boundsPolarities = bounds.getVarPolarities(varName)
+        val basePolarities   = base.getVarPolarities(var_)
+        val boundsPolarities = bounds.getVarPolarities(var_)
         Polarities.join(basePolarities, boundsPolarities)
       case TConstraining(base, bounds) =>
-        val basePolarities   = base.getVarPolarities(varName)
-        val boundsPolarities = bounds.getVarPolarities(varName)
+        val basePolarities   = base.getVarPolarities(var_)
+        val boundsPolarities = bounds.getVarPolarities(var_)
         Polarities.join(basePolarities, boundsPolarities)
       case _ =>
         Polarities.empty
 
 extension (bounds: List[Bound])
   /** Get the polarities at which a variable occurs in the list of bounds. */
-  def getVarPolarities(varName : String)(using polarity: Polarity): Polarities =
+  def getVarPolarities(var_ : TVar)(using polarity: Polarity): Polarities =
     bounds
-      .map(_.getVarPolarities(varName))
+      .map(_.getVarPolarities(var_))
       .fold(Polarities.empty)(Polarities.join)
 
 extension (bound: Bound)
   /** Get the polarities at which a variable occurs in the bound. */
-  def getVarPolarities(varName : String)(using polarity: Polarity): Polarities =
+  def getVarPolarities(var_ : TVar)(using polarity: Polarity): Polarities =
     val boundPolarity = bound.dir match
       case Direction.Sub =>
         polarity.invert()
       case Direction.Super =>
         polarity
 
-    val varPolarities = if bound.name == varName
+    val varPolarities = if bound.var_ == var_
       then Polarities.fromPolarity(boundPolarity)
       else Polarities.empty
-    val typePolarities = bound.type_.getVarPolarities(varName)(using boundPolarity)
+    val typePolarities = bound.type_.getVarPolarities(var_)(using boundPolarity)
     Polarities.join(varPolarities, typePolarities)

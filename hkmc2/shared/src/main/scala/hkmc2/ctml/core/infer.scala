@@ -27,7 +27,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
     case lam: ELam =>
       ctx.withFreshVarLevel((paramVar, ctx) =>
         given Context = ctx
-        val paramClauses = Clauses(List(TermVar(lam.paramName, paramVar)))
+        val paramClauses = Clauses(List(TermVarDecl(lam.paramName, paramVar)))
         val (bodyType, bodyClauses) = inferSeq(lam.body, paramClauses)
         (TLam(paramVar, bodyType), bodyClauses)
       )

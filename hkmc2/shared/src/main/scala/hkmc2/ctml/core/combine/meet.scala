@@ -26,6 +26,9 @@ def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
 def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
+
+  // Meet union-splittable types.
+
   var leftUnionSplit = splitUnion(left)
   if leftUnionSplit.isDefined then
     val (leftLeft, leftRight) = leftUnionSplit.get
@@ -42,12 +45,27 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
       meet(left, rightRight),
     ))
 
-  // If the two types are different classes then they are disjoint.
-  if left.isClass && right.isClass && left != right then
-    return Some(TBot)
+  // Meet constraining types.
+
+  if left.is[TConstraining] || right.is[TConstraining] then
+    val (leftBase,  leftBounds)  = left.splitConstrainings()
+    val (rightBase, rightBounds) = right.splitConstrainings()
+    if checkDisjoint(leftBase, rightBase) then
+      return Some(TBot)
+
+    val base = meet(leftBase, rightBase)
+    val bounds = ctx.meetBounds(leftBounds, rightBounds)
+    return Some(attachConstrainingBounds(base, bounds))
+
+  // Meet lambda types.
 
   if left.is[TLam] && right.is[TLam] then
     return meetLambdas(left.as[TLam], right.as[TLam])
+
+  // Meet disjoint types.
+
+  if checkDisjoint(left, right) then
+    return Some(TBot)
 
   None
 
@@ -62,6 +80,10 @@ def meetLambdas(left: TLam, right: TLam)(using ctx: Context): Option[Type] =
     return Some(TLam(param, left.ret))
 
   None
+
+/** Check if two types are disjoint. */
+def checkDisjoint(left: Type, right: Type)(using ctx: Context): Boolean =
+  return left.isClass && right.isClass && left != right
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */

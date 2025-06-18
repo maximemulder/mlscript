@@ -4,18 +4,18 @@ import hkmc2.ctml.types.*
 
 extension (bounds: List[Bound])
   /** Remove the bounds of a variable from the list of bounds. */
-  def removeVar(varName: String): List[Bound] =
-    bounds.filter((bound) => bound.name != varName)
+  def removeVar(var_ : TVar): List[Bound] =
+    bounds.filter(_.var_ != var_)
 
   /** Filter the variables bounded in a given direction in the context. */
-  def filterBoundedVars(varNames: List[String], dir: Direction): List[String] =
-    varNames.filter(bounds.isTypeVarBounded(_, dir))
+  def filterBoundedVars(vars: List[TVar], dir: Direction): List[TVar] =
+    vars.filter(bounds.isTypeVarBounded(_, dir))
 
   /** Check whether a type variable is constrained in a given direction. */
-  def isTypeVarBounded(varName: String, dir: Direction): Boolean =
-    bounds.exists((bound) => bound.name == varName && bound.dir == dir)
+  def isTypeVarBounded(var_ : TVar, dir: Direction): Boolean =
+    bounds.exists((bound) => bound.var_ == var_ && bound.dir == dir)
 
-  def filterVarDir(varName: String, dir: Direction): List[Type] =
+  def filterVarDir(var_ : TVar, dir: Direction): List[Type] =
     bounds
-      .filter((bound) => bound.name == varName && bound.dir == dir)
+      .filter((bound) => bound.var_ == var_ && bound.dir == dir)
       .map(_.type_)

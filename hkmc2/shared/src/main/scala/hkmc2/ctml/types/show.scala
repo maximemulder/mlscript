@@ -22,7 +22,7 @@ extension (type_ : Type)
         val components = left :: right.getInterComponents()
         (components.map(_.show(true)).mkString(" ∧ "), true)
       case constrained: TConstrained =>
-        (s"∀${showVarNames(constrained.vars.reverse)} ◁ {${showBounds(constrained.bounds.reverse)}}. ${constrained.base.show(false)}", true)
+        (s"∀${showTypeVars(constrained.vars.reverse)} ◁ {${showBounds(constrained.bounds.reverse)}}. ${constrained.base.show(false)}", true)
       case constraining: TConstraining =>
         (s"${constraining.base.show(false)} ▷ {${showBounds(constraining.bounds)}}", true)
 
@@ -60,7 +60,7 @@ extension (type_ : Type)
 extension (bound: Bound)
   /** Convert the bound to its string representation. */
   def show(): String =
-    return s"${bound.name} ${bound.dir} ${bound.type_}"
+    return s"${bound.var_} ${bound.dir} ${bound.type_}"
 
 extension (dir: Direction)
   /** Convert the subtyping direction to its string representation. */
@@ -96,22 +96,22 @@ extension (clause: Clause)
   /** Convert the clause to its string representation. */
   def show(): String =
     clause match
-      case var_ : TermVar =>
+      case var_ : TermVarDecl =>
         var_.show()
-      case var_ : TypeVar =>
+      case var_ : TypeVarDecl =>
         var_.show()
       case bound: Bound =>
         bound.show()
 
-extension (var_ : TermVar)
+extension (var_ : TermVarDecl)
   /** Convert the term variable to its string representation. */
   def show(): String =
     s"${var_.name}: ${var_.type_}"
 
-extension (var_ : TypeVar)
+extension (var_ : TypeVarDecl)
   /** Convert the type variable to its string representation. */
   def show(): String =
-    s"${var_.name} ${var_.kind}"
+    s"${var_.var_} ${var_.kind}"
 
 extension (kind: TypeVarKind)
   /** Convert thea type variable kind to its string representation. */
@@ -125,6 +125,6 @@ extension (kind: TypeVarKind)
 def showBounds(bounds: List[Bound]): String =
   bounds.map(_.show()).mkString(", ")
 
-/** Convert a list of variable names to its string representation. */
-def showVarNames(vars: List[String]): String =
-  vars.mkString(", ")
+/** Convert a list of type variables to its string representation. */
+def showTypeVars(vars: List[TVar]): String =
+  vars.map(_.show()).mkString(", ")

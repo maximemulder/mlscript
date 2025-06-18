@@ -1,15 +1,17 @@
+// Primitive MLScript classes.
 declare class Object
 declare class Function
-declare class Str
 declare class untyped
 
-declare class Top
-declare class Bot
+// CTML top and bottom types.
+declare type Top
+declare type Bot
 
 declare class Unit
 declare class Bool
 declare class Int
 declare class Num
+declare class Str
 
 val top: Top
 val bot: Bot

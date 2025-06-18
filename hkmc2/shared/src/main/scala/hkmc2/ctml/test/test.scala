@@ -75,31 +75,34 @@ class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName)
 
   /** Add a class to the context. */
   def testClassDecl(name: String) =
-    this.ctx = this.ctx.extend(TypeVar(name, TypeVarKind.Class))
+    val var_ = TVar(name)
+    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Class))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
-    this.ctx = this.ctx.extend(TypeVar(name, TypeVarKind.Rigid))
+    val var_ = TVar(name)
+    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Rigid))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_}")
+    val var_ = TVar(name)
     this.ctx = this.ctx.extend(
-      TypeVar(name, TypeVarKind.Rigid),
-      Bound(name, Direction.Sub,   type_),
-      Bound(name, Direction.Super, type_),
+      TypeVarDecl(var_, TypeVarKind.Rigid),
+      Bound(var_, Direction.Sub,   type_),
+      Bound(var_, Direction.Super, type_),
     )
 
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.extend(TermVar(name, type_))
+    this.ctx = this.ctx.extend(TermVarDecl(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
     val (type_, bounds) = infer(expr)(using this.ctx)
     this.output(s"${name}: ${type_}")
-    this.ctx = this.ctx.extend(TermVar(name, type_))
+    this.ctx = this.ctx.extend(TermVarDecl(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =

@@ -5,62 +5,56 @@ import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
   /** Check whether a type variable appears in the clauses. */
-  def hasVar(varName: String): Boolean =
-    clauses.elems.exists(_.hasVar(varName))
+  def hasVar(var_ : TVar): Boolean =
+    clauses.elems.exists(_.hasVar(var_))
 
 extension (clause: Clause)
   /** Check whether a type variable appears in the clause. */
-  def hasVar(varName: String): Boolean =
+  def hasVar(var_ : TVar): Boolean =
     clause match
       case bound: Bound =>
-        bound.hasVar(varName)
-      case var_ : TermVar =>
-        var_.type_.hasVar(varName)
+        bound.hasVar(var_)
+      case TermVarDecl(_, type_) =>
+        type_.hasVar(var_)
       case _ =>
         false
 
 extension (bound: Bound)
   /** Check whether a type variable appears in the bound. */
-  def hasVar(varName: String): Boolean =
-    if bound.name == varName then
+  def hasVar(var_ : TVar): Boolean =
+    if bound.var_ == var_ then
       true
     else
-      bound.type_.hasVar(varName)
+      bound.type_.hasVar(var_)
 
 extension (type_ : Type)
   /** Check whether a type variable appears in the type. */
-  def hasVar(varName: String): Boolean =
+  def hasVar(var_ : TVar): Boolean =
     type_ match
       case TBot =>
         false
       case TTop =>
         false
-      case TVar(name) if name == varName =>
+      case typeVar : TVar if typeVar == var_ =>
         true
       case _: TVar =>
         false
-      case lam: TLam =>
-        val param = lam.param.hasVar(varName)
-        val ret   = lam.ret.hasVar(varName)
-        param || ret
-      case union: TUnion =>
-        val left  = union.left.hasVar(varName)
-        val right = union.right.hasVar(varName)
-        left || right
-      case inter: TInter =>
-        val left  = inter.left.hasVar(varName)
-        val right = inter.right.hasVar(varName)
-        left || right
-      case constrained: TConstrained =>
-        if constrained.base.hasVar(varName) then
+      case TLam(param, ret) =>
+        param.hasVar(var_) || ret.hasVar(var_)
+      case TUnion(left, right) =>
+        left.hasVar(var_) || right.hasVar(var_)
+      case TInter(left, right) =>
+        left.hasVar(var_) || right.hasVar(var_)
+      case TConstrained(vars, base, bounds) =>
+        if base.hasVar(var_) then
           false
         else
-          constrained.bounds
-            .map(_.hasVar(varName))
+          bounds
+            .map(_.hasVar(var_))
             .fold(false)(_ || _)
-      case constraining: TConstraining =>
-        val base   = constraining.base.hasVar(varName)
-        val bounds = constraining.bounds
-          .map(_.hasVar(varName))
+      case TConstraining(base, bounds) =>
+        val baseHasVar    = base.hasVar(var_)
+        val boundsHaveVar = bounds
+          .map(_.hasVar(var_))
           .fold(false)(_ || _)
-        base || bounds
+        baseHasVar || boundsHaveVar

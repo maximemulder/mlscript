@@ -4,14 +4,14 @@ import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
   /** Get the list of type variables that directly depend on another type variable in the clauses. */
-  def getDependentVars(varName: String): Set[String] =
-    clauses.elems.iterator.flatMap(_.getDependentVars(varName)).toSet
+  def getDependentVars(var_ : TVar): Set[TVar] =
+    clauses.elems.iterator.flatMap(_.getDependentVars(var_)).toSet
 
 extension (clause: Clause)
   /** Get the list of type variables that directly depend on another type variable in the clause. */
-  def getDependentVars(varName: String): Set[String] =
+  def getDependentVars(var_ : TVar): Set[TVar] =
     clause match
-      case bound: Bound if bound.name != varName && bound.type_.hasVar(varName) =>
-        Set(bound.name)
+      case Bound(boundVar, _ ,boundType) if boundVar != var_ && boundType.hasVar(var_) =>
+        Set(boundVar)
       case _ =>
         Set.empty

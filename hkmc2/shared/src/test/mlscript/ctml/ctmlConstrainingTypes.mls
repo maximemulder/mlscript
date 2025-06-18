@@ -1,25 +1,404 @@
 :ctml
 
+:ctml-dbg infer var constrain
+
 fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
+//│ infer ELam(a,ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str))))))
+//│   α fresh
+//│   infer ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str)))))
+//│     β fresh
+//│     infer EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str))))
+//│       infer EVar(a)
+//│       OK α ⇝ ∅
+//│       constrain α ≤ Int ∨ Str
+//│         ADD α ≤ Int ∨ Str
+//│         constrain ⊥ ≤ Int ∨ Str
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ Int ∨ Str
+//│       ADD α ≤ Int ∨ Str
+//│       γ fresh
+//│       constrain α ≤ Int
+//│         ADD α ≤ Int
+//│         constrain ⊥ ≤ Int
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ Int
+//│       ADD α ≤ Int
+//│       infer EAscr(EVar(b),Int)
+//│         infer EVar(b)
+//│         OK β ⇝ ∅
+//│         constrain β ≤ Int
+//│           ADD β ≤ Int
+//│           constrain ⊥ ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ β ≤ Int
+//│       OK Int ⇝ β ≤ Int
+//│       ADD α ≤ Int
+//│       ADD β ≤ Int
+//│       constrain Int ≤ γ
+//│         ADD γ ≥ Int
+//│         constrain Int ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ Int
+//│       constrain α ≤ Str
+//│         ADD α ≤ Str
+//│         constrain ⊥ ≤ Str
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ Str
+//│       ADD α ≤ Str
+//│       infer EAscr(EVar(b),Str)
+//│         infer EVar(b)
+//│         OK β ⇝ ∅
+//│         constrain β ≤ Str
+//│           ADD β ≤ Str
+//│           constrain ⊥ ≤ Str
+//│           OK ⇝ ∅
+//│         OK ⇝ β ≤ Str
+//│       OK Str ⇝ β ≤ Str
+//│       ADD α ≤ Str
+//│       ADD β ≤ Str
+//│       constrain Str ≤ γ
+//│         ADD γ ≥ Str
+//│         constrain Str ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ Str
+//│       ADD β ≤ Int
+//│       ADD β ≤ Str
+//│       ADD α ≤ Int
+//│       ADD α ≤ Str
+//│       ADD γ ≥ Int
+//│       ADD γ ≥ Str
+//│     OK γ ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ fresh, α ≤ Int ∨ Str
+//│   OK β → γ ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ fresh, α ≤ Int ∨ Str, b: β, β fresh
+//│   ADD α ≤ Int ∨ Str
+//│   ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│   ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│   quantify α with ⊥ and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│   = ∀α ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. α → β → γ
+//│   ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│   quantify β with ⊥ and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│   = ∀α, β ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})}. α → β → γ
+//│   ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   quantify γ with (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) and ⊤
+//│   = ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
+//│ OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ b: β, a: α
 //│ foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
 
 foo(1, 2)
-//│ Int
+//│ infer EApp(EApp(EVar(foo),EVar(int)),EVar(int))
+//│   δ fresh
+//│   infer EApp(EVar(foo),EVar(int))
+//│     ε fresh
+//│     infer EVar(foo)
+//│     OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → ε
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       constrain α → β → γ ≤ Int → ε
+//│         constrain Int ≤ α
+//│           ADD α ≥ Int
+//│           constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Int ≤ Str
+//│                 constrain Int ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ γ ≥ Int, β ≤ Int
+//│           OK ⇝ γ ≥ Int, β ≤ Int
+//│         OK ⇝ γ ≥ Int, β ≤ Int, α ≥ Int
+//│         ADD α ≥ Int
+//│         ADD β ≤ Int
+//│         ADD γ ≥ Int
+//│         constrain β → γ ≤ ε
+//│           ADD ε ≥ β → γ
+//│           constrain β → γ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ε ≥ β → γ
+//│       OK ⇝ ε ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int
+//│     OK ⇝ ε ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh
+//│     ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD α ≥ Int
+//│     ADD β ≤ Int
+//│     ADD γ ≥ Int
+//│     ADD ε ≥ β → γ
+//│     inline ε with β → γ
+//│     = β → γ
+//│     ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD α ≥ Int
+//│     ADD β ≤ Int
+//│     ADD γ ≥ Int
+//│     quantify α with Int and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     = ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. β → γ
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD β ≤ Int
+//│     ADD γ ≥ Int
+//│     quantify β with ⊥ and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│     = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. β → γ
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD γ ≥ Int
+//│     quantify γ with Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) and ⊤
+//│     = ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ
+//│   OK ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Int → δ
+//│     γ fresh
+//│     β fresh
+//│     α fresh
+//│     ADD α ≥ Int
+//│     ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│     ADD γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     constrain β → γ ≤ Int → δ
+//│       constrain Int ≤ β
+//│         ADD β ≥ Int
+//│         constrain Int ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│           constrain Int ≤ ⊥
+//│             constrain ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│           constrain Int ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│             constrain Int ≤ Int
+//│             OK ⇝ ∅
+//│           OK ⇝ γ ≥ Int, α ≤ Int
+//│         OK ⇝ γ ≥ Int, α ≤ Int
+//│       OK ⇝ γ ≥ Int, α ≤ Int, β ≥ Int
+//│       ADD β ≥ Int
+//│       ADD α ≤ Int
+//│       ADD γ ≥ Int
+//│       constrain γ ≤ δ
+//│         ADD γ ≤ δ
+//│         constrain Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ δ
+//│           ADD δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│           constrain Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       OK ⇝ δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ
+//│     OK ⇝ δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ, γ ≥ Int, α ≤ Int, β ≥ Int
+//│   OK ⇝ δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ, γ ≥ Int, α ≤ Int, β ≥ Int, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), α ≥ Int, γ fresh, β fresh, α fresh
+//│   ADD α ≥ Int
+//│   ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│   ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│   ADD γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD β ≥ Int
+//│   ADD α ≤ Int
+//│   ADD γ ≥ Int
+//│   ADD γ ≤ δ
+//│   ADD δ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   inline δ with Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   = Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD α ≥ Int
+//│   ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│   ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│   ADD γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD β ≥ Int
+//│   ADD α ≤ Int
+//│   ADD γ ≥ Int
+//│   ADD γ ≤ δ
+//│   quantify α with Int and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥
+//│   = ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│   ADD γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD β ≥ Int
+//│   ADD γ ≥ Int
+//│   ADD γ ≤ δ
+//│   quantify β with Int and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│   = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   ADD γ ≥ Int
+//│   ADD γ ≤ δ
+//│   inline γ with δ
+//│   = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│ OK ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ⇝ ∅
+//│ ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+
+// TODO:
+// α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int})
+// This should not appear in context.
+// This should be constrained into: α ≥ Int, α ≤ Int, γ ≥ Int, β ≤ Int
+// Missing constraining when adding bound to context ?
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → ζ.
+//│ infer EApp(EApp(EVar(foo),EVar(int)),EVar(string))
+//│   ζ fresh
+//│   infer EApp(EVar(foo),EVar(int))
+//│     η fresh
+//│     infer EVar(foo)
+//│     OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → η
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       constrain α → β → γ ≤ Int → η
+//│         constrain Int ≤ α
+//│           ADD α ≥ Int
+//│           constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Int ≤ Str
+//│                 constrain Int ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ γ ≥ Int, β ≤ Int
+//│           OK ⇝ γ ≥ Int, β ≤ Int
+//│         OK ⇝ γ ≥ Int, β ≤ Int, α ≥ Int
+//│         ADD α ≥ Int
+//│         ADD β ≤ Int
+//│         ADD γ ≥ Int
+//│         constrain β → γ ≤ η
+//│           ADD η ≥ β → γ
+//│           constrain β → γ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ η ≥ β → γ
+//│       OK ⇝ η ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int
+//│     OK ⇝ η ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh
+//│     ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD α ≥ Int
+//│     ADD β ≤ Int
+//│     ADD γ ≥ Int
+//│     ADD η ≥ β → γ
+//│     inline η with β → γ
+//│     = β → γ
+//│     ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD α ≥ Int
+//│     ADD β ≤ Int
+//│     ADD γ ≥ Int
+//│     quantify α with Int and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     = ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. β → γ
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD β ≤ Int
+//│     ADD γ ≥ Int
+//│     quantify β with ⊥ and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│     = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. β → γ
+//│     ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     ADD γ ≥ Int
+//│     quantify γ with Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) and ⊤
+//│     = ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ
+//│   OK ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
+//│     γ fresh
+//│     β fresh
+//│     α fresh
+//│     ADD α ≥ Int
+//│     ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│     ADD γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     constrain β → γ ≤ Str → ζ
+//│       constrain Str ≤ β
+//│         ADD β ≥ Str
+//│         constrain Str ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│           constrain Str ≤ ⊥
+//│             constrain ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│           constrain Str ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│             constrain Str ≤ Int
+//│               constrain ⊤ ≤ Int
+//│                 constrain ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → ζ
-//│     Str ≤ Int
-//│       Str ≤ ⊥
-//│         ⊤ ≤ ⊥
+//│   ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
+//│     β → γ ≤ Str → ζ
+//│       Str ≤ β
+//│         Str ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│           Str ≤ ⊥
+//│             ⊤ ≤ ⊥
+//│           Str ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│             Str ≤ Int
+//│               ⊤ ≤ Int
+//│                 ⊤ ≤ ⊥
 
 :e
 foo(true, false)
+//│ infer EApp(EApp(EVar(foo),EVar(bool)),EVar(bool))
+//│   θ fresh
+//│   infer EApp(EVar(foo),EVar(bool))
+//│     ι fresh
+//│     infer EVar(foo)
+//│     OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       constrain α → β → γ ≤ Bool → ι
+//│         constrain Bool ≤ α
+//│           ADD α ≥ Bool
+//│           constrain Bool ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Bool ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Bool ≤ Str
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Bool ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Bool ≤ Int
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
 //│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι.
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι
@@ -28,7 +407,7 @@ foo(true, false)
 //│         Bool ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
 //│           Bool ≤ Str ▷ {γ ≥ Str, β ≤ Str}
 //│             Bool ≤ Str
-//│               ⊤ ≤ Str
+//│               Bool ≤ ⊥
 //│                 ⊤ ≤ ⊥
 //│           Bool ≤ Int ▷ {γ ≥ Int, β ≤ Int}
 //│             Bool ≤ Int
@@ -39,36 +418,255 @@ fun bar(a, b) =
   if a is
     Int then b as Int
     Top then b as Str
-//│ bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: dealWithCtorCase (Desugarer.scala:473)
+//│ ╔══[ERROR] Cannot use this identifier as a pattern
+//│ ║  l.420: 	    Top then b as Str
+//│ ╙──       	    ^^^
+//│ infer ELam(a,ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int))))))
+//│   κ fresh
+//│   infer ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)))))
+//│     λ fresh
+//│     infer EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int))))
+//│       infer EVar(a)
+//│       OK κ ⇝ ∅
+//│       constrain κ ≤ Int
+//│         ADD κ ≤ Int
+//│         constrain ⊥ ≤ Int
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ Int
+//│       ADD κ ≤ Int
+//│       μ fresh
+//│       constrain κ ≤ Int
+//│         ADD κ ≤ Int
+//│         constrain ⊥ ≤ Int
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ Int
+//│       ADD κ ≤ Int
+//│       infer EAscr(EVar(b),Int)
+//│         infer EVar(b)
+//│         OK λ ⇝ ∅
+//│         constrain λ ≤ Int
+//│           ADD λ ≤ Int
+//│           constrain ⊥ ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ λ ≤ Int
+//│       OK Int ⇝ λ ≤ Int
+//│       ADD κ ≤ Int
+//│       ADD λ ≤ Int
+//│       constrain Int ≤ μ
+//│         ADD μ ≥ Int
+//│         constrain Int ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ Int
+//│       ADD κ ≤ Int
+//│       ADD λ ≤ Int
+//│       ADD μ ≥ Int
+//│       inline μ with Int
+//│       = Int
+//│     OK Int ⇝ λ ≤ Int, κ ≤ Int, κ ≤ Int
+//│     ADD κ ≤ Int
+//│     ADD κ ≤ Int
+//│     ADD λ ≤ Int
+//│     inline λ with Int
+//│     = Int → Int
+//│   OK Int → Int ⇝ κ ≤ Int, κ ≤ Int, b: λ
+//│   ADD κ ≤ Int
+//│   ADD κ ≤ Int
+//│   inline κ with Int
+//│   = Int → Int → Int
+//│ OK Int → Int → Int ⇝ b: λ, a: κ
+//│ bar: Int → Int → Int
 
 bar(1, 1)
-//│ Str ∨ Int
+//│ infer EApp(EApp(EVar(bar),EVar(int)),EVar(int))
+//│   ν fresh
+//│   infer EApp(EVar(bar),EVar(int))
+//│     ξ fresh
+//│     infer EVar(bar)
+//│     OK Int → Int → Int ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain Int → Int → Int ≤ Int → ξ
+//│       constrain Int ≤ Int
+//│       OK ⇝ ∅
+//│       constrain Int → Int ≤ ξ
+//│         ADD ξ ≥ Int → Int
+//│         constrain Int → Int ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ ξ ≥ Int → Int
+//│     OK ⇝ ξ ≥ Int → Int
+//│     ADD ξ ≥ Int → Int
+//│     inline ξ with Int → Int
+//│     = Int → Int
+//│   OK Int → Int ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain Int → Int ≤ Int → ν
+//│     constrain Int ≤ Int
+//│     OK ⇝ ∅
+//│     constrain Int ≤ ν
+//│       ADD ν ≥ Int
+//│       constrain Int ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ ν ≥ Int
+//│   OK ⇝ ν ≥ Int
+//│   ADD ν ≥ Int
+//│   inline ν with Int
+//│   = Int
+//│ OK Int ⇝ ∅
+//│ Int
 
 bar(1, "")
-//│ Str ∨ Int
+//│ infer EApp(EApp(EVar(bar),EVar(int)),EVar(string))
+//│   ο fresh
+//│   infer EApp(EVar(bar),EVar(int))
+//│     π fresh
+//│     infer EVar(bar)
+//│     OK Int → Int → Int ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain Int → Int → Int ≤ Int → π
+//│       constrain Int ≤ Int
+//│       OK ⇝ ∅
+//│       constrain Int → Int ≤ π
+//│         ADD π ≥ Int → Int
+//│         constrain Int → Int ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ π ≥ Int → Int
+//│     OK ⇝ π ≥ Int → Int
+//│     ADD π ≥ Int → Int
+//│     inline π with Int → Int
+//│     = Int → Int
+//│   OK Int → Int ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain Int → Int ≤ Str → ο
+//│     constrain Str ≤ Int
+//│       constrain ⊤ ≤ Int
+//│         constrain ⊤ ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → ο.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → ο
+//│     Str ≤ Int
+//│       ⊤ ≤ Int
+//│         ⊤ ≤ ⊥
 
 bar("", "")
-//│ Str
+//│ infer EApp(EApp(EVar(bar),EVar(string)),EVar(string))
+//│   ρ fresh
+//│   infer EApp(EVar(bar),EVar(string))
+//│     σ fresh
+//│     infer EVar(bar)
+//│     OK Int → Int → Int ⇝ ∅
+//│     infer EVar(string)
+//│     OK Str ⇝ ∅
+//│     constrain Int → Int → Int ≤ Str → σ
+//│       constrain Str ≤ Int
+//│         constrain ⊤ ≤ Int
+//│           constrain ⊤ ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ Str → σ.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ Str → σ
+//│     Str ≤ Int
+//│       ⊤ ≤ Int
+//│         ⊤ ≤ ⊥
 
 bar(true, "")
-//│ Str
+//│ infer EApp(EApp(EVar(bar),EVar(bool)),EVar(string))
+//│   τ fresh
+//│   infer EApp(EVar(bar),EVar(bool))
+//│     υ fresh
+//│     infer EVar(bar)
+//│     OK Int → Int → Int ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain Int → Int → Int ≤ Bool → υ
+//│       constrain Bool ≤ Int
+//│         constrain Bool ≤ ⊥
+//│           constrain ⊤ ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ Bool → υ.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ Bool → υ
+//│     Bool ≤ Int
+//│       Bool ≤ ⊥
+//│         ⊤ ≤ ⊥
 
 :e
 bar(true, 1)
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → φ.
+//│ infer EApp(EApp(EVar(bar),EVar(bool)),EVar(int))
+//│   φ fresh
+//│   infer EApp(EVar(bar),EVar(bool))
+//│     χ fresh
+//│     infer EVar(bar)
+//│     OK Int → Int → Int ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain Int → Int → Int ≤ Bool → χ
+//│       constrain Bool ≤ Int
+//│         constrain Bool ≤ ⊥
+//│           constrain ⊤ ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ Bool → χ.
 //│ Typing error tree:
-//│   Str → Str ≤ Int → φ
-//│     Int ≤ Str
-//│       ⊤ ≤ Str
+//│   Int → Int → Int ≤ Bool → χ
+//│     Bool ≤ Int
+//│       Bool ≤ ⊥
 //│         ⊤ ≤ ⊥
 
 :e
 bar(true, true)
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Bool → ψ.
+//│ infer EApp(EApp(EVar(bar),EVar(bool)),EVar(bool))
+//│   ψ fresh
+//│   infer EApp(EVar(bar),EVar(bool))
+//│     ω fresh
+//│     infer EVar(bar)
+//│     OK Int → Int → Int ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain Int → Int → Int ≤ Bool → ω
+//│       constrain Bool ≤ Int
+//│         constrain Bool ≤ ⊥
+//│           constrain ⊤ ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ Bool → ω.
 //│ Typing error tree:
-//│   Str → Str ≤ Bool → ψ
-//│     Bool ≤ Str
-//│       ⊤ ≤ Str
+//│   Int → Int → Int ≤ Bool → ω
+//│     Bool ≤ Int
+//│       Bool ≤ ⊥
 //│         ⊤ ≤ ⊥
 
 
@@ -77,6 +675,81 @@ bar(true, true)
 
 :fixme
 val baz: (Int -> Int -> Int) & (Str -> Str -> Str) = foo
+//│ infer EAscr(EVar(foo),(Int → Int → Int) ∧ (Str → Str → Str))
+//│   infer EVar(foo)
+//│   OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│   constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str)
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → Int → Int
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       ADD α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       ADD β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       ADD γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       constrain α → β → γ ≤ Int → Int → Int
+//│         constrain Int ≤ α
+//│           ADD α ≥ Int
+//│           constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Int ≤ Str
+//│                 constrain Int ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ γ ≥ Int, β ≤ Int
+//│           OK ⇝ γ ≥ Int, β ≤ Int
+//│         OK ⇝ γ ≥ Int, β ≤ Int, α ≥ Int
+//│         ADD α ≥ Int
+//│         ADD β ≤ Int
+//│         ADD γ ≥ Int
+//│         constrain β → γ ≤ Int → Int
+//│           constrain Int ≤ β
+//│             ADD β ≥ Int
+//│             constrain Int ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│               constrain Int ≤ ⊥
+//│                 constrain ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│               constrain Int ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│                 constrain Int ≤ Int
+//│                 OK ⇝ ∅
+//│               OK ⇝ γ ≥ Int, α ≤ Int
+//│             OK ⇝ γ ≥ Int, α ≤ Int
+//│           OK ⇝ γ ≥ Int, α ≤ Int, β ≥ Int
+//│           ADD β ≥ Int
+//│           ADD α ≤ Int
+//│           ADD γ ≥ Int
+//│           constrain γ ≤ Int
+//│             ADD γ ≤ Int
+//│             constrain Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│               constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                 constrain Int ▷ {β ≤ Int, α ≤ Int} ≤ Int
+//│                   constrain Int ≤ Int
+//│                   OK ⇝ ∅
+//│                 OK ⇝ β ≤ Int, α ≤ Int
+//│                 constrain Str ▷ {β ≤ Str, α ≤ Str} ≤ Int
+//│                   constrain Str ≤ Int
+//│                     constrain ⊤ ≤ Int
+//│                       constrain ⊤ ≤ ⊥
+//│                       FAIL
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
 //│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str).
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str)
@@ -88,7 +761,7 @@ val baz: (Int -> Int -> Int) & (Str -> Str -> Str) = foo
 //│               (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
 //│                 Str ▷ {β ≤ Str, α ≤ Str} ≤ Int
 //│                   Str ≤ Int
-//│                     Str ≤ ⊥
+//│                     ⊤ ≤ Int
 //│                       ⊤ ≤ ⊥
 
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
@@ -98,18 +771,18 @@ bop(0, 1)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: term (Elaborator.scala:395)
 //│ ╔══[ERROR] Name not found: bop
-//│ ║  l.97: 	bop(0, 1)
-//│ ╙──      	^^^
+//│ ║  l.770: 	bop(0, 1)
+//│ ╙──       	^^^
 //│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:44)
+//│ FAILURE LOCATION: raise (test.scala:45)
 //│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
 bop("0", "1")
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: term (Elaborator.scala:395)
 //│ ╔══[ERROR] Name not found: bop
-//│ ║  l.107: 	bop("0", "1")
+//│ ║  l.780: 	bop("0", "1")
 //│ ╙──       	^^^
 //│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:44)
+//│ FAILURE LOCATION: raise (test.scala:45)
 //│ ═══[PARSE ERROR] Unsupported CTML term: Error

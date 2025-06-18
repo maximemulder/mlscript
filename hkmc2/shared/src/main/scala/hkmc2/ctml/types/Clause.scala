@@ -1,7 +1,7 @@
 package hkmc2.ctml.types
 
 /** Type alias for wrapped and unwrapped clauses. */
-type AsClauses = Clauses | List[Clause]
+type AsClauses2 = Clauses | List[Clause] | Clause
 
 /** A list of typing clauses, which can either be an input (context) or output (constraints) for a
  *  typing function. */
@@ -28,8 +28,8 @@ sealed trait Clause:
   override def toString(): String =
     this.show()
 
-/** A term variable. */
-case class TermVar (
+/** A term variable declaration. */
+case class TermVarDecl(
   /** The term variable name. */
   name: String,
   /** The term variable type. */
@@ -39,10 +39,10 @@ case class TermVar (
   override def toString(): String =
     this.show()
 
-/** A type variable. */
-case class TypeVar(
-  /** The type variable name. */
-  name: String,
+/** A type variable declaration. */
+case class TypeVarDecl(
+  /** The type variable. */
+  var_ : TVar,
   /** The type variable kind. */
   kind: TypeVarKind,
 ) extends Clause:
@@ -52,8 +52,8 @@ case class TypeVar(
 
 /** A type variable bound. */
 case class Bound(
-  /** The name of the type variable being bound. */
-  var name: String,
+  /** The type variable being bound. */
+  var var_ : TVar,
   /** The direction in which the type variable is bound.*/
   var dir: Direction,
   /** The type that bounds the type variable. */
@@ -63,9 +63,9 @@ case class Bound(
   override def toString(): String =
     this.show()
 
-/** The kind of a type variable. */
+/** A type variable kind. */
 enum TypeVarKind:
-  /** A class name, which is disjoint with other classes. */
+  /** A class, which is disjoint with other classes. */
   case Class
   /** A rigid type variable, whose bounds cannot be refined during type checking. */
   case Rigid

@@ -6,6 +6,8 @@ import hkmc2.ctml.types.*
 def debug(value : Any*) =
   outputter(("  " * DebugInfo.currentCallDepth) + value.map(_.toString()).mkString(" "))
 
+def printDebug(value : Any*) = debug(value*)
+
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context, mode: Mode): (Type, Type) => Clauses =
   if mode == Mode.Constrain && !DebugInfo.constrain then
@@ -64,44 +66,44 @@ def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Context): (Type, Type) 
     debug(s"= ${type_}")
     type_
 
-/** Print a new type variable as a debug information. */
-def debugTypeVar(var_ : TypeVar): TypeVar =
+/** Print a type variable declaration as a debug information. */
+def debugTypeVar(decl : TypeVarDecl): TypeVarDecl =
   if !DebugInfo.var_ then
-    return var_
+    return decl
 
-  debug(s"${var_.name} ${var_.kind}")
-  var_
+  debug(s"${decl.var_} ${decl.kind}")
+  decl
 
 /** Decorate the type variable quantification function to print debug information. */
-def debugQuantifyVar(impl: (Type, String, Type, Type) => Type): (Type, String, Type, Type) => Type =
+def debugQuantifyVar(impl: (Type, TVar, Type, Type) => Type): (Type, TVar, Type, Type) => Type =
   if !DebugInfo.var_ then
     return impl
 
-  (type_ : Type, name: String, lowerBound: Type, upperBound: Type) =>
-    debug(s"quantify ${name} with ${lowerBound} and ${upperBound}")
-    val newType = impl(type_, name, lowerBound, upperBound)
+  (type_ : Type, var_ : TVar, lowerBound: Type, upperBound: Type) =>
+    debug(s"quantify ${var_} with ${lowerBound} and ${upperBound}")
+    val newType = impl(type_, var_, lowerBound, upperBound)
     debug(s"= ${newType}")
     newType
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, String, Type) => Type): (Type, String, Type) => Type =
+def debugInlineVar(impl: (Type, TVar, Type) => Type): (Type, TVar, Type) => Type =
   if !DebugInfo.var_ then
     return impl
 
-  (type_ : Type, name: String, bound: Type) =>
-    debug(s"inline ${name} with ${bound}")
-    val newType = impl(type_, name, bound)
+  (type_ : Type, var_ : TVar, bound: Type) =>
+    debug(s"inline ${var_} with ${bound}")
+    val newType = impl(type_, var_, bound)
     debug(s"= ${newType}")
     newType
 
 /** Decorate the type variable ignoring function to print debug information. */
-def debugIgnoreVar(impl: (Type, String) => Type): (Type, String) => Type =
+def debugIgnoreVar(impl: (Type, TVar) => Type): (Type, TVar) => Type =
   if !DebugInfo.var_ then
     return impl
 
-  (type_ : Type, name: String) =>
-    debug(s"ignore ${name}")
-    val newType = impl(type_, name)
+  (type_ : Type, var_ : TVar) =>
+    debug(s"ignore ${var_}")
+    val newType = impl(type_, var_)
     debug(s"= ${newType}")
     newType
 

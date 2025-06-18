@@ -5,13 +5,13 @@ import hkmc2.ctml.util.*
 
 // Iteration methods for clauses.
 
-extension (clauses: AsClauses)
-  /** Iterate over the term variables defined in the clauses. */
-  def termVars: List[TermVar] =
+extension (clauses: AsClauses2)
+  /** Iterate over the term variables declared in the clauses. */
+  def termVarDecls: List[TermVarDecl] =
     clauses.asClauses.iterator.termVars.toList
 
-  /** Iterate over the type variables defined in the clauses. */
-  def typeVars: List[TypeVar] =
+  /** Iterate over the type variables declared in the clauses. */
+  def typeVarDecls: List[TypeVarDecl] =
     clauses.asClauses.iterator.typeVars.toList
 
   /** Iterate over the bounds defined in the clauses. */
@@ -19,20 +19,20 @@ extension (clauses: AsClauses)
     clauses.asClauses.iterator.bounds.toList
 
   /** Iterate over the bounds of a type variable defined in the clauses. */
-  def varBounds(name: String): List[Bound] =
-    clauses.asClauses.iterator.typeVarClauses(name).typeVarBounds(name).toList
+  def varBounds(var_ : TVar): List[Bound] =
+    clauses.asClauses.iterator.typeVarClauses(var_).typeVarBounds(var_).toList
 
-  def removeTypeVar(name: String): Clauses =
+  def removeTypeVar(var_ : TVar): Clauses =
     Clauses(clauses.asClauses.filterUntilInclusive(
       _ match
-        case TypeVar(varName, _) if varName == name =>
+        case TypeVarDecl(declVar, _) if declVar == var_ =>
           true
         case _ =>
           false,
       _ match
-        case TypeVar(varName, _) if varName == name =>
+        case TypeVarDecl(declVar, _) if declVar == var_ =>
           false
-        case Bound(boundName, _, _) if boundName == name =>
+        case Bound(boundVar, _, _) if boundVar == var_ =>
           false
         case _ =>
           true
@@ -40,18 +40,18 @@ extension (clauses: AsClauses)
 
 extension (clauses: Iterator[Clause])
   /** Iterate over the term variables defined in the clauses. */
-  def termVars: Iterator[TermVar] =
+  def termVars: Iterator[TermVarDecl] =
     clauses.flatMap(_ match
-      case var_ : TermVar =>
+      case var_ : TermVarDecl =>
         Some(var_)
       case _ =>
         None
     )
 
   /** Iterate over the type variables defined in the clauses. */
-  def typeVars: Iterator[TypeVar] =
+  def typeVars: Iterator[TypeVarDecl] =
     clauses.flatMap(_ match
-      case var_ : TypeVar =>
+      case var_ : TypeVarDecl =>
         Some(var_)
       case _ =>
         None
@@ -67,24 +67,24 @@ extension (clauses: Iterator[Clause])
     )
 
   /** Iterate over the bounds of a variable in the clauses. */
-  def typeVarBounds(name: String): Iterator[Bound] =
+  def typeVarBounds(var_ : TVar): Iterator[Bound] =
     clauses.flatMap(_ match
-      case bound: Bound if bound.name == name =>
+      case bound: Bound if bound.var_ == var_ =>
         Some(bound)
       case _ =>
         None
     )
 
   /** Iterate over the sub-clauses in the scope of a type variable in the clauses. */
-  def typeVarClauses(name: String): Iterator[Clause] =
+  def typeVarClauses(var_ : TVar): Iterator[Clause] =
     clauses.takeWhile(_ match
-      case TypeVar(varName, _) if varName == name =>
+      case TypeVarDecl(declVar, _) if declVar == var_ =>
         false
       case _ =>
         true
     )
 
-extension (clauses: AsClauses)
+extension (clauses: AsClauses2)
   def asClauses: List[Clause] =
     clauses match
       case clause: Clause =>

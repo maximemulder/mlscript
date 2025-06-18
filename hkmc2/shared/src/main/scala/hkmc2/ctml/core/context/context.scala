@@ -30,61 +30,61 @@ extension (ctx: Context)
 
   /** Join two lists of bounds in a given typing direction. */
   def joinBoundsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
-    val varNames = getBoundedVarsDir(lefts, rights, dir)
-    ctx.joinVarsBoundsDir(varNames, lefts, rights, dir)
+    val vars = getBoundedVarsDir(lefts, rights, dir)
+    ctx.joinVarsBoundsDir(vars, lefts, rights, dir)
 
   /** Get the variables bounded in a given typing direction in either of two bound lists. */
-  def getBoundedVarsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[String] =
-    val typeVars = ctx.clauses.typeVars.map(_.name).toList
+  def getBoundedVarsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[TVar] =
+    val typeVars = ctx.clauses.typeVarDecls.map(_.var_).toList
     val leftVars  = lefts.filterBoundedVars(typeVars, dir)
     val rightVars = rights.filterBoundedVars(typeVars, dir)
     joinVars(leftVars, rightVars)
 
   /** Get the join bounds of some variables in two lists of constrains in a given typing direction. */
-  def joinVarsBoundsDir(varNames: List[String], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
-    varNames.map((varName) =>
-      val type_ = ctx.joinVarBounds(varName, lefts, rights, dir)
-      Bound(varName, dir, type_)
+  def joinVarsBoundsDir(vars: List[TVar], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
+    vars.map(var_ =>
+      val type_ = ctx.joinVarBounds(var_, lefts, rights, dir)
+      Bound(var_, dir, type_)
     )
 
   /** Get the join of the bounds of a variable in two lists of constraints. */
-  def joinVarBounds(varName: String, lefts: List[Bound], rights: List[Bound], dir: Direction) =
+  def joinVarBounds(var_ : TVar, lefts: List[Bound], rights: List[Bound], dir: Direction) =
     given Context = ctx
-    val leftBounds  = lefts.filterVarDir(varName, dir)
-    val rightBounds = rights.filterVarDir(varName, dir)
+    val leftBounds  = lefts.filterVarDir(var_, dir)
+    val rightBounds = rights.filterVarDir(var_, dir)
     val leftBound  = leftBounds.combineMany(dir)
     val rightBound = rightBounds.combineMany(dir)
     val leftType  =
-      given Context = ctx.extend(Bound(varName, dir, leftBound))
+      given Context = ctx.extend(Bound(var_, dir, leftBound))
       attachConstrainingBounds(leftBound, lefts)
     val rightType =
-      given Context = ctx.extend(Bound(varName, dir, rightBound))
+      given Context = ctx.extend(Bound(var_, dir, rightBound))
       attachConstrainingBounds(rightBound, rights)
     join(leftType, rightType)
 
   // Others
 
   /** Check whether a type variable is a class in the context. */
-  def isVarClass(varName: String): Boolean =
-    ctx.getTypeVarKind(varName) == TypeVarKind.Class
+  def isVarClass(var_ : TVar): Boolean =
+    ctx.getTypeVarKind(var_) == TypeVarKind.Class
 
   /** Check whether a type variable is a fresh variable in the context. */
-  def isTypeVarFresh(varName: String): Boolean =
-    ctx.getTypeVarKind(varName) == TypeVarKind.Fresh
+  def isTypeVarFresh(var_ : TVar): Boolean =
+    ctx.getTypeVarKind(var_) == TypeVarKind.Fresh
 
   /** Check whether a type variable is a rigid variable in the context. */
-  def isTypeVarRigid(varName: String): Boolean =
-    ctx.getTypeVarKind(varName) == TypeVarKind.Rigid
+  def isTypeVarRigid(var_ : TVar): Boolean =
+    ctx.getTypeVarKind(var_) == TypeVarKind.Rigid
 
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
 
-  def compareVarLevels(left: String, right: String): Either[Unit, Unit] =
-    val first = ctx.clauses.typeVars.findMap((var_) =>
-      if var_.name == left then
+  def compareVarLevels(left: TVar, right: TVar): Either[Unit, Unit] =
+    val first = ctx.clauses.typeVarDecls.findMap(decl =>
+      if decl.var_ == left then
         Some(Left(()))
-      else if var_.name == right then
+      else if decl.var_ == right then
         Some(Right(()))
       else
         None

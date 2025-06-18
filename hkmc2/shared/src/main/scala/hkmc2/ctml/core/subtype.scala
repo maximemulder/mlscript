@@ -64,13 +64,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of fresh variables in constraining mode.
 
   if mode == Mode.Constrain then
-    if sub.is[TVar] && sup.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) && ctx.isTypeVarFresh(sup.as[TVar].name) then
+    if sub.is[TVar] && sup.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar]) && ctx.isTypeVarFresh(sup.as[TVar]) then
       return subtypeFreshVars(sub.as[TVar], sup.as[TVar])
 
-    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
+    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar]) then
       return subtypeFreshVarSub(sub.as[TVar], sup)
 
-    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
+    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar]) then
       return subtypeFreshVarSup(sub, sup.as[TVar])
 
   // Subtyping of union and intersection types.
@@ -121,11 +121,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
     return subtypeRigidVars(sub.as[TVar], sup.as[TVar])
 
   if sub.is[TVar] then
-    val upperBound = ctx.getVarUpperBound(sub.as[TVar].name)
+    val upperBound = ctx.getVarUpperBound(sub.as[TVar])
     return subtype(upperBound, sup)
 
   if sup.is[TVar] then
-    val lowerBound = ctx.getVarLowerBound(sup.as[TVar].name)
+    val lowerBound = ctx.getVarLowerBound(sup.as[TVar])
     return subtype(sub, lowerBound)
 
   // Subtyping of lambda types.
@@ -137,10 +137,10 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
 def subtypeFreshVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
-  if sub.name == sup.name then
+  if sub == sup then
     return Clauses.none
 
-  var lowest = ctx.compareVarLevels(sub.name, sup.name)
+  var lowest = ctx.compareVarLevels(sub, sup)
   lowest match
     case Left(()) =>
       subtypeFreshVarSub(sub, sup)
@@ -148,15 +148,13 @@ def subtypeFreshVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clau
       subtypeFreshVarSup(sub, sup)
 
 def subtypeFreshVarSub(sub: TVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val varName = sub.as[TVar].name
-  val upperBound = Bound(varName, Direction.Sub, sup)
-  val lowerBound = ctx.getVarLowerBound(varName)
+  val upperBound = Bound(sub, Direction.Sub, sup)
+  val lowerBound = ctx.getVarLowerBound(sub)
   subtypeSeq(lowerBound, sup, upperBound.asClauses)
 
 def subtypeFreshVarSup(sub: Type, sup: TVar)(using ctx: Context, mode: Mode): Clauses =
-  val varName = sup.as[TVar].name
-  val lowerBound = Bound(varName, Direction.Super, sub)
-  val upperBound = ctx.getVarUpperBound(varName)
+  val lowerBound = Bound(sup, Direction.Super, sub)
+  val upperBound = ctx.getVarUpperBound(sup)
   subtypeSeq(sub, upperBound, lowerBound.asClauses)
 
 def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clauses =
@@ -164,32 +162,34 @@ def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clau
   if sub.name == sup.name then
     return Clauses.none
 
-  var lowest = ctx.compareVarLevels(sub.name, sup.name)
+  var lowest = ctx.compareVarLevels(sub, sup)
   lowest match
     case Left(()) =>
-      val upperBound = ctx.getVarUpperBound(sub.name)
+      val upperBound = ctx.getVarUpperBound(sub)
       subtype(upperBound, sup)
     case Right(()) =>
-      val lowerBound = ctx.getVarLowerBound(sup.name)
+      val lowerBound = ctx.getVarLowerBound(sup)
       subtype(sub, lowerBound)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
-  given Context = ctx.extend(subVars, sub.bounds)
+  /* given Context = ctx.extend(subVars, sub.bounds)
   val test = subtype(sub.base, sup)
   // TODO: Correctly handle escaping.
-  Clauses(subVars).concat(test)
-  // subtypeSeq(sub.base, sup, Clauses(sub.bounds ::: subVars))
+  Clauses(subVars).concat(test) */
+  // TODO: Do not add the bounds directly to the clauses but constrain.
+  subtypeSeq(sub.base, sup, Clauses(sub.bounds ::: subVars))
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
-  given Context = ctx.extend(supVars, sup.bounds)
+  /* given Context = ctx.extend(supVars, sup.bounds)
   val test = subtype(sub, sup.base)
   // TODO: Correctly handle escaping.
-  Clauses(supVars).concat(test)
-  // subtypeSeq(sub, sup.base, Clauses(sup.bounds ::: supVars))
+  Clauses(supVars).concat(test) */
+  // TODO: Do not add the bounds directly to the clauses but constrain.
+  subtypeSeq(sub, sup.base, Clauses(sup.bounds ::: supVars))
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =
@@ -200,10 +200,18 @@ def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =
 def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: Mode): Clauses =
   sups
     .foldRight(Clauses.none)((sup, clauses) =>
-      val subTypes = subs.filterVarDir(sup.name, sup.dir)
+      val subTypes = subs.filterVarDir(sup.var_, sup.dir)
       val subType = subTypes.combineMany(sup.dir)
       subtype(subType, sup.type_)
     )
+
+/* def subtypeBound(bound: List[Bound])(using ctx: Context, mode: Mode): Clauses =
+  if mode == Mode.Constrain then
+    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
+      return subtypeFreshVarSub(sub.as[TVar], sup)
+
+    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
+      return subtypeFreshVarSup(sub, sup.as[TVar]) */
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSubtype(sub: Type, sup: Type)(using ctx: Context): Boolean =
@@ -223,11 +231,10 @@ def checkEqual(left: Type, right: Type)(using ctx: Context): Boolean =
 extension (ctx: Context)
   /** Check if a bound is satisified in the context. */
   def checkBoundSatisfied(bound: Bound): Boolean =
-    val var_ = TVar(bound.name)
     bound.dir match
       case Direction.Sub =>
         given Context = ctx
-        checkSubtype(var_, bound.type_)
+        checkSubtype(bound.var_, bound.type_)
       case Direction.Super =>
         given Context = ctx
-        checkSubtype(bound.type_, var_)
+        checkSubtype(bound.type_, bound.var_)

@@ -23,20 +23,20 @@ def newFreshVarName(): String =
     i.toString()
 
 /** Get a fresh typed variable with a new unique name. */
-def newInferFreshVar(): TypeVar =
-  val varName = newFreshVarName()
-  newFreshVar(varName)
+def newInferFreshVar(): TypeVarDecl =
+  val name = newFreshVarName()
+  newFreshVar(TVar(name))
 
-/** Get a fresh type variable with a given name. */
-def newFreshVar(varName: String): TypeVar =
-  debugTypeVar(TypeVar(varName, TypeVarKind.Fresh))
+/** Get a new fresh type variable declaration. */
+def newFreshVar(var_ : TVar): TypeVarDecl =
+  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Fresh))
 
-/** Get a rigid type variable with a given name. */
-def newRigidVar(varName: String): TypeVar =
-  debugTypeVar(TypeVar(varName, TypeVarKind.Rigid))
+/** Get a new rigid type variable declaration. */
+def newRigidVar(var_ : TVar): TypeVarDecl =
+  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Rigid))
 
 /** Join two lists of variables by removing duplicates between those lists. */
-def joinVars(lefts: List[String], rights: List[String]): List[String] =
+def joinVars(lefts: List[TVar], rights: List[TVar]): List[TVar] =
   val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
   lefts ::: filteredRights
 
@@ -44,7 +44,7 @@ extension (type_ : Type)(using ctx: Context)
   /** Check whether the type is a class reference. */
   def isClass: Boolean =
     type_ match
-      case TVar(name) =>
-        ctx.isVarClass(name)
+      case var_ : TVar =>
+        ctx.isVarClass(var_)
       case _ =>
         false

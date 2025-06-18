@@ -39,7 +39,9 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
         parseClassDecl(mlSymbol)
-      case TypeDef(mlSymbol, _, Some(mlType ), _, _) =>
+      case TypeDef(mlSymbol, _, None, _, _) =>
+        parseTypeDecl(mlSymbol)
+      case TypeDef(mlSymbol, _, Some(mlType), _, _) =>
         parseTypeVar(mlSymbol, mlType)
       case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
         parseExprDecl(mlSymbol, mlType)
@@ -67,8 +69,13 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         throw new ParseError(mlStmt)
   )
 
-/** Convert an MLScript class declaration to a CTML type variable declaration. */
+/** Convert an MLScript class declaration to a CTML class declaration. */
 def parseClassDecl(mlSymbol: BlockMemberSymbol): Stmt =
+  val name = mlSymbol.nme
+  StmtClassDecl(name)
+
+/** Convert an MLScript type declaration to a CTML type variable declaration. */
+def parseTypeDecl(mlSymbol: TypeAliasSymbol): Stmt =
   val name = mlSymbol.nme
   StmtTypeDecl(name)
 

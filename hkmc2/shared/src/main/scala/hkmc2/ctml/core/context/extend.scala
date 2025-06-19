@@ -17,8 +17,7 @@ extension (ctx: Context)
   /** Append a clause at the end of the clauses. */
   def extendOne(clause: Clause): Context =
     clause match
-      case boundi @ Bound(name, dir, type_) =>
-        printDebug(s"ADD ${boundi}")
+      case Bound(name, dir, type_) =>
         val boundTypes = ctx.getVarBounds(name, dir)
         // TODO: Propagate constraining bounds.
         val boundType = (type_ :: boundTypes).combineMany(dir)(using ctx)

@@ -34,3 +34,9 @@ extension (ctx: Context)
         bounds
       case None =>
         throw TypeError(None, errorTrees.toList)
+
+/** Evaluate a typing function sequencially. */
+def seq(f: () => Context ?=> Clauses, ins: Clauses)(using ctx: Context): Clauses =
+  given Context = ctx.extend(ins)
+  val outs = f()
+  ins.concat(outs)

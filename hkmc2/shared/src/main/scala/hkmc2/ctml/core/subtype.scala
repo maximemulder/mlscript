@@ -17,9 +17,7 @@ def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context, mode: M
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
-  given Context = ctx.extend(ins)
-  val outs = subtype(sub, sup)
-  ins.concat(outs)
+  seq(() => subtype(sub, sup), ins)
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
@@ -186,7 +184,8 @@ def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode
   // TODO: Correctly handle escaping.
   Clauses(subVars).concat(test) */
   // TODO: Do not add the bounds directly to the clauses but constrain.
-  subtypeSeq(sub.base, sup, Clauses(sub.bounds ::: subVars))
+  val outs = sub.bounds.foldRight(Clauses.none)((bound, outs) => seq(() => constrainBound(bound), outs))
+  subtypeSeq(sub.base, sup, Clauses(subVars).concat(outs))
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
@@ -196,7 +195,8 @@ def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode
   // TODO: Correctly handle escaping.
   Clauses(supVars).concat(test) */
   // TODO: Do not add the bounds directly to the clauses but constrain.
-  subtypeSeq(sub, sup.base, Clauses(sup.bounds ::: supVars))
+  val outs = sup.bounds.foldRight(Clauses.none)((bound, outs) => seq(() => constrainBound(bound), outs))
+  subtypeSeq(sub, sup.base, Clauses(supVars).concat(outs))
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =
@@ -212,13 +212,8 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode
       subtype(subType, sup.type_)
     )
 
-/* def subtypeBound(bound: List[Bound])(using ctx: Context, mode: Mode): Clauses =
-  if mode == Mode.Constrain then
-    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].name) then
-      return subtypeFreshVarSub(sub.as[TVar], sup)
-
-    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].name) then
-      return subtypeFreshVarSup(sub, sup.as[TVar]) */
+def constrainBound(bound: Bound)(using ctx: Context, mode: Mode): Clauses =
+  subtypeDir(TVar(bound.var_), bound.type_, bound.dir)
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSubtype(sub: Type, sup: Type)(using ctx: Context): Boolean =

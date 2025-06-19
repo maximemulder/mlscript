@@ -6,7 +6,7 @@ extension (type_ : Type)
   /** Get the polarities at which a variable occurs in the type. */
   def getVarPolarities(var_ : TypeVar)(using polarity: Polarity): Polarities =
     type_ match
-      case typeVar : TVar if typeVar == var_ =>
+      case TVar(typeVar) if typeVar == var_ =>
         Polarities.fromPolarity(polarity)
       case TLam(param, ret) =>
         val paramPolarities = param.getVarPolarities(var_)(using polarity.invert())

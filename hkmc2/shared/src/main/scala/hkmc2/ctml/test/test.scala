@@ -35,7 +35,7 @@ class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName)
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
-    outputter = output
+    DebugInfo.output = output
 
     // Try to parse the input term.
     val stmts = try

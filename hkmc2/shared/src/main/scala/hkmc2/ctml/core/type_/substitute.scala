@@ -8,7 +8,7 @@ extension (type_ : Type)
   /** Replace a type variable by a subtitute type in a type. */
   def substitute(var_ : TypeVar, substitute: Type)(using ctx: Context): Type =
     type_ match
-      case typeVar : TVar if typeVar == var_ =>
+      case TVar(typeVar) if typeVar == var_ =>
         substitute
       case TLam(param, ret) =>
         val newParam = param.substitute(var_, substitute)

@@ -3,108 +3,115 @@ package hkmc2.ctml.core.debug
 import hkmc2.ctml.types.*
 
 /** Convert a value to a string and print it with the debug print function. */
-def debug(value : Any*) =
-  outputter(("  " * DebugInfo.currentCallDepth) + value.map(_.toString()).mkString(" "))
+def output(value : Any*) =
+  DebugInfo.output(("  " * DebugInfo.currentCallDepth) + value.map(_.toString()).mkString(" "))
 
-def printDebug(value : Any*) = debug(value*)
+/** Print a debugging message with the context if the context flag is enabled. */
+def outputContext(message: String)(using ctx: Context) =
+  val fullMessage = if DebugFlags.context then
+    message.concat(s" in ${ctx}")
+  else
+    message
+
+  output(fullMessage)
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context, mode: Mode): (Type, Type) => Clauses =
-  if mode == Mode.Constrain && !DebugInfo.constrain then
+  if mode == Mode.Constrain && !DebugFlags.constrain then
     return impl
 
-  if mode == Mode.Check && !DebugInfo.check then
+  if mode == Mode.Check && !DebugFlags.check then
     return impl
 
   (sub: Type, sup: Type) =>
     try
-      debug(s"${mode} ${sub} ≤ ${sup}")
+      outputContext(s"${mode} ${sub} ≤ ${sup}")
       val outs = debugCall(() => impl(sub, sup))
-      debug(s"OK ⇝ ${outs}")
+      output(s"OK ⇝ ${outs}")
       outs
     catch
       case error: TypeError =>
-        debug("FAIL")
+        output("FAIL")
         throw error
 
 /** Decorate the type inference function to print debug information. */
 def inferWithDebug(impl: Expr => (Type, Clauses))(using ctx: Context): Expr => (Type, Clauses) =
-  if !DebugInfo.infer then
+  if !DebugFlags.infer then
     return impl
 
   (expr: Expr) =>
-    debug(s"infer ${expr}")
+    outputContext(s"infer ${expr}")
 
     try
       val (type_, outs) = debugCall(() => impl(expr))
-      debug(s"OK ${type_} ⇝ ${outs}")
+      output(s"OK ${type_} ⇝ ${outs}")
       (type_, outs)
     catch
       case error: TypeError =>
-        debug("FAIL")
+        output("FAIL")
         throw error
 
 /** Decorate the type join function to print debug information. */
 def joinWithDebug(impl: (Type, Type) => Type)(using ctx: Context): (Type, Type) => Type =
-  if !DebugInfo.join then
+  if !DebugFlags.join then
     return impl
 
   (left: Type, right: Type) =>
-    debug(s"join ${left} and ${right}")
+    outputContext(s"join ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))
-    debug(s"= ${type_}")
+    output(s"= ${type_}")
     type_
 
 /** Decorate the type meet function to print debug information. */
 def meetWithDebug(impl: (Type, Type) => Type)(using ctx: Context): (Type, Type) => Type =
-  if !DebugInfo.meet then
+  if !DebugFlags.meet then
     return impl
 
   (left: Type, right: Type) =>
-    debug(s"meet ${left} and ${right}")
+    outputContext(s"meet ${left} and ${right}")
     val type_ = debugCall(() => impl(left, right))
-    debug(s"= ${type_}")
+    output(s"= ${type_}")
     type_
 
 /** Print a type variable declaration as a debug information. */
-def debugTypeVar(decl : TypeVarDecl): TypeVarDecl =
-  if !DebugInfo.var_ then
+def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
+  if !DebugFlags.var_ then
     return decl
 
-  debug(s"${decl.var_} ${decl.kind}")
+  output(s"${decl.var_} ${decl.kind}")
   decl
 
 /** Decorate the type variable quantification function to print debug information. */
 def debugQuantifyVar(impl: (Type, TypeVar, Type, Type) => Type): (Type, TypeVar, Type, Type) => Type =
-  if !DebugInfo.var_ then
+  if !DebugFlags.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type) =>
-    debug(s"quantify ${var_} with ${lowerBound} and ${upperBound}")
+    output(s"quantify ${var_} with ${lowerBound} and ${upperBound} in ${type_}")
     val newType = impl(type_, var_, lowerBound, upperBound)
-    debug(s"= ${newType}")
+    output(s"= ${newType}")
     newType
 
 /** Decorate the type variable inlining function to print debug information. */
 def debugInlineVar(impl: (Type, TypeVar, Type) => Type): (Type, TypeVar, Type) => Type =
-  if !DebugInfo.var_ then
+  if !DebugFlags.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, bound: Type) =>
-    debug(s"inline ${var_} with ${bound}")
+    output(s"inline ${var_} with ${bound} in ${type_}")
     val newType = impl(type_, var_, bound)
-    debug(s"= ${newType}")
+    output(s"= ${newType}")
     newType
 
 /** Decorate the type variable ignoring function to print debug information. */
 def debugIgnoreVar(impl: (Type, TypeVar) => Type): (Type, TypeVar) => Type =
-  if !DebugInfo.var_ then
+  if !DebugFlags.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar) =>
-    debug(s"ignore ${var_}")
+    output(s"ignore ${var_} in ${type_}")
     val newType = impl(type_, var_)
-    debug(s"= ${newType}")
+    output(s"= ${newType}")
     newType
 
 /** Register and call a function in the debug environment. */

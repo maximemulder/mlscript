@@ -64,14 +64,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of fresh variables in constraining mode.
 
   if mode == Mode.Constrain then
-    if sub.is[TVar] && sup.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar]) && ctx.isTypeVarFresh(sup.as[TVar]) then
-      return subtypeFreshVars(sub.as[TVar], sup.as[TVar])
+    if sub.is[TVar] && sup.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].var_) && ctx.isTypeVarFresh(sup.as[TVar].var_) then
+      return subtypeFreshVars(sub.as[TVar].var_, sup.as[TVar].var_)
 
-    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar]) then
-      return subtypeFreshVarSub(sub.as[TVar], sup)
+    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].var_) then
+      return subtypeFreshVarSub(sub.as[TVar].var_, sup)
 
-    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar]) then
-      return subtypeFreshVarSup(sub, sup.as[TVar])
+    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].var_) then
+      return subtypeFreshVarSup(sub, sup.as[TVar].var_)
 
   // Subtyping of union and intersection types.
 
@@ -118,14 +118,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of rigid variables or fresh variables in checking mode.
 
   if sub.is[TVar] && sup.is[TVar] then
-    return subtypeRigidVars(sub.as[TVar], sup.as[TVar])
+    return subtypeRigidVars(sub.as[TVar].var_, sup.as[TVar].var_)
 
   if sub.is[TVar] then
-    val upperBound = ctx.getVarUpperBound(sub.as[TVar])
+    val upperBound = ctx.getVarUpperBound(sub.as[TVar].var_)
     return subtype(upperBound, sup)
 
   if sup.is[TVar] then
-    val lowerBound = ctx.getVarLowerBound(sup.as[TVar])
+    val lowerBound = ctx.getVarLowerBound(sup.as[TVar].var_)
     return subtype(sub, lowerBound)
 
   // Subtyping of lambda types.
@@ -135,7 +135,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   throw TypeError()
 
-def subtypeFreshVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clauses =
+def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub == sup then
     return Clauses.none
@@ -143,21 +143,21 @@ def subtypeFreshVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clau
   var lowest = ctx.compareVarLevels(sub, sup)
   lowest match
     case Left(()) =>
-      subtypeFreshVarSub(sub, sup)
+      subtypeFreshVarSub(sub, TVar(sup))
     case Right(()) =>
-      subtypeFreshVarSup(sub, sup)
+      subtypeFreshVarSup(TVar(sub), sup)
 
-def subtypeFreshVarSub(sub: TVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
+def subtypeFreshVarSub(sub: TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
   val upperBound = Bound(sub, Direction.Sub, sup)
   val lowerBound = ctx.getVarLowerBound(sub)
   subtypeSeq(lowerBound, sup, upperBound.asClauses)
 
-def subtypeFreshVarSup(sub: Type, sup: TVar)(using ctx: Context, mode: Mode): Clauses =
+def subtypeFreshVarSup(sub: Type, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   val lowerBound = Bound(sup, Direction.Super, sub)
   val upperBound = ctx.getVarUpperBound(sup)
   subtypeSeq(sub, upperBound, lowerBound.asClauses)
 
-def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clauses =
+def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub.name == sup.name then
     return Clauses.none
@@ -166,10 +166,10 @@ def subtypeRigidVars(sub: TVar, sup: TVar)(using ctx: Context, mode: Mode): Clau
   lowest match
     case Left(()) =>
       val upperBound = ctx.getVarUpperBound(sub)
-      subtype(upperBound, sup)
+      subtype(upperBound, TVar(sup))
     case Right(()) =>
       val lowerBound = ctx.getVarLowerBound(sup)
-      subtype(sub, lowerBound)
+      subtype(TVar(sub), lowerBound)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
@@ -234,7 +234,7 @@ extension (ctx: Context)
     bound.dir match
       case Direction.Sub =>
         given Context = ctx
-        checkSubtype(bound.var_, bound.type_)
+        checkSubtype(TVar(bound.var_), bound.type_)
       case Direction.Super =>
         given Context = ctx
-        checkSubtype(bound.type_, bound.var_)
+        checkSubtype(bound.type_, TVar(bound.var_))

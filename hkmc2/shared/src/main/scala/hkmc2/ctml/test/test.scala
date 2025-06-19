@@ -75,18 +75,18 @@ class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName)
 
   /** Add a class to the context. */
   def testClassDecl(name: String) =
-    val var_ = TVar(name)
+    val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Class))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
-    val var_ = TVar(name)
+    val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Rigid))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_}")
-    val var_ = TVar(name)
+    val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(
       TypeVarDecl(var_, TypeVarKind.Rigid),
       Bound(var_, Direction.Sub,   type_),

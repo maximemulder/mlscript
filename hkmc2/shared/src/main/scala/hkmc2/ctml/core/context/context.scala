@@ -34,21 +34,21 @@ extension (ctx: Context)
     ctx.joinVarsBoundsDir(vars, lefts, rights, dir)
 
   /** Get the variables bounded in a given typing direction in either of two bound lists. */
-  def getBoundedVarsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[TVar] =
+  def getBoundedVarsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[TypeVar] =
     val typeVars = ctx.clauses.typeVarDecls.map(_.var_).toList
     val leftVars  = lefts.filterBoundedVars(typeVars, dir)
     val rightVars = rights.filterBoundedVars(typeVars, dir)
     joinVars(leftVars, rightVars)
 
   /** Get the join bounds of some variables in two lists of constrains in a given typing direction. */
-  def joinVarsBoundsDir(vars: List[TVar], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
+  def joinVarsBoundsDir(vars: List[TypeVar], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
     vars.map(var_ =>
       val type_ = ctx.joinVarBounds(var_, lefts, rights, dir)
       Bound(var_, dir, type_)
     )
 
   /** Get the join of the bounds of a variable in two lists of constraints. */
-  def joinVarBounds(var_ : TVar, lefts: List[Bound], rights: List[Bound], dir: Direction) =
+  def joinVarBounds(var_ : TypeVar, lefts: List[Bound], rights: List[Bound], dir: Direction) =
     given Context = ctx
     val leftBounds  = lefts.filterVarDir(var_, dir)
     val rightBounds = rights.filterVarDir(var_, dir)
@@ -65,22 +65,22 @@ extension (ctx: Context)
   // Others
 
   /** Check whether a type variable is a class in the context. */
-  def isVarClass(var_ : TVar): Boolean =
+  def isVarClass(var_ : TypeVar): Boolean =
     ctx.getTypeVarKind(var_) == TypeVarKind.Class
 
   /** Check whether a type variable is a fresh variable in the context. */
-  def isTypeVarFresh(var_ : TVar): Boolean =
+  def isTypeVarFresh(var_ : TypeVar): Boolean =
     ctx.getTypeVarKind(var_) == TypeVarKind.Fresh
 
   /** Check whether a type variable is a rigid variable in the context. */
-  def isTypeVarRigid(var_ : TVar): Boolean =
+  def isTypeVarRigid(var_ : TypeVar): Boolean =
     ctx.getTypeVarKind(var_) == TypeVarKind.Rigid
 
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
 
-  def compareVarLevels(left: TVar, right: TVar): Either[Unit, Unit] =
+  def compareVarLevels(left: TypeVar, right: TypeVar): Either[Unit, Unit] =
     val first = ctx.clauses.typeVarDecls.findMap(decl =>
       if decl.var_ == left then
         Some(Left(()))

@@ -42,7 +42,7 @@ case class TermVarDecl(
 /** A type variable declaration. */
 case class TypeVarDecl(
   /** The type variable. */
-  var_ : TVar,
+  var_ : TypeVar,
   /** The type variable kind. */
   kind: TypeVarKind,
 ) extends Clause:
@@ -53,7 +53,7 @@ case class TypeVarDecl(
 /** A type variable bound. */
 case class Bound(
   /** The type variable being bound. */
-  var var_ : TVar,
+  var var_ : TypeVar,
   /** The direction in which the type variable is bound.*/
   var dir: Direction,
   /** The type that bounds the type variable. */

@@ -6,7 +6,7 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Replace a type variable by a subtitute type in a type. */
-  def substitute(var_ : TVar, substitute: Type)(using ctx: Context): Type =
+  def substitute(var_ : TypeVar, substitute: Type)(using ctx: Context): Type =
     type_ match
       case typeVar : TVar if typeVar == var_ =>
         substitute
@@ -35,7 +35,7 @@ extension (type_ : Type)
 
 extension (bounds: List[Bound])
   /** Substitute a type variable by a type in the list of bounds. */
-  def substitute(var_ : TVar, substitute: Type)(using ctx: Context): List[Bound] =
+  def substitute(var_ : TypeVar, substitute: Type)(using ctx: Context): List[Bound] =
     bounds.iterator
       .filter(_.var_ != var_)
       .map(_.substitute(var_, substitute))
@@ -43,6 +43,6 @@ extension (bounds: List[Bound])
 
 extension (bound: Bound)
   /** Substitute a type variable by a type in the bound. */
-  def substitute(var_ : TVar, substitute: Type)(using ctx: Context): Bound =
+  def substitute(var_ : TypeVar, substitute: Type)(using ctx: Context): Bound =
     val newType = bound.type_.substitute(var_, substitute)
     Bound(bound.var_, bound.dir, newType)

@@ -139,7 +139,7 @@ def parseType(mlType: Term): Type =
         case "Bot" =>
           TBot
         case name =>
-          TVar(name)
+          TVar(TypeVar(name))
     case Term.FunTy(mlParams, mlRet, _) =>
       parseTypeLambda(mlParams, mlRet)
     case Term.CompType(mlLeft, mlRight, true) =>

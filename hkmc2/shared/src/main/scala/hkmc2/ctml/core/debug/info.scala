@@ -70,6 +70,7 @@ object DebugFlags:
     return true
 
   def reset() =
+    this.context   = false
     this.infer     = false
     this.constrain = false
     this.check     = false

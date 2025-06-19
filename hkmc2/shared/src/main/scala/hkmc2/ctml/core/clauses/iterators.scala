@@ -19,10 +19,10 @@ extension (clauses: AsClauses2)
     clauses.asClauses.iterator.bounds.toList
 
   /** Iterate over the bounds of a type variable defined in the clauses. */
-  def varBounds(var_ : TVar): List[Bound] =
+  def varBounds(var_ : TypeVar): List[Bound] =
     clauses.asClauses.iterator.typeVarClauses(var_).typeVarBounds(var_).toList
 
-  def removeTypeVar(var_ : TVar): Clauses =
+  def removeTypeVar(var_ : TypeVar): Clauses =
     Clauses(clauses.asClauses.filterUntilInclusive(
       _ match
         case TypeVarDecl(declVar, _) if declVar == var_ =>
@@ -67,7 +67,7 @@ extension (clauses: Iterator[Clause])
     )
 
   /** Iterate over the bounds of a variable in the clauses. */
-  def typeVarBounds(var_ : TVar): Iterator[Bound] =
+  def typeVarBounds(var_ : TypeVar): Iterator[Bound] =
     clauses.flatMap(_ match
       case bound: Bound if bound.var_ == var_ =>
         Some(bound)
@@ -76,7 +76,7 @@ extension (clauses: Iterator[Clause])
     )
 
   /** Iterate over the sub-clauses in the scope of a type variable in the clauses. */
-  def typeVarClauses(var_ : TVar): Iterator[Clause] =
+  def typeVarClauses(var_ : TypeVar): Iterator[Clause] =
     clauses.takeWhile(_ match
       case TypeVarDecl(declVar, _) if declVar == var_ =>
         false

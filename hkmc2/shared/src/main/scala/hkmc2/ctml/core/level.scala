@@ -20,7 +20,7 @@ extension (ctx: Context)
 
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
-  def withFreshVarLevel(f: (TVar, Context) => (Type, Clauses)): (Type, Clauses) =
+  def withFreshVarLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
     // Create a new fresh type variable, make it a type, and add it to the context.
     val freshDecl = newInferFreshVar()
     val freshCtx = ctx.extend(freshDecl)
@@ -34,7 +34,7 @@ extension (ctx: Context)
     // Solve the level.
     ctx.solveLevel(type_, outs)
 
-  def processLevelVar(type_ : Type, var_ : TVar, levelVars: Set[TVar], outs: Clauses): (Type, Clauses) =
+  def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[TypeVar], outs: Clauses): (Type, Clauses) =
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_)
@@ -52,7 +52,7 @@ extension (ctx: Context)
     (newType, outs.removeTypeVar(var_))
 
   /** Get the type variables of this level. */
-  def getLevelVars(outs: Clauses): List[TVar] =
+  def getLevelVars(outs: Clauses): List[TypeVar] =
     // Get the type variables declared at this level.
     val vars = outs.typeVarDecls.map(_.var_).toList
 
@@ -66,7 +66,7 @@ extension (ctx: Context)
     )
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */
-  def isVarConstrained(var_ : TVar, levelVars: Set[TVar]): Boolean =
+  def isVarConstrained(var_ : TypeVar, levelVars: Set[TypeVar]): Boolean =
     val types = levelVars.toList.flatMap(var_ => List.concat(
       ctx.getVarLowerBounds(var_),
       ctx.getVarUpperBounds(var_),
@@ -75,25 +75,25 @@ extension (ctx: Context)
     types.exists(_.getConstrainedVars().contains(var_))
 
 /** Quantify a type variable in a type. */
-def quantifyVar(type_ : Type, var_ : TVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
+def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
   debugQuantifyVar(quantifyVarImpl)(type_, var_, lowerBound, upperBound)
 
 /** Implementation of `quantifyVar`. */
-def quantifyVarImpl(type_ : Type, var_ : TVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
+def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
   attachConstrainedBounds(type_, var_, lowerBound, upperBound)
 
 /** Inline a type variable in a type. */
-def inlineVar(type_ : Type, var_ : TVar, bound: Type)(using ctx: Context): Type =
+def inlineVar(type_ : Type, var_ : TypeVar, bound: Type)(using ctx: Context): Type =
   debugInlineVar(inlineVarImpl)(type_, var_, bound)
 
 /** Implementation of `inlineVar`. */
-def inlineVarImpl(type_ : Type, var_ : TVar, bound: Type)(using ctx: Context): Type =
+def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type)(using ctx: Context): Type =
   type_.substitute(var_, bound)
 
 /** Ignore a type variable in a type. */
-def ignoreVar(type_ : Type, var_ : TVar)(using ctx: Context): Type =
+def ignoreVar(type_ : Type, var_ : TypeVar)(using ctx: Context): Type =
   debugIgnoreVar(ignoreVarImpl)(type_, var_)
 
 /** Implementation of `ignoreVar`. */
-def ignoreVarImpl(type_ : Type, var_ : TVar)(using ctx: Context): Type =
+def ignoreVarImpl(type_ : Type, var_ : TypeVar)(using ctx: Context): Type =
   type_

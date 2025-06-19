@@ -10,8 +10,8 @@ extension (type_ : Type)
         ("⊥", false)
       case _: TTop =>
         ("⊤", false)
-      case TVar(name) =>
-        (name, false)
+      case TVar(var_) =>
+        (var_.show(), false)
       case TLam(param, ret) =>
         val components = param :: ret.getLambdaComponents()
         (components.map(_.show(true)).mkString(" → "), true)
@@ -57,10 +57,15 @@ extension (type_ : Type)
       case _ =>
         type_ :: Nil
 
+extension (var_ : TypeVar)
+  /** Convert the type variable to its string representation. */
+  def show(): String =
+    var_.name
+
 extension (bound: Bound)
   /** Convert the bound to its string representation. */
   def show(): String =
-    return s"${bound.var_} ${bound.dir} ${bound.type_}"
+    s"${bound.var_} ${bound.dir} ${bound.type_}"
 
 extension (dir: Direction)
   /** Convert the subtyping direction to its string representation. */
@@ -126,5 +131,5 @@ def showBounds(bounds: List[Bound]): String =
   bounds.map(_.show()).mkString(", ")
 
 /** Convert a list of type variables to its string representation. */
-def showTypeVars(vars: List[TVar]): String =
+def showTypeVars(vars: List[TypeVar]): String =
   vars.map(_.show()).mkString(", ")

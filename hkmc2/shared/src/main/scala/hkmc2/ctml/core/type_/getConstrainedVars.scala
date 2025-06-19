@@ -5,18 +5,22 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Get the set of variables that appear in the bounds of a constraining type. */
-  def getConstrainedVars(): Set[TVar] =
+  def getConstrainedVars(): Set[TypeVar] =
     type_ match
       case TConstraining(base, bounds) =>
-        val baseVars = base.getConstrainedVars()
-        val boundsVars = bounds.map(_.var_)
-        Set.concat(baseVars, boundsVars)
+        Set.concat(
+          base.getConstrainedVars(),
+          bounds.map(_.var_),
+        )
       case TUnion(left, right) =>
-        val leftVars  = left.getConstrainedVars()
-        val rightVars = right.getConstrainedVars()
-        Set.concat(leftVars, rightVars)
+        Set.concat(
+          left.getConstrainedVars(),
+          right.getConstrainedVars(),
+        )
       case TInter(left, right) =>
-        val leftVars  = left.getConstrainedVars()
-        val rightVars = right.getConstrainedVars()
-        Set.concat(leftVars, rightVars)
-      case _ => Set.empty
+        Set.concat(
+          left.getConstrainedVars(),
+          right.getConstrainedVars(),
+        )
+      case _ =>
+        Set.empty

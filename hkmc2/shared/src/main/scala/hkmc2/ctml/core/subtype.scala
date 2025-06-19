@@ -179,24 +179,14 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
-  /* given Context = ctx.extend(subVars, sub.bounds)
-  val test = subtype(sub.base, sup)
-  // TODO: Correctly handle escaping.
-  Clauses(subVars).concat(test) */
-  // TODO: Do not add the bounds directly to the clauses but constrain.
-  val outs = sub.bounds.foldRight(Clauses.none)((bound, outs) => seq(() => constrainBound(bound), outs))
-  subtypeSeq(sub.base, sup, Clauses(subVars).concat(outs))
+  val outs = sub.bounds.foldRight(Clauses(subVars))((bound, outs) => seq(() => constrainBound(bound), outs))
+  subtypeSeq(sub.base, sup, outs)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
-  /* given Context = ctx.extend(supVars, sup.bounds)
-  val test = subtype(sub, sup.base)
-  // TODO: Correctly handle escaping.
-  Clauses(supVars).concat(test) */
-  // TODO: Do not add the bounds directly to the clauses but constrain.
-  val outs = sup.bounds.foldRight(Clauses.none)((bound, outs) => seq(() => constrainBound(bound), outs))
-  subtypeSeq(sub, sup.base, Clauses(supVars).concat(outs))
+  val outs = sup.bounds.foldRight(Clauses(supVars))((bound, outs) => seq(() => constrainBound(bound), outs))
+  subtypeSeq(sub, sup.base, outs)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =

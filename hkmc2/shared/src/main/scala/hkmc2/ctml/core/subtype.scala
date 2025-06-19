@@ -64,14 +64,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of fresh variables in constraining mode.
 
   if mode == Mode.Constrain then
-    if sub.is[TVar] && sup.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].var_) && ctx.isTypeVarFresh(sup.as[TVar].var_) then
+    if sub.isFreshVar && sup.isFreshVar then
       return subtypeFreshVars(sub.as[TVar].var_, sup.as[TVar].var_)
 
-    if sub.is[TVar] && ctx.isTypeVarFresh(sub.as[TVar].var_) then
+    if sub.isFreshVar then
       return subtypeFreshVarSub(sub.as[TVar].var_, sup)
 
-    if sup.is[TVar] && ctx.isTypeVarFresh(sup.as[TVar].var_) then
-      return subtypeFreshVarSup(sub, sup.as[TVar].var_)
+    if sup.isFreshVar then
+      return subtypeFreshVarSup(sup.as[TVar].var_, sub)
 
   // Subtyping of union and intersection types.
 
@@ -135,6 +135,9 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   throw TypeError()
 
+// Fresh variables.
+
+/** Constrain a type variable to be subtype of another type variable. */
 def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub == sup then
@@ -145,17 +148,21 @@ def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
     case Left(()) =>
       subtypeFreshVarSub(sub, TVar(sup))
     case Right(()) =>
-      subtypeFreshVarSup(TVar(sub), sup)
+      subtypeFreshVarSup(sup, TVar(sub))
 
-def subtypeFreshVarSub(sub: TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val upperBound = Bound(sub, Direction.Sub, sup)
-  val lowerBound = ctx.getVarLowerBound(sub)
+/** Constrain a type variable to be subtype of a type. */
+def subtypeFreshVarSub(var_ : TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
+  val upperBound = Bound(var_, Direction.Sub, sup)
+  val lowerBound = ctx.getVarLowerBound(var_)
   subtypeSeq(lowerBound, sup, upperBound.asClauses)
 
-def subtypeFreshVarSup(sub: Type, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
-  val lowerBound = Bound(sup, Direction.Super, sub)
-  val upperBound = ctx.getVarUpperBound(sup)
+/** Constrain a type variable to be supertype of a type. */
+def subtypeFreshVarSup(var_ : TypeVar, sub: Type)(using ctx: Context, mode: Mode): Clauses =
+  val lowerBound = Bound(var_, Direction.Super, sub)
+  val upperBound = ctx.getVarUpperBound(var_)
   subtypeSeq(sub, upperBound, lowerBound.asClauses)
+
+// Rigid variables.
 
 def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.

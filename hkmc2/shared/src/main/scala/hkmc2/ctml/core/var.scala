@@ -39,12 +39,3 @@ def newRigidVar(var_ : TypeVar): TypeVarDecl =
 def joinVars(lefts: List[TypeVar], rights: List[TypeVar]): List[TypeVar] =
   val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
   lefts ::: filteredRights
-
-extension (type_ : Type)(using ctx: Context)
-  /** Check whether the type is a class reference. */
-  def isClass: Boolean =
-    type_ match
-      case TVar(var_) =>
-        ctx.isVarClass(var_)
-      case _ =>
-        false

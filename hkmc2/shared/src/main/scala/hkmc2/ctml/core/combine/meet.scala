@@ -83,7 +83,7 @@ def meetLambdas(left: TLam, right: TLam)(using ctx: Context): Option[Type] =
 
 /** Check if two types are disjoint. */
 def checkDisjoint(left: Type, right: Type)(using ctx: Context): Boolean =
-  return left.isClass && right.isClass && left != right
+  return left.isClassVar && right.isClassVar && left != right
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */

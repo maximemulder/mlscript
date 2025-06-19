@@ -4,8 +4,8 @@ declare class Function
 declare class untyped
 
 // CTML top and bottom types.
-declare type Top
-declare type Bot
+declare class Top
+declare class Bot
 
 declare class Unit
 declare class Bool

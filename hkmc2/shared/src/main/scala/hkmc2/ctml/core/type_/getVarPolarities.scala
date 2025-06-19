@@ -4,7 +4,7 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Get the polarities at which a variable occurs in the type. */
-  def getVarPolarities(var_ : TVar)(using polarity: Polarity): Polarities =
+  def getVarPolarities(var_ : TypeVar)(using polarity: Polarity): Polarities =
     type_ match
       case typeVar : TVar if typeVar == var_ =>
         Polarities.fromPolarity(polarity)
@@ -33,14 +33,14 @@ extension (type_ : Type)
 
 extension (bounds: List[Bound])
   /** Get the polarities at which a variable occurs in the list of bounds. */
-  def getVarPolarities(var_ : TVar)(using polarity: Polarity): Polarities =
+  def getVarPolarities(var_ : TypeVar)(using polarity: Polarity): Polarities =
     bounds
       .map(_.getVarPolarities(var_))
       .fold(Polarities.empty)(Polarities.join)
 
 extension (bound: Bound)
   /** Get the polarities at which a variable occurs in the bound. */
-  def getVarPolarities(var_ : TVar)(using polarity: Polarity): Polarities =
+  def getVarPolarities(var_ : TypeVar)(using polarity: Polarity): Polarities =
     val boundPolarity = bound.dir match
       case Direction.Sub =>
         polarity.invert()

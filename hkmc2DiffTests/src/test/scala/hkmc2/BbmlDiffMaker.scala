@@ -37,25 +37,10 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
 
   /** The CTML debug command. */
   val ctmlDbgOpt = new Command("ctml-dbg")(line =>
-    val parts = line.split(" ")
-    for part <- parts do
-      part match
-        case "" =>
-          hkmc2.ctml.core.debug.DebugInfo.reset()
-        case "infer" =>
-          hkmc2.ctml.core.debug.DebugInfo.infer     = true
-        case "constrain" =>
-          hkmc2.ctml.core.debug.DebugInfo.constrain = true
-        case "check" =>
-          hkmc2.ctml.core.debug.DebugInfo.check     = true
-        case "join" =>
-          hkmc2.ctml.core.debug.DebugInfo.join      = true
-        case "meet" =>
-          hkmc2.ctml.core.debug.DebugInfo.meet      = true
-        case "var" =>
-          hkmc2.ctml.core.debug.DebugInfo.var_      = true
-        case _ =>
-          output(s"Unknown CTML debug term '${part}'.")
+    val flags = line.split(" ")
+    for flag <- flags do
+      if !hkmc2.ctml.core.debug.DebugFlags.applyFlag(flag) then
+        output(s"Unknown CTML debug term '${flag}'.")
   )
 
   /** The CTML typing context. */

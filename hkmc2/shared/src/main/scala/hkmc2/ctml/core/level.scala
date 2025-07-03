@@ -29,7 +29,9 @@ extension (ctx: Context)
     val (type_ , typeOuts) = f(freshDecl.var_, freshCtx)
 
     // Count the fresh type variable as belonging to this level.
-    val outs = freshDecl.asClauses.concat(typeOuts)
+    val outs =
+      given Context = freshCtx
+      freshDecl.asClauses.concat(typeOuts)
 
     // Solve the level.
     ctx.solveLevel(type_, outs)
@@ -67,12 +69,9 @@ extension (ctx: Context)
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */
   def isVarConstrained(var_ : TypeVar, levelVars: Set[TypeVar]): Boolean =
-    val types = levelVars.toList.flatMap(var_ => List.concat(
-      ctx.getVarLowerBounds(var_),
-      ctx.getVarUpperBounds(var_),
-    ))
-
-    types.exists(_.getConstrainedVars().contains(var_))
+    Direction.both.exists(
+      ctx.getVarBound(var_, _).getConstrainedVars().contains(var_),
+    )
 
 /** Quantify a type variable in a type. */
 def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =

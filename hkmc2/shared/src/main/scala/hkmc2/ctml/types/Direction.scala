@@ -10,3 +10,7 @@ enum Direction:
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()
+
+object Direction:
+  /** The two subtyping directions. */
+  def both: List[Direction] = List(Direction.Sub, Direction.Super)

@@ -24,3 +24,5 @@ val string : Str
 
 declare val (+): Int -> Int -> Int
 declare val (-): Int -> Int -> Int
+
+declare val (++): Str -> Str -> Str

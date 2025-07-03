@@ -8,15 +8,22 @@ import scala.collection.mutable.ListBuffer
 
 extension (ctx: Context)
   /** Evaluate some functions and meet the bounds returned. */
-  def all(fs: (() => Clauses)*): Clauses =
-    Clauses(fs.flatMap(_().elems).toList)
+  def all(fs: (() => Context ?=> Clauses)*): Clauses =
+    // A left fold preserves the arguments order if they are passed from left to right, which
+    // should be the case if they are statically written inline, but should not the case if they.
+    // come from a dynamically generated list.
+    fs.foldLeft(Clauses.none)((clauses, f) => ctx.seq(f, clauses))
 
   /** Evaluate some functions and join the bounds returned. */
-  def any(fs: (() => Clauses)*): Clauses =
+  def any(fs: (() => Context ?=> Clauses)*): Clauses =
     val errorTrees = ListBuffer[ProofTree]()
 
-    val result = fs.foldRight(None: Option[Clauses])((f, result) =>
+    // A left fold preserves the arguments order if they are passed from left to right, which
+    // should be the case if they are statically written inline, but should not the case if they.
+    // come from a dynamically generated list.
+    val result = fs.foldLeft(None: Option[Clauses])((result, f) =>
       try
+        given Context = ctx
         val bounds = f()
         result match
           case Some(resultBounds) =>
@@ -35,8 +42,8 @@ extension (ctx: Context)
       case None =>
         throw TypeError(None, errorTrees.toList)
 
-/** Evaluate a typing function sequencially. */
-def seq(f: () => Context ?=> Clauses, ins: Clauses)(using ctx: Context): Clauses =
-  given Context = ctx.extend(ins)
-  val outs = f()
-  ins.concat(outs)
+  /** Evaluate a typing function sequencially. */
+  def seq(f: () => Context ?=> Clauses, ins: Clauses): Clauses =
+    given Context = ctx.extend(ins)
+    val outs = f()
+    ins.concat(outs)

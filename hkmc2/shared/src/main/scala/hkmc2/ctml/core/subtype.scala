@@ -7,17 +7,21 @@ import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
+/** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction. */
+def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+  ctx.seq(() => subtypeDir(left, right, dir), ins)
+
+/** Sequentially constrain a type to be a subtype of another type in a context. */
+def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+  ctx.seq(() => subtype(sub, sup), ins)
+
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
-def subtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
   dir match
     case Direction.Sub =>
-      subtype(sub, sup)
+      subtype(left, right)
     case Direction.Super =>
-      subtype(sup, sub)
-
-/** Constrain a type to be a subtype of another type in a context. */
-def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
-  seq(() => subtype(sub, sup), ins)
+      subtype(right, left)
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
@@ -150,15 +154,18 @@ def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 
 /** Constrain a type variable to be subtype of a type. */
 def subtypeFreshVarSub(var_ : TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val upperBound = Bound(var_, Direction.Sub, sup)
-  val lowerBound = ctx.getVarLowerBound(var_)
-  subtypeSeq(lowerBound, sup, upperBound.asClauses)
+  subtypeFreshVar(var_, sup, Direction.Sub)
 
 /** Constrain a type variable to be supertype of a type. */
 def subtypeFreshVarSup(var_ : TypeVar, sub: Type)(using ctx: Context, mode: Mode): Clauses =
-  val lowerBound = Bound(var_, Direction.Super, sub)
-  val upperBound = ctx.getVarUpperBound(var_)
-  subtypeSeq(sub, upperBound, lowerBound.asClauses)
+  subtypeFreshVar(var_, sub, Direction.Super)
+
+def subtypeFreshVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =
+  val boundType = ctx.getVarBound(var_, dir)
+  val boundCombinedType = combine(boundType, type_, dir)
+  val bound = Bound(var_, dir, boundCombinedType)
+  val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
+  subtypeDirSeq(oppositeBoundType, boundCombinedType, dir, bound.asClauses)
 
 // Rigid variables.
 
@@ -179,13 +186,13 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
   val subVars = sub.vars.map(newFreshVar(_))
-  val outs = sub.bounds.foldRight(Clauses(subVars))((bound, outs) => seq(() => constrainBound(bound), outs))
+  val outs = sub.bounds.foldRight(Clauses(subVars))((bound, outs) => ctx.seq(() => constrainBound(bound), outs))
   subtypeSeq(sub.base, sup, outs)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
   val supVars = sup.vars.map(newRigidVar(_))
-  val outs = sup.bounds.foldRight(Clauses(supVars))((bound, outs) => seq(() => constrainBound(bound), outs))
+  val outs = sup.bounds.foldRight(Clauses(supVars))((bound, outs) => ctx.seq(() => constrainBound(bound), outs))
   subtypeSeq(sub, sup.base, outs)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */

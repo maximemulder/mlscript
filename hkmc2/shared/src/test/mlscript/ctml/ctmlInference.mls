@@ -33,17 +33,17 @@ foo(c)
 //│ ═══[ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → γ.
 //│ Typing error tree:
 //│   (A → A) ∧ (B → B) ≤ C → γ
-//│     B → B ≤ C → γ
-//│       C ≤ B
-//│         ⊤ ≤ B
-//│           ⊤ ≤ ⊥
 //│     A → A ≤ C → γ
 //│       C ≤ A
 //│         ⊤ ≤ A
+//│           ⊤ ≤ ⊥
+//│     B → B ≤ C → γ
+//│       C ≤ B
+//│         ⊤ ≤ B
 //│           ⊤ ≤ ⊥
 
 foo(d)
 //│ A ∨ B
 
 foo(e)
-//│ B ∨ A
+//│ A ∨ B

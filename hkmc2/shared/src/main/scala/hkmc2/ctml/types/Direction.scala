@@ -7,6 +7,12 @@ enum Direction:
   /** The supertype direction. */
   case Super
 
+  /** Invert a subtyping direction. */
+  def invert(): Direction =
+    this match
+      case Sub   => Super
+      case Super => Sub
+
   /** Get the string representation of the object. */
   override def toString(): String =
     this.show()

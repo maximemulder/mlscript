@@ -69,9 +69,12 @@ extension (ctx: Context)
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */
   def isVarConstrained(var_ : TypeVar, levelVars: Set[TypeVar]): Boolean =
-    Direction.both.exists(
-      ctx.getVarBound(var_, _).getConstrainedVars().contains(var_),
-    )
+    val types = levelVars.toList.flatMap(levelVar => List(
+      ctx.getVarLowerBound(levelVar),
+      ctx.getVarUpperBound(levelVar),
+    ))
+
+    types.exists(_.getConstrainedVars().contains(var_))
 
 /** Quantify a type variable in a type. */
 def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =

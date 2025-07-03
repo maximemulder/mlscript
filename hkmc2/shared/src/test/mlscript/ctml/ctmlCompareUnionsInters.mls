@@ -75,11 +75,42 @@ A <= (A & B)
 //│   (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D)
 //│     (A → B) ∧ (C → D) ≤ A → (B ∧ D)
 //│       (A → B) ∧ (C → D) ≤ A → D
-//│         C → D ≤ A → D
-//│           A ≤ C
-//│             A ≤ ⊥
-//│               ⊤ ≤ ⊥
 //│         A → B ≤ A → D
 //│           B ≤ D
 //│             B ≤ ⊥
 //│               ⊤ ≤ ⊥
+//│         C → D ≤ A → D
+//│           A ≤ C
+//│             A ≤ ⊥
+//│               ⊤ ≤ ⊥
+
+// Function intersections type inference.
+
+fun baz: (Int -> Int -> Int) & (Str -> Str -> Str)
+//│ baz: (Int → Int → Int) ∧ (Str → Str → Str)
+
+baz(1, 2)
+//│ Int
+
+baz("Hello", "World")
+//│ Str
+
+baz(bot, bot)
+//│ Int ∨ Str
+
+:e
+baz(1, "World")
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → η.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → η
+//│     Str ≤ Int
+//│       ⊤ ≤ Int
+//│         ⊤ ≤ ⊥
+
+:e
+baz(1, top)
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ⊤ → ι.
+//│ Typing error tree:
+//│   Int → Int ≤ ⊤ → ι
+//│     ⊤ ≤ Int
+//│       ⊤ ≤ ⊥

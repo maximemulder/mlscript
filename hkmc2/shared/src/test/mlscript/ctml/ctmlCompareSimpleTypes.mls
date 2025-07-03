@@ -37,9 +37,9 @@ Bot <= A
 //│ Typing error tree:
 //│   Int ∧ Str ≡ ⊥
 //│     Int ∧ Str ≤ ⊥
-//│       Str ≤ ⊥
-//│         ⊤ ≤ ⊥
 //│       Int ≤ ⊥
+//│         ⊤ ≤ ⊥
+//│       Str ≤ ⊥
 //│         ⊤ ≤ ⊥
 
 :e

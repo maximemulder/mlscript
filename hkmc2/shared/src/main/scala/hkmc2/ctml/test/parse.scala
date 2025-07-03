@@ -27,7 +27,7 @@ def parseStmts(mlStmts: Term): List[Stmt] =
     case Term.Blk(mlStmts, mlStmt) =>
       val stmts = mlStmts.flatMap(parseStmt)
       val stmt  = parseStmt(mlStmt)
-      stmts ::: stmt.toList
+      stmts ++ stmt
     case _ =>
       parseStmt(mlStmts).toList
 

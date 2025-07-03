@@ -1,22 +1,479 @@
 :ctml
 
+:ctml-dbg infer var constrain
+
 fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
+//│ infer ELam(a,ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str))))))
+//│   α fresh
+//│   infer ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str)))))
+//│     β fresh
+//│     infer EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str))))
+//│       infer EVar(a)
+//│       OK α ⇝ ∅
+//│       constrain α ≤ Int ∨ Str
+//│         FALSE
+//│         constrain ⊥ ≤ Int ∨ Str
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ Int ∨ Str
+//│       FALSE
+//│       γ fresh
+//│       constrain α ≤ Int
+//│         FALSE
+//│         constrain ⊥ ≤ Int
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ Int
+//│       FALSE
+//│       infer EAscr(EVar(b),Int)
+//│         infer EVar(b)
+//│         OK β ⇝ ∅
+//│         constrain β ≤ Int
+//│           FALSE
+//│           constrain ⊥ ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ β ≤ Int
+//│       OK Int ⇝ β ≤ Int
+//│       FALSE
+//│       FALSE
+//│       constrain Int ≤ γ
+//│         FALSE
+//│         constrain Int ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ Int
+//│       constrain α ≤ Str
+//│         FALSE
+//│         constrain ⊥ ≤ Str
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ Str
+//│       FALSE
+//│       infer EAscr(EVar(b),Str)
+//│         infer EVar(b)
+//│         OK β ⇝ ∅
+//│         constrain β ≤ Str
+//│           FALSE
+//│           constrain ⊥ ≤ Str
+//│           OK ⇝ ∅
+//│         OK ⇝ β ≤ Str
+//│       OK Str ⇝ β ≤ Str
+//│       FALSE
+//│       FALSE
+//│       constrain Str ≤ γ
+//│         FALSE
+//│         constrain Str ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ Str
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│     OK γ ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ fresh, α ≤ Int ∨ Str
+//│   OK β → γ ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ fresh, α ≤ Int ∨ Str, b: β, β fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify α with ⊥ and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) in α → β → γ
+//│   = ∀α ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. α → β → γ
+//│   FALSE
+//│   FALSE
+//│   quantify β with ⊥ and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}) in ∀α ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. α → β → γ
+//│   = ∀α, β ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})}. α → β → γ
+//│   FALSE
+//│   quantify γ with (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) and ⊤ in ∀α, β ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})}. α → β → γ
+//│   = ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
+//│ OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ b: β, a: α
 //│ foo: ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ
 
 foo(1, 2)
-//│ ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│ infer EApp(EApp(EVar(foo),EVar(int)),EVar(int))
+//│   δ fresh
+//│   infer EApp(EVar(foo),EVar(int))
+//│     ε fresh
+//│     infer EVar(foo)
+//│     OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → ε
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       constrain α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       FALSE
+//│       constrain β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ γ
+//│         FALSE
+//│         constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain α → β → γ ≤ Int → ε
+//│         constrain Int ≤ α
+//│           FALSE
+//│           constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Int ≤ Str
+//│                 constrain Int ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ γ ≥ Int, β ≤ Int
+//│           OK ⇝ γ ≥ Int, β ≤ Int
+//│         OK ⇝ γ ≥ Int, β ≤ Int, α ≥ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain β → γ ≤ ε
+//│           FALSE
+//│           constrain β → γ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ε ≥ β → γ
+//│       OK ⇝ ε ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int
+//│     OK ⇝ ε ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline ε with β → γ in ε
+//│     = β → γ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify α with Int and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) in β → γ
+//│     = ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. β → γ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify β with ⊥ and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥ in ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. β → γ
+//│     = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. β → γ
+//│     FALSE
+//│     FALSE
+//│     quantify γ with (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) and ⊤ in ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. β → γ
+//│     = ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ
+//│   OK ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Int → δ
+//│     γ fresh
+//│     β fresh
+//│     α fresh
+//│     constrain Int ≤ α
+//│       FALSE
+//│       constrain Int ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ α ≥ Int
+//│     FALSE
+//│     constrain α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       FALSE
+//│       constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│           constrain Int ≤ Str
+//│             constrain Int ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│           constrain Int ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ γ ≥ Int, β ≤ Int
+//│       OK ⇝ γ ≥ Int, β ≤ Int
+//│     OK ⇝ γ ≥ Int, β ≤ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│       FALSE
+//│       constrain ⊥ ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│       OK ⇝ ∅
+//│     OK ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ γ
+//│       FALSE
+//│       constrain (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain β → γ ≤ Int → δ
+//│       constrain Int ≤ β
+//│         FALSE
+//│         constrain Int ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│           constrain Int ≤ ⊥
+//│             constrain ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│           constrain Int ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│             constrain Int ≤ Int
+//│             OK ⇝ ∅
+//│           OK ⇝ γ ≥ Int, α ≤ Int
+//│         OK ⇝ γ ≥ Int, α ≤ Int
+//│       OK ⇝ γ ≥ Int, α ≤ Int, β ≥ Int
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain γ ≤ δ
+//│         FALSE
+//│         constrain ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ δ
+//│           FALSE
+//│           constrain ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ δ ≥ ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       OK ⇝ δ ≥ ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ
+//│     OK ⇝ δ ≥ ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ, γ ≥ Int, α ≤ Int, β ≥ Int
+//│   OK ⇝ δ ≥ ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), γ ≤ δ, γ ≥ Int, α ≤ Int, β ≥ Int, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int, β ≤ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), α ≥ Int, γ fresh, β fresh, α fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline δ with ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) in δ
+//│   = ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify α with Int and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥ in ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   = ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify β with Int and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥ in ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline γ with δ in ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│   = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│ OK ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ⇝ ∅
+//│ ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {β ≤ Int}) ∨ ⊥, β ≥ Int, β ≤ (Int ▷ {α ≤ Int}) ∨ ⊥}. ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
 
 // TODO:
 // The simple concatenation of generated clauses does not work well with constraining
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
+//│ infer EApp(EApp(EVar(foo),EVar(int)),EVar(string))
+//│   ζ fresh
+//│   infer EApp(EVar(foo),EVar(int))
+//│     η fresh
+//│     infer EVar(foo)
+//│     OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → η
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       constrain α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       FALSE
+//│       constrain β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ γ
+//│         FALSE
+//│         constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain α → β → γ ≤ Int → η
+//│         constrain Int ≤ α
+//│           FALSE
+//│           constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Int ≤ Str
+//│                 constrain Int ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ γ ≥ Int, β ≤ Int
+//│           OK ⇝ γ ≥ Int, β ≤ Int
+//│         OK ⇝ γ ≥ Int, β ≤ Int, α ≥ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain β → γ ≤ η
+//│           FALSE
+//│           constrain β → γ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ η ≥ β → γ
+//│       OK ⇝ η ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int
+//│     OK ⇝ η ≥ β → γ, γ ≥ Int, β ≤ Int, α ≥ Int, γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), γ fresh, β fresh, α fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline η with β → γ in η
+//│     = β → γ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify α with Int and (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}) in β → γ
+//│     = ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. β → γ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify β with ⊥ and (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥ in ∀α ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})}. β → γ
+//│     = ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. β → γ
+//│     FALSE
+//│     FALSE
+//│     quantify γ with (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) and ⊤ in ∀α, β ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥}. β → γ
+//│     = ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ
+//│   OK ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
+//│     γ fresh
+//│     β fresh
+//│     α fresh
+//│     constrain Int ≤ α
+//│       FALSE
+//│       constrain Int ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ α ≥ Int
+//│     FALSE
+//│     constrain α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       FALSE
+//│       constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│           constrain Int ≤ Str
+//│             constrain Int ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│           constrain Int ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ γ ≥ Int, β ≤ Int
+//│       OK ⇝ γ ≥ Int, β ≤ Int
+//│     OK ⇝ γ ≥ Int, β ≤ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│       FALSE
+//│       constrain ⊥ ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│       OK ⇝ ∅
+//│     OK ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ γ
+//│       FALSE
+//│       constrain (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain β → γ ≤ Str → ζ
+//│       constrain Str ≤ β
+//│         FALSE
+//│         constrain Str ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│           constrain Str ≤ ⊥
+//│             constrain ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│           constrain Str ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│             constrain Str ≤ Int
+//│               constrain ⊤ ≤ Int
+//│                 constrain ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ.
 //│ Typing error tree:
-//│   ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
+//│   ∀α, β, γ ◁ {α ≥ Int, α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥, γ ≥ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. β → γ ≤ Str → ζ
 //│     β → γ ≤ Str → ζ
 //│       Str ≤ β
 //│         Str ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
@@ -29,6 +486,65 @@ foo(1, "")
 
 :e
 foo(true, false)
+//│ infer EApp(EApp(EVar(foo),EVar(bool)),EVar(bool))
+//│   θ fresh
+//│   infer EApp(EVar(foo),EVar(bool))
+//│     ι fresh
+//│     infer EVar(foo)
+//│     OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       constrain α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       FALSE
+//│       constrain β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ γ
+//│         FALSE
+//│         constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain α → β → γ ≤ Bool → ι
+//│         constrain Bool ≤ α
+//│           FALSE
+//│           constrain Bool ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Bool ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Bool ≤ Str
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Bool ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Bool ≤ Int
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
 //│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι.
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Bool → ι
@@ -48,25 +564,2099 @@ fun bar(a, b) =
   if a is
     Int then b as Int
     Top then b as Str
+//│ infer ELam(a,ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(⊤,EAscr(EVar(b),Str))))))
+//│   κ fresh
+//│   infer ELam(b,EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(⊤,EAscr(EVar(b),Str)))))
+//│     λ fresh
+//│     infer EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(⊤,EAscr(EVar(b),Str))))
+//│       infer EVar(a)
+//│       OK κ ⇝ ∅
+//│       constrain κ ≤ ⊤
+//│       OK ⇝ ∅
+//│       μ fresh
+//│       constrain κ ≤ Int
+//│         FALSE
+//│         constrain ⊥ ≤ Int
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ Int
+//│       FALSE
+//│       infer EAscr(EVar(b),Int)
+//│         infer EVar(b)
+//│         OK λ ⇝ ∅
+//│         constrain λ ≤ Int
+//│           FALSE
+//│           constrain ⊥ ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ λ ≤ Int
+//│       OK Int ⇝ λ ≤ Int
+//│       FALSE
+//│       FALSE
+//│       constrain Int ≤ μ
+//│         FALSE
+//│         constrain Int ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ Int
+//│       constrain κ ≤ ⊤
+//│       OK ⇝ ∅
+//│       infer EAscr(EVar(b),Str)
+//│         infer EVar(b)
+//│         OK λ ⇝ ∅
+//│         constrain λ ≤ Str
+//│           FALSE
+//│           constrain ⊥ ≤ Str
+//│           OK ⇝ ∅
+//│         OK ⇝ λ ≤ Str
+//│       OK Str ⇝ λ ≤ Str
+//│       FALSE
+//│       constrain Str ≤ μ
+//│         FALSE
+//│         constrain Str ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ Str
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│     OK μ ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ fresh
+//│   OK λ → μ ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ fresh, b: λ, λ fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify κ with ⊥ and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in κ → λ → μ
+//│   = ∀κ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. κ → λ → μ
+//│   FALSE
+//│   FALSE
+//│   quantify λ with ⊥ and (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}) in ∀κ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. κ → λ → μ
+//│   = ∀κ, λ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})}. κ → λ → μ
+//│   FALSE
+//│   quantify μ with (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})}. κ → λ → μ
+//│   = ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
+//│ OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ b: λ, a: κ
 //│ bar: ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ
 
 bar(1, 1)
-//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (Int ▷ {λ ≤ Str}), λ ≥ Int, λ ≤ (Int ▷ {κ ≤ Int}) ∨ Str}. Int ∨ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│ infer EApp(EApp(EVar(bar),EVar(int)),EVar(int))
+//│   ν fresh
+//│   infer EApp(EVar(bar),EVar(int))
+//│     ξ fresh
+//│     infer EVar(bar)
+//│     OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ≤ Int → ξ
+//│       μ fresh
+//│       λ fresh
+//│       κ fresh
+//│       constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│         FALSE
+//│         constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain κ → λ → μ ≤ Int → ξ
+//│         constrain Int ≤ κ
+//│           FALSE
+//│           constrain Int ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│             constrain Int ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│               constrain Int ≤ ⊤
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Str, λ ≤ Str
+//│             constrain Int ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Int, λ ≤ Int
+//│             FALSE
+//│             FALSE
+//│             FALSE
+//│             FALSE
+//│           OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│         OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain λ → μ ≤ ξ
+//│           FALSE
+//│           constrain λ → μ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ξ ≥ λ → μ
+//│       OK ⇝ ξ ≥ λ → μ, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int
+//│     OK ⇝ ξ ≥ λ → μ, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline ξ with λ → μ in ξ
+//│     = λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify κ with Int and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in λ → μ
+//│     = ∀κ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify λ with ⊥ and ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}) in ∀κ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     = ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     quantify μ with (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})}. λ → μ
+//│     = ∀κ, λ, μ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ
+//│   OK ∀κ, λ, μ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain ∀κ, λ, μ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → ν
+//│     μ fresh
+//│     λ fresh
+//│     κ fresh
+//│     constrain Int ≤ κ
+//│       FALSE
+//│       constrain Int ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ κ ≥ Int
+//│     FALSE
+//│     constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain Int ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         constrain Int ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│           constrain Int ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Str, λ ≤ Str
+//│         constrain Int ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│           constrain Int ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Int, λ ≤ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│       OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│     OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       constrain ⊥ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│       OK ⇝ ∅
+//│     OK ⇝ λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│       FALSE
+//│       constrain (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ → μ ≤ Int → ν
+//│       constrain Int ≤ λ
+//│         FALSE
+//│         constrain Int ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│           constrain Int ≤ Str ▷ {μ ≥ Str}
+//│             constrain Int ≤ Str
+//│               constrain Int ≤ ⊥
+//│                 constrain ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           constrain Int ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥
+//│             constrain Int ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {μ ≥ Int, κ ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Int, κ ≤ Int
+//│           OK ⇝ μ ≥ Int, κ ≤ Int
+//│         OK ⇝ μ ≥ Int, κ ≤ Int
+//│       OK ⇝ μ ≥ Int, κ ≤ Int, λ ≥ Int
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain μ ≤ ν
+//│         FALSE
+//│         constrain (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) ≤ ν
+//│           FALSE
+//│           constrain (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ν ≥ (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│       OK ⇝ ν ≥ (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), μ ≤ ν
+//│     OK ⇝ ν ≥ (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), μ ≤ ν, μ ≥ Int, κ ≤ Int, λ ≥ Int
+//│   OK ⇝ ν ≥ (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), μ ≤ ν, μ ≥ Int, κ ≤ Int, λ ≥ Int, μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), κ ≥ Int, μ fresh, λ fresh, κ fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline ν with (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) in ν
+//│   = (Int ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│ java.lang.StackOverflowError
+//│ 	at hkmc2.ctml.core.subtype$package$.subtypeImpl(subtype.scala:92)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtype$$anonfun$1(subtype.scala:25)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtype(subtype.scala:25)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtypeImpl(subtype.scala:51)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtype$$anonfun$1(subtype.scala:25)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtype(subtype.scala:25)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtypeImpl$$anonfun$4(subtype.scala:89)
+//│ 	at hkmc2.ctml.core.context.eval$package$.$anonfun$1(eval.scala:20)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.eval$package$.any(eval.scala:18)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtypeImpl(subtype.scala:89)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtype$$anonfun$1(subtype.scala:25)
+//│ 	at hkmc2.ctml.core.subtype$package$.subtype(subtype.scala:25)
+//│ 	at hkmc2.ctml.core.subtype$package$.checkSubtype(subtype.scala:212)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:15)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend$$anonfun$2(extend.scala:16)
+//│ 	at scala.collection.immutable.ArraySeq.foldRight(ArraySeq.scala:237)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extend(extend.scala:16)
+//│ 	at hkmc2.ctml.core.context.context$package$.meetBounds(context.scala:16)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:57)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:45)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:44)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMerge(meet.scala:36)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetImpl(meet.scala:21)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet$$anonfun$1(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meet(meet.scala:11)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany$$anonfun$1(meet.scala:91)
+//│ 	at scala.collection.immutable.List.foldRight(List.scala:353)
+//│ 	at hkmc2.ctml.core.combine.meet$package$.meetMany(meet.scala:91)
+//│ 	at hkmc2.ctml.core.combine.combine$package$.combineMany(combine.scala:22)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refineBound(extend.scala:35)
+//│ 	at hkmc2.ctml.core.context.extend$package$.refine(extend.scala:27)
+//│ 	at hkmc2.ctml.core.context.extend$package$.extendOne(extend.scala:20)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.StackOverflowError
+//│
+//│
 
 bar(1, "")
-//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ (Int ▷ {κ ≤ Int}) ∨ Str}. Str ∨ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│ infer EApp(EApp(EVar(bar),EVar(int)),EVar(string))
+//│   ο fresh
+//│   infer EApp(EVar(bar),EVar(int))
+//│     π fresh
+//│     infer EVar(bar)
+//│     OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ ∅
+//│     infer EVar(int)
+//│     OK Int ⇝ ∅
+//│     constrain ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ≤ Int → π
+//│       μ fresh
+//│       λ fresh
+//│       κ fresh
+//│       constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│         FALSE
+//│         constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain κ → λ → μ ≤ Int → π
+//│         constrain Int ≤ κ
+//│           FALSE
+//│           constrain Int ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│             constrain Int ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│               constrain Int ≤ ⊤
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Str, λ ≤ Str
+//│             constrain Int ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Int, λ ≤ Int
+//│             FALSE
+//│             FALSE
+//│             FALSE
+//│             FALSE
+//│           OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│         OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain λ → μ ≤ π
+//│           FALSE
+//│           constrain λ → μ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ π ≥ λ → μ
+//│       OK ⇝ π ≥ λ → μ, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int
+//│     OK ⇝ π ≥ λ → μ, λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≥ Int, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline π with λ → μ in π
+//│     = λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify κ with Int and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in λ → μ
+//│     = ∀κ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify λ with ⊥ and ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}) in ∀κ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     = ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     quantify μ with (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})}. λ → μ
+//│     = ∀κ, λ, μ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ
+//│   OK ∀κ, λ, μ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain ∀κ, λ, μ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Str → ο
+//│     μ fresh
+//│     λ fresh
+//│     κ fresh
+//│     constrain Int ≤ κ
+//│       FALSE
+//│       constrain Int ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ κ ≥ Int
+//│     FALSE
+//│     constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain Int ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         constrain Int ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│           constrain Int ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Str, λ ≤ Str
+//│         constrain Int ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│           constrain Int ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Int, λ ≤ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│       OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│     OK ⇝ λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       constrain ⊥ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│       OK ⇝ ∅
+//│     OK ⇝ λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│       FALSE
+//│       constrain (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ → μ ≤ Str → ο
+//│       constrain Str ≤ λ
+//│         FALSE
+//│         constrain Str ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})
+//│           constrain Str ≤ Str ▷ {μ ≥ Str}
+//│             constrain Str ≤ Str
+//│             OK ⇝ ∅
+//│           OK ⇝ μ ≥ Str
+//│           constrain Str ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥
+//│             constrain Str ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│             constrain Str ≤ Int ▷ {μ ≥ Int, κ ≤ Int}
+//│               constrain Str ≤ Int
+//│                 constrain ⊤ ≤ Int
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         OK ⇝ μ ≥ Str
+//│       OK ⇝ μ ≥ Str, λ ≥ Str
+//│       FALSE
+//│       FALSE
+//│       constrain μ ≤ ο
+//│         FALSE
+//│         constrain (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) ≤ ο
+//│           FALSE
+//│           constrain (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ο ≥ (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│       OK ⇝ ο ≥ (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), μ ≤ ο
+//│     OK ⇝ ο ≥ (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), μ ≤ ο, μ ≥ Str, λ ≥ Str
+//│   OK ⇝ ο ≥ (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), μ ≤ ο, μ ≥ Str, λ ≥ Str, μ ≥ (((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}), λ ≤ (Str ▷ {μ ≥ Str}) ∨ (Int ▷ {μ ≥ Int}), μ ≥ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), κ ≥ Int, μ fresh, λ fresh, κ fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline ο with (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) in ο
+//│   = (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify κ with Int and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   = ∀κ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify λ with Str and ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str}) in ∀κ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   = ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≥ Str, λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline μ with ο in ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≥ Str, λ ≤ ((Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ ⊥) ∨ (Str ▷ {μ ≥ Str})}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│   = ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ ((Int ▷ {κ ≤ Int}) ∨ ⊥) ∨ Str}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
+//│ OK ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ ((Int ▷ {κ ≤ Int}) ∨ ⊥) ∨ Str}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int}) ⇝ ∅
+//│ ∀κ, λ ◁ {κ ≥ Int, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ ((Int ▷ {κ ≤ Int}) ∨ ⊥) ∨ Str}. (Str ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (((((Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})) ∨ (Str ▷ {λ ≤ Str}) ∨ (Int ▷ {λ ≤ Int})
 
 bar("", "")
-//│ ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ infer EApp(EApp(EVar(bar),EVar(string)),EVar(string))
+//│   ρ fresh
+//│   infer EApp(EVar(bar),EVar(string))
+//│     σ fresh
+//│     infer EVar(bar)
+//│     OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ ∅
+//│     infer EVar(string)
+//│     OK Str ⇝ ∅
+//│     constrain ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ≤ Str → σ
+//│       μ fresh
+//│       λ fresh
+//│       κ fresh
+//│       constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│         FALSE
+//│         constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain κ → λ → μ ≤ Str → σ
+//│         constrain Str ≤ κ
+//│           FALSE
+//│           constrain Str ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│             constrain Str ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│               constrain Str ≤ ⊤
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Str, λ ≤ Str
+//│             constrain Str ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│               constrain Str ≤ Int
+//│                 constrain ⊤ ≤ Int
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           OK ⇝ μ ≥ Str, λ ≤ Str
+//│         OK ⇝ μ ≥ Str, λ ≤ Str, κ ≥ Str
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain λ → μ ≤ σ
+//│           FALSE
+//│           constrain λ → μ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ σ ≥ λ → μ
+//│       OK ⇝ σ ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Str
+//│     OK ⇝ σ ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Str, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline σ with λ → μ in σ
+//│     = λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify κ with Str and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in λ → μ
+//│     = ∀κ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify λ with ⊥ and Str in ∀κ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     = ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     quantify μ with (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     = ∀κ, λ, μ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ
+//│   OK ∀κ, λ, μ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain ∀κ, λ, μ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Str → ρ
+//│     μ fresh
+//│     λ fresh
+//│     κ fresh
+//│     constrain Str ≤ κ
+//│       FALSE
+//│       constrain Str ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ κ ≥ Str
+//│     FALSE
+//│     constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain Str ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         constrain Str ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│           constrain Str ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Str, λ ≤ Str
+//│         constrain Str ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│           constrain Str ≤ Int
+//│             constrain ⊤ ≤ Int
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       OK ⇝ μ ≥ Str, λ ≤ Str
+//│     OK ⇝ μ ≥ Str, λ ≤ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ ≤ Str
+//│       FALSE
+//│       constrain ⊥ ≤ Str
+//│       OK ⇝ ∅
+//│     OK ⇝ λ ≤ Str
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│       FALSE
+//│       constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ → μ ≤ Str → ρ
+//│       constrain Str ≤ λ
+//│         FALSE
+//│         constrain Str ≤ Str
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≥ Str
+//│       FALSE
+//│       constrain μ ≤ ρ
+//│         FALSE
+//│         constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ρ
+//│           FALSE
+//│           constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ρ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       OK ⇝ ρ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ρ
+//│     OK ⇝ ρ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ρ, λ ≥ Str
+//│   OK ⇝ ρ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ ρ, λ ≥ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ Str, μ ≥ Str, λ ≤ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), κ ≥ Str, μ fresh, λ fresh, κ fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline ρ with (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) in ρ
+//│   = (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify κ with Str and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   = ∀κ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify λ with Str and Str in ∀κ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   = ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline μ with ρ in ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   = ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ OK ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ⇝ ∅
+//│ ∀κ, λ ◁ {κ ≥ Str, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
 
 bar(true, "")
-//│ ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ infer EApp(EApp(EVar(bar),EVar(bool)),EVar(string))
+//│   τ fresh
+//│   infer EApp(EVar(bar),EVar(bool))
+//│     υ fresh
+//│     infer EVar(bar)
+//│     OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ≤ Bool → υ
+//│       μ fresh
+//│       λ fresh
+//│       κ fresh
+//│       constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│         FALSE
+//│         constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain κ → λ → μ ≤ Bool → υ
+//│         constrain Bool ≤ κ
+//│           FALSE
+//│           constrain Bool ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│             constrain Bool ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│               constrain Bool ≤ ⊤
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Str, λ ≤ Str
+//│             constrain Bool ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│               constrain Bool ≤ Int
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           OK ⇝ μ ≥ Str, λ ≤ Str
+//│         OK ⇝ μ ≥ Str, λ ≤ Str, κ ≥ Bool
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain λ → μ ≤ υ
+//│           FALSE
+//│           constrain λ → μ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ υ ≥ λ → μ
+//│       OK ⇝ υ ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Bool
+//│     OK ⇝ υ ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline υ with λ → μ in υ
+//│     = λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify κ with Bool and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in λ → μ
+//│     = ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify λ with ⊥ and Str in ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     = ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     quantify μ with (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     = ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ
+//│   OK ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ⇝ ∅
+//│   infer EVar(string)
+//│   OK Str ⇝ ∅
+//│   constrain ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Str → τ
+//│     μ fresh
+//│     λ fresh
+//│     κ fresh
+//│     constrain Bool ≤ κ
+//│       FALSE
+//│       constrain Bool ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ κ ≥ Bool
+//│     FALSE
+//│     constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain Bool ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         constrain Bool ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│           constrain Bool ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Str, λ ≤ Str
+//│         constrain Bool ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│           constrain Bool ≤ Int
+//│             constrain Bool ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       OK ⇝ μ ≥ Str, λ ≤ Str
+//│     OK ⇝ μ ≥ Str, λ ≤ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ ≤ Str
+//│       FALSE
+//│       constrain ⊥ ≤ Str
+//│       OK ⇝ ∅
+//│     OK ⇝ λ ≤ Str
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│       FALSE
+//│       constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ → μ ≤ Str → τ
+//│       constrain Str ≤ λ
+//│         FALSE
+//│         constrain Str ≤ Str
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≥ Str
+//│       FALSE
+//│       constrain μ ≤ τ
+//│         FALSE
+//│         constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ τ
+//│           FALSE
+//│           constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ τ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       OK ⇝ τ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ τ
+//│     OK ⇝ τ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ τ, λ ≥ Str
+//│   OK ⇝ τ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), μ ≤ τ, λ ≥ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ Str, μ ≥ Str, λ ≤ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), κ ≥ Bool, μ fresh, λ fresh, κ fresh
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline τ with (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) in τ
+//│   = (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify κ with Bool and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   = ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   quantify λ with Str and Str in ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   = ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   FALSE
+//│   FALSE
+//│   FALSE
+//│   inline μ with τ in ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│   = ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│ OK ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ⇝ ∅
+//│ ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {λ ≤ Int}) ∨ (⊤ ▷ {λ ≤ Str}), λ ≥ Str, λ ≤ Str}. (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
 
 :e
 bar(true, 1)
-//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ.
+//│ infer EApp(EApp(EVar(bar),EVar(bool)),EVar(int))
+//│   φ fresh
+//│   infer EApp(EVar(bar),EVar(bool))
+//│     χ fresh
+//│     infer EVar(bar)
+//│     OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ≤ Bool → χ
+//│       μ fresh
+//│       λ fresh
+//│       κ fresh
+//│       constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│         FALSE
+//│         constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain κ → λ → μ ≤ Bool → χ
+//│         constrain Bool ≤ κ
+//│           FALSE
+//│           constrain Bool ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│             constrain Bool ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│               constrain Bool ≤ ⊤
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Str, λ ≤ Str
+//│             constrain Bool ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│               constrain Bool ≤ Int
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           OK ⇝ μ ≥ Str, λ ≤ Str
+//│         OK ⇝ μ ≥ Str, λ ≤ Str, κ ≥ Bool
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain λ → μ ≤ χ
+//│           FALSE
+//│           constrain λ → μ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ χ ≥ λ → μ
+//│       OK ⇝ χ ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Bool
+//│     OK ⇝ χ ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline χ with λ → μ in χ
+//│     = λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify κ with Bool and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in λ → μ
+//│     = ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify λ with ⊥ and Str in ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     = ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     quantify μ with (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     = ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ
+//│   OK ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ⇝ ∅
+//│   infer EVar(int)
+//│   OK Int ⇝ ∅
+//│   constrain ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ
+//│     μ fresh
+//│     λ fresh
+//│     κ fresh
+//│     constrain Bool ≤ κ
+//│       FALSE
+//│       constrain Bool ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ κ ≥ Bool
+//│     FALSE
+//│     constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain Bool ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         constrain Bool ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│           constrain Bool ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Str, λ ≤ Str
+//│         constrain Bool ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│           constrain Bool ≤ Int
+//│             constrain Bool ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       OK ⇝ μ ≥ Str, λ ≤ Str
+//│     OK ⇝ μ ≥ Str, λ ≤ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ ≤ Str
+//│       FALSE
+//│       constrain ⊥ ≤ Str
+//│       OK ⇝ ∅
+//│     OK ⇝ λ ≤ Str
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│       FALSE
+//│       constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ → μ ≤ Int → φ
+//│       constrain Int ≤ λ
+//│         FALSE
+//│         constrain Int ≤ Str
+//│           constrain Int ≤ ⊥
+//│             constrain ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ.
 //│ Typing error tree:
-//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ
+//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Int → φ
 //│     λ → μ ≤ Int → φ
 //│       Int ≤ λ
 //│         Int ≤ Str
@@ -75,9 +2665,165 @@ bar(true, 1)
 
 :e
 bar(true, true)
-//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ.
+//│ infer EApp(EApp(EVar(bar),EVar(bool)),EVar(bool))
+//│   ψ fresh
+//│   infer EApp(EVar(bar),EVar(bool))
+//│     ω fresh
+//│     infer EVar(bar)
+//│     OK ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ⇝ ∅
+//│     infer EVar(bool)
+//│     OK Bool ⇝ ∅
+//│     constrain ∀κ, λ, μ ◁ {κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. κ → λ → μ ≤ Bool → ω
+//│       μ fresh
+//│       λ fresh
+//│       κ fresh
+//│       constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│         FALSE
+//│         constrain (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain κ → λ → μ ≤ Bool → ω
+//│         constrain Bool ≤ κ
+//│           FALSE
+//│           constrain Bool ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│             constrain Bool ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│               constrain Bool ≤ ⊤
+//│               OK ⇝ ∅
+//│             OK ⇝ μ ≥ Str, λ ≤ Str
+//│             constrain Bool ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│               constrain Bool ≤ Int
+//│                 constrain Bool ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           OK ⇝ μ ≥ Str, λ ≤ Str
+//│         OK ⇝ μ ≥ Str, λ ≤ Str, κ ≥ Bool
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain λ → μ ≤ ω
+//│           FALSE
+//│           constrain λ → μ ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ ω ≥ λ → μ
+//│       OK ⇝ ω ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Bool
+//│     OK ⇝ ω ≥ λ → μ, μ ≥ Str, λ ≤ Str, κ ≥ Bool, μ ≥ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}), λ ≤ (Int ▷ {μ ≥ Int, κ ≤ Int}) ∨ (Str ▷ {μ ≥ Str}), κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), μ fresh, λ fresh, κ fresh
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     inline ω with λ → μ in ω
+//│     = λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify κ with Bool and (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}) in λ → μ
+//│     = ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     quantify λ with ⊥ and Str in ∀κ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})}. λ → μ
+//│     = ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     FALSE
+//│     FALSE
+//│     quantify μ with (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) and ⊤ in ∀κ, λ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str}. λ → μ
+//│     = ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ
+//│   OK ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ⇝ ∅
+//│   infer EVar(bool)
+//│   OK Bool ⇝ ∅
+//│   constrain ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ
+//│     μ fresh
+//│     λ fresh
+//│     κ fresh
+//│     constrain Bool ≤ κ
+//│       FALSE
+//│       constrain Bool ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ κ ≥ Bool
+//│     FALSE
+//│     constrain κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│       FALSE
+//│       constrain Bool ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│         constrain Bool ≤ ⊤ ▷ {μ ≥ Str, λ ≤ Str}
+//│           constrain Bool ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ μ ≥ Str, λ ≤ Str
+//│         constrain Bool ≤ Int ▷ {μ ≥ Int, λ ≤ Int}
+//│           constrain Bool ≤ Int
+//│             constrain Bool ≤ ⊥
+//│               constrain ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       OK ⇝ μ ≥ Str, λ ≤ Str
+//│     OK ⇝ μ ≥ Str, λ ≤ Str, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ ≤ Str
+//│       FALSE
+//│       constrain ⊥ ≤ Str
+//│       OK ⇝ ∅
+//│     OK ⇝ λ ≤ Str
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ μ
+//│       FALSE
+//│       constrain (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str}) ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     FALSE
+//│     constrain λ → μ ≤ Bool → ψ
+//│       constrain Bool ≤ λ
+//│         FALSE
+//│         constrain Bool ≤ Str
+//│           constrain Bool ≤ ⊥
+//│             constrain ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Cannot solve judgment ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ.
 //│ Typing error tree:
-//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ
+//│   ∀κ, λ, μ ◁ {κ ≥ Bool, κ ≤ (Int ▷ {μ ≥ Int, λ ≤ Int}) ∨ (⊤ ▷ {μ ≥ Str, λ ≤ Str}), λ ≤ Str, μ ≥ (Str ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})) ∨ (Int ▷ {λ ≤ Int, κ ≤ Int}) ∨ (Str ▷ {λ ≤ Str})}. λ → μ ≤ Bool → ψ
 //│     λ → μ ≤ Bool → ψ
 //│       Bool ≤ λ
 //│         Bool ≤ Str
@@ -90,6 +2836,103 @@ bar(true, true)
 
 :fixme
 val baz: (Int -> Int -> Int) & (Str -> Str -> Str) = foo
+//│ infer EAscr(EVar(foo),(Int → Int → Int) ∧ (Str → Str → Str))
+//│   infer EVar(foo)
+//│   OK ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ⇝ ∅
+//│   constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str)
+//│     constrain ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ Int → Int → Int
+//│       γ fresh
+//│       β fresh
+//│       α fresh
+//│       constrain α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│       FALSE
+//│       constrain β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         FALSE
+//│         constrain ⊥ ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│         OK ⇝ ∅
+//│       OK ⇝ β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ γ
+//│         FALSE
+//│         constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ ⊤
+//│         OK ⇝ ∅
+//│       OK ⇝ γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})
+//│       FALSE
+//│       FALSE
+//│       FALSE
+//│       constrain α → β → γ ≤ Int → Int → Int
+//│         constrain Int ≤ α
+//│           FALSE
+//│           constrain Int ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str})
+//│             constrain Int ≤ Str ▷ {γ ≥ Str, β ≤ Str}
+//│               constrain Int ≤ Str
+//│                 constrain Int ≤ ⊥
+//│                   constrain ⊤ ≤ ⊥
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             constrain Int ≤ Int ▷ {γ ≥ Int, β ≤ Int}
+//│               constrain Int ≤ Int
+//│               OK ⇝ ∅
+//│             OK ⇝ γ ≥ Int, β ≤ Int
+//│           OK ⇝ γ ≥ Int, β ≤ Int
+//│         OK ⇝ γ ≥ Int, β ≤ Int, α ≥ Int
+//│         FALSE
+//│         FALSE
+//│         FALSE
+//│         constrain β → γ ≤ Int → Int
+//│           constrain Int ≤ β
+//│             FALSE
+//│             constrain Int ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ ⊥
+//│               constrain Int ≤ ⊥
+//│                 constrain ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│               constrain Int ≤ Int ▷ {γ ≥ Int, α ≤ Int}
+//│                 constrain Int ≤ Int
+//│                 OK ⇝ ∅
+//│               OK ⇝ γ ≥ Int, α ≤ Int
+//│             OK ⇝ γ ≥ Int, α ≤ Int
+//│           OK ⇝ γ ≥ Int, α ≤ Int, β ≥ Int
+//│           FALSE
+//│           FALSE
+//│           FALSE
+//│           constrain γ ≤ Int
+//│             FALSE
+//│             constrain ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│               constrain (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                 constrain Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                   constrain Int ≤ Int
+//│                   OK ⇝ ∅
+//│                   constrain (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                     constrain Int ▷ {β ≤ Int, α ≤ Int} ≤ Int
+//│                       constrain Int ≤ Int
+//│                       OK ⇝ ∅
+//│                     OK ⇝ β ≤ Int, α ≤ Int
+//│                     constrain Str ▷ {β ≤ Str, α ≤ Str} ≤ Int
+//│                       constrain Str ≤ Int
+//│                         constrain ⊤ ≤ Int
+//│                           constrain ⊤ ≤ ⊥
+//│                           FAIL
+//│                         FAIL
+//│                       FAIL
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
 //│ ═══[ERROR] Cannot solve judgment ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str).
 //│ Typing error tree:
 //│   ∀α, β, γ ◁ {α ≤ (Int ▷ {γ ≥ Int, β ≤ Int}) ∨ (Str ▷ {γ ≥ Str, β ≤ Str}), β ≤ (Int ▷ {γ ≥ Int, α ≤ Int}) ∨ (Str ▷ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})}. α → β → γ ≤ (Int → Int → Int) ∧ (Str → Str → Str)
@@ -97,12 +2940,14 @@ val baz: (Int -> Int -> Int) & (Str -> Str -> Str) = foo
 //│       α → β → γ ≤ Int → Int → Int
 //│         β → γ ≤ Int → Int
 //│           γ ≤ Int
-//│             Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
-//│               (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
-//│                 Str ▷ {β ≤ Str, α ≤ Str} ≤ Int
-//│                   Str ≤ Int
-//│                     ⊤ ≤ Int
-//│                       ⊤ ≤ ⊥
+//│             ((Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│               (Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str})) ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                 Int ∨ (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                   (Int ▷ {β ≤ Int, α ≤ Int}) ∨ (Str ▷ {β ≤ Str, α ≤ Str}) ≤ Int
+//│                     Str ▷ {β ≤ Str, α ≤ Str} ≤ Int
+//│                       Str ≤ Int
+//│                         ⊤ ≤ Int
+//│                           ⊤ ≤ ⊥
 
 // fun baz: (Int -> Int -> Int) & (Str -> Str -> Str) // TODO
 
@@ -111,8 +2956,8 @@ bop(0, 1)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: term (Elaborator.scala:395)
 //│ ╔══[ERROR] Name not found: bop
-//│ ║  l.110: 	bop(0, 1)
-//│ ╙──       	^^^
+//│ ║  l.2955: 	bop(0, 1)
+//│ ╙──        	^^^
 //│ FAILURE: Unexpected parse error
 //│ FAILURE LOCATION: raise (test.scala:45)
 //│ ═══[PARSE ERROR] Unsupported CTML term: Error
@@ -121,8 +2966,8 @@ bop("0", "1")
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: term (Elaborator.scala:395)
 //│ ╔══[ERROR] Name not found: bop
-//│ ║  l.120: 	bop("0", "1")
-//│ ╙──       	^^^
+//│ ║  l.2965: 	bop("0", "1")
+//│ ╙──        	^^^
 //│ FAILURE: Unexpected parse error
 //│ FAILURE LOCATION: raise (test.scala:45)
 //│ ═══[PARSE ERROR] Unsupported CTML term: Error

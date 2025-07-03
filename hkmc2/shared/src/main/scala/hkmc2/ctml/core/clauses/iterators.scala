@@ -5,22 +5,32 @@ import hkmc2.ctml.util.*
 
 // Iteration methods for clauses.
 
-extension (clauses: AsClauses2)
+extension (clauses: AsClauses)
+  /** Iterate over the clauses. */
+  def iterator: Iterator[Clause] =
+    clauses.asClauses.iterator
+
   /** Iterate over the term variables declared in the clauses. */
   def termVarDecls: List[TermVarDecl] =
-    clauses.asClauses.iterator.termVars.toList
+    clauses.iterator.termVars.toList
 
   /** Iterate over the type variables declared in the clauses. */
   def typeVarDecls: List[TypeVarDecl] =
-    clauses.asClauses.iterator.typeVars.toList
+    clauses.iterator.typeVars.toList
 
   /** Iterate over the bounds defined in the clauses. */
   def bounds: List[Bound] =
-    clauses.asClauses.iterator.bounds.toList
+    clauses.iterator.bounds.toList
 
-  /** Iterate over the bounds of a type variable defined in the clauses. */
+  /** Iterate over all the bounds of a type variable defined in the clauses. */
   def varBounds(var_ : TypeVar): List[Bound] =
-    clauses.asClauses.iterator.typeVarClauses(var_).typeVarBounds(var_).toList
+    clauses.iterator.typeVarClauses(var_).typeVarBounds(var_).toList
+
+  /** Get the rightmost bound of a type variable in a type direction defined in the clauses. */
+  def varBound(var_ : TypeVar, dir: Direction): Option[Type] =
+    clauses.bounds
+      .find(bound => bound.var_ == var_ && bound.dir == dir)
+      .map(_.type_)
 
   def removeTypeVar(var_ : TypeVar): Clauses =
     Clauses(clauses.asClauses.filterUntilInclusive(
@@ -84,7 +94,7 @@ extension (clauses: Iterator[Clause])
         true
     )
 
-extension (clauses: AsClauses2)
+extension (clauses: AsClauses)
   def asClauses: List[Clause] =
     clauses match
       case clause: Clause =>

@@ -1,5 +1,7 @@
 package hkmc2.ctml.types
 
+import hkmc2.ctml.util.*
+
 /** Type alias for clauses-like objects. */
 type AsClauses = Context | Clauses | List[Clause] | Clause
 
@@ -23,12 +25,12 @@ case class Clauses(
   elems: List[Clause] = Nil,
 ):
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
 
 object Clauses:
   /** The empty set of clauses. */
-  def none =
+  def empty =
     Clauses(Nil)
 
 /** A typing clause, which gives a single information about types. */
@@ -38,8 +40,8 @@ sealed trait Clause:
     Clauses(List(this))
 
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
 
 /** A term variable declaration. */
 case class TermVarDecl(
@@ -49,8 +51,8 @@ case class TermVarDecl(
   type_ : Type,
 ) extends Clause:
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
 
 /** A type variable declaration. */
 case class TypeVarDecl(
@@ -60,8 +62,8 @@ case class TypeVarDecl(
   kind: TypeVarKind,
 ) extends Clause:
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
 
 /** A type variable bound. */
 case class Bound(
@@ -73,8 +75,8 @@ case class Bound(
   var type_ : Type,
 ) extends Clause:
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
 
 /** A type variable kind. */
 enum TypeVarKind:
@@ -86,5 +88,58 @@ enum TypeVarKind:
   case Fresh
 
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
+
+/** Implementation of the `Show` trait for `Clause`. */
+implicit def ClausesShow: Show[Clauses] = new Show {
+  override def show(clauses: Clauses): String =
+    clauses.elems match
+      case Nil =>
+        "∅"
+      case elems =>
+        elems.map(_.show).mkString(", ")
+}
+
+/** Implementation of the `Show` trait for `Clause`. */
+implicit def ClauseShow: Show[Clause] = new Show {
+  override def show(clause: Clause): String =
+    clause match
+      case var_ : TermVarDecl =>
+        var_.show
+      case var_ : TypeVarDecl =>
+        var_.show
+      case bound: Bound =>
+        bound.show
+}
+
+/** Implementation of the `Show` trait for `TermVarDecl`. */
+implicit def TermVarDeclShow: Show[TermVarDecl] = new Show {
+  override def show(var_ : TermVarDecl): String =
+    s"${var_.name}: ${var_.type_}"
+}
+
+/** Implementation of the `Show` trait for `TypeVarDecl`. */
+implicit def TypeVarDeclShow: Show[TypeVarDecl] = new Show {
+  override def show(var_ : TypeVarDecl): String =
+    s"${var_.var_} ${var_.kind}"
+}
+
+/** Implementation of the `Show` trait for `Bound`. */
+implicit def BoundShow: Show[Bound] = new Show {
+  override def show(bound: Bound): String =
+    s"${bound.var_} ${bound.dir} ${bound.type_}"
+}
+
+/** Implementation of the `Show` trait for `TypeVarKind`. */
+implicit def TypeVarKindShow: Show[TypeVarKind] = new Show {
+  override def show(kind: TypeVarKind): String =
+    kind match
+      case TypeVarKind.Class => "class"
+      case TypeVarKind.Rigid => "rigid"
+      case TypeVarKind.Fresh => "fresh"
+}
+
+/** Convert a list of bounds to its string representation. */
+def showBounds(bounds: List[Bound]): String =
+  bounds.map(_.show).mkString(", ")

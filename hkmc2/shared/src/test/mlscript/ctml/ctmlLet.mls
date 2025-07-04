@@ -4,12 +4,38 @@ fun foo(a) =
   let b = a
   let c = b
   c
+//│ ε
+//│ List(ε) IN c: ε, ε fresh ||||| δ fresh, b: γ, γ fresh, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ε Set(γ, δ Set(γ))
+//│ δ Set(γ)
+//│ List(ε, δ) IN δ ≥ γ, ε ≤ δ, ε ≥ γ, ε fresh, c: ε, δ fresh ||||| b: γ, γ fresh, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ γ
+//│ List(γ) IN c: ε, b: γ, γ fresh ||||| β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ γ Set(α, β Set(α))
+//│ β Set(α)
+//│ List(γ, β) IN β ≥ α, γ ≤ β, γ ≥ α, γ fresh, c: ε, b: γ, β fresh ||||| a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ α
+//│ List(α) IN c: ε, b: γ, a: α, α fresh ||||| ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ foo: ∀α ◁ {}. α → α
 
 fun bar(a) =
   let b = 1
   let c = 1
   b + c
+//│ μ Set(Int)
+//│ List(μ) IN μ ≥ Int → Int, θ ≤ Int, μ fresh ||||| λ fresh, c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ λ Set(Int)
+//│ List(λ) IN λ ≥ Int, κ ≤ Int, θ ≤ Int, λ fresh ||||| c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ κ Set(Int)
+//│ List(κ) IN κ ≤ Int, θ ≤ Int, c: κ, κ fresh ||||| ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ι Set(Int)
+//│ List(ι) IN ι ≥ Int, θ ≤ Int, c: κ, ι fresh ||||| b: θ, θ fresh, η fresh, a: ζ, ζ fresh, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ θ Set(Int)
+//│ List(θ) IN θ ≤ Int, c: κ, b: θ, θ fresh ||||| η fresh, a: ζ, ζ fresh, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ η Set(Int)
+//│ List(η) IN η ≥ Int, c: κ, b: θ, η fresh ||||| a: ζ, ζ fresh, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ζ
+//│ List(ζ) IN c: κ, b: θ, a: ζ, ζ fresh ||||| foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ bar: ⊤ → Int
 
 fun baz(a, b) =
@@ -17,19 +43,63 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
+//│ π
+//│ List(π) IN c: π, π fresh ||||| ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ρ Set(Str, Int)
+//│ List() IN ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ fresh ||||| ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ π Set(ρ Set(Str, Int, ο Set(Str, Int)), ο)
+//│ ρ Set(Str, Int, ο Set(Str, Int))
+//│ ο Set(Str, Int)
+//│ List(π) IN ο ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ ≤ ο, π ≤ ο, π ≥ ρ, π fresh, ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh ||||| b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ρ Set(Str, Int, ο Set(Str, Int))
+//│ ο Set(Str, Int)
+//│ ξ Set(Str, Int)
+//│ List() IN ο ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ ≤ ο, ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh ||||| a: ν, ν fresh, bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ρ Set(Str, Int, ο Set(Str, Int))
+//│ ο Set(Str, Int)
+//│ ξ Set(Str, Int)
+//│ ν Set(Str, Int)
+//│ List(ρ, ο, ξ, ν) IN ο ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ ≤ ο, ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh ||||| bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
 
+2
+//│ Int
+
 baz(1, 1)
+//│ ξ Set(Int)
+//│ ν Set(Int, Str)
+//│ τ Set(Str, Int, ξ Set(Int))
+//│ List(ξ, ν, τ) IN τ ≥ ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), ξ ≤ Int, ν ≥ Int, ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str}), ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ fresh, ν fresh, τ fresh ||||| σ fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ σ Set(Str, Int)
+//│ List(σ) IN σ ≥ Int ∨ Str, σ fresh ||||| baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ Int ∨ Str
 
 baz("", "")
+//│ ξ Set(Str)
+//│ ν Set(Str, Int)
+//│ φ Set(Str, Int, ξ Set(Str))
+//│ List(ξ, ν, φ) IN φ ≥ ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), ξ ≤ Str, ν ≥ Str, ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str}), ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ fresh, ν fresh, φ fresh ||||| υ fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ υ Set(Str, Int)
+//│ List(υ) IN υ ≥ Int ∨ Str, υ fresh ||||| baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ Int ∨ Str
 
 baz(bot, bot)
+//│ ξ Set(Str, Int)
+//│ ν Set(Str, Int)
+//│ ψ Set(Str, Int, ξ Set(Str, Int))
+//│ List(ξ, ν, ψ) IN ψ ≥ ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str}), ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ fresh, ν fresh, ψ fresh ||||| χ fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ ξ Set(Str, Int)
+//│ ν Set(Str, Int)
+//│ χ Set(Str, Int)
+//│ List(ξ, ν, χ) IN χ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str}), ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ fresh, ν fresh, χ fresh ||||| baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})
 
 :e
 baz(1, "")
+//│ ξ Set(Int)
+//│ ν Set(Int, Str)
+//│ 24 Set(Str, Int, ξ Set(Int))
+//│ List(ξ, ν, 24) IN 24 ≥ ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), ξ ≤ Int, ν ≥ Int, ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str}), ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ fresh, ν fresh, 24 fresh ||||| ω fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
 //│ ═══[ERROR] Cannot solve judgment Int → (Int ∨ Str) ≤ Str → ω.
 //│ Typing error tree:
 //│   Int → (Int ∨ Str) ≤ Str → ω
@@ -53,3 +123,46 @@ baz(true, false)
 //│             Bool ≤ Str
 //│               Bool ≤ ⊥
 //│                 ⊤ ≤ ⊥
+
+// BUG:
+// //│ List(ρ, ο, ξ, ν) IN ν → ξ → ο
+//
+//  ο ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}),
+//    ρ ≤ ο,
+//      ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}),
+//        ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}),
+//          ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}),
+//            ρ fresh,
+//              ν ≤ Int ∨ Str,
+//                c: π,
+//                  ο fresh,
+//                    b: ξ,
+//                      ξ fresh,
+//                        a: ν,
+//                          ν fresh
+//
+//                            bar: ⊤ → Int,
+//                              foo: ∀α ◁ {}. α → α,
+//                                ...
+//
+// The problem is that the system does not remember that ο ≤ ρ
+// TODO:
+// - Should I just have both ο ≤ ρ and ρ ≤ ο ? Read the paper about it.
+
+fun foo(a, b) =
+  a(1, b)
+//│ 30
+//│ List() IN 27 ≤ Int → 30, 30 fresh ||||| 29 fresh, b: 28, 28 fresh, a: 27, 27 fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ 30 Set(29, 28)
+//│ 29
+//│ List() IN 30 ≤ 28 → 29, 27 ≤ Int → 30, 30 fresh, 29 fresh ||||| b: 28, 28 fresh, a: 27, 27 fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ 30 Set(29, 28)
+//│ 29
+//│ 28
+//│ List() IN 30 ≤ 28 → 29, 27 ≤ Int → 30, 30 fresh, 29 fresh, b: 28, 28 fresh ||||| a: 27, 27 fresh, baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ 30 Set(29, 28)
+//│ 29
+//│ 28
+//│ 27 Set(30 Set(29, 28), Int)
+//│ List(30, 29, 28, 27) IN 30 ≤ 28 → 29, 27 ≤ Int → 30, 30 fresh, 29 fresh, b: 28, 28 fresh, a: 27, 27 fresh ||||| baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})), bar: ⊤ → Int, foo: ∀α ◁ {}. α → α, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│ foo: (Int → 28 → 29) → ⊤ → ⊥

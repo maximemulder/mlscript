@@ -69,13 +69,13 @@ fun baz(a, b) =
 //│ = ∀π ◁ {}. π → π
 //│ ρ fresh
 //│ π fresh
-//│ inline ο with (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}) in ο
-//│ = (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})
-//│ ignore π in (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})
-//│ = (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})
-//│ quantify ν with ⊥ and (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}) in ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
-//│ = ∀ν ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
-//│ quantify ξ with ⊥ and (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}) in ∀ν ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
+//│ ignore π in ο
+//│ = ο
+//│ quantify ν with ⊥ and (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}) in ν → ξ → ο
+//│ = ∀ν ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str})}. ν → ξ → ο
+//│ quantify ξ with ⊥ and (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}) in ∀ν ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str})}. ν → ξ → ο
+//│ = ∀ν, ξ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str})}. ν → ξ → ο
+//│ inline ο with (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}) in ∀ν, ξ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str})}. ν → ξ → ο
 //│ = ∀ν, ξ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
 //│ inline ρ with ο in ∀ν, ξ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
 //│ = ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))

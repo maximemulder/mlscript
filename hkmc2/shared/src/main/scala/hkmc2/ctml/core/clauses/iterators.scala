@@ -10,19 +10,27 @@ extension (clauses: AsClauses)
   def iterator: Iterator[Clause] =
     clauses.asClauses.iterator
 
-  /** Iterate over the term variables declared in the clauses. */
+  /** Get the term variable declarations in the clauses. */
   def termVarDecls: List[TermVarDecl] =
     clauses.iterator.termVars.toList
 
-  /** Iterate over the type variables declared in the clauses. */
+  /** Get the type variable declarations in the clauses. */
   def typeVarDecls: List[TypeVarDecl] =
     clauses.iterator.typeVars.toList
 
-  /** Iterate over the bounds defined in the clauses. */
+  /** Get the type variables declared in the clauses */
+  def typeVars: List[TypeVar] =
+    clauses.typeVarDecls.map(_.var_)
+
+  /** Check if a type variable declaration appears in the clauses. */
+  def hasVar(var_ : TypeVar): Boolean =
+    clauses.typeVars.exists(_ == var_)
+
+  /** Get the bounds defined in the clauses. */
   def bounds: List[Bound] =
     clauses.iterator.bounds.toList
 
-  /** Iterate over all the bounds of a type variable defined in the clauses. */
+  /** Get the bounds of a type variable defined in the clauses. */
   def varBounds(var_ : TypeVar): List[Bound] =
     clauses.iterator.typeVarClauses(var_).typeVarBounds(var_).toList
 
@@ -93,13 +101,3 @@ extension (clauses: Iterator[Clause])
       case _ =>
         true
     )
-
-extension (clauses: AsClauses)
-  def asClauses: List[Clause] =
-    clauses match
-      case clause: Clause =>
-        List(clause)
-      case clauses: List[Clause] =>
-        clauses
-      case Clauses(clauses) =>
-        clauses

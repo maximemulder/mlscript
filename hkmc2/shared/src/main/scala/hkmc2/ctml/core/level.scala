@@ -55,17 +55,25 @@ extension (ctx: Context)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =
+    // FIXME: This function is not transitive but it should be.
+
     // Get the type variables declared at this level.
-    val vars = outs.typeVarDecls.map(_.var_).toList
 
     // Remove the variables that have dependent variabled declared at a lower level.
-    vars.filter(var_ =>
+    outs.typeVars.filter(ctx.isDependedOnByLowerLevel(_, outs))
+
+  def isDependedOnByLowerLevel(var_ : TypeVar, outs: Clauses) =
       // Get the list of type variables that depend on the type variable of this level.
       val dependentVars = outs.getDependentVars(var_)
 
+      output(s"${var_} IS DEPENDED ON BY ${dependentVars}")
+
       // Check whether any of the dependent variables is declared at a lower level.
-      !dependentVars.exists(Clauses(ctx.clauses).hasVar(_))
-    )
+      val a = !dependentVars.exists(ctx.hasVar(_))
+      output(s"${var_} DEPENDING VARIABLES ARE NOT AT LOWER LEVEL ${a} IN ${ctx}")
+      output(s"    AND ${outs}")
+      a
+
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */
   def isVarConstrained(var_ : TypeVar, levelVars: Set[TypeVar]): Boolean =

@@ -1,7 +1,20 @@
 package hkmc2.ctml.types
 
-/** Type alias for wrapped and unwrapped clauses. */
-type AsClauses = Clauses | List[Clause] | Clause
+/** Type alias for clauses-like objects. */
+type AsClauses = Context | Clauses | List[Clause] | Clause
+
+extension (clauses: AsClauses)
+  /** Read a clauses-like object as a list of clauses. */
+  def asClauses: List[Clause] =
+    clauses match
+      case Context(clauses) =>
+        clauses
+      case Clauses(clauses) =>
+        clauses
+      case clauses: List[Clause] =>
+        clauses
+      case clause: Clause =>
+        List(clause)
 
 /** A list of typing clauses, which can either be an input (context) or output (constraints) for a
  *  typing function. */

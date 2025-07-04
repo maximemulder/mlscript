@@ -5,6 +5,7 @@ import scala.collection.mutable.Set as SetMut
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 /** A type variable and its dependency graph, that is, the other type variables on which it
  *  depends.
@@ -17,6 +18,11 @@ class VarDependencyGraph(val var_ : TypeVar, val dependencies: Set[VarDependency
       builder.append(dependencies)
 
     builder.toString()
+
+implicit def VarDependencyGraphTree: Tree[VarDependencyGraph] = new Tree {
+  override def children(value: VarDependencyGraph) =
+    value.dependencies.toList
+}
 
 extension (ctx: Context)
   /** Get the dependency graph of a type variable. */

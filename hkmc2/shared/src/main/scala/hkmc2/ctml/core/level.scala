@@ -5,6 +5,7 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
+import scala.collection.mutable.Set as SetMut
 
 extension (ctx: Context)
   /** Solve a type inference level by processing each new variable of that level. */
@@ -55,25 +56,22 @@ extension (ctx: Context)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =
-    // FIXME: This function is not transitive but it should be.
-
-    // Get the type variables declared at this level.
-
     // Remove the variables that have dependent variabled declared at a lower level.
-    outs.typeVars.filter(ctx.isDependedOnByLowerLevel(_, outs))
+    outs.typeVars.filter(ctx.isLevelVar(_, outs))
 
-  def isDependedOnByLowerLevel(var_ : TypeVar, outs: Clauses) =
-      // Get the list of type variables that depend on the type variable of this level.
-      val dependentVars = outs.getDependentVars(var_)
+  /** Check whether a type variable is a variable of this level, that is, if it not depended on by
+   *  a variable of a lower level.
+   */
+  def isLevelVar(var_ : TypeVar, outs: Clauses)(using cache: SetMut[TypeVar] = SetMut()): Boolean =
+    // Get the list of type variables that directly depend on the type variable.
+    var dependentVars = outs.getDependentVars(var_)
 
-      output(s"${var_} IS DEPENDED ON BY ${dependentVars}")
+    // Update the type variables and cache.
+    dependentVars = dependentVars.filter(!cache.contains(_))
+    cache.addAll(dependentVars)
 
-      // Check whether any of the dependent variables is declared at a lower level.
-      val a = !dependentVars.exists(ctx.hasVar(_))
-      output(s"${var_} DEPENDING VARIABLES ARE NOT AT LOWER LEVEL ${a} IN ${ctx}")
-      output(s"    AND ${outs}")
-      a
-
+    // The type variable is not declared in a lower level and neither are its dependent variables.
+    !ctx.hasVar(var_) && dependentVars.forall(ctx.isLevelVar(_, outs))
 
   /** Check whether a type variable is constrained by any of the other variables of the same level. */
   def isVarConstrained(var_ : TypeVar, levelVars: Set[TypeVar]): Boolean =

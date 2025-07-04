@@ -12,12 +12,12 @@ trait Monoid[T]:
 implicit def SetMonoid[T]: Monoid[Set[T]] = new Monoid[Set[T]] {
   def empty = Set.empty
   def combine(a: Set[T], b: Set[T]): Set[T] =
-    a.concat(b)
+    a ++ b
 }
 
 /** The list implementation of the monoid trait. */
 implicit def ListMonoid[T]: Monoid[List[T]] = new Monoid[List[T]] {
   def empty = List.empty
   def combine(a: List[T], b: List[T]): List[T] =
-    a.concat(b)
+    a ++ b
 }

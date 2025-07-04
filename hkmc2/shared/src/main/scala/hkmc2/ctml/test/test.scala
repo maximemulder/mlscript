@@ -7,7 +7,7 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.getStackTraceString
+import hkmc2.ctml.util.*
 import hkmc2.semantics.Term
 import sourcecode.{FileName,Line}
 
@@ -151,13 +151,13 @@ class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName)
       error.addStep(TypeIncomparabilityJudgment(left, right))
       throw error
 
-    Clauses.none
+    Clauses.empty
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =
-    this.output(type_.show())
+    this.output(type_.show)
 
   /** Output the generated type bounds if there are some. */
   def outputClauses(clauses: Clauses) =
-    if clauses != Clauses.none then
-      this.output(clauses.show())
+    if clauses != Clauses.empty then
+      this.output(clauses.show)

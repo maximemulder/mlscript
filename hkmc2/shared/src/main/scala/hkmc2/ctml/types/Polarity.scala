@@ -1,5 +1,7 @@
 package hkmc2.ctml.types
 
+import hkmc2.ctml.util.*
+
 /** A type polarity. */
 enum Polarity:
   /** The negative type polarity. */
@@ -14,8 +16,8 @@ enum Polarity:
       case Positive => Negative
 
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show()
+  override def toString: String =
+    this.show
 
 /** The type polarities at which a variable occurs in a type. */
 case class Polarities(
@@ -50,3 +52,11 @@ object Polarities:
     val negative = left.negative && right.negative
     val positive = left.positive && right.positive
     return Polarities(negative, positive)
+
+/** Implementation of the `Show` trait for `Polarity`. */
+implicit def PolarityShow: Show[Polarity] = new Show {
+  override def show(pol: Polarity): String =
+    pol match
+      case Polarity.Negative => "−"
+      case Polarity.Positive => "+"
+}

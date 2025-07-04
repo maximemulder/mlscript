@@ -67,3 +67,17 @@ extension [T](list: List[T])
         head
       case head :: tail =>
         f(head, tail.fold1Right(f))
+
+/** Get the level-indented string representation of a tree. */
+def showTree[T](value: T)(using tree: Tree[T], show: Show[T]): String =
+  val builder = StringBuilder()
+  showTreeImpl(value, builder, 0)
+  builder.toString()
+
+/** Implementation of the `showTree` function. */
+private def showTreeImpl[T](value: T, builder: StringBuilder, indent: Int)(using tree: Tree[T], show: Show[T]): Unit =
+  builder.append("  ".repeat(indent))
+  builder.append(show.show(value))
+  builder.append("\n")
+  for child <- tree.children(value) do
+    showTreeImpl(child, builder, indent + 1)

@@ -21,7 +21,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
   expr match
     // Variable.
     case var_ : EVar =>
-      (ctx.getVarType(var_.name), Clauses.none)
+      (ctx.getVarType(var_.name), Clauses.empty)
 
     // Lambda abstraction.
     case lam: ELam =>

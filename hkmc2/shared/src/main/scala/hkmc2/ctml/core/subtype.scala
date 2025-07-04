@@ -53,15 +53,15 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
         val (supBase, supBounds) = sup.splitConstrainings()
         val boundsClauses = subtypeBounds(subBounds, supBounds)
         val baseClauses = subtype(subBase, supBase)
-        return Clauses.none
+        return Clauses.empty
 
   // Subtyping of top and bottom types.
 
   if sub.is[TBot] then
-    return Clauses.none
+    return Clauses.empty
 
   if sup.is[TTop] then
-    return Clauses.none
+    return Clauses.empty
 
   // Subtyping of fresh variables in constraining mode.
 
@@ -143,7 +143,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub == sup then
-    return Clauses.none
+    return Clauses.empty
 
   var lowest = ctx.compareVarLevels(sub, sup)
   lowest match
@@ -172,7 +172,7 @@ def subtypeFreshVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Con
 def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   // If both variables are equal then they are subtype.
   if sub.name == sup.name then
-    return Clauses.none
+    return Clauses.empty
 
   var lowest = ctx.compareVarLevels(sub, sup)
   lowest match
@@ -203,7 +203,7 @@ def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
 def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: Mode): Clauses =
   sups
-    .foldRight(Clauses.none)((sup, clauses) =>
+    .foldRight(Clauses.empty)((sup, clauses) =>
       val subTypes = subs.filterVarDir(sup.var_, sup.dir)
       val subType = subTypes.combineMany(sup.dir)
       subtype(subType, sup.type_)

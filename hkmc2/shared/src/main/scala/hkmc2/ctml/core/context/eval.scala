@@ -12,7 +12,7 @@ extension (ctx: Context)
     // A left fold preserves the arguments order if they are passed from left to right, which
     // should be the case if they are statically written inline, but should not the case if they.
     // come from a dynamically generated list.
-    fs.foldLeft(Clauses.none)((clauses, f) => ctx.seq(f, clauses))
+    fs.foldLeft(Clauses.empty)((clauses, f) => ctx.seq(f, clauses))
 
   /** Evaluate some functions and join the bounds returned. */
   def any(fs: (() => Context ?=> Clauses)*): Clauses =

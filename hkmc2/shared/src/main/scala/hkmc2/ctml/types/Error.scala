@@ -32,9 +32,9 @@ case class TypeError(
             "Unknown type error."
 
     if !this.trees.isEmpty then
-      message += "\nTyping error tree:"
+      message += "\nTyping error tree:\n"
       for tree <- trees do
-        message += tree.show.indent(1)
+        message += tree.show.addIndentation(1)
 
     message
 

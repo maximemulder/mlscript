@@ -1,15 +1,98 @@
 :ctml
 
+:ctml-dbg infer var context
+
 fun foo(a) =
   let b = a
   let c = b
   c
-//│ foo: ∀α ◁ {}. α → α
+//│ infer ELam(a,EApp(ELam(b,EApp(ELam(c,EVar(c)),EVar(b))),EVar(a))) in ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   α fresh
+//│   infer EApp(ELam(b,EApp(ELam(c,EVar(c)),EVar(b))),EVar(a)) in a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     β fresh
+//│     infer ELam(b,EApp(ELam(c,EVar(c)),EVar(b))) in β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│       γ fresh
+//│       infer EApp(ELam(c,EVar(c)),EVar(b)) in b: γ, γ fresh, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         δ fresh
+//│         infer ELam(c,EVar(c)) in δ fresh, b: γ, γ fresh, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           ε fresh
+//│           infer EVar(c) in c: ε, ε fresh, δ fresh, b: γ, γ fresh, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           OK ε ⇝ ∅
+//│           quantify ε with ⊥ and ⊤ in ε → ε
+//│           = ∀ε. ε → ε
+//│         OK ∀ε. ε → ε ⇝ c: ε
+//│         infer EVar(b) in c: ε, δ fresh, b: γ, γ fresh, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         OK γ ⇝ ∅
+//│         ε fresh
+//│       OK δ ⇝ δ ≥ ε, δ ≥ γ, γ ≤ ε, ε ≤ δ, ε ≥ γ, γ ≤ ε, ε fresh, c: ε, δ fresh
+//│       inline γ with ε in γ → δ
+//│       = ε → δ
+//│       inline δ with ε in ε → δ
+//│       = ε → ε
+//│       quantify ε with γ and δ in ε → ε
+//│       = ∀ε ◁ {ε ≥ γ, ε ≤ δ}. ε → ε
+//│     OK ∀ε ◁ {ε ≥ γ, ε ≤ δ}. ε → ε ⇝ c: ε, b: γ
+//│     infer EVar(a) in c: ε, b: γ, β fresh, a: α, α fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK α ⇝ ∅
+//│     ε fresh
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Type variable 'γ' not found in the context.
+//│ Typing error tree:
+//│   ∀ε ◁ {ε ≥ γ, ε ≤ δ}. ε → ε ≤ α → β
+//│     γ ≤ ε
 
 fun bar(a) =
   let b = 1
   let c = 1
   b + c
+//│ infer ELam(a,EApp(ELam(b,EApp(ELam(c,EApp(EApp(EVar(+),EVar(b)),EVar(c))),EVar(int))),EVar(int))) in ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   ζ fresh
+//│   infer EApp(ELam(b,EApp(ELam(c,EApp(EApp(EVar(+),EVar(b)),EVar(c))),EVar(int))),EVar(int)) in a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     η fresh
+//│     infer ELam(b,EApp(ELam(c,EApp(EApp(EVar(+),EVar(b)),EVar(c))),EVar(int))) in η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│       θ fresh
+//│       infer EApp(ELam(c,EApp(EApp(EVar(+),EVar(b)),EVar(c))),EVar(int)) in b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         ι fresh
+//│         infer ELam(c,EApp(EApp(EVar(+),EVar(b)),EVar(c))) in ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           κ fresh
+//│           infer EApp(EApp(EVar(+),EVar(b)),EVar(c)) in c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│             λ fresh
+//│             infer EApp(EVar(+),EVar(b)) in λ fresh, c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│               μ fresh
+//│               infer EVar(+) in μ fresh, λ fresh, c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│               OK Int → Int → Int ⇝ ∅
+//│               infer EVar(b) in μ fresh, λ fresh, c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│               OK θ ⇝ ∅
+//│               inline μ with Int → Int in μ
+//│               = Int → Int
+//│             OK Int → Int ⇝ θ ≤ Int
+//│             infer EVar(c) in θ ≤ Int, λ fresh, c: κ, κ fresh, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│             OK κ ⇝ ∅
+//│             inline λ with Int in λ
+//│             = Int
+//│           OK Int ⇝ κ ≤ Int, θ ≤ Int
+//│           inline κ with Int in κ → Int
+//│           = Int → Int
+//│         OK Int → Int ⇝ θ ≤ Int, c: κ
+//│         infer EVar(int) in θ ≤ Int, c: κ, ι fresh, b: θ, θ fresh, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         OK Int ⇝ ∅
+//│         inline ι with Int in ι
+//│         = Int
+//│       OK Int ⇝ θ ≤ Int, c: κ
+//│       inline θ with Int in θ → Int
+//│       = Int → Int
+//│     OK Int → Int ⇝ c: κ, b: θ
+//│     infer EVar(int) in c: κ, b: θ, η fresh, a: ζ, ζ fresh, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK Int ⇝ ∅
+//│     inline η with Int in η
+//│     = Int
+//│   OK Int ⇝ c: κ, b: θ
+//│   inline ζ with ⊤ in ζ → Int
+//│   = ⊤ → Int
+//│ OK ⊤ → Int ⇝ c: κ, b: θ, a: ζ
 //│ bar: ⊤ → Int
 
 fun baz(a, b) =
@@ -17,68 +100,152 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ν → ξ → ρ
+//│ infer ELam(a,ELam(b,EApp(ELam(c,EVar(c)),EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str))))))) in bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   ν fresh
+//│   infer ELam(b,EApp(ELam(c,EVar(c)),EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str)))))) in a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     ξ fresh
+//│     infer EApp(ELam(c,EVar(c)),EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str))))) in b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│       ο fresh
+//│       infer ELam(c,EVar(c)) in ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         π fresh
+//│         infer EVar(c) in c: π, π fresh, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         OK π ⇝ ∅
+//│         quantify π with ⊥ and ⊤ in π → π
+//│         = ∀π. π → π
+//│       OK ∀π. π → π ⇝ c: π
+//│       infer EMatch(EVar(a),List(EMatchCase(Int,EAscr(EVar(b),Int)), EMatchCase(Str,EAscr(EVar(b),Str)))) in c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         infer EVar(a) in c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│         OK ν ⇝ ∅
+//│         ρ fresh
+//│         infer EAscr(EVar(b),Int) in ν ≤ Int, ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           infer EVar(b) in ν ≤ Int, ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           OK ξ ⇝ ∅
+//│         OK Int ⇝ ξ ≤ Int
+//│         infer EAscr(EVar(b),Str) in ν ≤ Str, ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           infer EVar(b) in ν ≤ Str, ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh, a: ν, ν fresh, bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│           OK ξ ⇝ ∅
+//│         OK Str ⇝ ξ ≤ Str
+//│       OK ρ ⇝ ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ fresh, ν ≤ Int ∨ Str
+//│       π fresh
+//│     OK ο ⇝ ο ≥ (((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π, ο ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π fresh, ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh
+//│   OK ξ → ο ⇝ ο ≥ (((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π, ο ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π fresh, ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ fresh, ν ≤ Int ∨ Str, c: π, ο fresh, b: ξ, ξ fresh
+//│   quantify ν with ⊥ and (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}) in ν → ξ → ο
+//│   = ∀ν ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str})}. ν → ξ → ο
+//│   quantify ξ with ⊥ and (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}) in ∀ν ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str})}. ν → ξ → ο
+//│   = ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str})}. ν → ξ → ο
+//│   inline ο with (((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π in ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str})}. ν → ξ → ο
+//│   = ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str})}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π)
+//│   quantify ρ with (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}) and π in ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str})}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π)
+//│   = ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π)
+//│   quantify π with ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ and ο in ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π)
+//│   = ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π)
+//│ OK ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ⇝ c: π, b: ξ, a: ν
+//│ baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π)
 
 baz(1, 1)
-//│ Int
+//│ infer EApp(EApp(EVar(baz),EVar(int)),EVar(int)) in baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   σ fresh
+//│   infer EApp(EVar(baz),EVar(int)) in σ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     τ fresh
+//│     infer EVar(baz) in τ fresh, σ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ⇝ ∅
+//│     infer EVar(int) in τ fresh, σ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK Int ⇝ ∅
+//│     π fresh
+//│     ρ fresh
+//│     ξ fresh
+//│     ν fresh
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Type variable 'ο' not found in the context.
+//│ Typing error tree:
+//│   ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ≤ Int → τ
+//│     π ≤ ο
 
 baz("", "")
-//│ Str
+//│ infer EApp(EApp(EVar(baz),EVar(string)),EVar(string)) in baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   υ fresh
+//│   infer EApp(EVar(baz),EVar(string)) in υ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     φ fresh
+//│     infer EVar(baz) in φ fresh, υ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ⇝ ∅
+//│     infer EVar(string) in φ fresh, υ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK Str ⇝ ∅
+//│     π fresh
+//│     ρ fresh
+//│     ξ fresh
+//│     ν fresh
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Type variable 'ο' not found in the context.
+//│ Typing error tree:
+//│   ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ≤ Str → φ
+//│     π ≤ ο
 
 baz(bot, bot)
-//│ ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ρ
+//│ infer EApp(EApp(EVar(baz),EVar(bot)),EVar(bot)) in baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   χ fresh
+//│   infer EApp(EVar(baz),EVar(bot)) in χ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     ψ fresh
+//│     infer EVar(baz) in ψ fresh, χ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ⇝ ∅
+//│     infer EVar(bot) in ψ fresh, χ fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK ⊥ ⇝ ∅
+//│     π fresh
+//│     ρ fresh
+//│     ξ fresh
+//│     ν fresh
+//│   FAIL
+//│ FAIL
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:53)
+//│ ═══[ERROR] Type variable 'ο' not found in the context.
+//│ Typing error tree:
+//│   ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ≤ ⊥ → ψ
+//│     π ≤ ο
 
 :e
 baz(1, "")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → ω.
+//│ infer EApp(EApp(EVar(baz),EVar(int)),EVar(string)) in baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   ω fresh
+//│   infer EApp(EVar(baz),EVar(int)) in ω fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     24 fresh
+//│     infer EVar(baz) in 24 fresh, ω fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ⇝ ∅
+//│     infer EVar(int) in 24 fresh, ω fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK Int ⇝ ∅
+//│     π fresh
+//│     ρ fresh
+//│     ξ fresh
+//│     ν fresh
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Type variable 'ο' not found in the context.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → ω
-//│     Str ≤ Int
-//│       ⊤ ≤ Int
-//│         ⊤ ≤ ⊥
+//│   ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ≤ Int → 24
+//│     π ≤ ο
 
 :e
 baz(true, false)
-//│ ═══[ERROR] Cannot solve judgment ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ν → ξ → ρ ≤ Bool → 26.
+//│ infer EApp(EApp(EVar(baz),EVar(bool)),EVar(bool)) in baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│   25 fresh
+//│   infer EApp(EVar(baz),EVar(bool)) in 25 fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     26 fresh
+//│     infer EVar(baz) in 26 fresh, 25 fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ⇝ ∅
+//│     infer EVar(bool) in 26 fresh, 25 fresh, baz: ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π), bar: ⊤ → Int, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, Str class, Num class, Int class, Bool class, Unit class, Bot class, Top class, untyped class, Function class, Object class
+//│     OK Bool ⇝ ∅
+//│     π fresh
+//│     ρ fresh
+//│     ξ fresh
+//│     ν fresh
+//│   FAIL
+//│ FAIL
+//│ ═══[ERROR] Type variable 'ο' not found in the context.
 //│ Typing error tree:
-//│   ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ν → ξ → ρ ≤ Bool → 26
-//│     ν → ξ → ρ ≤ Bool → 26
-//│       Bool ≤ ν
-//│         Bool ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str})
-//│           Bool ≤ Int ▷ {ρ ≥ Int, ξ ≤ Int}
-//│             Bool ≤ Int
-//│               Bool ≤ ⊥
-//│                 ⊤ ≤ ⊥
-//│           Bool ≤ Str ▷ {ρ ≥ Str, ξ ≤ Str}
-//│             Bool ≤ Str
-//│               Bool ≤ ⊥
-//│                 ⊤ ≤ ⊥
-
-// BUG:
-// //│ List(ρ, ο, ξ, ν) IN ν → ξ → ο
-//
-//  ο ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}),
-//    ρ ≤ ο,
-//      ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}),
-//        ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}),
-//          ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}),
-//            ρ fresh,
-//              ν ≤ Int ∨ Str,
-//                c: π,
-//                  ο fresh,
-//                    b: ξ,
-//                      ξ fresh,
-//                        a: ν,
-//                          ν fresh
-//
-//                            bar: ⊤ → Int,
-//                              foo: ∀α ◁ {}. α → α,
-//                                ...
-//
-// The problem is that the system does not remember that ο ≤ ρ
-// TODO:
-// - Should I just have both ο ≤ ρ and ρ ≤ ο ? Read the paper about it.
-
-fun foo(a, b) =
-  a(1, b)
-//│ foo: (Int → 28 → 29) → ⊤ → ⊥
+//│   ∀ν, ξ, ρ, π ◁ {ν ≤ (Int ▷ {ξ ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ξ ≤ Str, ρ ≥ Str}), ξ ≤ (Int ▷ {ν ≤ Int, ρ ≥ Int}) ∨ (Str ▷ {ν ≤ Str, ρ ≥ Str}), ρ ≥ (Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str}), ρ ≤ π, π ≥ ((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ, π ≤ ο}. ν → ξ → ((((Int ▷ {ν ≤ Int, ξ ≤ Int}) ∨ (Str ▷ {ν ≤ Str, ξ ≤ Str})) ∨ ρ) ∨ π) ≤ Bool → 26
+//│     π ≤ ο

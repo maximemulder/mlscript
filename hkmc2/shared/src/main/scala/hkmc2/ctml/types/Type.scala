@@ -56,16 +56,14 @@ extension (type_ : Type)
         bounds.map(_.type_) :+ base
 
 /** Implementation of the `Tree` trait for `Type`. */
-implicit def TypeTree: Tree[Type] = new Tree {
+given Tree[Type] with
   override def children(type_ : Type): List[Type] =
     type_.components
-}
 
 /** Implementation of the `Show` trait for `Type`. */
-implicit def TypeShow: Show[Type] = new Show {
+given Show[Type] with
   override def show(type_ : Type): String =
     type_.showType()
-}
 
 extension (type_ : Type)
     /** Convert the type to its string representation. */

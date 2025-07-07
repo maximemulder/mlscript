@@ -1,7 +1,11 @@
 package hkmc2.ctml.types
 
-import hkmc2.semantics.Statement
+
 import scala.collection.mutable.ListBuffer
+
+import hkmc2.ctml.util.*
+import hkmc2.semantics.Statement
+
 
 /** A CTML error. */
 abstract class Error extends Exception
@@ -30,7 +34,7 @@ case class TypeError(
     if !this.trees.isEmpty then
       message += "\nTyping error tree:"
       for tree <- trees do
-        message += tree.show(1)
+        message += tree.show.indent(1)
 
     message
 

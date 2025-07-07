@@ -142,4 +142,4 @@ implicit def TypeVarKindShow: Show[TypeVarKind] = new Show {
 
 /** Convert a list of bounds to its string representation. */
 def showBounds(bounds: List[Bound]): String =
-  bounds.map(_.show).mkString(", ")
+  bounds.reverse.map(_.show).mkString(", ")

@@ -1,4 +1,4 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.core.var_
 
 import scala.collection.mutable.Set as SetMut
 
@@ -10,27 +10,30 @@ import hkmc2.ctml.util.*
 /** A type variable and its dependency graph, that is, the other type variables on which it
  *  depends.
  */
-class VarDependencyGraph(val var_ : TypeVar, val dependencies: Set[VarDependencyGraph]):
-  override def toString(): String =
-    val builder = StringBuilder(var_.name)
-    if dependencies != Set.empty then
-      builder.append(" ")
-      builder.append(dependencies)
+class VarDependencies(val var_ : TypeVar, val dependencies: Set[VarDependencies]):
+  override def toString: String =
+    this.show
 
-    builder.toString()
-
-implicit def VarDependencyGraphTree: Tree[VarDependencyGraph] = new Tree {
-  override def children(value: VarDependencyGraph) =
+/** Implementation of the `Tree` trait for `VarDependencies`. */
+given Tree[VarDependencies] with
+  override def children(value: VarDependencies) =
     value.dependencies.toList
-}
+
+/** Implementation of the `Show` trait for `VarDependencies`. */
+given Show[VarDependencies] =
+  given Show[VarDependencies] with
+    def show(dependencies: VarDependencies) =
+      dependencies.var_.name
+
+  TreeShow
 
 extension (ctx: Context)
   /** Get the dependency graph of a type variable. */
-  def getVarDependencies(var_ : TypeVar): VarDependencyGraph =
+  def getVarDependencies(var_ : TypeVar): VarDependencies =
     getVarDependenciesImpl(var_)(using SetMut())
 
   /** Implementation of `getVarDependencies`. */
-  private def getVarDependenciesImpl(var_ : TypeVar)(using cache: SetMut[TypeVar]): VarDependencyGraph =
+  private def getVarDependenciesImpl(var_ : TypeVar)(using cache: SetMut[TypeVar]): VarDependencies =
     // Get the direct dependency type variables.
     val dependencyVars = if !cache.contains(var_) then
       ctx.getVarLowerBound(var_).getVars() ++ ctx.getVarUpperBound(var_).getVars()
@@ -41,4 +44,4 @@ extension (ctx: Context)
     cache.add(var_)
 
     val dependencies = dependencyVars.map(ctx.getVarDependenciesImpl(_))
-    VarDependencyGraph(var_, dependencies)
+    VarDependencies(var_, dependencies)

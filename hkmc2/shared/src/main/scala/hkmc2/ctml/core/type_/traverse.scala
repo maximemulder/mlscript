@@ -2,6 +2,7 @@ package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.util.given
 
 extension (type_ : Type)
   /** Accumulate a monoidic value while traversing a type. */

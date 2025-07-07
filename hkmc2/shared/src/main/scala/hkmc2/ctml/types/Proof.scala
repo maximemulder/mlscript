@@ -1,18 +1,25 @@
 package hkmc2.ctml.types
 
+import hkmc2.ctml.util.*
+
 /** A proof tree. */
 case class ProofTree(val judgment: Judgment, val premises: List[ProofTree]):
-  /** Convert the proof tree to a string. */
-  def show(level: Int): String =
-    var tree = s"\n${"  " * level}${judgment.show()}"
-    for premise <- this.premises do
-      tree += premise.show(level + 1)
-
-    tree
-
   /** Get the string representation of the object. */
-  override def toString(): String =
-    this.show(0)
+  override def toString: String =
+    this.show
+
+/** Implementation of the `Tree` trait for `ProofTree`. */
+given Tree[ProofTree] with
+  override def children(tree: ProofTree): List[ProofTree] =
+    tree.premises
+
+/** Implementation of the `Show` trait for `ProofTree`. */
+given Show[ProofTree] =
+  given Show[ProofTree] with
+    override def show(tree: ProofTree): String =
+      tree.judgment.show()
+
+  TreeShow
 
 /** A proof judgment. */
 abstract trait Judgment:

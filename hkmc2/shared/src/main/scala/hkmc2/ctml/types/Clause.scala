@@ -92,17 +92,16 @@ enum TypeVarKind:
     this.show
 
 /** Implementation of the `Show` trait for `Clause`. */
-implicit def ClausesShow: Show[Clauses] = new Show {
+given Show[Clauses] with
   override def show(clauses: Clauses): String =
     clauses.elems match
       case Nil =>
         "∅"
       case elems =>
         elems.map(_.show).mkString(", ")
-}
 
 /** Implementation of the `Show` trait for `Clause`. */
-implicit def ClauseShow: Show[Clause] = new Show {
+given Show[Clause] with
   override def show(clause: Clause): String =
     clause match
       case var_ : TermVarDecl =>
@@ -111,34 +110,29 @@ implicit def ClauseShow: Show[Clause] = new Show {
         var_.show
       case bound: Bound =>
         bound.show
-}
 
 /** Implementation of the `Show` trait for `TermVarDecl`. */
-implicit def TermVarDeclShow: Show[TermVarDecl] = new Show {
+given Show[TermVarDecl] with
   override def show(var_ : TermVarDecl): String =
     s"${var_.name}: ${var_.type_}"
-}
 
 /** Implementation of the `Show` trait for `TypeVarDecl`. */
-implicit def TypeVarDeclShow: Show[TypeVarDecl] = new Show {
+given Show[TypeVarDecl] with
   override def show(var_ : TypeVarDecl): String =
     s"${var_.var_} ${var_.kind}"
-}
 
 /** Implementation of the `Show` trait for `Bound`. */
-implicit def BoundShow: Show[Bound] = new Show {
+given Show[Bound] with
   override def show(bound: Bound): String =
     s"${bound.var_} ${bound.dir} ${bound.type_}"
-}
 
 /** Implementation of the `Show` trait for `TypeVarKind`. */
-implicit def TypeVarKindShow: Show[TypeVarKind] = new Show {
+given Show[TypeVarKind] with
   override def show(kind: TypeVarKind): String =
     kind match
       case TypeVarKind.Class => "class"
       case TypeVarKind.Rigid => "rigid"
       case TypeVarKind.Fresh => "fresh"
-}
 
 /** Convert a list of bounds to its string representation. */
 def showBounds(bounds: List[Bound]): String =

@@ -52,7 +52,8 @@ extension (ctx: Context)
     else
       ignoreVar(type_, var_)
     // TODO: Remove variable
-    (newType, outs.removeTypeVar(var_))
+    val newOuts = outs.removeTypeVar(var_)
+    (newType, newOuts)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =

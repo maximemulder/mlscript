@@ -8,6 +8,12 @@ trait Monoid[T]:
   /** The associative operation. */
   def combine(a: T, b: T): T
 
+/** Implementation of the `Monoid` trait for `Unit`. */
+given Monoid[Unit] with
+  def empty = ()
+  def combine(a: Unit, b: Unit): Unit =
+    ()
+
 /** Implementation of the `Monoid` trait for `Set`. */
 given [T]: Monoid[Set[T]] with
   def empty = Set.empty

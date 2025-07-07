@@ -145,8 +145,26 @@ def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
   if sub == sup then
     return Clauses.empty
 
-  subtypeFreshVarSub(sub, TVar(sup))
-  subtypeFreshVarSup(sup, TVar(sub))
+  // var lowest = ctx.compareVarLevels(sub, sup)
+  // lowest match
+  //   case Left(()) =>
+  //     subtypeFreshVarSub(sub, TVar(sup))
+  //   case Right(()) =>
+  //     subtypeFreshVarSup(sup, TVar(sub))
+
+  // var lowest = ctx.compareVarLevels(sub, sup)
+  // lowest match
+  //   case Left(()) =>
+  //     subtypeFreshVarSub(sub, TVar(sup))
+  //     subtypeFreshVarSup(sup, TVar(sub))
+  //   case Right(()) =>
+  //     subtypeFreshVarSup(sup, TVar(sub))
+  //     subtypeFreshVarSub(sub, TVar(sup))
+
+  ctx.all(
+    () => subtypeFreshVarSub(sub, TVar(sup)),
+    () => subtypeFreshVarSup(sup, TVar(sub)),
+  )
 
 /** Constrain a type variable to be subtype of a type. */
 def subtypeFreshVarSub(var_ : TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =

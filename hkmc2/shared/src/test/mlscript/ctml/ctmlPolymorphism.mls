@@ -1,0 +1,22 @@
+:ctml
+
+fun id(x) =
+  x
+//│ id: ∀α. α → α
+
+id(1)
+//│ Int
+
+fun apply(f, x) =
+  f(x)
+//│ apply: ∀δ, ε. (δ → ε) → δ → ε
+
+fun double(f, x) =
+  f(f(x))
+//│ double: ∀η, θ, ι. ((η → ι) ∧ (ι → θ)) → η → θ
+
+:fixme
+fun foo(a, b) =
+  a(1, b)
+//│ foo: (Int → λ → μ) → ⊤ → ⊥
+//│ FAILURE: Unexpected lack of error to fix

@@ -17,42 +17,39 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str}))
-
-2
-//│ Int
+//│ baz: ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ν → ξ → ρ
 
 baz(1, 1)
-//│ Int ∨ Str
+//│ Int
 
 baz("", "")
-//│ Int ∨ Str
+//│ Str
 
 baz(bot, bot)
-//│ ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})
+//│ ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ρ
 
 :e
 baz(1, "")
-//│ ═══[ERROR] Cannot solve judgment Int → (Int ∨ Str) ≤ Str → ω.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → ω.
 //│ Typing error tree:
-//│   Int → (Int ∨ Str) ≤ Str → ω
+//│   Int → Int ≤ Str → ω
 //│     Str ≤ Int
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
 
 :e
 baz(true, false)
-//│ ═══[ERROR] Cannot solve judgment ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})) ≤ Bool → 26.
+//│ ═══[ERROR] Cannot solve judgment ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ν → ξ → ρ ≤ Bool → 26.
 //│ Typing error tree:
-//│   ∀ν, ξ ◁ {ν ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str}), ξ ≤ (Int ▷ {ν ≤ Int}) ∨ (Str ▷ {ν ≤ Str})}. ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})) ≤ Bool → 26
-//│     ν → ξ → ((Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})) ≤ Bool → 26
+//│   ∀ν, ξ, ρ ◁ {ν ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str}), ξ ≤ (Int ▷ {ρ ≥ Int, ν ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ν ≤ Str}), ρ ≥ (Int ▷ {ξ ≤ Int, ν ≤ Int}) ∨ (Str ▷ {ξ ≤ Str, ν ≤ Str})}. ν → ξ → ρ ≤ Bool → 26
+//│     ν → ξ → ρ ≤ Bool → 26
 //│       Bool ≤ ν
-//│         Bool ≤ (Int ▷ {ξ ≤ Int}) ∨ (Str ▷ {ξ ≤ Str})
-//│           Bool ≤ Int ▷ {ξ ≤ Int}
+//│         Bool ≤ (Int ▷ {ρ ≥ Int, ξ ≤ Int}) ∨ (Str ▷ {ρ ≥ Str, ξ ≤ Str})
+//│           Bool ≤ Int ▷ {ρ ≥ Int, ξ ≤ Int}
 //│             Bool ≤ Int
 //│               Bool ≤ ⊥
 //│                 ⊤ ≤ ⊥
-//│           Bool ≤ Str ▷ {ξ ≤ Str}
+//│           Bool ≤ Str ▷ {ρ ≥ Str, ξ ≤ Str}
 //│             Bool ≤ Str
 //│               Bool ≤ ⊥
 //│                 ⊤ ≤ ⊥

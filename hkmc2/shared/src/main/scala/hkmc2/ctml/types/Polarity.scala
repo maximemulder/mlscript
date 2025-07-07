@@ -54,9 +54,8 @@ object Polarities:
     return Polarities(negative, positive)
 
 /** Implementation of the `Show` trait for `Polarity`. */
-implicit def PolarityShow: Show[Polarity] = new Show {
+given Show[Polarity] with
   override def show(pol: Polarity): String =
     pol match
       case Polarity.Negative => "−"
       case Polarity.Positive => "+"
-}

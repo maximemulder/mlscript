@@ -24,9 +24,8 @@ object Direction:
   def both: List[Direction] = List(Direction.Sub, Direction.Super)
 
 /** Implementation of the `Show` trait for `Direction`. */
-implicit def DirectionShow: Show[Direction] = new Show {
+given Show[Direction] with
   override def show(dir: Direction): String =
     dir match
       case Direction.Sub   => "≤"
       case Direction.Super => "≥"
-}

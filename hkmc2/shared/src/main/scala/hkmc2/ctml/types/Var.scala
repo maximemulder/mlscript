@@ -9,10 +9,9 @@ case class TypeVar(val name: String):
     this.show
 
 /** Implementation of the `Show` trait for `TypeVar`. */
-implicit def TypeVarShow: Show[TypeVar] = new Show {
+given Show[TypeVar] with
   override def show(var_ : TypeVar): String =
     var_.name
-}
 
 /** Convert a list of type variables to its string representation. */
 def showTypeVars(vars: List[TypeVar]): String =

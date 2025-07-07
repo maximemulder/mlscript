@@ -14,9 +14,8 @@ enum Mode:
     this.show
 
 /** Implementation of the `Show` trait for `Mode`. */
-implicit def ModeShow: Show[Mode] = new Show {
+given Show[Mode] with
   override def show(mode: Mode): String =
     mode match
       case Mode.Constrain => "constrain"
       case Mode.Check     => "check"
-}

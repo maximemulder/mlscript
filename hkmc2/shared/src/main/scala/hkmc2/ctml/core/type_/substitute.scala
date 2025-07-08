@@ -10,28 +10,16 @@ extension (type_ : Type)
     type_ match
       case TVar(typeVar) if typeVar == var_ =>
         substitute
-      case TLam(param, ret) =>
-        val newParam = param.substitute(var_, substitute)
-        val newRet   = ret.substitute(var_, substitute)
-        TLam(newParam, newRet)
-      case TUnion(left, right) =>
-        val newLeft  = left.substitute(var_, substitute)
-        val newRight = right.substitute(var_, substitute)
-        join(newLeft, newRight)
-      case TInter(left, right) =>
-        val newLeft  = left.substitute(var_, substitute)
-        val newRight = right.substitute(var_, substitute)
-        join(newLeft, newRight)
       case TConstrained(vars, base, bounds) =>
-        val newBase = base.substitute(var_, substitute)
+        val newBase   = base.substitute(var_, substitute)
         val newBounds = bounds.substitute(var_, substitute)
         TConstrained(vars, newBase, newBounds)
       case TConstraining(base, bounds) =>
-        val newBase = base.substitute(var_, substitute)
+        val newBase   = base.substitute(var_, substitute)
         val newBounds = bounds.substitute(var_, substitute)
         attachConstrainingBounds(newBase, newBounds)
       case _ =>
-        type_
+        type_.mapSimplify(_.substitute(var_, substitute))
 
 extension (bounds: List[Bound])
   /** Substitute a type variable by a type in the list of bounds. */

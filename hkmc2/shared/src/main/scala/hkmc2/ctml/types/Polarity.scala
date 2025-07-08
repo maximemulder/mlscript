@@ -59,3 +59,15 @@ given Show[Polarity] with
     pol match
       case Polarity.Negative => "−"
       case Polarity.Positive => "+"
+
+/** Implementation of the `Monoid` trait for the polarities join. */
+def JoinPolaritiesMonoid: Monoid[Polarities] = new Monoid:
+  def empty = Polarities.empty
+  def combine(a: Polarities, b: Polarities): Polarities =
+    Polarities.join(a, b)
+
+/** Implementation of the `Monoid` trait for the polarities meet. */
+def MeetPolaritiesMonoid: Monoid[Polarities] = new Monoid:
+  def empty = Polarities.empty
+  def combine(a: Polarities, b: Polarities): Polarities =
+    Polarities.meet(a, b)

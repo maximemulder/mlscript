@@ -9,24 +9,22 @@ import hkmc2.ctml.util.given
 extension (type_ : Type)(using ctx: Context)
   /** Find escaped variables within a type. */
   def findEscapedVars(): Set[TypeVar] =
-    type_.accumulate(
-      _ match
-        case TVar(var_) =>
-          Some(var_.findEscapedVars())
-        case TConstraining(base, bounds) =>
-          var escapedVars = base.findEscapedVars()
-          for bound <- bounds do
-            escapedVars ++= bound.findEscapedVars()
-          Some(escapedVars)
-        case TConstrained(vars, base, bounds) =>
-          given Context = ctx.extend(vars.map(TypeVarDecl(_, TypeVarKind.Rigid)).toList)
-          var escapedVars = base.findEscapedVars()
-          for bound <- bounds do
-            escapedVars ++= bound.findEscapedVars()
-          Some(escapedVars)
-        case _ =>
-          None
-    )
+    type_ match
+      case TVar(var_) =>
+        var_.findEscapedVars()
+      case TConstraining(base, bounds) =>
+        var escapedVars = base.findEscapedVars()
+        for bound <- bounds do
+          escapedVars ++= bound.findEscapedVars()
+        escapedVars
+      case TConstrained(vars, base, bounds) =>
+        given Context = ctx.extend(vars.map(TypeVarDecl(_, TypeVarKind.Rigid)).toList)
+        var escapedVars = base.findEscapedVars()
+        for bound <- bounds do
+          escapedVars ++= bound.findEscapedVars()
+        escapedVars
+      case _ =>
+        type_.accumulate(_.findEscapedVars())
 
 extension (bound: Bound)(using ctx: Context)
   /** Find escaped variables within a bound. */

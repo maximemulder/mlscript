@@ -1,10 +1,12 @@
 package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 extension (type_ : Type)
   /** Get the polarities at which a variable occurs in the type. */
   def getVarPolarities(var_ : TypeVar)(using polarity: Polarity): Polarities =
+    given Monoid[Polarities] = JoinPolaritiesMonoid
     type_ match
       case TVar(typeVar) if typeVar == var_ =>
         Polarities.fromPolarity(polarity)
@@ -12,14 +14,6 @@ extension (type_ : Type)
         val paramPolarities = param.getVarPolarities(var_)(using polarity.invert())
         val retPolarities   = ret.getVarPolarities(var_)
         Polarities.join(paramPolarities, retPolarities)
-      case TUnion(left, right) =>
-        val leftPolarities  = left.getVarPolarities(var_)
-        val rightPolarities = right.getVarPolarities(var_)
-        Polarities.join(leftPolarities, rightPolarities)
-      case TInter(left, right) =>
-        val leftPolarities  = left.getVarPolarities(var_)
-        val rightPolarities = right.getVarPolarities(var_)
-        Polarities.join(leftPolarities, rightPolarities)
       case TConstrained(vars, base, bounds) =>
         val basePolarities   = base.getVarPolarities(var_)
         val boundsPolarities = bounds.getVarPolarities(var_)
@@ -29,7 +23,7 @@ extension (type_ : Type)
         val boundsPolarities = bounds.getVarPolarities(var_)
         Polarities.join(basePolarities, boundsPolarities)
       case _ =>
-        Polarities.empty
+        type_.accumulate(_.getVarPolarities(var_))
 
 extension (bounds: List[Bound])
   /** Get the polarities at which a variable occurs in the list of bounds. */

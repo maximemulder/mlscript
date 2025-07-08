@@ -2,6 +2,7 @@ package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 extension (clauses: Clauses)
   /** Check whether a type variable appears in the clauses. */
@@ -30,31 +31,9 @@ extension (bound: Bound)
 extension (type_ : Type)
   /** Check whether a type variable appears in the type. */
   def hasVar(var_ : TypeVar): Boolean =
+    given Monoid[Boolean] = AnyMonoid
     type_ match
-      case TBot =>
-        false
-      case TTop =>
-        false
       case TVar(typeVar) if typeVar == var_ =>
         true
-      case _: TVar =>
-        false
-      case TLam(param, ret) =>
-        param.hasVar(var_) || ret.hasVar(var_)
-      case TUnion(left, right) =>
-        left.hasVar(var_) || right.hasVar(var_)
-      case TInter(left, right) =>
-        left.hasVar(var_) || right.hasVar(var_)
-      case TConstrained(vars, base, bounds) =>
-        if base.hasVar(var_) then
-          false
-        else
-          bounds
-            .map(_.hasVar(var_))
-            .fold(false)(_ || _)
-      case TConstraining(base, bounds) =>
-        val baseHasVar    = base.hasVar(var_)
-        val boundsHaveVar = bounds
-          .map(_.hasVar(var_))
-          .fold(false)(_ || _)
-        baseHasVar || boundsHaveVar
+      case _ =>
+        type_.accumulate(_.hasVar(var_))

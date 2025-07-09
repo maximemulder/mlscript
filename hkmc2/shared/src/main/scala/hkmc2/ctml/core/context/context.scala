@@ -79,19 +79,3 @@ extension (ctx: Context)
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))
-
-  def compareVarLevels(left: TypeVar, right: TypeVar): Either[Unit, Unit] =
-    val first = ctx.clauses.typeVarDecls.findMap(decl =>
-      if decl.var_ == left then
-        Some(Left(()))
-      else if decl.var_ == right then
-        Some(Right(()))
-      else
-        None
-    )
-
-    first match
-      case Some(either) =>
-        either
-      case None =>
-        throw new TypeError(Some(s"Type variable '${left}' or '${right}' not found in the clauses."))

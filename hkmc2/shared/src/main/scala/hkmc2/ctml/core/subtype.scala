@@ -183,14 +183,14 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val subVars = sub.vars.map(newFreshVar(_))
-  val outs = sub.bounds.foldRight(Clauses(subVars))((bound, outs) => ctx.seq(() => constrainBound(bound), outs))
+  val subDecls = sub.vars.map(declFreshVar(_))
+  val outs = sub.bounds.foldRight(Clauses(subDecls))((bound, outs) => ctx.seq(() => constrainBound(bound), outs))
   subtypeSeq(sub.base, sup, outs)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
-  val supVars = sup.vars.map(newRigidVar(_))
-  val outs = sup.bounds.foldRight(Clauses(supVars))((bound, outs) => ctx.seq(() => constrainBound(bound), outs))
+  val supDecls = sup.vars.map(declRigidVar(_))
+  val outs = sup.bounds.foldRight(Clauses(supDecls))((bound, outs) => ctx.seq(() => constrainBound(bound), outs))
   subtypeSeq(sub, sup.base, outs)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */

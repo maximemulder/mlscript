@@ -33,6 +33,9 @@ object Polarities:
   /** Empty type polarity occurences, when a variable does not occur in a type. */
   def empty = Polarities(false, false)
 
+  /** Full type polarity occurences, when a variable appears in both polarities in a type. */
+  def full = Polarities(true, true)
+
   /** Get the type polarity occurences from a single type polarity. */
   def fromPolarity(polarity: Polarity) =
     polarity match
@@ -76,4 +79,4 @@ def JoinPolaritiesMonoid: Monoid[Polarities] = new Monoid(using JoinPolaritiesSe
 
 /** Implementation of the `Monoid` trait for the polarities meet. */
 def MeetPolaritiesMonoid: Monoid[Polarities] = new Monoid(using MeetPolaritiesSemigroup):
-  def empty = Polarities.empty
+  def empty = Polarities.full

@@ -60,14 +60,20 @@ given Show[Polarity] with
       case Polarity.Negative => "−"
       case Polarity.Positive => "+"
 
-/** Implementation of the `Monoid` trait for the polarities join. */
-def JoinPolaritiesMonoid: Monoid[Polarities] = new Monoid:
-  def empty = Polarities.empty
+/** Implementation of the `Semigroup` trait for the polarities join. */
+def JoinPolaritiesSemigroup: Semigroup[Polarities] = new Semigroup:
   def combine(a: Polarities, b: Polarities): Polarities =
     Polarities.join(a, b)
 
-/** Implementation of the `Monoid` trait for the polarities meet. */
-def MeetPolaritiesMonoid: Monoid[Polarities] = new Monoid:
-  def empty = Polarities.empty
+/** Implementation of the `Semigroup` trait for the polarities meet. */
+def MeetPolaritiesSemigroup: Semigroup[Polarities] = new Semigroup:
   def combine(a: Polarities, b: Polarities): Polarities =
     Polarities.meet(a, b)
+
+/** Implementation of the `Monoid` trait for the polarities join. */
+def JoinPolaritiesMonoid: Monoid[Polarities] = new Monoid(using JoinPolaritiesSemigroup):
+  def empty = Polarities.empty
+
+/** Implementation of the `Monoid` trait for the polarities meet. */
+def MeetPolaritiesMonoid: Monoid[Polarities] = new Monoid(using MeetPolaritiesSemigroup):
+  def empty = Polarities.empty

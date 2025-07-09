@@ -5,7 +5,9 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 /** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction. */
 def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
@@ -141,30 +143,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
 /** Constrain a type variable to be subtype of another type variable. */
 def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
-  // If both variables are equal then they are subtype.
-  if sub == sup then
-    return Clauses.empty
-
-  // var lowest = ctx.compareVarLevels(sub, sup)
-  // lowest match
-  //   case Left(()) =>
-  //     subtypeFreshVarSub(sub, TVar(sup))
-  //   case Right(()) =>
-  //     subtypeFreshVarSup(sup, TVar(sub))
-
-  // var lowest = ctx.compareVarLevels(sub, sup)
-  // lowest match
-  //   case Left(()) =>
-  //     subtypeFreshVarSub(sub, TVar(sup))
-  //     subtypeFreshVarSup(sup, TVar(sub))
-  //   case Right(()) =>
-  //     subtypeFreshVarSup(sup, TVar(sub))
-  //     subtypeFreshVarSub(sub, TVar(sup))
-
-  ctx.all(
-    () => subtypeFreshVarSub(sub, TVar(sup)),
-    () => subtypeFreshVarSup(sup, TVar(sub)),
-  )
+  ctx.compareVarLevels(sub, sup) match
+    // If both variables are equal then they are subtype.
+    case Order.Equal =>
+      Clauses.empty
+    case Order.Lesser =>
+      subtypeFreshVarSup(sup, TVar(sub))
+    case Order.Greater =>
+      subtypeFreshVarSub(sub, TVar(sup))
 
 /** Constrain a type variable to be subtype of a type. */
 def subtypeFreshVarSub(var_ : TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
@@ -184,18 +170,16 @@ def subtypeFreshVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Con
 // Rigid variables.
 
 def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
-  // If both variables are equal then they are subtype.
-  if sub.name == sup.name then
-    return Clauses.empty
-
-  var lowest = ctx.compareVarLevels(sub, sup)
-  lowest match
-    case Left(()) =>
-      val upperBound = ctx.getVarUpperBound(sub)
-      subtype(upperBound, TVar(sup))
-    case Right(()) =>
+  ctx.compareVarLevels(sub, sup) match
+    // If both variables are equal then they are subtype.
+    case Order.Equal =>
+      return Clauses.empty
+    case Order.Lesser =>
       val lowerBound = ctx.getVarLowerBound(sup)
       subtype(TVar(sub), lowerBound)
+    case Order.Greater =>
+      val upperBound = ctx.getVarUpperBound(sub)
+      subtype(upperBound, TVar(sup))
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =

@@ -24,4 +24,4 @@ def AnyMonoid: Monoid[Boolean] = new Monoid(using AnySemigroup):
 
 /** Implementation of the `Monoid` trait for the logical disjunction. */
 def AllMonoid: Monoid[Boolean] = new Monoid(using AllSemigroup):
-  def empty = false
+  def empty = true

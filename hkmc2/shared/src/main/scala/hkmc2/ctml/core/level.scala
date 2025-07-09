@@ -4,6 +4,7 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.Set as SetMut
 
@@ -23,7 +24,7 @@ extension (ctx: Context)
    *  that level. */
   def withFreshVarLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
     // Create a new fresh type variable, make it a type, and add it to the context.
-    val freshDecl = newInferFreshVar()
+    val freshDecl = declNewFreshVar()
     val freshCtx = ctx.extend(freshDecl)
 
     // Evaluate the type inference function with the fresh type variable.

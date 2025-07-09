@@ -67,3 +67,10 @@ extension [T](list: List[T])
         head
       case head :: tail =>
         f(head, tail.fold1Right(f))
+
+/** Concatenate two lists while removing elements in the right list that are already in the left
+ *  list.
+ */
+def concatDistinct[T](lefts: List[T], rights: List[T]): List[T] =
+  val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
+  lefts ::: filteredRights

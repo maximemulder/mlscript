@@ -4,6 +4,7 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
@@ -38,7 +39,7 @@ extension (ctx: Context)
     val typeVars = ctx.clauses.typeVarDecls.map(_.var_).toList
     val leftVars  = lefts.filterBoundedVars(typeVars, dir)
     val rightVars = rights.filterBoundedVars(typeVars, dir)
-    joinVars(leftVars, rightVars)
+    concatDistinct(leftVars, rightVars)
 
   /** Get the join bounds of some variables in two lists of constrains in a given typing direction. */
   def joinVarsBoundsDir(vars: List[TypeVar], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =

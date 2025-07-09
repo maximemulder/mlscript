@@ -28,7 +28,7 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
     override def onSet(): Unit =
       super.onSet()
       // Assign the global CTML fresh variable counter.
-      hkmc2.ctml.core.freshVarCounter = 0
+      hkmc2.ctml.core.var_.freshVarCounter = 0
       hkmc2.ctml.core.debug.DebugInfo.reset()
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init

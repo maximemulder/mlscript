@@ -8,14 +8,14 @@ import scala.collection.mutable.ListBuffer
 
 extension (ctx: Context)
   /** Evaluate some functions and meet the bounds returned. */
-  def all(fs: (() => Context ?=> Clauses)*): Clauses =
+  def all(fs: (Context ?=> Clauses)*): Clauses =
     // A left fold preserves the arguments order if they are passed from left to right, which
     // should be the case if they are statically written inline, but should not the case if they.
     // come from a dynamically generated list.
-    fs.foldLeft(Clauses.empty)((clauses, f) => ctx.seq(f, clauses))
+    fs.foldLeft(Clauses.empty)((clauses, f) => ctx.seqUnit(f, clauses))
 
   /** Evaluate some functions and join the bounds returned. */
-  def any(fs: (() => Context ?=> Clauses)*): Clauses =
+  def any(fs: (Context ?=> Clauses)*): Clauses =
     val errorTrees = ListBuffer[ProofTree]()
 
     // A left fold preserves the arguments order if they are passed from left to right, which
@@ -24,7 +24,7 @@ extension (ctx: Context)
     val result = fs.foldLeft(None: Option[Clauses])((result, f) =>
       try
         given Context = ctx
-        val bounds = f()
+        val bounds = f
         result match
           case Some(resultBounds) =>
             Some(Clauses(ctx.joinBounds(resultBounds, bounds)))
@@ -42,8 +42,12 @@ extension (ctx: Context)
       case None =>
         throw TypeError(None, errorTrees.toList)
 
-  /** Evaluate a typing function sequencially. */
-  def seq(f: () => Context ?=> Clauses, ins: Clauses): Clauses =
+  /** Sequentially evaluate a function in a typing context and get its return value. */
+  def seq[T](f: Context ?=> (T, Clauses), ins: Clauses): (T, Clauses) =
     given Context = ctx.extend(ins)
-    val outs = f()
-    ins.concat(outs)
+    val (result, outs) = f
+    (result, ins.concat(outs))
+
+  /** Sequentially evaluate a function in a typing context. */
+  def seqUnit(f: Context ?=> Clauses, ins: Clauses): Clauses =
+    ctx.seq(((), f), ins)._2

@@ -44,7 +44,7 @@ extension (ctx: Context)
     val lowerBound = fullCtx.getVarLowerBound(var_)
     val upperBound = fullCtx.getVarUpperBound(var_)
     val polarities = type_.getVarPolarities(var_)(using Polarity.Positive)
-    val newType = if fullCtx.isVarConstrained(var_, levelVars) || polarities == Polarities(true, true) then
+    val newType = if polarities == Polarities(true, true) || fullCtx.isVarConstrained(var_, levelVars) then
       quantifyVar(type_, var_, lowerBound, upperBound)
     else if polarities == Polarities(true, false) then
       inlineVar(type_, var_, upperBound)

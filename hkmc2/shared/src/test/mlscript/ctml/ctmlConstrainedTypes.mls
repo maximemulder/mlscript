@@ -17,9 +17,9 @@ idInt(1)
 
 :e
 idInt("Hello")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → ζ.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → θ.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → ζ
+//│   Int → Int ≤ Str → θ
 //│     Str ≤ Int
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥

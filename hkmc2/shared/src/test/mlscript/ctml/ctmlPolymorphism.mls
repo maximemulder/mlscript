@@ -9,14 +9,29 @@ id(1)
 
 fun apply(f, x) =
   f(x)
-//│ apply: ∀δ, ε. (δ → ε) → δ → ε
+//│ apply: ∀ε, ζ. (ε → ζ) → ε → ζ
 
 fun double(f, x) =
   f(f(x))
-//│ double: ∀η, θ, ι. ((η → ι) ∧ (ι → θ)) → η → θ
+//│ double: ∀θ, ι, κ. ((θ → κ) ∧ (κ → ι)) → θ → ι
 
-:fixme
+double(id, 1)
+//│ Int
+
 fun foo(a, b) =
   a(1, b)
-//│ foo: (Int → λ → μ) → ⊤ → ⊥
-//│ FAILURE: Unexpected lack of error to fix
+//│ foo: ∀υ, φ. (Int → υ → φ) → υ → φ
+
+foo((+), 1)
+//│ Int
+
+:e
+foo((++), 1)
+//│ ═══[ERROR] Cannot solve judgment ∀υ, φ. (Int → υ → φ) → υ → φ ≤ (Str → Str → Str) → 27.
+//│ Typing error tree:
+//│   ∀υ, φ. (Int → υ → φ) → υ → φ ≤ (Str → Str → Str) → 27
+//│     (Int → 28 → 29) → 28 → 29 ≤ (Str → Str → Str) → 27
+//│       Str → Str → Str ≤ Int → 28 → 29
+//│         Int ≤ Str
+//│           Int ≤ ⊥
+//│             ⊤ ≤ ⊥

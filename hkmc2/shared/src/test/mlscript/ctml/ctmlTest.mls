@@ -12,20 +12,10 @@ foo(1, 2)
 fun bop(a, b) =
   let x = foo(a, b)
   x
-//│ bop: ∀α, β, γ ◁ {α ≥ ζ, α ≤ (Int ▷ {β ≤ Int, γ ≥ Int}) ∨ (Str ▷ {β ≤ Str, γ ≥ Str}), β ≥ η, β ≤ (Int ▷ {α ≤ Int, γ ≥ Int}) ∨ (Str ▷ {α ≤ Str, γ ≥ Str}), γ ≥ (Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str}), γ ≤ κ}. ((α ∨ Int ▷ {β ≤ Int, γ ≥ Int}) ∨ (α ∨ Str ▷ {β ≤ Str, γ ≥ Str})) → ((β ∨ Int ▷ {α ≤ Int, γ ≥ Int}) ∨ (β ∨ Str ▷ {α ≤ Str, γ ≥ Str})) → (((((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ ((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ (((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ κ)
+//│ bop: ∀ο, ι, π, κ ◁ {ο ≥ ι, ο ≤ (Int ▷ {π ≤ Int}) ∨ (Str ▷ {π ≤ Str}), ι ≤ (Int ▷ {π ≤ Int}) ∨ (Str ▷ {π ≤ Str}), π ≥ κ, π ≤ (Int ▷ {ο ≤ Int}) ∨ (Str ▷ {ο ≤ Str}), κ ≤ (Int ▷ {ο ≤ Int}) ∨ (Str ▷ {ο ≤ Str})}. ι → κ → ((Int ▷ {ο ≤ Int, π ≤ Int}) ∨ (Str ▷ {ο ≤ Str, π ≤ Str}))
 
 bop(0, 1)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'ζ' not found in the context.
-//│ Typing error tree:
-//│   ∀α, β, γ ◁ {α ≥ ζ, α ≤ (Int ▷ {β ≤ Int, γ ≥ Int}) ∨ (Str ▷ {β ≤ Str, γ ≥ Str}), β ≥ η, β ≤ (Int ▷ {α ≤ Int, γ ≥ Int}) ∨ (Str ▷ {α ≤ Str, γ ≥ Str}), γ ≥ (Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str}), γ ≤ κ}. ((α ∨ Int ▷ {β ≤ Int, γ ≥ Int}) ∨ (α ∨ Str ▷ {β ≤ Str, γ ≥ Str})) → ((β ∨ Int ▷ {α ≤ Int, γ ≥ Int}) ∨ (β ∨ Str ▷ {α ≤ Str, γ ≥ Str})) → (((((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ ((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ (((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ κ) ≤ Int → ν
-//│     ζ ≤ α
+//│ Int ∨ Str
 
 bop("0", "1")
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'ζ' not found in the context.
-//│ Typing error tree:
-//│   ∀α, β, γ ◁ {α ≥ ζ, α ≤ (Int ▷ {β ≤ Int, γ ≥ Int}) ∨ (Str ▷ {β ≤ Str, γ ≥ Str}), β ≥ η, β ≤ (Int ▷ {α ≤ Int, γ ≥ Int}) ∨ (Str ▷ {α ≤ Str, γ ≥ Str}), γ ≥ (Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str}), γ ≤ κ}. ((α ∨ Int ▷ {β ≤ Int, γ ≥ Int}) ∨ (α ∨ Str ▷ {β ≤ Str, γ ≥ Str})) → ((β ∨ Int ▷ {α ≤ Int, γ ≥ Int}) ∨ (β ∨ Str ▷ {α ≤ Str, γ ≥ Str})) → (((((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ ((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ (((Int ▷ {α ≤ Int, β ≤ Int}) ∨ (Str ▷ {α ≤ Str, β ≤ Str})) ∨ γ) ∨ κ) ≤ Str → ο
-//│     ζ ≤ α
+//│ Int ∨ Str

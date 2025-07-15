@@ -17,38 +17,39 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: Str → Str → (Int ∨ Str)
+//│ baz: ∀ο, π ◁ {ο ≤ (Int ▷ {π ≤ Int}) ∨ (Str ▷ {π ≤ Str}), π ≤ (Int ▷ {ο ≤ Int}) ∨ (Str ▷ {ο ≤ Str})}. ο → π → ((Int ▷ {ο ≤ Int, π ≤ Int}) ∨ (Str ▷ {ο ≤ Str, π ≤ Str}))
 
 baz(1, 1)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Cannot solve judgment Str → Str → (Int ∨ Str) ≤ Int → τ.
-//│ Typing error tree:
-//│   Str → Str → (Int ∨ Str) ≤ Int → τ
-//│     Int ≤ Str
-//│       Int ≤ ⊥
-//│         ⊤ ≤ ⊥
+//│ Int ∨ Str
 
 baz("", "")
 //│ Int ∨ Str
 
 baz(bot, bot)
-//│ Int ∨ Str
+//│ ∀32, 33 ◁ {32 ≤ (Int ▷ {33 ≤ Int}) ∨ (Str ▷ {33 ≤ Str}), 33 ≤ (Int ▷ {32 ≤ Int}) ∨ (Str ▷ {32 ≤ Str})}. (Int ▷ {32 ≤ Int, 33 ≤ Int}) ∨ (Str ▷ {32 ≤ Str, 33 ≤ Str})
 
 :e
 baz(1, "")
-//│ ═══[ERROR] Cannot solve judgment Str → Str → (Int ∨ Str) ≤ Int → 24.
+//│ ═══[ERROR] Cannot solve judgment Int → (Int ∨ Str) ≤ Str → 34.
 //│ Typing error tree:
-//│   Str → Str → (Int ∨ Str) ≤ Int → 24
-//│     Int ≤ Str
-//│       Int ≤ ⊥
+//│   Int → (Int ∨ Str) ≤ Str → 34
+//│     Str ≤ Int
+//│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
 
 :e
 baz(true, false)
-//│ ═══[ERROR] Cannot solve judgment Str → Str → (Int ∨ Str) ≤ Bool → 26.
+//│ ═══[ERROR] Cannot solve judgment ∀ο, π ◁ {ο ≤ (Int ▷ {π ≤ Int}) ∨ (Str ▷ {π ≤ Str}), π ≤ (Int ▷ {ο ≤ Int}) ∨ (Str ▷ {ο ≤ Str})}. ο → π → ((Int ▷ {ο ≤ Int, π ≤ Int}) ∨ (Str ▷ {ο ≤ Str, π ≤ Str})) ≤ Bool → 39.
 //│ Typing error tree:
-//│   Str → Str → (Int ∨ Str) ≤ Bool → 26
-//│     Bool ≤ Str
-//│       Bool ≤ ⊥
-//│         ⊤ ≤ ⊥
+//│   ∀ο, π ◁ {ο ≤ (Int ▷ {π ≤ Int}) ∨ (Str ▷ {π ≤ Str}), π ≤ (Int ▷ {ο ≤ Int}) ∨ (Str ▷ {ο ≤ Str})}. ο → π → ((Int ▷ {ο ≤ Int, π ≤ Int}) ∨ (Str ▷ {ο ≤ Str, π ≤ Str})) ≤ Bool → 39
+//│     40 → 41 → ((Int ▷ {40 ≤ Int, 41 ≤ Int}) ∨ (Str ▷ {40 ≤ Str, 41 ≤ Str})) ≤ Bool → 39
+//│       Bool ≤ 40
+//│         Bool ≤ (Int ▷ {41 ≤ Int}) ∨ (Str ▷ {41 ≤ Str})
+//│           Bool ≤ Int ▷ {41 ≤ Int}
+//│             Bool ≤ Int
+//│               Bool ≤ ⊥
+//│                 ⊤ ≤ ⊥
+//│           Bool ≤ Str ▷ {41 ≤ Str}
+//│             Bool ≤ Str
+//│               Bool ≤ ⊥
+//│                 ⊤ ≤ ⊥

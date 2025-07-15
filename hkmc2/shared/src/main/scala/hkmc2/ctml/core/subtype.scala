@@ -191,7 +191,7 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val freshSub = sub.freshenConstrainedType()
+  val freshSub = sub.freshen()
   val outs = freshSub.bounds.foldRight(Clauses(freshSub.vars.map(declFreshVar(_)).asClauses))(subtypeBoundSeq)
   subtypeSeq(freshSub.base, sup, outs)
 

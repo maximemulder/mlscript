@@ -37,7 +37,7 @@ extension (typeVar: TypeVar)
 
 extension (constrained: TConstrained)
   /** Substitute the quantified variables in a constrained type with new fresh type variables. */
-  def freshenConstrainedType(): TConstrained =
+  def freshen(): TConstrained =
     constrained.vars.foldRight(constrained)((var_, constrained) =>
       val freshDecl = declNewFreshVar()
       val vars   = constrained.vars.map(_.substitute(var_, freshDecl.var_))

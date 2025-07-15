@@ -31,7 +31,7 @@ abstract trait Judgment:
     this.show()
 
 /** A subtyping judgment, which states that one type is subtype of another type. */
-case class SubtypingJudgment(val sub: Type, val sup: Type) extends Judgment:
+case class SubtypingJudgment(val sub: Type, val sup: Type, val mode: Mode) extends Judgment:
   /** Convert the subtype judgment to a string. */
   override def show(): String =
     s"${this.sub} ≤ ${this.sup}"

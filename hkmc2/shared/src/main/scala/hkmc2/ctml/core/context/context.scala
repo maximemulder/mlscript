@@ -39,7 +39,7 @@ extension (ctx: Context)
     val typeVars = ctx.clauses.typeVarDecls.map(_.var_).toList
     val leftVars  = lefts.filterBoundedVars(typeVars, dir)
     val rightVars = rights.filterBoundedVars(typeVars, dir)
-    concatDistinct(leftVars, rightVars)
+    leftVars.concatAllUnique(rightVars)
 
   /** Get the join bounds of some variables in two lists of constrains in a given typing direction. */
   def joinVarsBoundsDir(vars: List[TypeVar], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =

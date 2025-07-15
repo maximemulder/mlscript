@@ -9,13 +9,21 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
-/** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction. */
+/** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction in a context. */
 def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
   ctx.seqUnit(subtypeDir(left, right, dir), ins)
 
 /** Sequentially constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
   ctx.seqUnit(subtype(sub, sup), ins)
+
+/** Sequentially constrain a type variable bound in a context. */
+def subtypeBoundSeq(bound: Bound, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+  ctx.seqUnit(subtypeBound(bound), ins)
+
+/** Constrain a type variable bound to be satisfied. */
+def subtypeBound(bound: Bound)(using ctx: Context, mode: Mode): Clauses =
+  subtypeDir(TVar(bound.var_), bound.type_, bound.dir)
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
 def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
@@ -31,7 +39,7 @@ def subtype(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrai
     subtypeWithDebug(subtypeImpl)(sub, sup)
   catch
     case error: TypeError =>
-      error.addStep(SubtypingJudgment(sub, sup))
+      error.addStep(SubtypingJudgment(sub, sup, mode))
       throw error
 
 /** Implementation of `constrainSub`. */
@@ -183,14 +191,14 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val subDecls = sub.vars.map(declFreshVar(_))
-  val outs = sub.bounds.foldRight(Clauses(subDecls))((bound, outs) => ctx.seqUnit(constrainBound(bound), outs))
-  subtypeSeq(sub.base, sup, outs)
+  val freshSub = sub.freshenConstrainedType()
+  val outs = freshSub.bounds.foldRight(Clauses(freshSub.vars.map(declFreshVar(_)).asClauses))(subtypeBoundSeq)
+  subtypeSeq(freshSub.base, sup, outs)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
   val supDecls = sup.vars.map(declRigidVar(_))
-  val outs = sup.bounds.foldRight(Clauses(supDecls))((bound, outs) => ctx.seqUnit(constrainBound(bound), outs))
+  val outs = sup.bounds.foldRight(Clauses(supDecls))(subtypeBoundSeq)
   subtypeSeq(sub, sup.base, outs)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
@@ -206,9 +214,6 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode
       val subType = subTypes.combineMany(sup.dir)
       subtype(subType, sup.type_)
     )
-
-def constrainBound(bound: Bound)(using ctx: Context, mode: Mode): Clauses =
-  subtypeDir(TVar(bound.var_), bound.type_, bound.dir)
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSubtype(sub: Type, sup: Type)(using ctx: Context): Boolean =

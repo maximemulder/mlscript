@@ -98,7 +98,7 @@ def inlineVar(type_ : Type, var_ : TypeVar, bound: Type)(using ctx: Context): Ty
 
 /** Implementation of `inlineVar`. */
 def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type)(using ctx: Context): Type =
-  type_.substitute(var_, bound)
+  type_.inline(var_, bound)
 
 /** Ignore a type variable in a type. */
 def ignoreVar(type_ : Type, var_ : TypeVar)(using ctx: Context): Type =

@@ -68,9 +68,27 @@ extension [T](list: List[T])
       case head :: tail =>
         f(head, tail.fold1Right(f))
 
-/** Concatenate two lists while removing elements in the right list that are already in the left
- *  list.
- */
-def concatDistinct[T](lefts: List[T], rights: List[T]): List[T] =
-  val filteredRights = rights.filter((right) => !(lefts.exists ((left) => left == right)))
-  lefts ::: filteredRights
+extension [T] (list: List[T])
+  /** Concatenate an element to the list if it is not already in this list. */
+  def concatUnique(element: T): List[T] =
+    if !list.exists(_ == element) then
+      element :: list
+    else
+      list
+
+  /** Concatenate some elements to the list if it is not already in this list. */
+  def concatAllUnique(elements: Iterable[T]): List[T] =
+    elements.foldRight(list)((element, list) => list.concatUnique(element))
+
+extension [T] (list: ListBuffer[T])
+  /** Append an element to a list if it is not already in this list. */
+  def appendUnique(element: T) =
+    if !list.exists(_ == element) then
+      list.append(element)
+    else
+      list
+
+  /** Append some elements to a list if they are not already in this list. */
+  def appendAllUnique(elements: Iterable[T]) =
+    for element <- elements do
+      list.appendUnique(element)

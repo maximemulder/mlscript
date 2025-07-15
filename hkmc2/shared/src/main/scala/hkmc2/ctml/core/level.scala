@@ -1,12 +1,15 @@
 package hkmc2.ctml.core
 
+import scala.collection.mutable.Set as SetMut
+import scala.collection.mutable.ListBuffer
+
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
-import scala.collection.mutable.Set as SetMut
+import hkmc2.ctml.util.*
 
 extension (ctx: Context)
   /** Solve a type inference level by processing each new variable of that level. */
@@ -52,14 +55,20 @@ extension (ctx: Context)
       inlineVar(type_, var_, lowerBound)
     else
       ignoreVar(type_, var_)
-    // TODO: Remove variable
+    // TODO: Remove variable more elegantly ?
     val newOuts = outs.removeTypeVar(var_)
     (newType, newOuts)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =
-    // Remove the variables that have dependent variabled declared at a lower level.
-    outs.typeVars.filter(ctx.isLevelVar(_, outs))
+    // Get the variable dependency graph of each type variable declared at this level.
+    val dependencies = outs.typeVars.map(_.getDependencies()(using ctx.extend(outs)))
+
+    // Sort the variables such that each variable appears before its dependent variables.
+    val vars = dependencies.getSortedVars()
+
+    // Return the variables that are not declared at lower levels.
+    vars.filter(ctx.isLevelVar(_, outs))
 
   /** Check whether a type variable is a variable of this level, that is, if it not depended on by
    *  a variable of a lower level.

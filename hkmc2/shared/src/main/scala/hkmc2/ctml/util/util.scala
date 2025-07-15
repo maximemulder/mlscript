@@ -68,7 +68,7 @@ extension [T](list: List[T])
       case head :: tail =>
         f(head, tail.fold1Right(f))
 
-extension [T] (list: List[T])
+extension [T](list: List[T])
   /** Concatenate an element to the list if it is not already in this list. */
   def concatUnique(element: T): List[T] =
     if !list.exists(_ == element) then
@@ -80,7 +80,7 @@ extension [T] (list: List[T])
   def concatAllUnique(elements: Iterable[T]): List[T] =
     elements.foldRight(list)((element, list) => list.concatUnique(element))
 
-extension [T] (list: ListBuffer[T])
+extension [T](list: ListBuffer[T])
   /** Append an element to a list if it is not already in this list. */
   def appendUnique(element: T) =
     if !list.exists(_ == element) then

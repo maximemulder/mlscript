@@ -9,12 +9,14 @@ extension (type_ : Type)
     type_ match
       case TVar(typeVar) =>
         TVar(typeVar.substitute(var_, substitute))
-      case TConstrained(vars, base, bounds) =>
-        val newBase   = base.substitute(var_, substitute)
+      case TUniv(typeVar, body) if var_ == typeVar =>
+        TUniv(typeVar, body)
+      case TConstrained(base, bounds) =>
+        val newBase = base.substitute(var_, substitute)
         val newBounds = bounds.map(_.substitute(var_, substitute))
-        TConstrained(vars, newBase, newBounds)
+        TConstrained(newBase, newBounds)
       case TConstraining(base, bounds) =>
-        val newBase   = base.substitute(var_, substitute)
+        val newBase = base.substitute(var_, substitute)
         val newBounds = bounds.map(_.substitute(var_, substitute))
         TConstraining(newBase, newBounds)
       case _ =>
@@ -35,13 +37,9 @@ extension (typeVar: TypeVar)
     else
       typeVar
 
-extension (constrained: TConstrained)
-  /** Substitute the quantified variables in a constrained type with new fresh type variables. */
-  def freshen(): TConstrained =
-    constrained.vars.foldRight(constrained)((var_, constrained) =>
-      val freshDecl = declNewFreshVar()
-      val vars   = constrained.vars.map(_.substitute(var_, freshDecl.var_))
-      val bounds = constrained.bounds.map(_.substitute(var_, freshDecl.var_))
-      val base   = constrained.base.substitute(var_, freshDecl.var_)
-      TConstrained(vars, base, bounds)
-    )
+extension (univ: TUniv)
+  /** Substitute the quantified variable of a universal type with a new fresh type variable. */
+  def freshen(): TUniv =
+    val freshDecl = declNewFreshVar()
+    val body = univ.body.substitute(univ.var_, freshDecl.var_)
+    TUniv(freshDecl.var_, body)

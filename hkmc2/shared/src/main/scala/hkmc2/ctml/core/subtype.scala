@@ -119,6 +119,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
       subtype(subRight, sup),
     )
 
+  // Subtyping of universal types.
+
+  if sup.is[TUniv] then
+    return subtypeUnivSup(sub, sup.as[TUniv])
+
+  if sub.is[TUniv] then
+    return subtypeUnivSub(sub.as[TUniv], sup)
+
   // Subtyping of constrained types.
 
   if sup.is[TConstrained] then
@@ -189,16 +197,23 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
       val upperBound = ctx.getVarUpperBound(sub)
       subtype(upperBound, TVar(sup))
 
+/** Constrain a universal type to be a subtype of another type. */
+def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: Mode): Clauses =
+  val freshSub = sub.freshen()
+  subtypeSeq(freshSub.body, sup, declFreshVar(freshSub.var_).asClauses)
+
+/** Constrain a universal type to be a supertype of another type.. */
+def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Clauses =
+  subtypeSeq(sub, sup.body, declRigidVar(sup.var_).asClauses)
+
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val freshSub = sub.freshen()
-  val outs = freshSub.bounds.foldRight(Clauses(freshSub.vars.map(declFreshVar(_)).asClauses))(subtypeBoundSeq)
-  subtypeSeq(freshSub.base, sup, outs)
+  val outs = sub.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
+  subtypeSeq(sub.base, sup, outs)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
-  val supDecls = sup.vars.map(declRigidVar(_))
-  val outs = sup.bounds.foldRight(Clauses(supDecls))(subtypeBoundSeq)
+  val outs = sup.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
   subtypeSeq(sub, sup.base, outs)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */

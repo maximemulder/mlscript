@@ -14,7 +14,7 @@ extension (type_ : Type)
         val paramPolarities = param.getVarPolarities(var_)(using polarity.invert())
         val retPolarities   = ret.getVarPolarities(var_)
         Polarities.join(paramPolarities, retPolarities)
-      case TConstrained(vars, base, bounds) =>
+      case TConstrained(base, bounds) =>
         val basePolarities   = base.getVarPolarities(var_)
         val boundsPolarities = bounds.getVarPolarities(var_)
         Polarities.join(basePolarities, boundsPolarities)

@@ -2,6 +2,8 @@ package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.combine.*
+import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
 extension (type_ : Type)
@@ -16,8 +18,10 @@ extension (type_ : Type)
         TUnion(f(left), f(right))
       case TInter(left, right) =>
         TInter(f(left), f(right))
-      case TConstrained(vars, base, bounds) =>
-        TConstrained(vars, f(base), bounds.map(_.map(f)))
+      case TUniv(var_, body) =>
+        TUniv(var_, f(body))
+      case TConstrained(base, bounds) =>
+        TConstrained(f(base), bounds.map(_.map(f)))
       case TConstraining(base, bounds) =>
         TConstraining(f(base), bounds.map(_.map(f)))
 
@@ -38,7 +42,10 @@ extension(type_ : Type)(using ctx: Context)
         join(f(left), f(right))
       case TInter(left, right) =>
         meet(f(left), f(right))
-      case TConstrained(vars, base, bounds) =>
-        TConstrained(vars, f(base), bounds.map(_.map(f)))
+      case TUniv(var_, body) =>
+        given Context = ctx.extend(declRigidVar(var_))
+        TUniv(var_, f(body))
+      case TConstrained(base, bounds) =>
+        TConstrained(f(base), bounds.map(_.map(f)))
       case TConstraining(base, bounds) =>
         attachConstrainingBounds(f(base), bounds.map(_.map(f)))

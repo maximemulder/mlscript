@@ -51,11 +51,14 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
       val (newLeft,  leftOuts)  = extrudeType(left)
       val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
       (TInter(newLeft, newRight), rightOuts)
-    case TConstrained(vars, base, bounds) =>
-      given Context = ctx.extend(vars.map(declRigidVar(_)))
+    case TUniv(var_, body) =>
+      given Context = ctx.extend(declRigidVar(var_))
+      val (newBody, bodyOuts) = extrudeType(body)
+      (TUniv(var_, newBody), bodyOuts)
+    case TConstrained(base, bounds) =>
       val (newBounds, boundsOuts) = extrudeBounds(bounds)
       val (newBase,   baseOuts)   = extrudeTypeSeq(base, boundsOuts)
-      (TConstrained(vars, newBase, newBounds), baseOuts)
+      (TConstrained(newBase, newBounds), baseOuts)
     case TConstraining(base, bounds) =>
       val (newBounds, boundsOuts) = extrudeBounds(bounds)
       val (newBase,   baseOuts)   = extrudeTypeSeq(base, boundsOuts)

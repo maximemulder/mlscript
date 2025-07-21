@@ -9,10 +9,10 @@ extension (type_ : Type)
     type_ match
       case TVar(typeVar) if typeVar == var_ =>
         substitute
-      case TConstrained(vars, base, bounds) =>
+      case TConstrained(base, bounds) =>
         val newBase   = base.inline(var_, substitute)
         val newBounds = bounds.inline(var_, substitute)
-        TConstrained(vars, newBase, newBounds)
+        TConstrained(newBase, newBounds)
       case TConstraining(base, bounds) =>
         val newBase   = base.inline(var_, substitute)
         val newBounds = bounds.inline(var_, substitute)

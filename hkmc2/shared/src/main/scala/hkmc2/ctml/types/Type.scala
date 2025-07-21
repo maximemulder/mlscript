@@ -26,8 +26,11 @@ case class TUnion(val left: Type, val right: Type) extends Type
 /** An intersection type. */
 case class TInter(val left: Type, val right: Type) extends Type
 
+/** A universal quantification type. */
+case class TUniv(val var_ : TypeVar, val body: Type) extends Type
+
 /** A constrained type. */
-case class TConstrained(val vars: List[TypeVar], val base: Type, val bounds: List[Bound]) extends Type
+case class TConstrained(val base: Type, val bounds: List[Bound]) extends Type
 
 /** A constraing type. */
 case class TConstraining(val base: Type, val bounds: List[Bound]) extends Type
@@ -50,7 +53,9 @@ extension (type_ : Type)
         List(left, right)
       case TInter(left, right) =>
         List(left, right)
-      case TConstrained(_, base, bounds) =>
+      case TUniv(_, body) =>
+        List(body)
+      case TConstrained(base, bounds) =>
         bounds.map(_.type_) :+ base
       case TConstraining(base, bounds) =>
         bounds.map(_.type_) :+ base
@@ -84,14 +89,13 @@ extension (type_ : Type)
       case TInter(left, right) =>
         val components = left :: right.getInterComponents()
         (components.map(_.showType(true)).mkString(" ∧ "), true)
-      case constrained: TConstrained =>
-        var baseString = s"∀${showTypeVars(constrained.vars.reverse)}"
-        if constrained.bounds != Nil then
-          baseString += s" ◁ {${showBounds(constrained.bounds)}}"
-        baseString += s". ${constrained.base.showType(false)}"
-        (baseString, true)
-      case constraining: TConstraining =>
-        (s"${constraining.base.showType(false)} ▷ {${showBounds(constraining.bounds)}}", true)
+      case univ: TUniv =>
+        val (vars, body) = univ.getUnivComponents()
+        (s"∀${showTypeVars(vars)}. ${body.showType(false)}", true)
+      case TConstrained(base, bounds) =>
+        (s"{${showBounds(bounds)}} ⟹ ${base.showType(false)}", true)
+      case TConstraining(base, bounds) =>
+        (s"${base.showType(false)} ⟹ {${showBounds(bounds)}}", true)
 
     // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
     // around it.
@@ -100,7 +104,7 @@ extension (type_ : Type)
     else
       string
 
-  /** Get the right-recursive components of a lambda type. */
+  /** Get the right-recursive nested components of a lambda type. */
   private def getLambdaComponents(): List[Type] =
     type_ match
       case TLam(param, ret) =>
@@ -108,7 +112,7 @@ extension (type_ : Type)
       case _ =>
         type_ :: Nil
 
-  /** Get the right-recursive components of an union type. */
+  /** Get the right-recursive nested components of an union type. */
   private def getUnionComponents(): List[Type] =
     type_ match
       case TUnion(left, right) =>
@@ -116,10 +120,19 @@ extension (type_ : Type)
       case _ =>
         type_ :: Nil
 
-  /** Get the right-recursive components of an intersection type. */
+  /** Get the right-recursive nested components of an intersection type. */
   private def getInterComponents(): List[Type] =
     type_ match
       case TInter(left, right) =>
         left :: right.getInterComponents()
       case _ =>
         type_ :: Nil
+
+  /** Get the nested components of a universal type. */
+  private def getUnivComponents(): (List[TypeVar], Type) =
+    type_ match
+      case TUniv(var_, body) =>
+        val (nestedVars, nestedBody) = body.getUnivComponents()
+        (var_ :: nestedVars, nestedBody)
+      case _ =>
+        (Nil, type_)

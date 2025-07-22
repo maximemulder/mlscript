@@ -11,14 +11,14 @@ extension (type_ : Type)
         TVar(typeVar.substitute(var_, substitute))
       case TUniv(typeVar, body) if var_ == typeVar =>
         TUniv(typeVar, body)
-      case TConstrained(base, bounds) =>
-        val newBase = base.substitute(var_, substitute)
+      case TConstrained(body, bounds) =>
+        val newBody = body.substitute(var_, substitute)
         val newBounds = bounds.map(_.substitute(var_, substitute))
-        TConstrained(newBase, newBounds)
-      case TConstraining(base, bounds) =>
-        val newBase = base.substitute(var_, substitute)
+        TConstrained(newBody, newBounds)
+      case TConstraining(body, bounds) =>
+        val newBody = body.substitute(var_, substitute)
         val newBounds = bounds.map(_.substitute(var_, substitute))
-        TConstraining(newBase, newBounds)
+        TConstraining(newBody, newBounds)
       case _ =>
         type_.map(_.substitute(var_, substitute))
 

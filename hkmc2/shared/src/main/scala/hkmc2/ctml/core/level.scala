@@ -12,17 +12,6 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
 extension (ctx: Context)
-  /** Solve a type inference level by processing each new variable of that level. */
-  def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
-    // Get the new type variables of this level.
-    val levelVars = ctx.getLevelVars(outs)
-    if levelVars == Nil then
-      return (type_, outs)
-
-    levelVars.foldRight((type_, outs))((var_, te) =>
-      ctx.processLevelVar(te._1, var_, levelVars.toSet, te._2)
-    )
-
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
   def withFreshVarLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
@@ -41,23 +30,39 @@ extension (ctx: Context)
     // Solve the level.
     ctx.solveLevel(type_, outs)
 
+  /** Solve a type inference level by processing each new variable of that level. */
+  def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
+    // Get the type variables of this level.
+    val levelVars = ctx.getLevelVars(outs)
+    if levelVars == Nil then
+      return (type_, outs)
+
+    // Ignore, inline, or add constraints for each type variables of this level.
+    val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, to) =>
+      ctx.processLevelVar(to._1, var_, levelVars.toSet, to._2)
+    )
+
+    // Get the type variables of this level that were not ignored or inlined.
+    val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
+
+    remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
+      quantifyVar2(to._1, var_, to._2)
+    )
+
   def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[TypeVar], outs: Clauses): (Type, Clauses) =
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
     val lowerBound = fullCtx.getVarLowerBound(var_)
     val upperBound = fullCtx.getVarUpperBound(var_)
     val polarities = type_.getVarPolarities(var_)(using Polarity.Positive)
-    val newType = if polarities == Polarities(true, true) || fullCtx.isVarConstrained(var_, levelVars) then
-      quantifyVar(type_, var_, lowerBound, upperBound)
+    if polarities == Polarities(true, true) || fullCtx.isVarConstrained(var_, levelVars) then
+      quantifyVar(type_, var_, lowerBound, upperBound, outs)
     else if polarities == Polarities(true, false) then
-      inlineVar(type_, var_, upperBound)
+      inlineVar(type_, var_, upperBound, outs)
     else if polarities == Polarities(false, true) then
-      inlineVar(type_, var_, lowerBound)
+      inlineVar(type_, var_, lowerBound, outs)
     else
-      ignoreVar(type_, var_)
-    // TODO: Remove variable more elegantly ?
-    val newOuts = outs.removeTypeVar(var_)
-    (newType, newOuts)
+      ignoreVar(type_, var_, outs)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =
@@ -94,25 +99,43 @@ extension (ctx: Context)
     types.exists(_.getConstrainedVars().contains(var_))
 
 /** Quantify a type variable in a type. */
-def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
-  debugQuantifyVar(quantifyVarImpl)(type_, var_, lowerBound, upperBound)
+def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  debugQuantifyVar(quantifyVarImpl)(type_, var_, lowerBound, upperBound, outs)
 
 /** Implementation of `quantifyVar`. */
-def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type)(using ctx: Context): Type =
-  attachConstrainedBounds(type_, var_, lowerBound, upperBound)
+def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  (
+    attachConstrainedBounds(type_, var_, lowerBound, upperBound),
+    // Only the bounds of the variable are removed from the clauses, the variable declaration will
+    // be removed later when all remaining type variables of this level are quantified.
+    outs.removeTypeVarBounds(var_),
+  )
 
 /** Inline a type variable in a type. */
-def inlineVar(type_ : Type, var_ : TypeVar, bound: Type)(using ctx: Context): Type =
-  debugInlineVar(inlineVarImpl)(type_, var_, bound)
+def inlineVar(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  debugInlineVar(inlineVarImpl)(type_, var_, bound, outs)
 
 /** Implementation of `inlineVar`. */
-def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type)(using ctx: Context): Type =
-  type_.inline(var_, bound)
+def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  (
+    type_.inline(var_, bound),
+    outs.removeTypeVar(var_),
+  )
 
 /** Ignore a type variable in a type. */
-def ignoreVar(type_ : Type, var_ : TypeVar)(using ctx: Context): Type =
-  debugIgnoreVar(ignoreVarImpl)(type_, var_)
+def ignoreVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  debugIgnoreVar(ignoreVarImpl)(type_, var_, outs)
 
 /** Implementation of `ignoreVar`. */
-def ignoreVarImpl(type_ : Type, var_ : TypeVar)(using ctx: Context): Type =
-  type_
+def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  (
+    type_,
+    outs.removeTypeVar(var_),
+  )
+
+/** Quantify a type variable in a type. */
+def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses): (Type, Clauses) =
+  (
+    TUniv(var_, type_),
+    outs.removeTypeVarDecl(var_),
+  )

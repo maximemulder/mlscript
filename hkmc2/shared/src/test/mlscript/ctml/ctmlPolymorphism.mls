@@ -9,30 +9,30 @@ id(1)
 
 fun apply(f, x) =
   f(x)
-//│ apply: ∀ζ, ε. (ε → ζ) → ε → ζ
+//│ apply: ∀ε, ζ. (ε → ζ) → ε → ζ
 
 fun double(f, x) =
   f(f(x))
-//│ double: ∀κ, ι, θ. ((θ → κ) ∧ (κ → ι)) → θ → ι
+//│ double: ∀θ, ι, κ. ((θ → κ) ∧ (κ → ι)) → θ → ι
 
 double(id, 1)
 //│ Int
 
 fun foo(a, b) =
   a(1, b)
-//│ foo: ∀φ, υ. (Int → υ → φ) → υ → φ
+//│ foo: ∀υ, φ. (Int → υ → φ) → υ → φ
 
 foo((+), 1)
 //│ Int
 
 :e
 foo((++), 1)
-//│ ═══[ERROR] Cannot solve judgment ∀φ, υ. (Int → υ → φ) → υ → φ ≤ (Str → Str → Str) → 27.
+//│ ═══[ERROR] Cannot solve judgment ∀υ, φ. (Int → υ → φ) → υ → φ ≤ (Str → Str → Str) → 27.
 //│ Typing error tree:
-//│   ∀φ, υ. (Int → υ → φ) → υ → φ ≤ (Str → Str → Str) → 27
-//│     ∀υ. (Int → υ → 28) → υ → 28 ≤ (Str → Str → Str) → 27
-//│       (Int → 29 → 28) → 29 → 28 ≤ (Str → Str → Str) → 27
-//│         Str → Str → Str ≤ Int → 29 → 28
+//│   ∀υ, φ. (Int → υ → φ) → υ → φ ≤ (Str → Str → Str) → 27
+//│     ∀φ. (Int → 28 → φ) → 28 → φ ≤ (Str → Str → Str) → 27
+//│       (Int → 28 → 29) → 28 → 29 ≤ (Str → Str → Str) → 27
+//│         Str → Str → Str ≤ Int → 28 → 29
 //│           Int ≤ Str
 //│             Int ≤ ⊥
 //│               ⊤ ≤ ⊥

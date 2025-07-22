@@ -48,4 +48,4 @@ extension(type_ : Type)(using ctx: Context)
       case TConstrained(body, bounds) =>
         TConstrained(f(body), bounds.map(_.map(f)))
       case TConstraining(body, bounds) =>
-        attachConstrainingBounds(f(body), bounds.map(_.map(f)))
+        f(body).attachConstrainingBounds(bounds.map(_.map(f)))

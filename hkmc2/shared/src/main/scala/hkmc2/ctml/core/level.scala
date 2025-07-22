@@ -105,7 +105,7 @@ def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type
 /** Implementation of `quantifyVar`. */
 def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   (
-    attachConstrainedBounds(type_, var_, lowerBound, upperBound),
+    type_.attachConstrainedBounds(var_, lowerBound, upperBound),
     // Only the bounds of the variable are removed from the clauses, the variable declaration will
     // be removed later when all remaining type variables of this level are quantified.
     outs.removeTypeVarBounds(var_),

@@ -4,7 +4,7 @@ fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo: ∀γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀β. {β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})} ⟹ ∀α. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ α → β → γ
+//│ foo: ∀α, β, γ. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ α → β → γ
 
 foo(1, 2)
 //│ Int
@@ -12,44 +12,10 @@ foo(1, 2)
 fun bop(a, b) =
   let x = foo(a, b)
   x
-//│ bop: ∀ν. {ν ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀ρ. {ρ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}), ρ ≤ ν} ⟹ ((Int ⟹ {ρ ≥ Int}) ∨ (Str ⟹ {ρ ≥ Str})) → ((Int ⟹ {α ≤ Int, ρ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, ρ ≥ Str})) → ν
+//│ bop: ∀ο, ι, π, κ. {ο ≥ ι, ο ≤ (Int ⟹ {π ≤ Int}) ∨ (Str ⟹ {π ≤ Str}), ι ≤ (Int ⟹ {π ≤ Int}) ∨ (Str ⟹ {π ≤ Str}), π ≥ κ, π ≤ (Int ⟹ {ο ≤ Int}) ∨ (Str ⟹ {ο ≤ Str}), κ ≤ (Int ⟹ {ο ≤ Int}) ∨ (Str ⟹ {ο ≤ Str})} ⟹ ι → κ → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str}))
 
 bop(0, 1)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Cannot solve judgment ∀ψ. {ψ ≥ ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ∨ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀ω. {ω ≥ (Int ⟹ {χ ≥ (Int ⟹ {α ≤ Int, ω ≥ Int}) → ψ}) ∨ (Int ⟹ {χ ≥ (Str ⟹ {α ≤ Str, ω ≥ Str}) → ψ}), ω ≤ ψ} ⟹ ∀χ. {χ ≥ ((Int ⟹ {α ≤ Int, ω ≥ Int}) → ψ ⟹ {ω ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, ω ≥ Str}) → ψ ⟹ {ω ≥ Int})} ⟹ χ ≤ Int → φ.
-//│ Typing error tree:
-//│   ∀ψ. {ψ ≥ ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ∨ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀ω. {ω ≥ (Int ⟹ {χ ≥ (Int ⟹ {α ≤ Int, ω ≥ Int}) → ψ}) ∨ (Int ⟹ {χ ≥ (Str ⟹ {α ≤ Str, ω ≥ Str}) → ψ}), ω ≤ ψ} ⟹ ∀χ. {χ ≥ ((Int ⟹ {α ≤ Int, ω ≥ Int}) → ψ ⟹ {ω ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, ω ≥ Str}) → ψ ⟹ {ω ≥ Int})} ⟹ χ ≤ Int → φ
-//│     {24 ≥ ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ∨ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀ω. {ω ≥ (Int ⟹ {χ ≥ (Int ⟹ {α ≤ Int, ω ≥ Int}) → 24}) ∨ (Int ⟹ {χ ≥ (Str ⟹ {α ≤ Str, ω ≥ Str}) → 24}), ω ≤ 24} ⟹ ∀χ. {χ ≥ ((Int ⟹ {α ≤ Int, ω ≥ Int}) → 24 ⟹ {ω ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, ω ≥ Str}) → 24 ⟹ {ω ≥ Int})} ⟹ χ ≤ Int → φ
-//│       ∀ω. {ω ≥ (Int ⟹ {χ ≥ (Int ⟹ {α ≤ Int, ω ≥ Int}) → 24}) ∨ (Int ⟹ {χ ≥ (Str ⟹ {α ≤ Str, ω ≥ Str}) → 24}), ω ≤ 24} ⟹ ∀χ. {χ ≥ ((Int ⟹ {α ≤ Int, ω ≥ Int}) → 24 ⟹ {ω ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, ω ≥ Str}) → 24 ⟹ {ω ≥ Int})} ⟹ χ ≤ Int → φ
-//│         {25 ≥ (Int ⟹ {χ ≥ (Int ⟹ {α ≤ Int, 25 ≥ Int}) → 24}) ∨ (Int ⟹ {χ ≥ (Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24}), 25 ≤ 24} ⟹ ∀χ. {χ ≥ ((Int ⟹ {α ≤ Int, 25 ≥ Int}) → 24 ⟹ {25 ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24 ⟹ {25 ≥ Int})} ⟹ χ ≤ Int → φ
-//│           ∀χ. {χ ≥ ((Int ⟹ {α ≤ Int, 25 ≥ Int}) → 24 ⟹ {25 ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24 ⟹ {25 ≥ Int})} ⟹ χ ≤ Int → φ
-//│             {26 ≥ ((Int ⟹ {α ≤ Int, 25 ≥ Int}) → 24 ⟹ {25 ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24 ⟹ {25 ≥ Int})} ⟹ 26 ≤ Int → φ
-//│               26 ≤ Int → φ
-//│                 ((Int ⟹ {α ≤ Int, 25 ≥ Int}) → 24 ⟹ {25 ≥ Int}) ∨ ((Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24 ⟹ {25 ≥ Int}) ≤ Int → φ
-//│                   (Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24 ⟹ {25 ≥ Int} ≤ Int → φ
-//│                     (Str ⟹ {α ≤ Str, 25 ≥ Str}) → 24 ≤ Int → φ
-//│                       Int ≤ Str ⟹ {α ≤ Str, 25 ≥ Str}
-//│                         Int ≤ Str
-//│                           Int ≤ ⊥
-//│                             ⊤ ≤ ⊥
+//│ Int ∨ Str
 
 bop("0", "1")
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Cannot solve judgment ∀29. {29 ≥ ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ∨ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀30. {30 ≥ (Str ⟹ {28 ≥ (Int ⟹ {α ≤ Int, 30 ≥ Int}) → 29}) ∨ (Str ⟹ {28 ≥ (Str ⟹ {α ≤ Str, 30 ≥ Str}) → 29}), 30 ≤ 29} ⟹ ∀28. {28 ≥ ((Int ⟹ {α ≤ Int, 30 ≥ Int}) → 29 ⟹ {30 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 30 ≥ Str}) → 29 ⟹ {30 ≥ Str})} ⟹ 28 ≤ Str → 27.
-//│ Typing error tree:
-//│   ∀29. {29 ≥ ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ∨ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀30. {30 ≥ (Str ⟹ {28 ≥ (Int ⟹ {α ≤ Int, 30 ≥ Int}) → 29}) ∨ (Str ⟹ {28 ≥ (Str ⟹ {α ≤ Str, 30 ≥ Str}) → 29}), 30 ≤ 29} ⟹ ∀28. {28 ≥ ((Int ⟹ {α ≤ Int, 30 ≥ Int}) → 29 ⟹ {30 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 30 ≥ Str}) → 29 ⟹ {30 ≥ Str})} ⟹ 28 ≤ Str → 27
-//│     {31 ≥ ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ∨ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ ∀30. {30 ≥ (Str ⟹ {28 ≥ (Int ⟹ {α ≤ Int, 30 ≥ Int}) → 31}) ∨ (Str ⟹ {28 ≥ (Str ⟹ {α ≤ Str, 30 ≥ Str}) → 31}), 30 ≤ 31} ⟹ ∀28. {28 ≥ ((Int ⟹ {α ≤ Int, 30 ≥ Int}) → 31 ⟹ {30 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 30 ≥ Str}) → 31 ⟹ {30 ≥ Str})} ⟹ 28 ≤ Str → 27
-//│       ∀30. {30 ≥ (Str ⟹ {28 ≥ (Int ⟹ {α ≤ Int, 30 ≥ Int}) → 31}) ∨ (Str ⟹ {28 ≥ (Str ⟹ {α ≤ Str, 30 ≥ Str}) → 31}), 30 ≤ 31} ⟹ ∀28. {28 ≥ ((Int ⟹ {α ≤ Int, 30 ≥ Int}) → 31 ⟹ {30 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 30 ≥ Str}) → 31 ⟹ {30 ≥ Str})} ⟹ 28 ≤ Str → 27
-//│         {32 ≥ (Str ⟹ {28 ≥ (Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31}) ∨ (Str ⟹ {28 ≥ (Str ⟹ {α ≤ Str, 32 ≥ Str}) → 31}), 32 ≤ 31} ⟹ ∀28. {28 ≥ ((Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31 ⟹ {32 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 32 ≥ Str}) → 31 ⟹ {32 ≥ Str})} ⟹ 28 ≤ Str → 27
-//│           ∀28. {28 ≥ ((Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31 ⟹ {32 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 32 ≥ Str}) → 31 ⟹ {32 ≥ Str})} ⟹ 28 ≤ Str → 27
-//│             {33 ≥ ((Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31 ⟹ {32 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 32 ≥ Str}) → 31 ⟹ {32 ≥ Str})} ⟹ 33 ≤ Str → 27
-//│               33 ≤ Str → 27
-//│                 ((Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31 ⟹ {32 ≥ Str}) ∨ ((Str ⟹ {α ≤ Str, 32 ≥ Str}) → 31 ⟹ {32 ≥ Str}) ≤ Str → 27
-//│                   (Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31 ⟹ {32 ≥ Str} ≤ Str → 27
-//│                     (Int ⟹ {α ≤ Int, 32 ≥ Int}) → 31 ≤ Str → 27
-//│                       Str ≤ Int ⟹ {α ≤ Int, 32 ≥ Int}
-//│                         Str ≤ Int
-//│                           ⊤ ≤ Int
-//│                             ⊤ ≤ ⊥
+//│ Int ∨ Str

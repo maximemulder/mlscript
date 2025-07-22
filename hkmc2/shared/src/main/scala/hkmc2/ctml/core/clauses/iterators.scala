@@ -40,20 +40,25 @@ extension (clauses: AsClauses)
       .find(bound => bound.var_ == var_ && bound.dir == dir)
       .map(_.type_)
 
+extension (clauses: Clauses)
+  /** Remove the declaration and bounds of a type variable in the clauses. */
   def removeTypeVar(var_ : TypeVar): Clauses =
-    Clauses(clauses.asClauses.filterUntilInclusive(
-      _ match
-        case TypeVarDecl(declVar, _) if declVar == var_ =>
-          true
-        case _ =>
-          false,
-      _ match
-        case TypeVarDecl(declVar, _) if declVar == var_ =>
-          false
-        case Bound(boundVar, _, _) if boundVar == var_ =>
-          false
-        case _ =>
-          true
+    clauses
+      .removeTypeVarBounds(var_)
+      .removeTypeVarDecl(var_)
+
+  /** Remove the declaration of a type variable in the clauses. */
+  def removeTypeVarDecl(var_ : TypeVar): Clauses =
+    Clauses(clauses.elems.filterUntilInclusive(
+      _.isTypeVarDecl(var_),
+      !_.isTypeVarDecl(var_),
+    ).toList)
+
+  /** Remove the bounds of a type variable in the clauses. */
+  def removeTypeVarBounds(var_ : TypeVar): Clauses =
+    Clauses(clauses.elems.filterUntilInclusive(
+      _.isTypeVarDecl(var_),
+      !_.isTypeVarBound(var_),
     ).toList)
 
 extension (clauses: Iterator[Clause])
@@ -101,3 +106,20 @@ extension (clauses: Iterator[Clause])
       case _ =>
         true
     )
+
+extension (clause: Clause)
+  /** Check whether the clause is the declaration of a given type variable.  */
+  def isTypeVarDecl(var_ : TypeVar): Boolean =
+    clause match
+      case TypeVarDecl(declVar, _) if declVar == var_ =>
+        true
+      case _ =>
+        false
+
+  /** Check whether the clause is a bound on a given type variable. */
+  def isTypeVarBound(var_ : TypeVar): Boolean =
+    clause match
+      case Bound(boundVar, _, _) if boundVar == var_ =>
+        true
+      case _ =>
+        false

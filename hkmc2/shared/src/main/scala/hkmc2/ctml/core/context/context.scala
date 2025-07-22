@@ -57,10 +57,10 @@ extension (ctx: Context)
     val rightBound = rightBounds.combineMany(dir)
     val leftType  =
       given Context = ctx.extend(Bound(var_, dir, leftBound))
-      attachConstrainingBounds(leftBound, lefts)
+      leftBound.attachConstrainingBounds(lefts)
     val rightType =
       given Context = ctx.extend(Bound(var_, dir, rightBound))
-      attachConstrainingBounds(rightBound, rights)
+      rightBound.attachConstrainingBounds(rights)
     join(leftType, rightType)
 
   // Others

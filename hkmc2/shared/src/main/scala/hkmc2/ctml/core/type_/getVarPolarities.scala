@@ -14,14 +14,14 @@ extension (type_ : Type)
         val paramPolarities = param.getVarPolarities(var_)(using polarity.invert())
         val retPolarities   = ret.getVarPolarities(var_)
         Polarities.join(paramPolarities, retPolarities)
-      case TConstrained(base, bounds) =>
-        val basePolarities   = base.getVarPolarities(var_)
+      case TConstrained(body, bounds) =>
+        val bodyPolarities   = body.getVarPolarities(var_)
         val boundsPolarities = bounds.getVarPolarities(var_)
-        Polarities.join(basePolarities, boundsPolarities)
-      case TConstraining(base, bounds) =>
-        val basePolarities   = base.getVarPolarities(var_)
+        Polarities.join(bodyPolarities, boundsPolarities)
+      case TConstraining(body, bounds) =>
+        val bodyPolarities   = body.getVarPolarities(var_)
         val boundsPolarities = bounds.getVarPolarities(var_)
-        Polarities.join(basePolarities, boundsPolarities)
+        Polarities.join(bodyPolarities, boundsPolarities)
       case _ =>
         type_.accumulate(_.getVarPolarities(var_))
 

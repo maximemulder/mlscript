@@ -24,8 +24,8 @@ def attachConstrainedBounds(type_ : Type, var_ : TypeVar, lowerBound: Type, uppe
   val bounds = boundsBuffer.toList
 
   type_ match
-    case constrained: TConstrained =>
-      TConstrained(constrained.base, bounds ::: constrained.bounds)
+    case TConstrained(body, constrainedBounds) =>
+      TConstrained(body, bounds ::: constrainedBounds)
     case _ =>
       if bounds == Nil then
         type_
@@ -33,10 +33,18 @@ def attachConstrainedBounds(type_ : Type, var_ : TypeVar, lowerBound: Type, uppe
         TConstrained(type_, bounds)
 
 extension (type_ : Type)
-  /** Split a type into a base type and its constraining bounds. */
+  /** Split the body type and constrained bounds of the type. */
+  def splitConstrained(): (Type, List[Bound]) =
+    type_ match
+      case TConstrained(body, bounds) =>
+        (body, bounds)
+      case _ =>
+        (type_, Nil)
+
+  /** Split the body type and constraining bounds of the type. */
   def splitConstrainings(): (Type, List[Bound]) =
     type_ match
-      case constraining : TConstraining =>
-        (constraining.base, constraining.bounds)
+      case TConstraining(body, bounds) =>
+        (body, bounds)
       case _ =>
         (type_, Nil)

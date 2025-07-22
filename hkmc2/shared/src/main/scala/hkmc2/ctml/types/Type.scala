@@ -30,10 +30,10 @@ case class TInter(val left: Type, val right: Type) extends Type
 case class TUniv(val var_ : TypeVar, val body: Type) extends Type
 
 /** A constrained type. */
-case class TConstrained(val base: Type, val bounds: List[Bound]) extends Type
+case class TConstrained(val body: Type, val bounds: List[Bound]) extends Type
 
-/** A constraing type. */
-case class TConstraining(val base: Type, val bounds: List[Bound]) extends Type
+/** A constraining type. */
+case class TConstraining(val body: Type, val bounds: List[Bound]) extends Type
 
 /** The top type type alias. */
 type TBot = TBot.type
@@ -55,10 +55,10 @@ extension (type_ : Type)
         List(left, right)
       case TUniv(_, body) =>
         List(body)
-      case TConstrained(base, bounds) =>
-        bounds.map(_.type_) :+ base
-      case TConstraining(base, bounds) =>
-        bounds.map(_.type_) :+ base
+      case TConstrained(body, bounds) =>
+        bounds.map(_.type_) :+ body
+      case TConstraining(body, bounds) =>
+        bounds.map(_.type_) :+ body
 
 /** Implementation of the `Tree` trait for `Type`. */
 given Tree[Type] with
@@ -92,10 +92,10 @@ extension (type_ : Type)
       case univ: TUniv =>
         val (vars, body) = univ.getUnivComponents()
         (s"∀${showTypeVars(vars)}. ${body.showType(false)}", true)
-      case TConstrained(base, bounds) =>
-        (s"{${showBounds(bounds)}} ⟹ ${base.showType(false)}", true)
-      case TConstraining(base, bounds) =>
-        (s"${base.showType(false)} ⟹ {${showBounds(bounds)}}", true)
+      case TConstrained(body, bounds) =>
+        (s"{${showBounds(bounds)}} ⟹ ${body.showType(false)}", true)
+      case TConstraining(body, bounds) =>
+        (s"${body.showType(false)} ⟹ {${showBounds(bounds)}}", true)
 
     // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
     // around it.

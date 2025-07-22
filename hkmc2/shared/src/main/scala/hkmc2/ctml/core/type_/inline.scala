@@ -9,14 +9,14 @@ extension (type_ : Type)
     type_ match
       case TVar(typeVar) if typeVar == var_ =>
         substitute
-      case TConstrained(base, bounds) =>
-        val newBase   = base.inline(var_, substitute)
+      case TConstrained(body, bounds) =>
+        val newBody   = body.inline(var_, substitute)
         val newBounds = bounds.inline(var_, substitute)
-        TConstrained(newBase, newBounds)
-      case TConstraining(base, bounds) =>
-        val newBase   = base.inline(var_, substitute)
+        TConstrained(newBody, newBounds)
+      case TConstraining(body, bounds) =>
+        val newBody   = body.inline(var_, substitute)
         val newBounds = bounds.inline(var_, substitute)
-        attachConstrainingBounds(newBase, newBounds)
+        attachConstrainingBounds(newBody, newBounds)
       case _ =>
         type_.mapSimplify(_.inline(var_, substitute))
 

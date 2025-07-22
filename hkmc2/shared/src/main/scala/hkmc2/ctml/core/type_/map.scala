@@ -20,10 +20,10 @@ extension (type_ : Type)
         TInter(f(left), f(right))
       case TUniv(var_, body) =>
         TUniv(var_, f(body))
-      case TConstrained(base, bounds) =>
-        TConstrained(f(base), bounds.map(_.map(f)))
-      case TConstraining(base, bounds) =>
-        TConstraining(f(base), bounds.map(_.map(f)))
+      case TConstrained(body, bounds) =>
+        TConstrained(f(body), bounds.map(_.map(f)))
+      case TConstraining(body, bounds) =>
+        TConstraining(f(body), bounds.map(_.map(f)))
 
 extension (bound: Bound)
   /** Map over the direct components of a bound. */
@@ -45,7 +45,7 @@ extension(type_ : Type)(using ctx: Context)
       case TUniv(var_, body) =>
         given Context = ctx.extend(declRigidVar(var_))
         TUniv(var_, f(body))
-      case TConstrained(base, bounds) =>
-        TConstrained(f(base), bounds.map(_.map(f)))
-      case TConstraining(base, bounds) =>
-        attachConstrainingBounds(f(base), bounds.map(_.map(f)))
+      case TConstrained(body, bounds) =>
+        TConstrained(f(body), bounds.map(_.map(f)))
+      case TConstraining(body, bounds) =>
+        attachConstrainingBounds(f(body), bounds.map(_.map(f)))

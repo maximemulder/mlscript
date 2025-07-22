@@ -49,20 +49,20 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   mode match
     case Mode.Constrain =>
       if sup.is[TConstraining] then
-        val (supBase, supBounds) = sup.splitConstrainings()
-        val baseClauses = subtype(sub, supBase)
-        return Clauses(supBounds).concat(baseClauses)
+        val (supBody, supBounds) = sup.splitConstrainings()
+        val bodyClauses = subtype(sub, supBody)
+        return Clauses(supBounds).concat(bodyClauses)
 
       if sub.is[TConstraining] then
-        val (subBase, subBounds) = sub.splitConstrainings()
-        val baseClauses = subtype(subBase, sup)
-        return Clauses(subBounds).concat(baseClauses)
+        val (subBody, subBounds) = sub.splitConstrainings()
+        val bodyClauses = subtype(subBody, sup)
+        return Clauses(subBounds).concat(bodyClauses)
     case Mode.Check =>
       if sub.is[TConstraining] || sup.is[TConstraining] then
-        val (subBase, subBounds) = sub.splitConstrainings()
-        val (supBase, supBounds) = sup.splitConstrainings()
+        val (subBody, subBounds) = sub.splitConstrainings()
+        val (supBody, supBounds) = sup.splitConstrainings()
         val boundsClauses = subtypeBounds(subBounds, supBounds)
-        val baseClauses = subtype(subBase, supBase)
+        val bodyClauses = subtype(subBody, supBody)
         return Clauses.empty
 
   // Subtyping of top and bottom types.
@@ -209,12 +209,12 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Claus
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
   val outs = sub.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
-  subtypeSeq(sub.base, sup, outs)
+  subtypeSeq(sub.body, sup, outs)
 
 /** Constrain a type to be a subtype of a constrained type. */
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
   val outs = sup.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
-  subtypeSeq(sub, sup.base, outs)
+  subtypeSeq(sub, sup.body, outs)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =

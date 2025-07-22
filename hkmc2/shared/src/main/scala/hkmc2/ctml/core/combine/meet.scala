@@ -48,14 +48,14 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
   // Meet constraining types.
 
   if left.is[TConstraining] || right.is[TConstraining] then
-    val (leftBase,  leftBounds)  = left.splitConstrainings()
-    val (rightBase, rightBounds) = right.splitConstrainings()
-    if checkDisjoint(leftBase, rightBase) then
+    val (leftBody,  leftBounds)  = left.splitConstrainings()
+    val (rightBody, rightBounds) = right.splitConstrainings()
+    if checkDisjoint(leftBody, rightBody) then
       return Some(TBot)
 
-    val base = meet(leftBase, rightBase)
+    val body = meet(leftBody, rightBody)
     val bounds = ctx.meetBounds(leftBounds, rightBounds)
-    return Some(attachConstrainingBounds(base, bounds))
+    return Some(attachConstrainingBounds(body, bounds))
 
   // Meet lambda types.
 

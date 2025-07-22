@@ -82,37 +82,37 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
   decl
 
 /** Decorate the type variable quantification function to print debug information. */
-def debugQuantifyVar(impl: (Type, TypeVar, Type, Type) => Type)(using Context): (Type, TypeVar, Type, Type) => Type =
+def debugQuantifyVar(impl: (Type, TypeVar, Type, Type, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Type, Type, Clauses) => (Type, Clauses) =
   if !DebugFlags.var_ then
     return impl
 
-  (type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type) =>
+  (type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses) =>
     outputContext(s"quantify ${var_} with ${lowerBound} and ${upperBound} in ${type_}")
-    val newType = impl(type_, var_, lowerBound, upperBound)
+    val newType = impl(type_, var_, lowerBound, upperBound, outs)
     output(s"= ${newType}")
     newType
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, TypeVar, Type) => Type)(using Context): (Type, TypeVar, Type) => Type =
+def debugInlineVar(impl: (Type, TypeVar, Type, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Type, Clauses) => (Type, Clauses) =
   if !DebugFlags.var_ then
     return impl
 
-  (type_ : Type, var_ : TypeVar, bound: Type) =>
+  (type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses) =>
     outputContext(s"inline ${var_} with ${bound} in ${type_}")
-    val newType = impl(type_, var_, bound)
+    val (newType, newOuts) = impl(type_, var_, bound, outs)
     output(s"= ${newType}")
-    newType
+    (newType, newOuts)
 
 /** Decorate the type variable ignoring function to print debug information. */
-def debugIgnoreVar(impl: (Type, TypeVar) => Type)(using Context): (Type, TypeVar) => Type =
+def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
   if !DebugFlags.var_ then
     return impl
 
-  (type_ : Type, var_ : TypeVar) =>
+  (type_ : Type, var_ : TypeVar, outs: Clauses) =>
     outputContext(s"ignore ${var_} in ${type_}")
-    val newType = impl(type_, var_)
+    val (newType, newOuts) = impl(type_, var_, outs)
     output(s"= ${newType}")
-    newType
+    (newType, newOuts)
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =

@@ -23,8 +23,7 @@ def attachConstrainedBounds(type_ : Type, var_ : TypeVar, lowerBound: Type, uppe
 
   val bounds = boundsBuffer.toList
 
-  // TODO: Refactor to separate type quantification and constraint attaching ?
-  val body = type_ match
+  type_ match
     case constrained: TConstrained =>
       TConstrained(constrained.base, bounds ::: constrained.bounds)
     case _ =>
@@ -32,8 +31,6 @@ def attachConstrainedBounds(type_ : Type, var_ : TypeVar, lowerBound: Type, uppe
         type_
       else
         TConstrained(type_, bounds)
-
-  TUniv(var_, body)
 
 extension (type_ : Type)
   /** Split a type into a base type and its constraining bounds. */

@@ -14,23 +14,28 @@ def attachConstrainingBounds(type_ : Type, bounds: List[Bound])(using ctx: Conte
 
 /** Attached some constrained bounds to a type. */
 def attachConstrainedBounds(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type): Type =
-  val boundsBuffer = ListBuffer[Bound]()
+  var bounds: List[Bound] = Nil
+
+  // Do not add the top upper bound or bottom lower bound as those are implicit.
+
   if upperBound != TTop then
-    boundsBuffer.append(Bound(var_, Direction.Sub, upperBound))
+    bounds ::= Bound(var_, Direction.Sub, upperBound)
 
   if lowerBound != TBot then
-    boundsBuffer.append(Bound(var_, Direction.Super, lowerBound))
+    bounds ::= Bound(var_, Direction.Super, lowerBound)
 
-  val bounds = boundsBuffer.toList
+  // Do not make a constrained type if there are no bounds to satisfy.
+
+  if bounds == Nil then
+    return type_
+
+  // If the type is a constrained type, add the constrained bounds directly on it.
 
   type_ match
     case TConstrained(body, constrainedBounds) =>
       TConstrained(body, bounds ::: constrainedBounds)
     case _ =>
-      if bounds == Nil then
-        type_
-      else
-        TConstrained(type_, bounds)
+      TConstrained(type_, bounds)
 
 extension (type_ : Type)
   /** Split the body type and constrained bounds of the type. */

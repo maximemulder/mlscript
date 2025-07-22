@@ -16,7 +16,7 @@ extension (type_ : Type)
       case TConstraining(body, bounds) =>
         val newBody   = body.inline(var_, substitute)
         val newBounds = bounds.inline(var_, substitute)
-        attachConstrainingBounds(newBody, newBounds)
+        newBody.attachConstrainingBounds(newBounds)
       case _ =>
         type_.mapSimplify(_.inline(var_, substitute))
 

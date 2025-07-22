@@ -39,9 +39,9 @@ extension (type_ : Type)
         true
       case TUniv(typeVar, _) if typeVar == var_ =>
         false
-      case TConstrained(base, bounds) =>
-        base.hasVar(var_) || bounds.map(bound => if bound.var_ == var_ then false else bound.type_.hasVar(var_)).foldM()
-      case TConstraining(base, bounds) =>
-        base.hasVar(var_) || bounds.map(_.hasVar(var_)).foldM()
+      case TConstrained(body, bounds) =>
+        body.hasVar(var_) || bounds.map(bound => if bound.var_ == var_ then false else bound.type_.hasVar(var_)).foldM()
+      case TConstraining(body, bounds) =>
+        body.hasVar(var_) || bounds.map(_.hasVar(var_)).foldM()
       case _ =>
         type_.accumulate(_.hasVar(var_))

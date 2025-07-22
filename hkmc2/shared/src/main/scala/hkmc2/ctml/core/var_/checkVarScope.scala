@@ -15,13 +15,13 @@ extension (type_ : Type)(using ctx: Context)
       case TUniv(var_, body) =>
         given Context = ctx.extend(declRigidVar(var_))
         body.findEscapedVars()
-      case TConstrained(base, bounds) =>
-        var escapedVars = base.findEscapedVars()
+      case TConstrained(body, bounds) =>
+        var escapedVars = body.findEscapedVars()
         for bound <- bounds do
           escapedVars ++= bound.findEscapedVars()
         escapedVars
-      case TConstraining(base, bounds) =>
-        var escapedVars = base.findEscapedVars()
+      case TConstraining(body, bounds) =>
+        var escapedVars = body.findEscapedVars()
         for bound <- bounds do
           escapedVars ++= bound.findEscapedVars()
         escapedVars

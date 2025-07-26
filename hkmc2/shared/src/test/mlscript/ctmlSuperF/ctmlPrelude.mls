@@ -1,0 +1,62 @@
+// Primitive MLScript classes.
+
+declare class Object
+declare class Function
+declare class untyped
+
+// CTML top and bottom types.
+
+declare class Top
+declare class Bot
+
+declare class Unit
+declare class Bool
+declare class Int
+declare class Num
+declare class Str
+
+val top: Top
+val bot: Bot
+
+val unit   : Unit
+val bool   : Bool
+val int    : Int
+val num    : Num
+val string : Str
+
+// SuperF test suite specific terms.
+
+declare fun id: [A] -> A -> A
+declare fun inc: Int -> Int
+declare fun choose: [A] -> A -> A -> A
+
+declare fun auto: ([A] -> A -> A) -> ([A] -> A -> A)
+declare fun auto2: [B] -> ([A] -> A -> A) -> (B -> B)
+
+declare fun app: [A, B] -> (A -> B) -> A -> B
+declare fun revapp: [A, B] -> (A) -> (A -> B) -> B
+
+declare type ChurchInt = [A] -> (A -> A) -> (A -> A)
+
+declare fun zero: ChurchInt
+declare fun succ: ChurchInt -> ChurchInt
+
+val z = (f, x) => x
+val s = (n, f, x) => f(n(f, x))
+val n3 = s(s(s(z)))
+
+// Unsupported terms due to insufficient typing features in CTML.
+// head : ∀𝛼 . List 𝛼 → 𝛼
+// tail : ∀𝛼 . List 𝛼 → List 𝛼
+// nil : ∀𝛼 . List 𝛼
+// cons : ∀𝛼 . 𝛼 → List 𝛼 → List 𝛼
+// single : ∀𝛼 . 𝛼 → List 𝛼
+// append : ∀𝛼 . List 𝛼 → List 𝛼 → List 𝛼
+// length : ∀𝛼 . List 𝛼 → Int
+// const : ∀𝛼 𝛽. 𝛼 → 𝛽 → 𝛼
+// map : ∀𝛼 𝛽. (𝛼 → 𝛽 ) → List 𝛼 → List 𝛽
+// ids : List (∀𝛼 . 𝛼 → 𝛼 )
+// poly : (∀𝛼 . 𝛼 → 𝛼 ) → (Int, Bool)
+// fst : ∀𝛼 𝛽. (𝛼, 𝛽 ) → 𝛼
+// runST : ∀𝛼 . (∀𝑠. ST 𝑠 𝛼 ) → 𝛼
+// argST : ∀𝑠. ST 𝑠 Int

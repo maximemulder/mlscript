@@ -1,0 +1,4 @@
+:ctml
+
+val hello = "Hello World"
+//│ hello: Str

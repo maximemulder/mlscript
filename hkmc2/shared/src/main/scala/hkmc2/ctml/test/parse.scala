@@ -12,6 +12,7 @@ import hkmc2.semantics.Import
 import hkmc2.semantics.LetDecl
 import hkmc2.semantics.Param
 import hkmc2.semantics.Pattern
+import hkmc2.semantics.QuantVar
 import hkmc2.semantics.Spd
 import hkmc2.semantics.Split
 import hkmc2.semantics.Statement
@@ -142,6 +143,8 @@ def parseType(mlType: Term): Type =
           TVar(TypeVar(name))
     case Term.FunTy(mlParams, mlRet, _) =>
       parseTypeLambda(mlParams, mlRet)
+    case Term.Forall(mlVars, _, mlBody) =>
+      parseTypeUniv(mlVars, mlBody)
     case Term.CompType(mlLeft, mlRight, true) =>
       val left  = parseType(mlLeft)
       val right = parseType(mlRight)
@@ -172,6 +175,15 @@ def parseTypeLambdaParams(mlParams: List[Elem], mlRet: Term): Type =
       TLam(param, ret)
     case Nil =>
       parseType(mlRet)
+
+/** Convert an MLScript universal type to a CTML type. */
+def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =
+  mlVars match
+    case mlVar :: mlVars =>
+      val body = parseTypeUniv(mlVars, mlBody)
+      TUniv(TypeVar(mlVar.sym.name), body)
+    case Nil =>
+      parseType(mlBody)
 
 /** Convert an MLScript term to a CTML expression. */
 def parseExpr(mlExpr: Term): Expr =

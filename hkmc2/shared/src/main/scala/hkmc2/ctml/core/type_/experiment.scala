@@ -8,89 +8,120 @@ import hkmc2.ctml.types.*
 // - constant (forall a. a -> b)
 // - identity + generic metadata
 
-abstract class TypeApply[F[+_]]:
-  def type_(type_ : Type): F[Type] =
+abstract class TypeApply[F[+_], P]:
+  def type_(type_ : Type, p: P): F[Type] =
     type_ match
       case bot: TBot =>
-        this.bot(bot)
+        this.bot(bot, p)
       case top: TTop =>
-        this.top(top)
+        this.top(top, p)
       case var_ : TVar =>
-        this.var_(var_)
+        this.var_(var_, p)
       case lam : TLam =>
-        this.lam(lam)
+        this.lam(lam, p)
       case union: TUnion =>
-        this.union(union)
+        this.union(union, p)
       case inter: TInter =>
-        this.inter(inter)
+        this.inter(inter, p)
       case univ: TUniv =>
-        this.univ(univ)
+        this.univ(univ, p)
       case constrained: TConstrained =>
-        this.constrained(constrained)
+        this.constrained(constrained, p)
       case constraining: TConstraining =>
-        this.constraining(constraining)
+        this.constraining(constraining, p)
 
-  def bot(bot: TBot): F[TBot]
+  def bot(bot: TBot, p: P): F[TBot]
 
-  def top(top: TTop): F[TTop]
+  def top(top: TTop, p: P): F[TTop]
 
-  def var_(var_ : TVar): F[TVar]
+  def var_(var_ : TVar, p: P): F[TVar]
 
-  def lam(lam: TLam): F[TLam]
+  def lam(lam: TLam, p: P): F[TLam]
 
-  def union(union: TUnion): F[TUnion]
+  def union(union: TUnion, p: P): F[TUnion]
 
-  def inter(inter: TInter): F[TInter]
+  def inter(inter: TInter, p: P): F[TInter]
 
-  def univ(univ: TUniv): F[TUniv]
+  def univ(univ: TUniv, p: P): F[TUniv]
 
-  def constrained(constrained: TConstrained): F[TConstrained]
+  def constrained(constrained: TConstrained, p: P): F[TConstrained]
 
-  def constraining(constraining: TConstraining): F[TConstraining]
+  def constraining(constraining: TConstraining, p: P): F[TConstraining]
 
-class TypeApplyCombine[F[+_]](combinator: TypeCombine[F]) extends TypeApply[F]:
-  def bot(bot: TBot): F[TBot] =
+class TypeApplyPolarity[F[+_]](apply: TypeApply[F, Polarity], combinator: TypeCombine[F]) extends TypeApply[F, Polarity]:
+  def bot(bot: TBot, p: Polarity): F[TBot] =
+    apply.bot(bot, p)
+
+  def top(top: TTop, p: Polarity): F[TTop] =
+    apply.top(top, p)
+
+  def var_(var_ : TVar, p: Polarity): F[TVar] =
+    apply.var_(var_, p)
+
+  def lam(lam: TLam, p: Polarity): F[TLam] =
+    combinator.lam(
+      apply.type_(lam.param, p.invert()),
+      apply.type_(lam.ret, p),
+    )
+
+  def union(union: TUnion, p: Polarity): F[TUnion] =
+    apply.union(union, p)
+
+  def inter(inter: TInter, p: Polarity): F[TInter] =
+    apply.inter(inter, p)
+
+  def univ(univ: TUniv, p: Polarity): F[TUniv] =
+    apply.univ(univ, p)
+
+  def constrained(constrained: TConstrained, p: Polarity): F[TConstrained] =
+    apply.constrained(constrained, p)
+
+  def constraining(constraining: TConstraining, p: Polarity): F[TConstraining] =
+    apply.constraining(constraining, p)
+
+class TypeApplyCombine[F[+_], P](combinator: TypeCombine[F]) extends TypeApply[F, P]:
+  def bot(bot: TBot, p: P): F[TBot] =
     combinator.bot()
 
-  def top(top: TTop): F[TTop] =
+  def top(top: TTop, p: P): F[TTop] =
     combinator.top()
 
-  def var_(var_ : TVar): F[TVar] =
+  def var_(var_ : TVar, p: P): F[TVar] =
     combinator.var_(var_.var_)
 
-  def lam(lam: TLam): F[TLam] =
+  def lam(lam: TLam, p: P): F[TLam] =
     combinator.lam(
-      this.type_(lam.param),
-      this.type_(lam.ret),
+      this.type_(lam.param, p),
+      this.type_(lam.ret, p),
     )
 
-  def union(union: TUnion): F[TUnion] =
+  def union(union: TUnion, p: P): F[TUnion] =
     combinator.union(
-      this.type_(union.left),
-      this.type_(union.right),
+      this.type_(union.left, p),
+      this.type_(union.right, p),
     )
 
-  def inter(inter: TInter): F[TInter] =
+  def inter(inter: TInter, p: P): F[TInter] =
     combinator.inter(
-      this.type_(inter.left),
-      this.type_(inter.right),
+      this.type_(inter.left, p),
+      this.type_(inter.right, p),
     )
 
-  def univ(univ: TUniv): F[TUniv] =
+  def univ(univ: TUniv, p: P): F[TUniv] =
     combinator.univ(
       univ.var_,
-      this.type_(univ.body)
+      this.type_(univ.body, p)
     )
 
-  def constrained(constrained: TConstrained): F[TConstrained] =
+  def constrained(constrained: TConstrained, p: P): F[TConstrained] =
     combinator.constrained(
-      this.type_(constrained.body),
+      this.type_(constrained.body, p),
       constrained.bounds,
     )
 
-  def constraining(constraining: TConstraining): F[TConstraining] =
+  def constraining(constraining: TConstraining, p: P): F[TConstraining] =
     combinator.constraining(
-      this.type_(constraining.body),
+      this.type_(constraining.body, p),
       constraining.bounds,
     )
 
@@ -169,6 +200,10 @@ class TypeCombineMonoid[T](using m: Monoid[T]) extends TypeCombine[[_] =>> T]:
   def constraining(body: T, bounds: List[Bound]): T =
     body
 
-def TypeApplyIdentity                      = TypeApplyCombine(TypeCombineIdentiy)
+def TypeApplyIdentity                      = TypeApplyCombine[[T] =>> T, Unit](TypeCombineIdentiy)
 
-def TypeApplyMonoid[T](using m: Monoid[T]) = TypeApplyCombine(new TypeCombineMonoid)
+def TypeApplyMonoid[T](using m: Monoid[T]) = TypeApplyCombine[[_] =>> T, Unit](new TypeCombineMonoid)
+
+def TypeApplyMonoidB[T](using m: Monoid[T]) = TypeApplyCombine[[_] =>> T, Polarity](new TypeCombineMonoid)
+
+def TypeApplyPolarityMonoid[T](using m: Monoid[T]) = TypeApplyPolarity(TypeApplyMonoidB, new TypeCombineMonoid)

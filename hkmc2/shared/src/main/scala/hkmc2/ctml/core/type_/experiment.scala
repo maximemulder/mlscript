@@ -8,22 +8,22 @@ import hkmc2.ctml.types.*
 // - constant (forall a. a -> b)
 // - identity + generic metadata
 
-abstract class TypeApply[F[+_], P]:
-  def type_(type_ : Type, p: P): F[Type]
+abstract class TypeApplicator[F[+_], P]:
+  def apply(type_ : Type, p: P): F[Type]
 
-class TypeApplyPolarity[F[+_]](apply: TypeApply[F, Polarity], combinator: TypeCombine[F]) extends TypeApply[F, Polarity]:
-  def type_(type_ : Type, p: Polarity): F[Type] =
+class TypePolarity[F[+_]](applicator: TypeApplicator[F, Polarity], combinator: TypeCombinator[F]) extends TypeApplicator[F, Polarity]:
+  def apply(type_ : Type, p: Polarity): F[Type] =
     type_ match
       case TLam(param, ret) =>
         combinator.lam(
-          apply.type_(param, p.invert()),
-          apply.type_(ret, p),
+          applicator.apply(param, p.invert()),
+          applicator.apply(ret, p),
         )
       case _ =>
-        apply.type_(type_, p)
+        applicator.apply(type_, p)
 
-class TypeApplyCombine[F[+_], P](combinator: TypeCombine[F]) extends TypeApply[F, P]:
-  def type_(type_ : Type, p: P): F[Type] =
+class TypeCombinatorApplicator[F[+_], P](combinator: TypeCombinator[F]) extends TypeApplicator[F, P]:
+  def apply(type_ : Type, p: P): F[Type] =
     type_ match
       case TBot =>
         combinator.bot()
@@ -33,36 +33,36 @@ class TypeApplyCombine[F[+_], P](combinator: TypeCombine[F]) extends TypeApply[F
         combinator.var_(var_)
       case TLam(param, ret) =>
         combinator.lam(
-          this.type_(param, p),
-          this.type_(ret, p),
+          this.apply(param, p),
+          this.apply(ret, p),
         )
       case TUnion(left, right) =>
         combinator.union(
-          this.type_(left, p),
-          this.type_(right, p),
+          this.apply(left, p),
+          this.apply(right, p),
         )
       case TInter(left, right) =>
         combinator.inter(
-          this.type_(left, p),
-          this.type_(right, p),
+          this.apply(left, p),
+          this.apply(right, p),
         )
       case TUniv(var_, body) =>
         combinator.univ(
           var_,
-          this.type_(body, p)
+          this.apply(body, p)
         )
       case TConstrained(body, bounds) =>
         combinator.constrained(
-          this.type_(body, p),
+          this.apply(body, p),
           bounds,
         )
       case TConstraining(body, bounds) =>
         combinator.constraining(
-          this.type_(body, p),
+          this.apply(body, p),
           bounds,
         )
 
-abstract class TypeCombine[F[_]]:
+abstract class TypeCombinator[F[_]]:
   def bot(): F[TBot]
 
   def top(): F[TTop]
@@ -81,7 +81,7 @@ abstract class TypeCombine[F[_]]:
 
   def constraining(body: F[Type], bounds: List[Bound]): F[TConstraining]
 
-object TypeCombineIdentiy extends TypeCombine[[T] =>> T]:
+object TypeIdentityCombinator extends TypeCombinator[[T] =>> T]:
   def bot(): TBot =
     TBot
 
@@ -109,7 +109,7 @@ object TypeCombineIdentiy extends TypeCombine[[T] =>> T]:
   def constraining(body: Type, bounds: List[Bound]): TConstraining =
     TConstraining(body, bounds)
 
-class TypeCombineMonoid[T](using m: Monoid[T]) extends TypeCombine[[_] =>> T]:
+class TypeMonoidCombinator[T](using m: Monoid[T]) extends TypeCombinator[[_] =>> T]:
   def bot(): T =
     m.empty
 
@@ -137,10 +137,10 @@ class TypeCombineMonoid[T](using m: Monoid[T]) extends TypeCombine[[_] =>> T]:
   def constraining(body: T, bounds: List[Bound]): T =
     body
 
-def TypeApplyIdentity                      = TypeApplyCombine[[T] =>> T, Unit](TypeCombineIdentiy)
+def TypeIdentity                              = TypeCombinatorApplicator[[T] =>> T, Unit](TypeIdentityCombinator)
 
-def TypeApplyMonoid[T](using m: Monoid[T]) = TypeApplyCombine[[_] =>> T, Unit](new TypeCombineMonoid)
+def TypeMonoidUnit[T](using m: Monoid[T])     = TypeCombinatorApplicator[[_] =>> T, Unit](new TypeMonoidCombinator)
 
-def TypeApplyMonoidB[T](using m: Monoid[T]) = TypeApplyCombine[[_] =>> T, Polarity](new TypeCombineMonoid)
+def TypeMonoid[T](using m: Monoid[T])         = TypeCombinatorApplicator[[_] =>> T, Polarity](new TypeMonoidCombinator)
 
-def TypeApplyPolarityMonoid[T](using m: Monoid[T]) = TypeApplyPolarity(TypeApplyMonoidB, new TypeCombineMonoid)
+def TypeMonoidPolarity[T](using m: Monoid[T]) = TypePolarity(TypeMonoid, new TypeMonoidCombinator)

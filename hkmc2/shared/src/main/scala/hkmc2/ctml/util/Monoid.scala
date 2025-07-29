@@ -6,6 +6,11 @@ trait Monoid[T](using s: Semigroup[T]):
   /** The identity element. */
   def empty: T
 
+extension [T](m: Monoid[T])
+  /** Apply the associative operation on a sequence of monoidal values. */
+  def combineMany(xs: Iterable[T]): T =
+    xs.fold(m.empty)(m.combine)
+
 /** Implementation of the `Monoid` trait for `Unit`. */
 given Monoid[Unit] with
   def empty = ()

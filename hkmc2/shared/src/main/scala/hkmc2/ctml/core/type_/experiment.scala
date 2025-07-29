@@ -8,21 +8,30 @@ import hkmc2.ctml.types.*
 // - constant (forall a. a -> b)
 // - identity + generic metadata
 
-abstract class TypeApplicator[F[+_], P]:
+/** Apply a function on a type with the given parameters. */
+trait TypeApplicator[F[+_], P]:
   def apply(type_ : Type, p: P): F[Type]
 
-class TypePolarity[F[+_]](applicator: TypeApplicator[F, Polarity], combinator: TypeCombinator[F]) extends TypeApplicator[F, Polarity]:
-  def apply(type_ : Type, p: Polarity): F[Type] =
+/** Represent an object that has a polarity. */
+trait WithPolarity[This <: WithPolarity[This]]:
+  /** Get the polarity of the object. */
+  def getPolarity: Polarity
+  /** Set the polarity of the object. */
+  def setPolarity(pol: Polarity): This
+
+class TypePolarityDispatcher[F[+_], P <: WithPolarity[P]](combinator: TypeCombinator[F]) extends TypeDispatcher[F, P](combinator):
+  override def apply(type_ : Type, params: P): F[Type] =
     type_ match
       case TLam(param, ret) =>
+        val pol = params.getPolarity
         combinator.lam(
-          applicator.apply(param, p.invert()),
-          applicator.apply(ret, p),
+          this.apply(param, params.setPolarity(pol.invert())),
+          this.apply(ret, params),
         )
       case _ =>
-        applicator.apply(type_, p)
+        super.apply(type_, params)
 
-class TypeCombinatorApplicator[F[+_], P](combinator: TypeCombinator[F]) extends TypeApplicator[F, P]:
+class TypeDispatcher[F[+_], P](combinator: TypeCombinator[F]) extends TypeApplicator[F, P]:
   def apply(type_ : Type, p: P): F[Type] =
     type_ match
       case TBot =>
@@ -62,7 +71,7 @@ class TypeCombinatorApplicator[F[+_], P](combinator: TypeCombinator[F]) extends 
           bounds,
         )
 
-abstract class TypeCombinator[F[_]]:
+trait TypeCombinator[F[_]]:
   def bot(): F[TBot]
 
   def top(): F[TTop]
@@ -109,7 +118,7 @@ object TypeIdentityCombinator extends TypeCombinator[[T] =>> T]:
   def constraining(body: Type, bounds: List[Bound]): TConstraining =
     TConstraining(body, bounds)
 
-class TypeMonoidCombinator[T](using m: Monoid[T]) extends TypeCombinator[[_] =>> T]:
+class TypeMonoidCombinator[T](m: Monoid[T]) extends TypeCombinator[[_] =>> T]:
   def bot(): T =
     m.empty
 
@@ -137,10 +146,8 @@ class TypeMonoidCombinator[T](using m: Monoid[T]) extends TypeCombinator[[_] =>>
   def constraining(body: T, bounds: List[Bound]): T =
     body
 
-def TypeIdentity                              = TypeCombinatorApplicator[[T] =>> T, Unit](TypeIdentityCombinator)
+def TypeIdentity                     = TypeDispatcher[[T] =>> T, Unit](TypeIdentityCombinator)
 
-def TypeMonoidUnit[T](using m: Monoid[T])     = TypeCombinatorApplicator[[_] =>> T, Unit](new TypeMonoidCombinator)
+def TypeMonoidUnit[T]( m: Monoid[T]) = TypeDispatcher[[_] =>> T, Unit](new TypeMonoidCombinator(m))
 
-def TypeMonoid[T](using m: Monoid[T])         = TypeCombinatorApplicator[[_] =>> T, Polarity](new TypeMonoidCombinator)
-
-def TypeMonoidPolarity[T](using m: Monoid[T]) = TypePolarity(TypeMonoid, new TypeMonoidCombinator)
+def TypeMonoid[T](m: Monoid[T])      = TypeDispatcher[[_] =>> T, Polarity](new TypeMonoidCombinator(m))

@@ -46,3 +46,19 @@ extension (bound: Bound)
       else Polarities.empty
     val typePolarities = bound.type_.getVarPolarities(var_)(using boundPolarity)
     Polarities.join(varPolarities, typePolarities)
+
+extension (type_ : Type)
+  def getVarPolaritiesB(var_ : TypeVar): Polarities =
+    VarPolarities.apply(type_, VarPolaritiesParams(var_, Polarity.Positive))
+
+class VarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends WithPolarity[VarPolaritiesParams]:
+  def getPolarity = this.pol
+  def setPolarity(pol: Polarity) = VarPolaritiesParams(var_, pol)
+
+object VarPolarities extends TypePolarityDispatcher[[_] =>> Polarities, VarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
+  override def apply(type_ : Type, params: VarPolaritiesParams): Polarities =
+    type_ match
+      case TVar(var_) if var_ == params.var_ =>
+        Polarities.fromPolarity(params.pol)
+      case _ =>
+        this.apply(type_, params)

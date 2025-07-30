@@ -18,16 +18,6 @@ abstract class TypePolarityDispatcher[F[+_], P <: WithPolarity[P]](combinator: T
           this.apply(param, params.setPolarity(pol.invert())),
           this.apply(ret, params),
         )
-      case TConstrained(body, bounds) =>
-        combinator.constrained(
-          this.apply(body, params),
-          this.apply(bounds, params),
-        )
-      case TConstraining(body, bounds) =>
-        combinator.constraining(
-          this.apply(body, params),
-          this.apply(bounds, params),
-        )
       case _ =>
         super.apply(type_, params)
 

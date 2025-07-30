@@ -2,40 +2,36 @@ package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.abstractions.TypeDispatcher
+import hkmc2.ctml.core.abstractions.TypeIdentityCombinator
 
 extension (type_ : Type)
   /** Replace a type variable by an other type variable in the type, without simplifying the resulting type. */
   def substitute(var_ : TypeVar, substitute: TypeVar): Type =
+    TypeSubstituter(type_, SubstitutionParams(var_, substitute))
+
+class SubstitutionParams(val var_ : TypeVar, val substitute: TypeVar)
+
+object TypeSubstituter extends TypeDispatcher[[T] =>> T, SubstitutionParams](TypeIdentityCombinator):
+  override def apply(type_ : Type, params : SubstitutionParams): Type =
     type_ match
-      case TVar(typeVar) =>
-        TVar(typeVar.substitute(var_, substitute))
-      case TUniv(typeVar, body) if var_ == typeVar =>
-        TUniv(typeVar, body)
-      case TConstrained(body, bounds) =>
-        val newBody = body.substitute(var_, substitute)
-        val newBounds = bounds.map(_.substitute(var_, substitute))
-        TConstrained(newBody, newBounds)
-      case TConstraining(body, bounds) =>
-        val newBody = body.substitute(var_, substitute)
-        val newBounds = bounds.map(_.substitute(var_, substitute))
-        TConstraining(newBody, newBounds)
+      case TVar(var_) =>
+        TVar(this.substitute(var_, params))
       case _ =>
-        type_.map(_.substitute(var_, substitute))
+        super.apply(type_, params)
 
-extension (bound: Bound)
-  /** Substitute a type variable by another type variable in the bound. */
-  def substitute(var_ : TypeVar, substitute: TypeVar): Bound =
-    val newVar  = bound.var_.substitute(var_, substitute)
-    val newType = bound.type_.substitute(var_, substitute)
-    Bound(newVar, bound.dir, newType)
+  override def apply(bounds: List[Bound], params: SubstitutionParams): List[Bound] =
+    bounds.map(bound =>
+      val newVar  = this.substitute(bound.var_, params)
+      val newType = this.apply(bound.type_, params)
+      Bound(newVar, bound.dir, newType)
+    )
 
-extension (typeVar: TypeVar)
-  /** Substitute the type variable by another type variable if these are equal. */
-  def substitute(var_ : TypeVar, substitute: TypeVar): TypeVar =
-    if typeVar == var_ then
-      substitute
-    else
-      typeVar
+  def substitute(var_ : TypeVar, params: SubstitutionParams): TypeVar =
+      if var_ == params.var_ then
+        params.substitute
+      else
+        var_
 
 extension (univ: TUniv)
   /** Substitute the quantified variable of a universal type with a new fresh type variable. */

@@ -5,7 +5,7 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
-/** Represent an object that carries a typing context. */
+/** Trait for objects that carry a typing context. */
 trait WithContext[This <: WithContext[This]]:
   /** Get the typing context of the object. */
   def getContext: Context

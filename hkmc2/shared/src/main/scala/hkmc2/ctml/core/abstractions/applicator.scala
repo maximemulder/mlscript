@@ -2,10 +2,12 @@ package hkmc2.ctml.core.abstractions
 
 import hkmc2.ctml.types.*
 
-/** Apply a function on a type with the given parameters. */
+/** Trait that describes a function application on a type. */
 trait TypeApplicator[T[+_], P]:
+  /** Apply the transformation on a type with the given parameters. */
   def apply(type_ : Type, p: P): T[Type]
 
-/** Apply a function on a type variable bound with the given parameters. */
+/** Trait that describes a function application on some type variable bounds. */
 trait BoundsApplicator[B[+_], P]:
+  /** Apply the transformation on some type variable bounds with the given parameters. */
   def apply(bounds: List[Bound], p: P): B[List[Bound]]

@@ -1,55 +1,56 @@
 package hkmc2.ctml.core.abstractions
 
+import hkmc2.ctml.util.*
 import hkmc2.ctml.types.*
 
-trait TypeCombinator[F[_]]:
-  def bot(): F[TBot]
+trait TypeCombinator[T[_], B[_], P]:
+  def bot(p: P): T[TBot]
 
-  def top(): F[TTop]
+  def top(p: P): T[TTop]
 
-  def var_(var_ : TypeVar): F[TVar]
+  def var_(var_ : TypeVar): T[TVar]
 
-  def lam(param: F[Type], ret: F[Type]): F[TLam]
+  def lam(param: T[Type], ret: T[Type], p: P): T[TLam]
 
-  def union(left: F[Type], right: F[Type]): F[TUnion]
+  def union(left: T[Type], right: T[Type], p: P): T[TUnion]
 
-  def inter(left: F[Type], right: F[Type]): F[TInter]
+  def inter(left: T[Type], right: T[Type], p: P): T[TInter]
 
-  def univ(var_ : TypeVar, body: F[Type]): F[TUniv]
+  def univ(var_ : TypeVar, body: T[Type], p: P): T[TUniv]
 
-  def constrained(body: F[Type], bounds: F[List[Bound]]): F[TConstrained]
+  def constrained(body: T[Type], bounds: B[List[Bound]], p: P): T[TConstrained]
 
-  def constraining(body: F[Type], bounds: F[List[Bound]]): F[TConstraining]
+  def constraining(body: T[Type], bounds: B[List[Bound]], p: P): T[TConstraining]
 
-  def bounds(bounds: List[F[Bound]]): F[List[Bound]]
+  def bounds(bounds: List[B[Bound]], p: P): B[List[Bound]]
 
-object TypeIdentityCombinator extends TypeCombinator[[T] =>> T]:
-  def bot(): TBot =
+class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
+  def bot(p: P): TBot =
     TBot
 
-  def top(): TTop =
+  def top(p: P): TTop =
     TTop
 
   def var_(var_ : TypeVar): TVar =
     TVar(var_)
 
-  def lam(param: Type, ret: Type): TLam =
+  def lam(param: Type, ret: Type, p: P): TLam =
     TLam(param, ret)
 
-  def union(left: Type, right: Type): TUnion =
+  def union(left: Type, right: Type, p: P): TUnion =
     TUnion(left, right)
 
-  def inter(left: Type, right: Type): TInter =
+  def inter(left: Type, right: Type, p: P): TInter =
     TInter(left, right)
 
-  def univ(var_ : TypeVar, body: Type): TUniv =
+  def univ(var_ : TypeVar, body: Type, p: P): TUniv =
     TUniv(var_, body)
 
-  def constrained(body: Type, bounds: List[Bound]): TConstrained =
+  def constrained(body: Type, bounds: List[Bound], p: P): TConstrained =
     TConstrained(body, bounds)
 
-  def constraining(body: Type, bounds: List[Bound]): TConstraining =
+  def constraining(body: Type, bounds: List[Bound], p: P): TConstraining =
     TConstraining(body, bounds)
 
-  def bounds(bounds: List[Bound]): List[Bound] =
+  def bounds(bounds: List[Bound], p: P): List[Bound] =
     bounds

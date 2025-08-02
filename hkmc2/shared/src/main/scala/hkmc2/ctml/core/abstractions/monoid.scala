@@ -3,6 +3,7 @@ package hkmc2.ctml.core.abstractions
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
+/** Combinator to combine the components of a type into a monoidal value. */
 class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Const[T], Const[T], P]:
   def bot(p: P): T =
     m.empty

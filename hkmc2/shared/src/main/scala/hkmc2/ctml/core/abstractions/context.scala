@@ -12,7 +12,7 @@ trait WithContext[This <: WithContext[This]]:
   /** Set the typing context of the object. */
   def setContext(ctx: Context): This
 
-class TypeContextApplicator[T[+_], P <: WithContext[P]](combinator: TypeCombinator[T, Id, P]) extends TypeDispatcher[T, Id, P](combinator):
+class TypeContextDispatcher[T[+_], P <: WithContext[P]](combinator: TypeCombinator[T, Id, P]) extends TypeDispatcher[T, Id, P](combinator):
   override def apply(type_ : Type, params: P): T[Type] =
     type_ match
       case TUniv(var_, body) =>

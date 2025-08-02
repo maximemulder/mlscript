@@ -17,41 +17,43 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀ο, π. {ο ≤ (Int ⟹ {π ≤ Int}) ∨ (Str ⟹ {π ≤ Str}), π ≤ (Int ⟹ {ο ≤ Int}) ∨ (Str ⟹ {ο ≤ Str})} ⟹ ο → π → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str}))
+//│ baz: ∀ο, π. {ο ≤ (Int ⟹ {π ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {π ≤ Str, τ ≥ Str}), π ≤ (Int ⟹ {ο ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {ο ≤ Str, τ ≥ Str})} ⟹ ο → π → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str}))
 
 baz(1, 1)
-//│ Int ∨ Str
+//│ (Int ⟹ {ψ ≤ Int}) ∨ (Str ⟹ {ψ ≤ Str, ω ≤ Str})
+//│ τ ≥ Int
 
 baz("", "")
-//│ Int ∨ Str
+//│ (Int ⟹ {26 ≤ Int, 27 ≤ Int}) ∨ (Str ⟹ {26 ≤ Str})
+//│ τ ≥ Str
 
 baz(bot, bot)
-//│ ∀32, 33. {32 ≤ (Int ⟹ {33 ≤ Int}) ∨ (Str ⟹ {33 ≤ Str}), 33 ≤ (Int ⟹ {32 ≤ Int}) ∨ (Str ⟹ {32 ≤ Str})} ⟹ (Int ⟹ {32 ≤ Int, 33 ≤ Int}) ∨ (Str ⟹ {32 ≤ Str, 33 ≤ Str})
+//│ ∀32, 33. {32 ≤ (Int ⟹ {33 ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {33 ≤ Str, τ ≥ Str}), 33 ≤ (Int ⟹ {32 ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {32 ≤ Str, τ ≥ Str})} ⟹ (Int ⟹ {32 ≤ Int, 33 ≤ Int}) ∨ (Str ⟹ {32 ≤ Str, 33 ≤ Str})
 
 :e
 baz(1, "")
-//│ ═══[ERROR] Cannot solve judgment Int → (Int ∨ Str) ≤ Str → 34.
+//│ ═══[ERROR] Cannot solve judgment Int → ((Int ⟹ {36 ≤ Int}) ∨ (Str ⟹ {36 ≤ Str, 37 ≤ Str})) ≤ Str → 34.
 //│ Typing error tree:
-//│   Int → (Int ∨ Str) ≤ Str → 34
+//│   Int → ((Int ⟹ {36 ≤ Int}) ∨ (Str ⟹ {36 ≤ Str, 37 ≤ Str})) ≤ Str → 34
 //│     Str ≤ Int
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
 
 :e
 baz(true, false)
-//│ ═══[ERROR] Cannot solve judgment ∀ο, π. {ο ≤ (Int ⟹ {π ≤ Int}) ∨ (Str ⟹ {π ≤ Str}), π ≤ (Int ⟹ {ο ≤ Int}) ∨ (Str ⟹ {ο ≤ Str})} ⟹ ο → π → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str})) ≤ Bool → 39.
+//│ ═══[ERROR] Cannot solve judgment ∀ο, π. {ο ≤ (Int ⟹ {π ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {π ≤ Str, τ ≥ Str}), π ≤ (Int ⟹ {ο ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {ο ≤ Str, τ ≥ Str})} ⟹ ο → π → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str})) ≤ Bool → 39.
 //│ Typing error tree:
-//│   ∀ο, π. {ο ≤ (Int ⟹ {π ≤ Int}) ∨ (Str ⟹ {π ≤ Str}), π ≤ (Int ⟹ {ο ≤ Int}) ∨ (Str ⟹ {ο ≤ Str})} ⟹ ο → π → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str})) ≤ Bool → 39
-//│     ∀π. {40 ≤ (Int ⟹ {π ≤ Int}) ∨ (Str ⟹ {π ≤ Str}), π ≤ (Int ⟹ {40 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str})} ⟹ 40 → π → ((Int ⟹ {40 ≤ Int, π ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, π ≤ Str})) ≤ Bool → 39
-//│       {40 ≤ (Int ⟹ {41 ≤ Int}) ∨ (Str ⟹ {41 ≤ Str}), 41 ≤ (Int ⟹ {40 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str})} ⟹ 40 → 41 → ((Int ⟹ {40 ≤ Int, 41 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, 41 ≤ Str})) ≤ Bool → 39
+//│   ∀ο, π. {ο ≤ (Int ⟹ {π ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {π ≤ Str, τ ≥ Str}), π ≤ (Int ⟹ {ο ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {ο ≤ Str, τ ≥ Str})} ⟹ ο → π → ((Int ⟹ {ο ≤ Int, π ≤ Int}) ∨ (Str ⟹ {ο ≤ Str, π ≤ Str})) ≤ Bool → 39
+//│     ∀π. {40 ≤ (Int ⟹ {π ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {π ≤ Str, τ ≥ Str}), π ≤ (Int ⟹ {40 ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {40 ≤ Str, τ ≥ Str})} ⟹ 40 → π → ((Int ⟹ {40 ≤ Int, π ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, π ≤ Str})) ≤ Bool → 39
+//│       {40 ≤ (Int ⟹ {41 ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {41 ≤ Str, τ ≥ Str}), 41 ≤ (Int ⟹ {40 ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {40 ≤ Str, τ ≥ Str})} ⟹ 40 → 41 → ((Int ⟹ {40 ≤ Int, 41 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, 41 ≤ Str})) ≤ Bool → 39
 //│         40 → 41 → ((Int ⟹ {40 ≤ Int, 41 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, 41 ≤ Str})) ≤ Bool → 39
 //│           Bool ≤ 40
-//│             Bool ≤ (Int ⟹ {41 ≤ Int}) ∨ (Str ⟹ {41 ≤ Str})
-//│               Bool ≤ Int ⟹ {41 ≤ Int}
+//│             Bool ≤ (Int ⟹ {41 ≤ Int, τ ≥ Int}) ∨ (Str ⟹ {41 ≤ Str, τ ≥ Str})
+//│               Bool ≤ Int ⟹ {41 ≤ Int, τ ≥ Int}
 //│                 Bool ≤ Int
 //│                   Bool ≤ ⊥
 //│                     ⊤ ≤ ⊥
-//│               Bool ≤ Str ⟹ {41 ≤ Str}
+//│               Bool ≤ Str ⟹ {41 ≤ Str, τ ≥ Str}
 //│                 Bool ≤ Str
 //│                   Bool ≤ ⊥
 //│                     ⊤ ≤ ⊥

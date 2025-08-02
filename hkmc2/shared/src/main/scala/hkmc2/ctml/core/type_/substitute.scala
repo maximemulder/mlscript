@@ -1,9 +1,9 @@
 package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.abstractions.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.abstractions.TypeDispatcher
-import hkmc2.ctml.core.abstractions.TypeIdentityCombinator
+import hkmc2.ctml.util.*
 
 extension (type_ : Type)
   /** Replace a type variable by an other type variable in the type, without simplifying the resulting type. */
@@ -12,7 +12,7 @@ extension (type_ : Type)
 
 class SubstitutionParams(val var_ : TypeVar, val substitute: TypeVar)
 
-object TypeSubstituter extends TypeDispatcher[[T] =>> T, SubstitutionParams](TypeIdentityCombinator):
+object TypeSubstituter extends TypeDispatcher[Id, Id, SubstitutionParams](TypeIdentityCombinator[SubstitutionParams]):
   override def apply(type_ : Type, params : SubstitutionParams): Type =
     type_ match
       case TVar(var_) =>

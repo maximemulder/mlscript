@@ -7,6 +7,8 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
+/** Combinator that combines the components of a type into that type while simplifying it if
+ *  possible by using the information available in the typing context. */
 class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[Type], Id, P]:
   def bot(params: P): Type =
     TBot

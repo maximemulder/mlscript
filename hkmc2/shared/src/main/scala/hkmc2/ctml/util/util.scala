@@ -4,6 +4,12 @@ import java.io.{PrintWriter, StringWriter}
 import scala.util.boundary, boundary.break
 import scala.collection.mutable.ListBuffer
 
+/** The type-level identity functor.*/
+type Id[T] = T
+
+/** The type-level constant functor. */
+type Const[T] = [_] =>> T
+
 /** Get the stack trace of an exception as a string. */
 def getStackTraceString(throwable: Throwable): String =
   val stringWriter = new StringWriter()

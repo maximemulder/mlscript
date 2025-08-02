@@ -2,6 +2,8 @@ package hkmc2.ctml.core.context
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
+import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
 extension (ctx: Context)
@@ -53,3 +55,10 @@ extension (ctx: Context)
   /** Get the upper bound of a type variable. */
   def getVarUpperBound(var_ : TypeVar): Type =
     ctx.getVarBound(var_, Direction.Sub)
+
+extension (univ: TUniv)
+  /** Substitute the quantified variable of a universal type with a new fresh type variable. */
+  def freshen(): TUniv =
+    val freshDecl = declNewFreshVar()
+    val body = univ.body.substitute(univ.var_, freshDecl.var_)
+    TUniv(freshDecl.var_, body)

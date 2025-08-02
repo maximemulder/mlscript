@@ -1,9 +1,9 @@
 package hkmc2.ctml.core.type_
 
-import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.abstractions.*
+import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 extension (type_ : Type)
   /** Get the polarities at which a type variable occurs in the type. */
@@ -14,7 +14,7 @@ class VarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends WithPol
   def getPolarity = this.pol
   def setPolarity(pol: Polarity) = VarPolaritiesParams(var_, pol)
 
-object VarPolarities extends TypePolarityDispatcher[[_] =>> Polarities, VarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
+object VarPolarities extends TypePolarityDispatcher[Const[Polarities], Const[Polarities], VarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
   override def apply(type_ : Type, params: VarPolaritiesParams): Polarities =
     type_ match
       case TVar(var_) if var_ == params.var_ =>

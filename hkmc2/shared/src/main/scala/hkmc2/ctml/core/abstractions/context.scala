@@ -12,7 +12,10 @@ trait WithContext[This <: WithContext[This]]:
   /** Set the typing context of the object. */
   def setContext(ctx: Context): This
 
-class TypeContextDispatcher[T[+_], P <: WithContext[P]](combinator: TypeCombinator[T, Id, P]) extends TypeDispatcher[T, Id, P](combinator):
+class TypeContextApplicator[T[+_], P <: WithContext[P]](
+  applicator: TypeApplicator[T, P] & BoundsApplicator[Id, P],
+  combinator: TypeCombinator[T, Id, P],
+) extends TypeApplicator[T, P]:
   override def apply(type_ : Type, params: P): T[Type] =
     type_ match
       case TUniv(var_, body) =>
@@ -22,10 +25,7 @@ class TypeContextDispatcher[T[+_], P <: WithContext[P]](combinator: TypeCombinat
       case TConstrained(body, bounds) =>
         val ctx = params.getContext.extend(bounds)
         val bodyRes = this.apply(body, params.setContext(ctx))
-        val boundsRes = this.apply(bounds, params)
+        val boundsRes = applicator.apply(bounds, params)
         combinator.constrained(bodyRes, boundsRes, params)
       case _ =>
-        super.apply(type_, params)
-
-  override def apply(bounds: List[Bound], params: P): List[Bound] =
-    combinator.bounds(bounds, params)
+        applicator.apply(type_, params)

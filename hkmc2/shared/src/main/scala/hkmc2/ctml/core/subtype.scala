@@ -158,6 +158,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   if sub.is[TLam] && sup.is[TLam] then
     return subtypeLam(sub.as[TLam], sup.as[TLam])
 
+  // Subtyping of type applications.
+
+  if sub.is[TApp] && sup.is[TApp] then
+    return subtypeApp(sub.as[TApp], sup.as[TApp])
+
   throw TypeError()
 
 // Fresh variables.
@@ -230,6 +235,14 @@ def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: Mode): Clau
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =
   val paramClauses = subtype(sup.param, sub.param)
   subtypeSeq(sub.ret, sup.ret, paramClauses)
+
+/** Constrain a typa application to be a subtype of another typa application. */
+def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: Mode): Clauses =
+  val absClauses = subtype(sup.abs, sub.abs)
+  // The argument is invariant.
+  val subClauses = subtypeSeq(sub.arg, sup.arg, absClauses)
+  subtypeSeq(sup.arg, sub.arg, absClauses)
+  subClauses
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
 def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: Mode): Clauses =

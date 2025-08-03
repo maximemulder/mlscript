@@ -37,6 +37,10 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
           extrudeFreshVar(var_)
     case TBot | TTop | TVar(_) =>
       (type_, Clauses.empty)
+    case TTuple(left, right) =>
+      val (newLeft,  leftOuts)  = extrudeType(left)
+      val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
+      (TUnion(newLeft, newRight), rightOuts)
     case TLam(param, ret) =>
       val (newParam, paramOuts) =
         given Polarity = pol.invert()

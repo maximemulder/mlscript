@@ -23,6 +23,12 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
     case var_ : EVar =>
       (ctx.getVarType(var_.name), Clauses.empty)
 
+    // Tuple introduction.
+    case tuple: ETuple =>
+      val (leftType,  leftClauses)  = infer(tuple.left)
+      val (rightType, rightClauses) = inferSeq(tuple.right, leftClauses)
+      (TTuple(leftType, rightType), rightClauses)
+
     // Lambda abstraction.
     case lam: ELam =>
       ctx.withFreshVarLevel((paramVar, ctx) =>

@@ -123,6 +123,8 @@ def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term):
 /** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =
   mlType match
+    case Term.Blk(mlLefts, mlRight) =>
+      parseTypeTuple(mlLefts, mlRight)
     case Term.Tup(mlElems) =>
       if mlElems.length != 1 then
         throw ParseError(mlType)
@@ -156,6 +158,20 @@ def parseType(mlType: Term): Type =
     case _ =>
       throw ParseError(mlType)
 
+/** Convert an MLScript block to a CTML tuple type. */
+def parseTypeTuple(mlLefts: List[Statement], mlRight: Term): Type =
+  mlLefts match
+    case Nil =>
+      parseType(mlRight)
+    case mlLeft :: mlLefts =>
+      mlLeft match
+        case mlLeft: Term =>
+          val left  = parseType(mlLeft)
+          val right = parseType(mlRight)
+          TTuple(left, right)
+        case _ =>
+          throw ParseError(mlLeft)
+
 /** Convert an MLScript function type to a CTML type. */
 def parseTypeLambda(mlParams: Term, mlRet: Term): Type =
   mlParams match
@@ -188,9 +204,9 @@ def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =
 /** Convert an MLScript term to a CTML expression. */
 def parseExpr(mlExpr: Term): Expr =
   mlExpr match
-    // Only parse the final term of blocks.
-    case Term.Blk(mlStmts, mlExpr) =>
-      parseExprs(mlStmts, mlExpr)
+    // Parse blocks.
+    case Term.Blk(mlLefts, mlRight) =>
+      parseBlock(mlLefts, mlRight)
     // Parse literals as variables.
     case Term.UnitVal() | Term.Lit(Tree.UnitLit(_)) =>
       EVar("unit")
@@ -227,14 +243,14 @@ def parseExpr(mlExpr: Term): Expr =
     case _ =>
       throw new ParseError(mlExpr)
 
-/***/
-def parseExprs(mlStmts: List[Statement], mlExpr: Term): Expr =
-  mlStmts match
+/** Parse a block, which can either be a variable binding or a tuple. */
+def parseBlock(mlLefts: List[Statement], mlRight: Term): Expr =
+  mlLefts match
     case Nil =>
-      parseExpr(mlExpr)
-    case mlStmt :: mlStmts =>
-      val next = parseExprs(mlStmts, mlExpr)
-      mlStmt match
+      parseExpr(mlRight)
+    case mlLeft :: mlLefts =>
+      val next = parseBlock(mlLefts, mlRight)
+      mlLeft match
         case DefineVar(mlSymbol, mlExpr) =>
           val name = mlSymbol.nme
           val expr = parseExpr(mlExpr)
@@ -242,8 +258,12 @@ def parseExprs(mlStmts: List[Statement], mlExpr: Term): Expr =
           EApp(lambda, expr)
         case LetDecl(_, _) =>
           next
+        case mlLeft: Term =>
+          val left = parseExpr(mlLeft)
+          val right = parseBlock(mlLefts, mlRight)
+          ETuple(left, right)
         case _ =>
-          throw new ParseError(mlStmt)
+          throw new ParseError(mlLeft)
 
 /** Convert an MLScript lambda abstraction to a CTML expression. */
 def parseLambda(mlParams: List[Param], mlBody: Term): Expr =

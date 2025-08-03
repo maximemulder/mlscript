@@ -14,6 +14,9 @@ class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Const[T], 
   def var_(var_ : TypeVar): T =
     m.empty
 
+  def tuple(left: T, right: T, p: P): T =
+    m.empty
+
   def lam(param: T, ret: T, p: P): T =
     m.combine(param, ret)
 

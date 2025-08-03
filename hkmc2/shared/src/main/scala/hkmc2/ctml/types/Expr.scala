@@ -6,6 +6,9 @@ sealed trait Expr
 /** A Variable expression. */
 case class EVar(val name: String) extends Expr
 
+/** A tuple introduction */
+case class ETuple(val left: Expr, val right: Expr) extends Expr
+
 /** A lambda abstraction. */
 case class ELam(val paramName: String, val body: Expr) extends Expr
 

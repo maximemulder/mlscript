@@ -13,6 +13,12 @@ abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, 
         combinator.top(p)
       case TVar(var_) =>
         combinator.var_(var_)
+      case TTuple(left, right) =>
+        combinator.tuple(
+          this.apply(left, p),
+          this.apply(right, p),
+          p,
+        )
       case TLam(param, ret) =>
         combinator.lam(
           this.apply(param, p),

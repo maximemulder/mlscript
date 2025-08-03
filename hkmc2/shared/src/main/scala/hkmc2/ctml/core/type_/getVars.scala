@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.util.given
@@ -11,5 +12,8 @@ extension (type_ : Type)
     type_ match
       case TVar(var_) if !ctx.isVarClass(var_) =>
         Set(var_)
+      case TUniv(var_, body) =>
+        given Context = ctx.extend(declRigidVar(var_))
+        body.getVars()
       case _ =>
         type_.accumulate(_.getVars())

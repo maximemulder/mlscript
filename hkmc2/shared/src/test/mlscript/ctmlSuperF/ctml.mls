@@ -5,43 +5,42 @@ fun a1(x, y) = y
 // OK
 
 val a2 = choose(id)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'A' not found in the context.
+//│ a2: ∀32. {32 ≥ ∀A. A → A} ⟹ 32 → 32
+// OK
 
 val a3 = choose(nil, ids)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'A' not found in the context.
+//│ a3: (∀A. List[⊥]) ∨ List[∀A. A → A]
+// MAYBE
 
 fun a4(x) = x(x)
-//│ a4: ∀37. (36 → 37) → 37
+//│ a4: ∀39. (38 → 39) → 39
 // NOT OK
 
 val a5 = id(auto)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'A' not found in the context.
+//│ a5: (∀A. A → A) → (∀A. A → A)
+// OK
 
 val a6 = id(auto2)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'B' not found in the context.
+//│ a6: ∀B. (∀A. A → A) → B → B
+// OK
 
 val a7 = choose(id, auto)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'A' not found in the context.
+//│ a7: (∀A. A → A) ∨ ((∀A. A → A) → (∀A. A → A))
+// MAYBE
 
 val a8 = choose(id, auto2)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'A' not found in the context.
+//│ a8: (∀A. A → A) ∨ (∀B. (∀A. A → A) → B → B)
+// MAYBE
 
 val a9 = f(choose(id), ids)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Type variable 'A' not found in the context.
+//│ ═══[ERROR] Cannot solve judgment ∀61. {61 ≥ (∀A. A → A) ∨ 61} ⟹ List[61] → 61 ≤ List[∀A. A → A] → 57.
+//│ Typing error tree:
+//│   ∀61. {61 ≥ (∀A. A → A) ∨ 61} ⟹ List[61] → 61 ≤ List[∀A. A → A] → 57
+//│     {64 ≥ (∀A. A → A) ∨ 64} ⟹ List[64] → 64 ≤ List[∀A. A → A] → 57
+//│       List[64] → 64 ≤ List[∀A. A → A] → 57
+//│         List[∀A. A → A] ≤ List[64]
 
 val a10 = poly(id)
 //│ a10: ⟨Int, Bool⟩

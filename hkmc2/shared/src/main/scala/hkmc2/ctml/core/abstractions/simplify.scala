@@ -31,6 +31,9 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
   def inter(left: Type, right: Type, params: P): Type =
     meet(left, right)(using params.getContext)
 
+  def app(abs: Type, arg: Type, params: P): Type =
+    TApp(abs, arg)
+
   def univ(var_ : TypeVar, body: Type, params: P): Type =
     TUniv(var_, body)
 

@@ -37,6 +37,12 @@ abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, 
           this.apply(right, p),
           p,
         )
+      case TApp(abs, arg) =>
+        combinator.app(
+          this.apply(abs, p),
+          this.apply(arg, p),
+          p,
+        )
       case TUniv(var_, body) =>
         combinator.univ(
           var_,

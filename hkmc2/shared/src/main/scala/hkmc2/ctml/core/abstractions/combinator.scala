@@ -26,6 +26,9 @@ trait TypeCombinator[T[_], B[_], P]:
   /** Get an intersection type combination. */
   def inter(left: T[Type], right: T[Type], p: P): T[TInter]
 
+  /** Get a type application combination. */
+  def app(abs: T[Type], arg: T[Type], p: P): T[TApp]
+
   /** Get a universal type combination. */
   def univ(var_ : TypeVar, body: T[Type], p: P): T[TUniv]
 

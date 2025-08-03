@@ -11,12 +11,15 @@ trait WithTypeVar[This <: WithTypeVar[This]]:
 
 // TODO: Find a way to make this modulable.
 // Current best guess: (full applicator, next applicator, end combinator).
-trait TypeVarDispatcher[T[+_], B[+_], P <: WithTypeVar[P]] extends TypeDispatcher[T, B, P]:
+trait TypeVarApplicator[T[+_], P <: WithTypeVar[P]](
+  applicator: TypeApplicator[T, P]
+) extends TypeApplicator[T, P]:
   override def apply(type_ : Type, params: P): T[Type] =
     type_ match
       case TUniv(var_, body) if var_ == params.getTypeVar =>
         this.apply(TUniv(var_, body))
       case _ =>
-        super.apply(type_, params)
+        applicator.apply(type_, params)
 
+  /** Apply the transformation on a variable shadowing universal type. */
   def apply(univ: TUniv): T[Type]

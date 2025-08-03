@@ -14,6 +14,9 @@ class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
   def var_(var_ : TypeVar): TVar =
     TVar(var_)
 
+  def tuple(left: Type, right: Type, p: P): TLam =
+    TLam(left, right)
+
   def lam(param: Type, ret: Type, p: P): TLam =
     TLam(param, ret)
 

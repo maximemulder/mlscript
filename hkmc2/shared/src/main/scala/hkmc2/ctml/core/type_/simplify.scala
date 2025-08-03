@@ -17,4 +17,11 @@ class TypeSimplifyParams(val ctx: Context) extends WithContext[TypeSimplifyParam
   def setContext(ctx: Context) = TypeSimplifyParams(ctx)
 
 /** Implementation of the type simplification operation. */
-object TypeSimplify extends TypeContextDispatcher[Const[Type], TypeSimplifyParams](TypeSimplifyCombinator[TypeSimplifyParams])
+object TypeSimplify extends TypeContextApplicator[Const[Type], TypeSimplifyParams](
+  new TypeDispatcher[Const[Type], Id, TypeSimplifyParams](
+    TypeSimplifyCombinator[TypeSimplifyParams]
+  ):
+    override def apply(bounds: List[Bound], p: TypeSimplifyParams): Id[List[Bound]] =
+      bounds,
+  TypeSimplifyCombinator[TypeSimplifyParams],
+)

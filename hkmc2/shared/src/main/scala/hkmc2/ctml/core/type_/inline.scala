@@ -12,20 +12,35 @@ extension (type_ : Type)
     TypeInline(type_, TypeInlineParams(var_, substitute, ctx))
 
 /** Parameters of the type variable inlining operation. */
-class TypeInlineParams(val var_ : TypeVar, val substitute: Type, val ctx: Context) extends WithContext[TypeInlineParams]:
+class TypeInlineParams(
+  val var_ : TypeVar,
+  val substitute: Type,
+  val ctx: Context,
+) extends WithContext[TypeInlineParams], WithTypeVar[TypeInlineParams]:
   def getContext = ctx
   def setContext(ctx: Context) = TypeInlineParams(var_, substitute, ctx)
+  def getTypeVar = var_
+  def setTypeVar(var_ : TypeVar) = TypeInlineParams(var_, substitute, ctx)
 
 /** Implementation of the type variablie inlining operation. */
-object TypeInline extends TypeContextDispatcher[Const[Type], TypeInlineParams](TypeSimplifyCombinator[TypeInlineParams]):
-  override def apply(type_ : Type, params: TypeInlineParams): Type =
-    type_ match
-      case TVar(var_) if var_ == params.var_ =>
-        params.substitute
-      case _ =>
-        super.apply(type_, params)
+object TypeInline extends TypeVarApplicator[Const[Type], TypeInlineParams](
+  TypeContextApplicator[Const[Type], TypeInlineParams](
+    new TypeDispatcher[Const[Type], Id, TypeInlineParams](
+      TypeSimplifyCombinator[TypeInlineParams]
+    ):
+      override def apply(type_ : Type, params: TypeInlineParams): Type =
+        type_ match
+          case TVar(var_) if var_ == params.var_ =>
+            params.substitute
+          case _ =>
+            super.apply(type_, params)
 
-  override def apply(bounds: List[Bound], params: TypeInlineParams): List[Bound] =
-    bounds.map(bound =>
-      Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
-    )
+      override def apply(bounds: List[Bound], params: TypeInlineParams): List[Bound] =
+        bounds.map(bound =>
+          Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
+        ),
+    TypeSimplifyCombinator[TypeInlineParams]
+  )
+):
+  override def apply(univ: TUniv): Type =
+    univ

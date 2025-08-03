@@ -40,13 +40,8 @@ val a8 = choose(id, auto2)
 
 val a9 = f(choose(id), ids)
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: term (Elaborator.scala:395)
-//│ ╔══[ERROR] Name not found: f
-//│ ║  l.41: 	val a9 = f(choose(id), ids)
-//│ ╙──      	         ^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:46)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Type variable 'A' not found in the context.
 
 val a10 = poly(id)
 //│ a10: ⟨Int, Bool⟩

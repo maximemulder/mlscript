@@ -26,9 +26,12 @@ val string : Str
 
 // SuperF test suite specific terms.
 
+declare fun const: [A, B] -> A -> B -> A
 declare fun id: [A] -> A -> A
 declare fun inc: Int -> Int
 declare fun choose: [A] -> A -> A -> A
+declare fun poly: ([A] -> A -> A) -> (Int, Bool)
+declare fun fst: [A, B] -> (A, B) -> A
 
 declare fun auto: ([A] -> A -> A) -> ([A] -> A -> A)
 declare fun auto2: [B] -> ([A] -> A -> A) -> (B -> B)
@@ -53,10 +56,7 @@ val n3 = s(s(s(z)))
 // single : ∀𝛼 . 𝛼 → List 𝛼
 // append : ∀𝛼 . List 𝛼 → List 𝛼 → List 𝛼
 // length : ∀𝛼 . List 𝛼 → Int
-// const : ∀𝛼 𝛽. 𝛼 → 𝛽 → 𝛼
 // map : ∀𝛼 𝛽. (𝛼 → 𝛽 ) → List 𝛼 → List 𝛽
 // ids : List (∀𝛼 . 𝛼 → 𝛼 )
-// poly : (∀𝛼 . 𝛼 → 𝛼 ) → (Int, Bool)
-// fst : ∀𝛼 𝛽. (𝛼, 𝛽 ) → 𝛼
 // runST : ∀𝛼 . (∀𝑠. ST 𝑠 𝛼 ) → 𝛼
 // argST : ∀𝑠. ST 𝑠 Int

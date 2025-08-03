@@ -2,3 +2,78 @@
 
 val hello = "Hello World"
 //│ hello: Str
+
+fun a1(x, y) = y
+//│ a1: ⊤ → (∀30. 30 → 30)
+// OK
+
+val a2 = choose(id)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Type variable 'A' not found in the context.
+
+val a3 = choose(nil, ids)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: term (Elaborator.scala:395)
+//│ ╔══[ERROR] Name not found: nil
+//│ ║  l.15: 	val a3 = choose(nil, ids)
+//│ ╙──      	                ^^^
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: term (Elaborator.scala:395)
+//│ ╔══[ERROR] Name not found: ids
+//│ ║  l.15: 	val a3 = choose(nil, ids)
+//│ ╙──      	                     ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:46)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+
+fun a4(x) = x(x)
+//│ a4: ∀34. (33 → 34) → 34
+// NOT OK
+
+val a5 = id(auto)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Type variable 'A' not found in the context.
+
+val a6 = id(auto2)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Type variable 'B' not found in the context.
+
+val a7 = choose(id, auto)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Type variable 'A' not found in the context.
+
+val a8 = choose(id, auto2)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Type variable 'A' not found in the context.
+
+val a9 = f(choose(id), ids)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: term (Elaborator.scala:395)
+//│ ╔══[ERROR] Name not found: f
+//│ ║  l.54: 	val a9 = f(choose(id), ids)
+//│ ╙──      	         ^
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: term (Elaborator.scala:395)
+//│ ╔══[ERROR] Name not found: ids
+//│ ║  l.54: 	val a9 = f(choose(id), ids)
+//│ ╙──      	                       ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:46)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+
+val a10 = poly(id)
+//│ a10: (Int, Bool)
+// OK
+
+val a11 = poly((p) => p)
+//│ a11: (Int, Bool)
+// OK
+
+val a12 = id(poly((p) => p))
+//│ a12: (Int, Bool)
+// OK

@@ -222,6 +222,8 @@ def parseExpr(mlExpr: Term): Expr =
     case Term.Ref(mlSymbol) =>
       val name = mlSymbol.nme
       EVar(name)
+    case Term.SynthSel(_, mlIdent) =>
+      EVar(mlIdent.name)
     // Parse lambda abstractions.
     case Term.Lam(mlParams, mlBody) =>
       parseLambda(mlParams.allParams, mlBody)

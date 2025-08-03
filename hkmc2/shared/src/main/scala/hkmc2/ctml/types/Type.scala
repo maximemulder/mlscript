@@ -29,6 +29,9 @@ case class TUnion(val left: Type, val right: Type) extends Type
 /** An intersection type. */
 case class TInter(val left: Type, val right: Type) extends Type
 
+/** A type application. */
+case class TApp(val abs: Type, val arg: Type) extends Type
+
 /** A universal quantification type. */
 case class TUniv(val var_ : TypeVar, val body: Type) extends Type
 
@@ -58,6 +61,8 @@ extension (type_ : Type)
         List(left, right)
       case TInter(left, right) =>
         List(left, right)
+      case TApp(abs, arg) =>
+        List(abs, arg)
       case TUniv(_, body) =>
         List(body)
       case TConstrained(body, bounds) =>
@@ -86,7 +91,7 @@ extension (type_ : Type)
       case TVar(var_) =>
         (var_.show, false)
       case TTuple(left, right) =>
-        (s"(${left.showType(false)}, ${right.showType(false)})", true)
+        (s"⟨${left.showType(false)}, ${right.showType(false)}⟩", true)
       case TLam(param, ret) =>
         val components = param :: ret.getLambdaComponents()
         (components.map(_.showType(true)).mkString(" → "), true)
@@ -96,6 +101,8 @@ extension (type_ : Type)
       case TInter(left, right) =>
         val components = left :: right.getInterComponents()
         (components.map(_.showType(true)).mkString(" ∧ "), true)
+      case TApp(abs, arg) =>
+        (s"${abs.showType(false)}[${arg.showType(false)}]", false)
       case univ: TUniv =>
         val (vars, body) = univ.getUnivComponents()
         (s"∀${showTypeVars(vars)}. ${body.showType(false)}", true)

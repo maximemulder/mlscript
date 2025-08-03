@@ -26,6 +26,9 @@ class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Const[T], 
   def inter(left: T, right: T, p: P): T =
     m.combine(left, right)
 
+  def app(abs: T, arg: T, p: P): T =
+    m.combine(abs, arg)
+
   def univ(var_ : TypeVar, body: T, p: P): T =
     body
 

@@ -148,6 +148,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
     val lowerBound = ctx.getVarLowerBound(sup.as[TVar].var_)
     return subtype(sub, lowerBound)
 
+  // Subtyping of tuple types.
+
+  if sub.is[TTuple] && sup.is[TTuple] then
+    return subtypeTuple(sub.as[TTuple], sup.as[TTuple])
+
   // Subtyping of lambda types.
 
   if sub.is[TLam] && sup.is[TLam] then
@@ -215,6 +220,11 @@ def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode
 def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
   val outs = sup.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
   subtypeSeq(sub, sup.body, outs)
+
+/** Constrain a tuple type to he a subtype of another tuple type. */
+def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: Mode): Clauses =
+  val leftClauses = subtype(sub.left, sup.left)
+  subtypeSeq(sub.right, sup.right, leftClauses)
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =

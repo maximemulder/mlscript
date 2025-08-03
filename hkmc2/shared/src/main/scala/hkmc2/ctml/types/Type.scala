@@ -17,6 +17,9 @@ case object TTop extends Type
 /** A type variable type. */
 case class TVar(val var_ : TypeVar) extends Type
 
+/** A tuple typle. */
+case class TTuple(val left: Type, val right: Type) extends Type
+
 /** A lambda type. */
 case class TLam(val param: Type, val ret: Type) extends Type
 
@@ -47,6 +50,8 @@ extension (type_ : Type)
     type_ match
       case TBot | TTop | TVar(_) =>
         Nil
+      case TTuple(left, right) =>
+        List(left, right)
       case TLam(param, ret) =>
         List(param, ret)
       case TUnion(left, right) =>
@@ -80,6 +85,8 @@ extension (type_ : Type)
         ("⊤", false)
       case TVar(var_) =>
         (var_.show, false)
+      case TTuple(left, right) =>
+        (s"(${left.showType(false)}, ${right.showType(false)})", true)
       case TLam(param, ret) =>
         val components = param :: ret.getLambdaComponents()
         (components.map(_.showType(true)).mkString(" → "), true)

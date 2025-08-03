@@ -14,6 +14,9 @@ trait TypeCombinator[T[_], B[_], P]:
   /** Get a type variable type combination. */
   def var_(var_ : TypeVar): T[TVar]
 
+  /** Get a tuple type combination. */
+  def tuple(left: T[Type], right: T[Type], p: P): T[TLam]
+
   /** Get a lambda type combination. */
   def lam(param: T[Type], ret: T[Type], p: P): T[TLam]
 

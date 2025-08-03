@@ -22,7 +22,7 @@ class TypeInlineParams(
   def getTypeVar = var_
   def setTypeVar(var_ : TypeVar) = TypeInlineParams(var_, substitute, ctx)
 
-/** Implementation of the type variablie inlining operation. */
+/** Implementation of the type variable inlining operation. */
 object TypeInline extends TypeVarApplicator[Const[Type], TypeInlineParams](
   TypeContextApplicator[Const[Type], TypeInlineParams](
     new TypeDispatcher[Const[Type], Id, TypeInlineParams](

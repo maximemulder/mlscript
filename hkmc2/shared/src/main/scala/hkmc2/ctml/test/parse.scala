@@ -145,6 +145,8 @@ def parseType(mlType: Term): Type =
           TVar(TypeVar(name))
     case Term.FunTy(mlParams, mlRet, _) =>
       parseTypeLambda(mlParams, mlRet)
+    case Term.TyApp(mlAbs, mlArgs) =>
+      parseTypeApp(mlAbs, mlArgs)
     case Term.Forall(mlVars, _, mlBody) =>
       parseTypeUniv(mlVars, mlBody)
     case Term.CompType(mlLeft, mlRight, true) =>
@@ -191,6 +193,16 @@ def parseTypeLambdaParams(mlParams: List[Elem], mlRet: Term): Type =
       TLam(param, ret)
     case Nil =>
       parseType(mlRet)
+
+/** Convert an MLScript type application to a CTML type. */
+def parseTypeApp(mlAbs: Term, mlArgs: List[Term]): Type =
+  mlArgs match
+    case mlArgs :+ mlArg =>
+      val abs = parseTypeApp(mlAbs, mlArgs)
+      val arg = parseType(mlArg)
+      TApp(abs, arg)
+    case _ =>
+      parseType(mlAbs)
 
 /** Convert an MLScript universal type to a CTML type. */
 def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =

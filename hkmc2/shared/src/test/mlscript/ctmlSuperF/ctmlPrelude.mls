@@ -26,8 +26,21 @@ val string : Str
 
 // SuperF test suite specific terms.
 
+declare class List[A]
+declare class ST[S, A]
+declare type ChurchInt = [A] -> (A -> A) -> (A -> A)
+
+declare fun head: [A] -> List[A] -> A
+declare fun tail: [A] -> List[A] -> List[A]
+declare fun nil: [A] -> List[A]
+declare fun cons: [A] -> A -> List[A] -> List[A]
+declare fun single: [A] -> A -> List[A]
+declare fun append: [A] -> List[A] -> List[A] -> List[A]
+declare fun length: [A] -> List[A] -> Int
+
 declare fun const: [A, B] -> A -> B -> A
 declare fun id: [A] -> A -> A
+declare fun ids: List[[A] -> A -> A]
 declare fun inc: Int -> Int
 declare fun choose: [A] -> A -> A -> A
 declare fun poly: ([A] -> A -> A) -> (Int, Bool)
@@ -36,10 +49,12 @@ declare fun fst: [A, B] -> (A, B) -> A
 declare fun auto: ([A] -> A -> A) -> ([A] -> A -> A)
 declare fun auto2: [B] -> ([A] -> A -> A) -> (B -> B)
 
+declare fun map: [A, B] -> (A -> B) -> List[A] -> List[B]
 declare fun app: [A, B] -> (A -> B) -> A -> B
 declare fun revapp: [A, B] -> (A) -> (A -> B) -> B
 
-declare type ChurchInt = [A] -> (A -> A) -> (A -> A)
+declare fun runST: [A] -> ([S] -> ST[S, A]) -> A
+declare fun appST: [S] -> (ST[S, Int])
 
 declare fun zero: ChurchInt
 declare fun succ: ChurchInt -> ChurchInt
@@ -47,16 +62,3 @@ declare fun succ: ChurchInt -> ChurchInt
 val z = (f, x) => x
 val s = (n, f, x) => f(n(f, x))
 val n3 = s(s(s(z)))
-
-// Unsupported terms due to insufficient typing features in CTML.
-// head : ∀𝛼 . List 𝛼 → 𝛼
-// tail : ∀𝛼 . List 𝛼 → List 𝛼
-// nil : ∀𝛼 . List 𝛼
-// cons : ∀𝛼 . 𝛼 → List 𝛼 → List 𝛼
-// single : ∀𝛼 . 𝛼 → List 𝛼
-// append : ∀𝛼 . List 𝛼 → List 𝛼 → List 𝛼
-// length : ∀𝛼 . List 𝛼 → Int
-// map : ∀𝛼 𝛽. (𝛼 → 𝛽 ) → List 𝛼 → List 𝛽
-// ids : List (∀𝛼 . 𝛼 → 𝛼 )
-// runST : ∀𝛼 . (∀𝑠. ST 𝑠 𝛼 ) → 𝛼
-// argST : ∀𝑠. ST 𝑠 Int

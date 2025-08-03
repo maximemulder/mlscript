@@ -5,6 +5,7 @@ import hkmc2.ctml.util.*
 
 /** Combinator to combine the components of a type into that type. */
 class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
+
   def bot(p: P): TBot =
     TBot
 
@@ -25,6 +26,9 @@ class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
 
   def inter(left: Type, right: Type, p: P): TInter =
     TInter(left, right)
+
+  def app(abs: Type, arg: Type, p: P): Id[TApp] =
+    TApp(abs, arg)
 
   def univ(var_ : TypeVar, body: Type, p: P): TUniv =
     TUniv(var_, body)

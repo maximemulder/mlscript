@@ -21,3 +21,16 @@ bop(0, 1)
 bop("0", "1")
 //│ (Int ⟹ {32 ≤ Int, 33 ≤ Int}) ∨ Str
 //│ ρ ≥ Str, ρ ≥ Str, ρ ≥ Str, ρ ≥ Str
+
+
+
+
+
+
+
+
+
+
+// TODO: Parse constraints.
+fun id: [A extends Int] -> A -> A = (x) => x
+//│ id: ∀A. A → A

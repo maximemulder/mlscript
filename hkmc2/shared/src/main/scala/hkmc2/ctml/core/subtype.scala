@@ -87,81 +87,95 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   // Subtyping of union and intersection types.
 
-  var subUnionSplit = splitUnion(sub)
-  if subUnionSplit.isDefined then
-    val (subLeft, subRight) = subUnionSplit.get
-    return ctx.all(
-      subtype(subLeft,  sup),
-      subtype(subRight, sup),
-    )
+  splitUnion(sub) match
+    case Some(subLeft, subRight) =>
+      ctx.all(
+        subtype(subLeft,  sup),
+        subtype(subRight, sup),
+      )
+    case _ =>
 
-  var supUnionSplit = splitUnion(sup)
-  if supUnionSplit.isDefined then
-    val (supLeft, supRight) = supUnionSplit.get
-    return ctx.any(
-      subtype(sub, supLeft),
-      subtype(sub, supRight),
-    )
+  splitUnion(sup) match
+    case Some(supLeft, supRight) =>
+      ctx.any(
+        subtype(sub, supLeft),
+        subtype(sub, supRight),
+      )
+    case _ =>
 
-  var supInterSplit = splitInter(sup)
-  if supInterSplit.isDefined then
-    val (supLeft, supRight) = supInterSplit.get
-    return ctx.all(
-      subtype(sub, supLeft),
-      subtype(sub, supRight),
-    )
+  splitInter(sup) match
+    case Some(supLeft, supRight) =>
+      ctx.all(
+        subtype(sub, supLeft),
+        subtype(sub, supRight),
+      )
+    case _ =>
 
-  var subInterSplit = splitInter(sub)
-  if subInterSplit.isDefined then
-    val (subLeft, subRight) = subInterSplit.get
-    return ctx.any(
-      subtype(subLeft,  sup),
-      subtype(subRight, sup),
-    )
+  splitInter(sub) match
+    case Some(subLeft, subRight) =>
+      ctx.any(
+        subtype(subLeft,  sup),
+        subtype(subRight, sup),
+      )
+    case _ =>
 
   // Subtyping of universal types.
 
-  if sup.is[TUniv] then
-    return subtypeUnivSup(sub, sup.as[TUniv])
+  sup match
+    case supUniv: TUniv =>
+      subtypeUnivSup(sub, supUniv)
+    case _ =>
 
-  if sub.is[TUniv] then
-    return subtypeUnivSub(sub.as[TUniv], sup)
+  sub match
+    case subUniv: TUniv =>
+      subtypeUnivSub(subUniv, sup)
+    case _ =>
 
   // Subtyping of constrained types.
 
-  if sup.is[TConstrained] then
-    return subtypeConstrainedSup(sub, sup.as[TConstrained])
+  sup match
+    case supConstrained: TConstrained =>
+      subtypeConstrainedSup(sub, supConstrained)
+    case _ =>
 
-  if sub.is[TConstrained] then
-    return subtypeConstrainedSub(sub.as[TConstrained], sup)
+  sub match
+    case subConstrained: TConstrained =>
+      subtypeConstrainedSub(subConstrained, sup)
+    case _ =>
 
   // Subtyping of rigid variables or fresh variables in checking mode.
 
-  if sub.is[TVar] && sup.is[TVar] then
-    return subtypeRigidVars(sub.as[TVar].var_, sup.as[TVar].var_)
-
-  if sub.is[TVar] then
-    val upperBound = ctx.getVarUpperBound(sub.as[TVar].var_)
-    return subtype(upperBound, sup)
-
-  if sup.is[TVar] then
-    val lowerBound = ctx.getVarLowerBound(sup.as[TVar].var_)
-    return subtype(sub, lowerBound)
+  (sub, sup) match
+    case (subVar: TVar, supVar: TVar) =>
+      subtypeRigidVars(subVar.var_, subVar.var_)
+    case (subVar: TVar, _) =>
+      val upperBound = ctx.getVarUpperBound(subVar.var_)
+      subtype(upperBound, sup)
+    case (_, supVar: TVar) =>
+      val lowerBound = ctx.getVarLowerBound(supVar.var_)
+      subtype(sub, lowerBound)
+    case (_, _) =>
 
   // Subtyping of tuple types.
 
-  if sub.is[TTuple] && sup.is[TTuple] then
-    return subtypeTuple(sub.as[TTuple], sup.as[TTuple])
+  (sub, sup) match
+    case (subTuple: TTuple, supTuple: TTuple) =>
+      subtypeTuple(subTuple, supTuple)
+    case _ =>
 
   // Subtyping of lambda types.
 
-  if sub.is[TLam] && sup.is[TLam] then
-    return subtypeLam(sub.as[TLam], sup.as[TLam])
+  (sub, sup) match
+    case (subLam: TLam, supLam: TLam) =>
+      subtypeLam(subLam, supLam)
+    case _ =>
 
   // Subtyping of type applications.
 
-  if sub.is[TApp] && sup.is[TApp] then
-    return subtypeApp(sub.as[TApp], sup.as[TApp])
+  (sub, sup) match
+    case (subApp: TApp, supApp: TApp) =>
+      subtypeApp(subApp, supApp)
+    case _ =>
 
   throw TypeError()
 

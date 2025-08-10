@@ -23,7 +23,7 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
     TLam(left, right)
 
   def lam(param: Type, ret: Type, params: P): Type =
-    TLam(param, ret)
+    makeLambdaType(param, ret)
 
   def union(left: Type, right: Type, params: P): Type =
     join(left, right)(using params.getContext)
@@ -41,7 +41,7 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
     TConstrained(body, bounds)
 
   def constraining(body: Type, bounds: List[Bound], params: P): Type =
-    body.attachConstrainingBounds(bounds)(using params.getContext)
+    makeConstrainingType(body, bounds)(using params.getContext)
 
   def bounds(bounds: List[Bound], params: P): List[Bound] =
     bounds

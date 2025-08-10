@@ -55,7 +55,7 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
 
     val body = meet(leftBody, rightBody)
     val bounds = ctx.meetBounds(leftBounds, rightBounds)
-    return Some(body.attachConstrainingBounds(bounds))
+    return Some(makeConstrainingType(body, bounds))
 
   // Meet lambda types.
 

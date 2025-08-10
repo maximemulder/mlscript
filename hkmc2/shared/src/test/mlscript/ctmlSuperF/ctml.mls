@@ -13,8 +13,8 @@ val a3 = choose(nil, ids)
 // MAYBE
 
 fun a4(x) = x(x)
-//│ a4: ∀41. (40 → 41) → 41
-// NOT OK
+//│ a4: ∀40, 41. {40 ≤ 40 → 41} ⟹ 40 → 41
+// OK
 
 val a5 = id(auto)
 //│ a5: (∀A. A → A) → (∀A. A → A)

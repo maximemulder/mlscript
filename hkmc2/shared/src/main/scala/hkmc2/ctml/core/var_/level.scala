@@ -4,8 +4,11 @@ import scala.util.boundary
 import scala.util.boundary.break
 
 import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.util.given
 
 extension (ctx: Context)
   /** Compare the level of two type variables within a context. */
@@ -25,3 +28,9 @@ extension (ctx: Context)
           break(Order.Lesser)
 
       throw new TypeError(Some(s"Type variable '${left}' or '${right}' not found in the context."))
+
+  /** Check whether a type variable is recursive, that is, whether it appears in its own bounds. */
+  def isVarRecursive(var_ : TypeVar): Boolean =
+    (ctx.getAllVarBounds(var_, Direction.Sub) ::: ctx.getAllVarBounds(var_, Direction.Super))
+      .map((bound) => bound.hasVar(var_))
+      .foldM()(using AnyMonoid)

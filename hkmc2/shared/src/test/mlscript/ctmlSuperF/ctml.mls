@@ -1,7 +1,7 @@
 :ctml
 
 fun a1(x, y) = y
-//│ a1: ⊤ → (∀30. 30 → 30)
+//│ a1: ∀30. ⊤ → 30 → 30
 // OK
 
 val a2 = choose(id)

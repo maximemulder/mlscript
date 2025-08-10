@@ -46,10 +46,19 @@ extension (type_ : Type)
       case _ =>
         TConstrained(type_, bounds)
 
-  /** Attach some constraining bounds to the type. */
-  def attachConstrainingBounds(bounds: List[Bound])(using ctx: Context): Type =
-    val filteredBounds = ctx.filterUnsatisfiedBounds(bounds)
-    if filteredBounds == Nil then
+/** Make a constraining type from its components, simplifying it if possible. */
+def makeConstrainingType(type_ : Type, bounds: List[Bound])(using ctx: Context): Type =
+  ctx.filterUnsatisfiedBounds(bounds) match
+    case Nil =>
       type_
-    else
+    case filteredBounds =>
       TConstraining(type_, filteredBounds)
+
+/** Make a lambda type from its components, simplifying it if possible. */
+def makeLambdaType(param: Type, ret: Type): Type =
+  ret match
+    case TUniv(var_, body) =>
+      val type_ = makeLambdaType(param, body)
+      TUniv(var_, type_)
+    case _ =>
+      TLam(param, ret)

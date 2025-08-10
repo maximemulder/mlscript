@@ -31,6 +31,6 @@ extension (ctx: Context)
 
   /** Check whether a type variable is recursive, that is, whether it appears in its own bounds. */
   def isVarRecursive(var_ : TypeVar): Boolean =
-    (ctx.getAllVarBounds(var_, Direction.Sub) ::: ctx.getAllVarBounds(var_, Direction.Super))
-      .map((bound) => bound.hasVar(var_))
+    ctx.varBounds(var_)
+      .map((bound) => bound.type_.hasVar(var_))
       .foldM()(using AnyMonoid)

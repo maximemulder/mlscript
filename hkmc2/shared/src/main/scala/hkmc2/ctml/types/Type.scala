@@ -91,7 +91,7 @@ extension (type_ : Type)
       case TVar(var_) =>
         (var_.show, false)
       case TTuple(left, right) =>
-        (s"⟨${left.showType(false)}, ${right.showType(false)}⟩", true)
+        (s"⟨${left.showType(false)}, ${right.showType(false)}⟩", false)
       case TLam(param, ret) =>
         val components = param :: ret.getLambdaComponents()
         (components.map(_.showType(true)).mkString(" → "), true)

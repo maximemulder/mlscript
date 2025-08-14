@@ -131,6 +131,19 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
       )
     case _ =>
 
+  // Subtyping of rigid variables or fresh variables in checking mode.
+
+  (sub, sup) match
+    case (subVar: TVar, supVar: TVar) =>
+      return subtypeRigidVars(subVar.var_, supVar.var_)
+    case (subVar: TVar, _) =>
+      val upperBound = ctx.getVarUpperBound(subVar.var_)
+      return subtype(upperBound, sup)
+    case (_, supVar: TVar) =>
+      val lowerBound = ctx.getVarLowerBound(supVar.var_)
+      return subtype(sub, lowerBound)
+    case (_, _) =>
+
   // Subtyping of universal types.
 
   sup match
@@ -154,19 +167,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
     case subConstrained: TConstrained =>
       return subtypeConstrainedSub(subConstrained, sup)
     case _ =>
-
-  // Subtyping of rigid variables or fresh variables in checking mode.
-
-  (sub, sup) match
-    case (subVar: TVar, supVar: TVar) =>
-      return subtypeRigidVars(subVar.var_, supVar.var_)
-    case (subVar: TVar, _) =>
-      val upperBound = ctx.getVarUpperBound(subVar.var_)
-      return subtype(upperBound, sup)
-    case (_, supVar: TVar) =>
-      val lowerBound = ctx.getVarLowerBound(supVar.var_)
-      return subtype(sub, lowerBound)
-    case (_, _) =>
 
   // Subtyping of tuple types.
 

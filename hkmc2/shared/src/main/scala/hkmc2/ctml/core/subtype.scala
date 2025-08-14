@@ -34,7 +34,19 @@ def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode
       subtype(right, left)
 
 /** Constrain a type to be a subtype of another type in a context. */
-def subtype(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+  val sup = sub1 match
+    case TVar(subVar) =>
+      sup1.removeCyclicVar(subVar, Direction.Sub)
+    case _ =>
+      sup1
+
+  val sub = sup1 match
+    case TVar(supVar) =>
+      sub1.removeCyclicVar(supVar, Direction.Super)
+    case _ =>
+      sub1
+
   try
     subtypeWithDebug(subtypeImpl)(sub, sup)
   catch

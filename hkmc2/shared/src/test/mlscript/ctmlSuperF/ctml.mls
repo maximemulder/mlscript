@@ -1,5 +1,8 @@
 :ctml
 
+declare fun f: [A] -> ((A) -> A) -> List[A] -> A
+//│ f: ∀A. (A → A) → List[A] → A
+
 fun a1(x, y) = y
 //│ a1: ∀30. ⊤ → 30 → 30
 // OK
@@ -46,4 +49,208 @@ val a11 = poly((p) => p)
 
 val a12 = id(poly((p) => p))
 //│ a12: ⟨Int, Bool⟩
+// OK
+
+fun b1(f) = (f(1), f(true))
+//│ b1: ((Int ∨ Bool) → ⊤) → ⟨⊤, ⊤⟩
+// NOT OK
+
+fun b2(xs) = poly(head(xs))
+//│ b2: List[∀A. A → A] → ⟨Int, Bool⟩
+// OK
+
+declare fun g: [A] -> List[A] -> List[A] -> A
+//│ g: ∀A. List[A] → List[A] → A
+
+val c1 = length(ids)
+//│ c1: Int
+// OK
+
+val c2 = tail(ids)
+//│ c2: List[∀A. A → A]
+// OK
+
+val c3 = head(ids)
+//│ c3: ∀A. A → A
+// OK
+
+val c4 = single(id)
+//│ c4: List[∀A. A → A]
+// OK
+
+val c5 = cons(id, ids)
+//│ c5: List[(∀A. A → A) ∨ (∀A. A → A)]
+// MAYBE
+
+val c6 = cons((x) => x, ids)
+//│ c6: List[(∀115. 115 → 115) ∨ (∀A. A → A)]
+// OK
+
+:fixme
+val c7 = append(single(inc), single(id))
+//│ ═══[ERROR] Cannot solve judgment ∀125. {125 ≥ Int → Int} ⟹ List[125] → List[125] ≤ List[∀A. A → A] → 121.
+//│ Typing error tree:
+//│   ∀125. {125 ≥ Int → Int} ⟹ List[125] → List[125] ≤ List[∀A. A → A] → 121
+//│     {128 ≥ Int → Int} ⟹ List[128] → List[128] ≤ List[∀A. A → A] → 121
+//│       List[128] → List[128] ≤ List[∀A. A → A] → 121
+//│         List[∀A. A → A] ≤ List[128]
+//│           128 ≤ ∀A. A → A
+//│             Int → Int ≤ ∀A. A → A
+//│               Int → Int ≤ A → A
+//│                 A ≤ Int
+//│                   ⊤ ≤ Int
+//│                     ⊤ ≤ ⊥
+// NOT OK
+
+val c8 = g(single(id), ids)
+//│ c8: (∀A. A → A) ∨ (∀A. A → A)
+// MAYBE
+
+val c9 = map(poly, single(id))
+//│ c9: List[⟨Int, Bool⟩]
+// OK
+
+val c10 = map(head, single(ids))
+//│ c10: List[∀A. A → A]
+// OK
+
+val d1 = app(poly, id)
+//│ d1: ⟨Int, Bool⟩
+// OK
+
+val d2 = revapp(id, poly)
+//│ d2: ⟨Int, Bool⟩
+// OK
+
+val d3 = runST(argST)
+//│ d3: Int
+// OK
+
+val d4 = app(runST, argST)
+//│ d4: Int
+// OK
+
+:fixme
+val d5 = revapp(argST, runST)
+//│ ═══[ERROR] Cannot solve judgment ∀181. ((∀S. ST[⊥][Int]) → 181) → 181 ≤ (∀A. (∀S. ST[S][A]) → A) → 178.
+//│ Typing error tree:
+//│   ∀181. ((∀S. ST[⊥][Int]) → 181) → 181 ≤ (∀A. (∀S. ST[S][A]) → A) → 178
+//│     ((∀S. ST[⊥][Int]) → 182) → 182 ≤ (∀A. (∀S. ST[S][A]) → A) → 178
+//│       ∀A. (∀S. ST[S][A]) → A ≤ (∀S. ST[⊥][Int]) → 182
+//│         (∀S. ST[S][183]) → 183 ≤ (∀S. ST[⊥][Int]) → 182
+//│           ∀S. ST[⊥][Int] ≤ ∀S. ST[S][183]
+//│             ∀S. ST[⊥][Int] ≤ ST[S][183]
+//│               ST[⊥][Int] ≤ ST[S][183]
+//│                 ST[S] ≤ ST[⊥]
+//│                   S ≤ ⊥
+//│                     ⊤ ≤ ⊥
+// NOT OK
+
+declare fun k: [A] -> (A,  List[A]) -> A
+declare fun h: (Int) -> [A] -> (A) -> A
+declare fun l: List[[A] -> (Int, A) -> A]
+declare fun r: ([A] -> (A) -> [B] -> (B) -> B) -> Int
+//│ k: ∀A. A → List[A] → A
+//│ h: Int → (∀A. A → A)
+//│ l: List[∀A. Int → A → A]
+//│ r: (∀A. A → (∀B. B → B)) → Int
+
+val e1 = k(h, l)
+//│ e1: (Int → (∀A. A → A)) ∨ (∀A. Int → A → A)
+// OK
+
+val e2 = (k((x) => h(x)))(l)
+//│ e2: (∀A. Int → A → A) ∨ (∀A. Int → A → A)
+// OK
+
+val e3 = r((x, y) => y)
+//│ e3: Int
+// OK
+
+val f5 = auto(id)
+//│ f5: ∀A, A. A → A
+// NOT OK
+
+val f6 = cons(head(ids), ids)
+//│ f6: List[(∀A. A → A) ∨ (∀A. A → A)]
+// MAYBE
+
+val f7 = head(ids, 3)
+//│ f7: Int
+// OK
+
+val f8 = choose(head(ids))
+//│ f8: ∀227. {227 ≥ ∀A. A → A} ⟹ 227 → 227
+// OK
+
+val f9 =
+  let f = revapp(id)
+  f(poly)
+//│ f9: ⟨Int, Bool⟩
+// OK
+
+val f10 = choose(id, (x) => auto2(x))
+//│ f10: (∀A. A → A) ∨ (∀242. (∀A. A → A) → 242 → 242)
+// MAYBE
+
+val g1a = z as ChurchInt
+//│ g1a: ChurchInt
+// OK
+
+val g2 = s
+//│ g2: ∀δ, ζ, ε, η. {δ ≤ η → ζ} ⟹ (δ → ε → η) → δ → (ε → ζ)
+// MAYBE
+
+// val g2a = s as ((ChurchInt) -> ChurchInt)
+// NOT OK
+
+val g3a = n3 as ChurchInt
+//│ g3a: ChurchInt
+// OK
+
+:fixme
+val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
+//│ ═══[ERROR] Type variable '261' not found in the context.
+// NOT OK
+
+val g5 = fst(fst(fst(n3((x) => (x, z), s(z)))))
+//│ g5: ⊤ → ⊤ → (⊤ → ⟨⊤, ∀β. ⊤ → β → β⟩)
+// MAYBE
+
+val g7 = (s(s(z)))(s(s(z)))
+//│ g7: ∀325, 329, 326, 327. ((329 → (325 ∧ 326)) ∧ ((326 ∨ 327) → 329)) → 327 → 325
+// MAYBE
+
+// def g8 = to_church
+// TODO
+
+// def g8a = to_church : ((Int) -> ChurchInt)
+// TODO
+
+// fun g9(x) = if true then x else g9(g9, x)
+// TODO
+
+// val g10 = ((x) -> x(x))((x) -> x(x))
+// TODO
+
+val g11 = auto(auto2(id))
+//│ g11: ∀A, A. A → A
+// NOT OK
+
+val g12 = ((y) =>
+    let tmp = y(id)
+    y(const)
+) ((x) => x(x))
+//│ g12: ∀365, 336, 369. {365 ≤ 365 → 336, 365 ≥ ∀A, B. A → ⊤ → A, 336 ≥ ⊤ → 365, 369 ≤ 369 → 370, 369 ≥ ∀A. A → A} ⟹ 336
+// MAYBE
+
+val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
+//│ g13: ⟨⊤, ⊤⟩
+// NOT OK
+
+val g14 = ((f) =>
+    let a = ((u: Unit) => f(id))
+    a(unit) as ((Int) -> ([B] -> (B) -> B))
+) (const(const(id)))
+//│ g14: ∀412. Int → 412 → 412
 // OK

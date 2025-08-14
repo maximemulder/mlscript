@@ -229,3 +229,6 @@ val g14 = ((f) =>
 ) (const(const(id)))
 //│ g14: ∀478. Int → 478 → 478
 // OK
+
+// Most of the "not simplified enough" types are due to bad check/constrain handling.
+// A boolean flag is not good/enough, I should instead freeze context up to a certain level.

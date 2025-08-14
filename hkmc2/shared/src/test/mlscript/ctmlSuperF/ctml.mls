@@ -13,7 +13,7 @@ val a3 = choose(nil, ids)
 // MAYBE
 
 fun a4(x) = x(x)
-//│ a4: ∀40, 41. {40 ≤ 40 → 41} ⟹ 40 → 41
+//│ a4: ∀43, 44. {43 ≤ 43 → 44} ⟹ 43 → 44
 // OK
 
 val a5 = id(auto)
@@ -32,8 +32,9 @@ val a8 = choose(id, auto2)
 //│ a8: (∀A. A → A) ∨ (∀B. (∀A. A → A) → B → B)
 // MAYBE
 
-// FIXME Fix the bug where a type variable appears directly in its own bounds.
-// val a9 = f(choose(id), ids)
+val a9 = f(choose(id), ids)
+//│ a9: (∀A. A → A) ∨ (∀A. A → A)
+// MAYBE
 
 val a10 = poly(id)
 //│ a10: ⟨Int, Bool⟩

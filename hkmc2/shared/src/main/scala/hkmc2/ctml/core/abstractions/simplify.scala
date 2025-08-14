@@ -19,8 +19,8 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
   def var_(var_ : TypeVar): Type =
     TVar(var_)
 
-  def tuple(left: Type, right: Type, p: P): TLam =
-    TLam(left, right)
+  def tuple(left: Type, right: Type, p: P): TTuple =
+    TTuple(left, right)
 
   def lam(param: Type, ret: Type, params: P): Type =
     makeLambdaType(param, ret)

@@ -30,8 +30,6 @@ declare class List[A]
 declare class ST[S, A]
 declare type ChurchInt = [A] -> (A -> A) -> (A -> A)
 
-declare fun f: [A] -> ((A) -> A) -> List[A] -> A
-
 declare fun head: [A] -> List[A] -> A
 declare fun tail: [A] -> List[A] -> List[A]
 declare fun nil: [A] -> List[A]
@@ -56,7 +54,7 @@ declare fun app: [A, B] -> (A -> B) -> A -> B
 declare fun revapp: [A, B] -> (A) -> (A -> B) -> B
 
 declare fun runST: [A] -> ([S] -> ST[S, A]) -> A
-declare fun appST: [S] -> (ST[S, Int])
+declare fun argST: [S] -> (ST[S, Int])
 
 declare fun zero: ChurchInt
 declare fun succ: ChurchInt -> ChurchInt

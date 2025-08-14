@@ -266,10 +266,8 @@ def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode): Clauses =
 /** Constrain a typa application to be a subtype of another typa application. */
 def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: Mode): Clauses =
   val absClauses = subtype(sup.abs, sub.abs)
-  // The argument is invariant.
-  val subClauses = subtypeSeq(sub.arg, sup.arg, absClauses)
-  subtypeSeq(sup.arg, sub.arg, absClauses)
-  subClauses
+  // Arguments are covariant for now.
+  subtypeSeq(sub.arg, sup.arg, absClauses)
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
 def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: Mode): Clauses =

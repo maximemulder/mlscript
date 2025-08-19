@@ -44,7 +44,7 @@ declare fun ids: List[[A] -> A -> A]
 declare fun inc: Int -> Int
 declare fun choose: [A] -> A -> A -> A
 declare fun poly: ([A] -> A -> A) -> (Int, Bool)
-declare fun fst: [A, B] -> (A, B) -> A
+declare fun fst: [A, B] -> ((A, B)) -> A
 
 declare fun auto: ([A] -> A -> A) -> ([A] -> A -> A)
 declare fun auto2: [B] -> ([A] -> A -> A) -> (B -> B)

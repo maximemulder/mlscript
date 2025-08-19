@@ -32,6 +32,8 @@ def makeConstrainingType(type_ : Type, bounds: List[Bound]): Type =
         case TUniv(var_, body) =>
           val type_ = makeConstrainingType(body, filteredBounds)
           TUniv(var_, type_)
+        case TConstraining(body, bounds) =>
+          TConstraining(body, filteredBounds ::: bounds)
         case _ =>
           TConstraining(type_, filteredBounds)
 
@@ -46,6 +48,8 @@ def makeConstrainedType(type_ : Type, bounds: List[Bound]): Type =
         case TUniv(var_, body) =>
           val type_ = makeConstrainedType(body, filteredBounds)
           TUniv(var_, type_)
+        case TConstrained(body, bounds) =>
+          TConstrained(body, filteredBounds ::: bounds)
         case _ =>
           TConstrained(type_, filteredBounds)
 

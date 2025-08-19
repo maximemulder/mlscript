@@ -65,18 +65,6 @@ extension (ctx: Context)
 
   // Others
 
-  /** Check whether a type variable is a class in the context. */
-  def isVarClass(var_ : TypeVar): Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Class
-
-  /** Check whether a type variable is a fresh variable in the context. */
-  def isTypeVarFresh(var_ : TypeVar): Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Fresh
-
-  /** Check whether a type variable is a rigid variable in the context. */
-  def isTypeVarRigid(var_ : TypeVar): Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Rigid
-
   /** Retrain the bounds unsatisfied in the context. */
   def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))

@@ -87,8 +87,8 @@ val c6 = cons((x) => x, ids)
 // OK
 
 val c7 = append(single(inc), single(id))
-//│ c7: List[Int → Int]
-// OK
+//│ c7: List[∀A. A → A]
+// NOT OK, should be List[Int → Int]
 
 val c8 = g(single(id), ids)
 //│ c8: ∀A. A → A
@@ -119,20 +119,7 @@ val d4 = app(runST, argST)
 // OK
 
 val d5 = revapp(argST, runST)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Cannot solve judgment ∀173. ((∀S. ST[⊥][Int]) → 173) → 173 ≤ (∀A. (∀S. ST[S][A]) → A) → 170.
-//│ Typing error tree:
-//│   ∀173. ((∀S. ST[⊥][Int]) → 173) → 173 ≤ (∀A. (∀S. ST[S][A]) → A) → 170
-//│     ((∀S. ST[⊥][Int]) → 174) → 174 ≤ (∀A. (∀S. ST[S][A]) → A) → 170
-//│       ∀A. (∀S. ST[S][A]) → A ≤ (∀S. ST[⊥][Int]) → 174
-//│         (∀S. ST[S][175]) → 175 ≤ (∀S. ST[⊥][Int]) → 174
-//│           ∀S. ST[⊥][Int] ≤ ∀S. ST[S][175]
-//│             ∀S. ST[⊥][Int] ≤ ST[176][175]
-//│               ST[⊥][Int] ≤ ST[176][175]
-//│                 ST[176] ≤ ST[⊥]
-//│                   176 ≤ ⊥
-//│                     ⊤ ≤ ⊥
+//│ d5: Int
 // OK
 
 declare fun k: [A] -> (A,  List[A]) -> A
@@ -172,7 +159,7 @@ val f7 = head(ids, 3)
 // OK
 
 val f8 = choose(head(ids))
-//│ f8: ∀216. {216 ≥ ∀A. A → A} ⟹ 216 → 216
+//│ f8: ∀215. {215 ≥ ∀A. A → A} ⟹ 215 → 215
 // OK
 
 val f9 =
@@ -182,7 +169,7 @@ val f9 =
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀232. (∀A. A → A) → 232 → 232
+//│ f10: ∀231. (∀A. A → A) → 231 → 231
 // OK
 
 // TODO: How the hell do I write a ternary if ?
@@ -205,7 +192,7 @@ val g3a = n3 as ChurchInt
 
 :fixme
 val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
-//│ ═══[ERROR] Type variable '250' not found in the context.
+//│ ═══[ERROR] Type variable '249' not found in the context.
 // NOT OK
 
 val g5 = fst(fst(fst(n3((x) => (x, z), s(z)))))
@@ -213,7 +200,7 @@ val g5 = fst(fst(fst(n3((x) => (x, z), s(z)))))
 // MAYBE
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀314, 318, 315, 316. ((318 → (314 ∧ 315)) ∧ ((315 ∨ 316) → 318)) → 316 → 314
+//│ g7: ∀313, 317, 314, 315. ((317 → (313 ∧ 314)) ∧ ((314 ∨ 315) → 317)) → 315 → 313
 // MAYBE
 
 // def g8 = to_church
@@ -236,7 +223,7 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀372, 327, 376. {372 ≤ 372 → 327, 372 ≥ ∀A, B. A → ⊤ → A, 327 ≥ ⊤ → 372, 376 ≤ 376 → 377, 376 ≥ ∀A. A → A} ⟹ 327
+//│ g12: ∀347, 326. {326 ≥ ⊤ → 347} ⟹ {347 ≤ 347 → 326, 347 ≥ ∀A, B. A → ⊤ → A} ⟹ 326
 // MAYBE
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
@@ -247,7 +234,7 @@ val g14 = ((f) =>
     let a = ((u: Unit) => f(id))
     a(unit) as ((Int) -> ([B] -> (B) -> B))
 ) (const(const(id)))
-//│ g14: ∀430. Int → 430 → 430
+//│ g14: ∀386. Int → 386 → 386
 // OK
 
 // Most of the "not simplified enough" types are due to bad check/constrain handling.

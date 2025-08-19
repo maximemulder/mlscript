@@ -195,6 +195,8 @@ val g3a = n3 as ChurchInt
 val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
 //│ ═══[ERROR] Type variable '256' not found in the context.
 // NOT OK
+// The bug seems to come from variable inlining, where for some reason new variables are lost in
+// the type soup instead of being added to context.
 
 val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 //│ g5: Int

@@ -56,6 +56,44 @@ extension (ctx: Context)
   def getVarUpperBound(var_ : TypeVar): Type =
     ctx.getVarBound(var_, Direction.Sub)
 
+extension (type_ : Type)(using ctx: Context)
+  /** Check whether the type is a class type variable. */
+  def isClassVar: Boolean =
+    type_ match
+      case TVar(var_) =>
+        var_.isClass
+      case _ =>
+        false
+
+  /** Check whether the type is a fresh type variable. */
+  def isFreshVar: Boolean =
+    type_ match
+      case TVar(var_) =>
+        var_.isFresh
+      case _ =>
+        false
+
+  /** Check whether the type is a rigid type variable. */
+  def isRigidVar: Boolean =
+    type_ match
+      case TVar(var_) =>
+        var_.isRigid
+      case _ =>
+        false
+
+extension (var_ : TypeVar)(using ctx: Context)
+  /** Check whether the type variable is a class type variable. */
+  def isClass: Boolean =
+    ctx.getTypeVarKind(var_) == TypeVarKind.Class
+
+  /** Check whether the type variable is a fresh type variable. */
+  def isFresh: Boolean =
+    ctx.getTypeVarKind(var_) == TypeVarKind.Fresh
+
+  /** Check whether the type variable is a rigid type variable. */
+  def isRigid: Boolean =
+    ctx.getTypeVarKind(var_) == TypeVarKind.Rigid
+
 extension (univ: TUniv)
   /** Substitute the quantified variable of a universal type with a new fresh type variable. */
   def freshen(): TUniv =

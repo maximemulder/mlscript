@@ -41,7 +41,7 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
     TConstrained(body, bounds)
 
   def constraining(body: Type, bounds: List[Bound], params: P): Type =
-    makeConstrainingType(body, bounds)(using params.getContext)
+    makeConstrainingType(body, bounds)
 
   def bounds(bounds: List[Bound], params: P): List[Bound] =
     bounds

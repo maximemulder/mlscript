@@ -14,10 +14,10 @@ extension (ctx: Context)
   /** Merge two lists of bounds such that they must both be satisfied. */
   def meetBounds(lefts: List[Bound], rights: List[Bound]): List[Bound] =
     // Check if each right bound is satisfied in the left bounds to remove subsumed constraints.
-    val filteredRights = ctx.extend(lefts).filterUnsatisfiedBounds(rights)
+    val filteredRights = ctx.extend(lefts).removeSatisfiedBounds(rights)
     // Be careful to check satisfaction against the *filtered* list of constraints to not remove duplicate
     // constraints entirely.
-    val filteredLefts = ctx.extend(filteredRights).filterUnsatisfiedBounds(lefts)
+    val filteredLefts = ctx.extend(filteredRights).removeSatisfiedBounds(lefts)
     // Return the concatenation of the filtered bounds.
     filteredLefts ::: filteredRights
 
@@ -56,15 +56,13 @@ extension (ctx: Context)
     val leftBound  = leftBounds.combineMany(dir)
     val rightBound = rightBounds.combineMany(dir)
     val leftType  =
-      given Context = ctx.extend(Bound(var_, dir, leftBound))
-      makeConstrainingType(leftBound, lefts)
+      val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
+      given Context = leftCtx
+      val filteredLefts = leftCtx.removeSatisfiedBounds(lefts)
+      makeConstrainingType(leftBound, filteredLefts)
     val rightType =
-      given Context = ctx.extend(Bound(var_, dir, rightBound))
-      makeConstrainingType(rightBound, rights)
+      val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
+      given Context = rightCtx
+      val filteredRights = rightCtx.removeSatisfiedBounds(rights)
+      makeConstrainingType(rightBound, filteredRights)
     join(leftType, rightType)
-
-  // Others
-
-  /** Retrain the bounds unsatisfied in the context. */
-  def filterUnsatisfiedBounds(bounds: List[Bound]): List[Bound] =
-    bounds.filter((bound) => !ctx.checkBoundSatisfied(bound))

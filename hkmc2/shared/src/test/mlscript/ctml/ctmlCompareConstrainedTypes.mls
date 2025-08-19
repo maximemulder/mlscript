@@ -1,0 +1,27 @@
+:ctml
+
+([A] -> A -> A) == ([A] -> A -> A)
+//│ OK
+//│ δ ≤ γ, δ ≥ γ, δ fresh, γ fresh, β ≤ α, β ≥ α, β fresh, α fresh
+
+([A] -> A -> A) <= (Int -> Int)
+//│ OK
+//│ ε ≤ Int, ε ≥ Int, ε fresh
+
+:e
+(Int -> Int) <= ([A] -> A -> A)
+//│ OK
+//│ ζ ≥ Int, ζ ≤ Int, ζ fresh
+//│ FAILURE: Unexpected lack of type error
+
+:e
+([A extends Str] -> A -> A) <= (Int -> Int)
+//│ ═══[ERROR] Cannot solve judgment ∀A. {A ≤ Str} ⟹ A → A ≤ Int → Int.
+//│ Typing error tree:
+//│   ∀A. {A ≤ Str} ⟹ A → A ≤ Int → Int
+//│     {η ≤ Str} ⟹ η → η ≤ Int → Int
+//│       η → η ≤ Int → Int
+//│         Int ≤ η
+//│           Int ≤ Str
+//│             Int ≤ ⊥
+//│               ⊤ ≤ ⊥

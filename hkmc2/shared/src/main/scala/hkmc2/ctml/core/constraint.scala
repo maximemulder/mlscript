@@ -3,6 +3,7 @@ package hkmc2.ctml.core
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
+import scala.util.chaining._
 
 extension (type_ : Type)
   /** Split the body type and constrained bounds of the type. */
@@ -23,35 +24,33 @@ extension (type_ : Type)
 
 /** Make a constraining type, simplifying it if possible. */
 def makeConstrainingType(type_ : Type, bounds: List[Bound]): Type =
-  val filteredBounds = removeImplicitBounds(bounds)
-  filteredBounds match
+  bounds match
     case Nil =>
       type_
     case _ =>
       type_ match
         case TUniv(var_, body) =>
-          val type_ = makeConstrainingType(body, filteredBounds)
+          val type_ = makeConstrainingType(body, bounds)
           TUniv(var_, type_)
-        case TConstraining(body, bounds) =>
-          TConstraining(body, filteredBounds ::: bounds)
+        case TConstraining(body, otherBounds) =>
+          TConstraining(body, bounds ::: otherBounds)
         case _ =>
-          TConstraining(type_, filteredBounds)
+          TConstraining(type_, bounds)
 
 /** Make a constrained type, simplifying it if possible. */
 def makeConstrainedType(type_ : Type, bounds: List[Bound]): Type =
-  val filteredBounds = removeImplicitBounds(bounds)
-  filteredBounds match
+  bounds match
     case Nil =>
       type_
     case _ =>
       type_ match
         case TUniv(var_, body) =>
-          val type_ = makeConstrainedType(body, filteredBounds)
+          val type_ = makeConstrainedType(body, bounds)
           TUniv(var_, type_)
-        case TConstrained(body, bounds) =>
-          TConstrained(body, filteredBounds ::: bounds)
+        case TConstrained(body, otherBounds) =>
+          TConstrained(body, bounds ::: otherBounds)
         case _ =>
-          TConstrained(type_, filteredBounds)
+          TConstrained(type_, bounds)
 
 /** Make a constrained type by adding a lower bound to a type. */
 def makeLowerBound(body: Type, var_ : TypeVar, type_ : Type): Type =
@@ -71,8 +70,9 @@ def makeLambdaType(param: Type, ret: Type): Type =
       TUniv(var_, type_)
     case _ =>
       TLam(param, ret)
-/** Remove the implicit bounds from a list of bounds, that is, bounds that are always true such
- *  that a type variable is a subtype of the top type or a supertype of the bottom type.
+
+/** Filter a list of bounds by removing the bounds that are implicit, that is, that a type variable
+ *  is a subtype of the top type or a supertype of the bottom type.
  */
 def removeImplicitBounds(bounds: List[Bound]): List[Bound] =
   bounds.flatMap(bound =>
@@ -82,3 +82,8 @@ def removeImplicitBounds(bounds: List[Bound]): List[Bound] =
       case _ =>
         Some(bound)
   )
+
+extension (ctx: Context)
+  /** Filter a list of bounds by removing the bounds that are already satisfied in the context. */
+  def removeSatisfiedBounds(bounds: List[Bound]): List[Bound] =
+    bounds.filter(!ctx.checkBoundSatisfied(_))

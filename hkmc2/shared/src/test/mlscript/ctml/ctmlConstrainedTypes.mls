@@ -23,3 +23,33 @@ idInt("Hello")
 //│     Str ≤ Int
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
+
+val inc: [T extends Int] -> T -> Int = (x) => x + 1
+//│ inc: ∀T. {T ≤ Int} ⟹ T → Int
+
+:e
+val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
+//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → ξ.
+//│ Typing error tree:
+//│   Str → Str ≤ Int → ξ
+//│     Int ≤ Str
+//│       Int ≤ ⊥
+//│         ⊤ ≤ ⊥
+
+val idInt: [T extends Int] -> T -> Int = (x) => x
+//│ idInt: ∀T. {T ≤ Int} ⟹ T → Int
+
+idInt(1)
+//│ Int
+
+:e
+idInt("Hello")
+//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → φ.
+//│ Typing error tree:
+//│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → φ
+//│     {χ ≤ Int} ⟹ χ → Int ≤ Str → φ
+//│       χ → Int ≤ Str → φ
+//│         Str ≤ χ
+//│           Str ≤ Int
+//│             ⊤ ≤ Int
+//│               ⊤ ≤ ⊥

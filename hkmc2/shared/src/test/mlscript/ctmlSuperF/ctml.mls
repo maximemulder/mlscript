@@ -16,7 +16,7 @@ val a3 = choose(nil, ids)
 // OK
 
 fun a4(x) = x(x)
-//│ a4: ∀38, 39. {38 ≤ 38 → 39} ⟹ 38 → 39
+//│ a4: ∀39, 40. {39 ≤ 39 → 40} ⟹ 39 → 40
 // OK
 
 val a5 = id(auto)
@@ -52,7 +52,7 @@ val a12 = id(poly((p) => p))
 // OK
 
 fun b1(f) = (f(1), f(true))
-//│ b1: ∀84, 85. ((Int → 84) ∧ (Bool → 85)) → ⟨84, 85⟩
+//│ b1: ∀85, 86. ((Int → 85) ∧ (Bool → 86)) → ⟨85, 86⟩
 // OK
 
 fun b2(xs) = poly(head(xs))
@@ -159,7 +159,7 @@ val f7 = head(ids, 3)
 // OK
 
 val f8 = choose(head(ids))
-//│ f8: ∀215. {215 ≥ ∀A. A → A} ⟹ 215 → 215
+//│ f8: ∀216. {216 ≥ ∀A. A → A} ⟹ 216 → 216
 // OK
 
 val f9 =
@@ -169,7 +169,7 @@ val f9 =
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀231. (∀A. A → A) → 231 → 231
+//│ f10: ∀232. (∀A. A → A) → 232 → 232
 // OK
 
 // TODO: How the hell do I write a ternary if ?
@@ -183,8 +183,9 @@ val g2 = s
 //│ g2: ∀δ, ζ, ε, η. {δ ≤ η → ζ} ⟹ (δ → ε → η) → δ → (ε → ζ)
 // MAYBE
 
-// val g2a = s as ((ChurchInt) -> ChurchInt)
-// NOT OK
+val g2a = s as ((ChurchInt) -> ChurchInt)
+//│ g2a: ChurchInt → ChurchInt
+// OK
 
 val g3a = n3 as ChurchInt
 //│ g3a: ChurchInt
@@ -192,15 +193,15 @@ val g3a = n3 as ChurchInt
 
 :fixme
 val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
-//│ ═══[ERROR] Type variable '249' not found in the context.
+//│ ═══[ERROR] Type variable '256' not found in the context.
 // NOT OK
 
 val g5 = fst(fst(fst(n3((x) => (x, z), s(z)))))
-//│ g5: ⊤ → ⊤ → (⊤ → ⟨⟨⟨∀276, 277. (277 → 276) → 277 → 276, ∀β. ⊤ → β → β⟩, ∀β. ⊤ → β → β⟩, ∀β. ⊤ → β → β⟩)
+//│ g5: ⊤ → ⊤ → (⊤ → ⟨⟨⟨∀283, 284. (284 → 283) → 284 → 283, ∀β. ⊤ → β → β⟩, ∀β. ⊤ → β → β⟩, ∀β. ⊤ → β → β⟩)
 // MAYBE
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀317, 321, 318, 319. ((321 → (317 ∧ 318)) ∧ ((318 ∨ 319) → 321)) → 319 → 317
+//│ g7: ∀324, 328, 325, 326. ((328 → (324 ∧ 325)) ∧ ((325 ∨ 326) → 328)) → 326 → 324
 // MAYBE
 
 // def g8 = to_church
@@ -223,19 +224,16 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀351, 330. {351 ≤ 351 → 330, 351 ≥ ∀A, B. A → ⊤ → A, 330 ≥ ⊤ → 351} ⟹ 330
+//│ g12: ∀358, 337. {358 ≤ 358 → 337, 358 ≥ ∀A, B. A → ⊤ → A, 337 ≥ ⊤ → 358} ⟹ 337
 // MAYBE
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
 //│ g13: ⟨⟨Int, Bool⟩, ⟨Int, Bool⟩⟩
-// NOT OK
+// OK
 
 val g14 = ((f) =>
     let a = ((u: Unit) => f(id))
     a(unit) as ((Int) -> ([B] -> (B) -> B))
 ) (const(const(id)))
-//│ g14: ∀398. Int → 398 → 398
+//│ g14: ∀411. Int → 411 → 411
 // OK
-
-// Most of the "not simplified enough" types are due to bad check/constrain handling.
-// A boolean flag is not good/enough, I should instead freeze context up to a certain level.

@@ -104,10 +104,10 @@ def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type
 
 /** Implementation of `quantifyVar`. */
 def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  val bounds = List(
+  val bounds = removeImplicitBounds(List(
     Bound(var_, Direction.Super, lowerBound),
     Bound(var_, Direction.Sub, upperBound),
-  )
+  ))
 
   (
     makeConstrainedType(type_, bounds),

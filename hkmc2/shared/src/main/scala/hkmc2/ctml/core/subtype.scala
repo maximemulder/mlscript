@@ -87,15 +87,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   // Subtyping of fresh variables in constraining mode.
 
-  if mode == Mode.Constrain then
-    if sub.isFreshVar && sup.isFreshVar then
-      return subtypeFreshVars(sub.as[TVar].var_, sup.as[TVar].var_)
+  if sub.isFreshVar && sup.isFreshVar then
+    return subtypeFreshVars(sub.as[TVar].var_, sup.as[TVar].var_)
 
-    if sub.isFreshVar then
-      return subtypeFreshVarSub(sub.as[TVar].var_, sup)
+  if sub.isFreshVar then
+    return subtypeFreshVarSub(sub.as[TVar].var_, sup)
 
-    if sup.isFreshVar then
-      return subtypeFreshVarSup(sup.as[TVar].var_, sub)
+  if sup.isFreshVar then
+    return subtypeFreshVarSup(sup.as[TVar].var_, sub)
 
   // Subtyping of union and intersection types.
 
@@ -241,7 +240,7 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: Mode): Claus
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Clauses =
   val freshSup = sup.freshen()
-  subtypeSeq(sub, freshSup.body, declFreshVar(freshSup.var_).asClauses)
+  subtypeSeq(sub, freshSup.body, declRigidVar(freshSup.var_).asClauses)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
@@ -281,6 +280,7 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSubtype(sub: Type, sup: Type)(using ctx: Context): Boolean =
   given Mode = Mode.Check
+  given Context = ctx.freeze()
   try
     subtype(sub, sup)
   catch

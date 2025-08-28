@@ -1,8 +1,5 @@
 :ctml
 
-declare fun _if_: [A] -> Bool -> A -> A -> A
-//│ _if_: ∀A. Bool → A → (A → A)
-
 declare fun (==): [A] -> A -> A -> Bool
 //│ ==: ∀A. A → A → Bool
 
@@ -58,7 +55,7 @@ val a12 = id(poly((p) => p))
 // OK
 
 fun b1(f) = (f(1), f(true))
-//│ b1: ∀85, 86. ((Int → 85) ∧ (Bool → 86)) → ⟨85, 86⟩
+//│ b1: ∀85, 86. ((Int → 85) ∧ (True → 86)) → ⟨85, 86⟩
 // OK
 
 fun b2(xs) = poly(head(xs))
@@ -181,7 +178,21 @@ val f10 = choose(id, (x) => auto2(x))
 fun to_church(n) = if n == 0 then z else s(to_church(n - 1))
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: raise (test.scala:54)
-//│ ═══[ERROR] Variable 'to_church' not found in the context.
+//│ ═══[ERROR] Cannot solve judgment ∀A, B. (True → A → (⊤ → A)) ∧ (False → ⊤ → (B → B)) ≤ Bool → 241.
+//│ Typing error tree:
+//│   ∀A, B. (True → A → (⊤ → A)) ∧ (False → ⊤ → (B → B)) ≤ Bool → 241
+//│     ∀B. (True → 245 → (⊤ → 245)) ∧ (False → ⊤ → (B → B)) ≤ Bool → 241
+//│       (True → 245 → (⊤ → 245)) ∧ (False → ⊤ → (246 → 246)) ≤ Bool → 241
+//│         True → 245 → (⊤ → 245) ≤ Bool → 241
+//│           Bool ≤ True
+//│             False ≤ True
+//│               ⊤ ≤ True
+//│                 ⊤ ≤ ⊥
+//│         False → ⊤ → (246 → 246) ≤ Bool → 241
+//│           Bool ≤ False
+//│             True ≤ False
+//│               True ≤ ⊥
+//│                 ⊤ ≤ ⊥
 
 val g1a = z as ChurchInt
 //│ g1a: ChurchInt
@@ -207,7 +218,7 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 // OK
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀333, 337, 334, 335. ((337 → (333 ∧ 334)) ∧ ((334 ∨ 335) → 337)) → 335 → 333
+//│ g7: ∀331, 335, 332, 333. ((335 → (331 ∧ 332)) ∧ ((332 ∨ 333) → 335)) → 333 → 331
 // MAYBE
 
 // val g8 = to_church
@@ -230,16 +241,16 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀391, 346, 395. {391 ≤ 391 → 346, 391 ≥ ∀A, B. A → ⊤ → A, 346 ≥ ⊤ → 391, 395 ≤ 395 → 396, 395 ≥ ∀A. A → A} ⟹ 346
+//│ g12: ∀389, 344, 393. {389 ≤ 389 → 344, 389 ≥ ∀A, B. A → ⊤ → A, 344 ≥ ⊤ → 389, 393 ≤ 393 → 394, 393 ≥ ∀A. A → A} ⟹ 344
 // MAYBE
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
-//│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩
+//│ g13: ⟨⟨Int, True⟩, ⟨List[Int], List[True]⟩⟩
 // OK
 
 val g14 = ((f) =>
     let a = ((u: Unit) => f(id))
     a(unit) as ((Int) -> ([B] -> (B) -> B))
 ) (const(const(id)))
-//│ g14: ∀449. Int → 449 → 449
+//│ g14: ∀447. Int → 447 → 447
 // OK

@@ -10,19 +10,26 @@ declare class Top
 declare class Bot
 
 declare class Unit
-declare class Bool
+declare class True
+declare class False
 declare class Int
 declare class Num
 declare class Str
+
+type Bool = True | False
 
 val top: Top
 val bot: Bot
 
 val unit   : Unit
+val true_  : True
+val false_ : False
 val bool   : Bool
 val int    : Int
 val num    : Num
 val string : Str
+
+declare fun if_: [A, B] -> (True -> A -> Top -> A) & (False -> Top -> B -> B)
 
 // SuperF test suite specific terms.
 

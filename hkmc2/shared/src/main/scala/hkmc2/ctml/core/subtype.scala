@@ -240,7 +240,7 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: Mode): Claus
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Clauses =
   val freshSup = sup.freshen()
-  subtypeSeq(sub, freshSup.body, declFreshVar(freshSup.var_).asClauses)
+  subtypeSeq(sub, freshSup.body, declRigidVar(freshSup.var_).asClauses)
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =

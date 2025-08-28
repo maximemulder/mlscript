@@ -24,8 +24,16 @@ idInt("Hello")
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
 
+// FIXME: Force new bounds on explicit type annotations ?
+:fixme
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
-//│ inc: ∀T. {T ≤ Int} ⟹ T → Int
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ∀T. {T ≤ Int} ⟹ T → Int.
+//│ Typing error tree:
+//│   Int → Int ≤ ∀T. {T ≤ Int} ⟹ T → Int
+//│     Int → Int ≤ {μ ≤ Int} ⟹ μ → Int
+//│       μ ≤ Int
+//│         ⊤ ≤ Int
+//│           ⊤ ≤ ⊥
 
 :e
 val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
@@ -36,20 +44,26 @@ val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
 //│       Int ≤ ⊥
 //│         ⊤ ≤ ⊥
 
+// FIXME: Force new bounds on explicit type annotations ?
+:fixme
 val idInt: [T extends Int] -> T -> Int = (x) => x
-//│ idInt: ∀T. {T ≤ Int} ⟹ T → Int
+//│ ═══[ERROR] Cannot solve judgment ∀π. π → π ≤ ∀T. {T ≤ Int} ⟹ T → Int.
+//│ Typing error tree:
+//│   ∀π. π → π ≤ ∀T. {T ≤ Int} ⟹ T → Int
+//│     ∀π. π → π ≤ {ρ ≤ Int} ⟹ ρ → Int
+//│       σ → σ ≤ {ρ ≤ Int} ⟹ ρ → Int
+//│         ρ ≤ Int
+//│           ⊤ ≤ Int
+//│             ⊤ ≤ ⊥
 
 idInt(1)
 //│ Int
 
 :e
 idInt("Hello")
-//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → φ.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → υ.
 //│ Typing error tree:
-//│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → φ
-//│     {χ ≤ Int} ⟹ χ → Int ≤ Str → φ
-//│       χ → Int ≤ Str → φ
-//│         Str ≤ χ
-//│           Str ≤ Int
-//│             ⊤ ≤ Int
-//│               ⊤ ≤ ⊥
+//│   Int → Int ≤ Str → υ
+//│     Str ≤ Int
+//│       ⊤ ≤ Int
+//│         ⊤ ≤ ⊥

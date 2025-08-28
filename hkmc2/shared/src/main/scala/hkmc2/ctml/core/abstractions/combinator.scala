@@ -40,3 +40,9 @@ trait TypeCombinator[T[_], B[_], P]:
 
   /** Get some type variable bounds combination. */
   def bounds(bounds: List[B[Bound]], p: P): B[List[Bound]]
+
+/** Trait that describes a node in an operation that can forward the final combinator of the
+ *  operation. */
+trait TypeNode[T[_], B[_], P]:
+  /** Get the final combinator of the operation. */
+  def getCombinator: TypeCombinator[T, B, P]

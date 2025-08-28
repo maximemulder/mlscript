@@ -38,8 +38,7 @@ object TypeInline extends TypeVarApplicator[Const[Type], TypeInlineParams](
       override def apply(bounds: List[Bound], params: TypeInlineParams): List[Bound] =
         bounds.map(bound =>
           Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
-        ),
-    TypeSimplifyCombinator[TypeInlineParams]
+        )
   )
 ):
   override def apply(univ: TUniv): Type =

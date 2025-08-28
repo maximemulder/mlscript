@@ -14,13 +14,13 @@ trait WithPolarity[This <: WithPolarity[This]]:
 abstract class TypePolarityDispatcher[T[+_], B[+_], P <: WithPolarity[P]](
   combinator: TypeCombinator[T, B, P]
 ) extends TypeDispatcher[T, B, P](combinator):
-  override def apply(type_ : Type, params: P): T[Type] =
+  override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TLam(param, ret) =>
         val pol = params.getPolarity
         combinator.lam(
-          this.apply(param, params.setPolarity(pol.invert())),
-          this.apply(ret, params),
+          first.apply(param, params.setPolarity(pol.invert())),
+          first.apply(ret, params),
           params,
         )
       case _ =>

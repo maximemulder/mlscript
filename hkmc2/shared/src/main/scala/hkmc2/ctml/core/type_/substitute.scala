@@ -19,9 +19,9 @@ class TypeSubstituteParams(
   def setTypeVar(var_ : TypeVar) = TypeSubstituteParams(var_, substitute)
 
 /** Implementation of the type substitution operation. */
-object TypeSubstitute extends TypeVarApplicator(
+object TypeSubstitute extends TypeShadowApplicator(
   new TypeDispatcher[Id, Id, TypeSubstituteParams](TypeIdentityCombinator[TypeSubstituteParams]):
-    override def apply(type_ : Type, params : TypeSubstituteParams): Type =
+    override def apply(type_ : Type, params : TypeSubstituteParams)(using first: TypeApplicator[Id, TypeSubstituteParams]): Type =
       type_ match
         case TVar(var_) =>
           TVar(this.substitute(var_, params))
@@ -41,5 +41,5 @@ object TypeSubstitute extends TypeVarApplicator(
         else
           var_
 ):
-  def apply(univ: TUniv): Type =
+  override def univ(univ: TUniv): Type =
     univ

@@ -5,7 +5,6 @@ import hkmc2.ctml.util.*
 
 /** Combinator to combine the components of a type into that type. */
 class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
-
   def bot(p: P): TBot =
     TBot
 

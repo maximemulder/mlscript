@@ -17,7 +17,7 @@ class TypeVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends Wit
 
 /** Implementation of the get type variable polarities operation. */
 object TypeVarPolarities extends TypePolarityDispatcher[Const[Polarities], Const[Polarities], TypeVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
-  override def apply(type_ : Type, params: TypeVarPolaritiesParams): Polarities =
+  override def apply(type_ : Type, params: TypeVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], TypeVarPolaritiesParams] = this): Polarities =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
         Polarities.fromPolarity(params.pol)

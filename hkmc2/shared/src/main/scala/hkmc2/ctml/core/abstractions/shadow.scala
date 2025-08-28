@@ -9,17 +9,16 @@ trait WithTypeVar[This <: WithTypeVar[This]]:
   /** Set the type variable of the object. */
   def setTypeVar(var_ : TypeVar): This
 
-// TODO: Find a way to make this modulable.
-// Current best guess: (full applicator, next applicator, end combinator).
-trait TypeVarApplicator[T[+_], P <: WithTypeVar[P]](
-  applicator: TypeApplicator[T, P]
+/** Handle variable shadowing while applying a transformation on a type. */
+trait TypeShadowApplicator[T[+_], P <: WithTypeVar[P]](
+  next: TypeApplicator[T, P]
 ) extends TypeApplicator[T, P]:
-  override def apply(type_ : Type, params: P): T[Type] =
+  override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TUniv(var_, body) if var_ == params.getTypeVar =>
-        this.apply(TUniv(var_, body))
+        this.univ(TUniv(var_, body))
       case _ =>
-        applicator.apply(type_, params)
+        next.apply(type_, params)
 
   /** Apply the transformation on a variable shadowing universal type. */
-  def apply(univ: TUniv): T[Type]
+  def univ(univ: TUniv): T[Type]

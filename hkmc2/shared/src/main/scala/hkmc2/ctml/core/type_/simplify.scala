@@ -22,6 +22,5 @@ object TypeSimplify extends TypeContextApplicator[Const[Type], TypeSimplifyParam
     TypeSimplifyCombinator[TypeSimplifyParams]
   ):
     override def apply(bounds: List[Bound], p: TypeSimplifyParams): Id[List[Bound]] =
-      bounds,
-  TypeSimplifyCombinator[TypeSimplifyParams],
+      bounds
 )

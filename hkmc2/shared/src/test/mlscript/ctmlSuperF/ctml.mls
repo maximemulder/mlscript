@@ -1,5 +1,11 @@
 :ctml
 
+declare fun _if_: [A] -> Bool -> A -> A -> A
+//│ _if_: ∀A. Bool → A → (A → A)
+
+declare fun (==): [A] -> A -> A -> Bool
+//│ ==: ∀A. A → A → Bool
+
 declare fun f: [A] -> ((A) -> A) -> List[A] -> A
 //│ f: ∀A. (A → A) → List[A] → A
 
@@ -172,8 +178,10 @@ val f10 = choose(id, (x) => auto2(x))
 //│ f10: ∀233. (∀A. A → A) → 233 → 233
 // OK
 
-// TODO: How the hell do I write a ternary if ?
-// fun to_church(n) = if n == 0 then z else else s(to_church(n - 1))
+fun to_church(n) = if n == 0 then z else s(to_church(n - 1))
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:54)
+//│ ═══[ERROR] Variable 'to_church' not found in the context.
 
 val g1a = z as ChurchInt
 //│ g1a: ChurchInt
@@ -199,7 +207,7 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 // OK
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀322, 326, 323, 324. ((326 → (322 ∧ 323)) ∧ ((323 ∨ 324) → 326)) → 324 → 322
+//│ g7: ∀333, 337, 334, 335. ((337 → (333 ∧ 334)) ∧ ((334 ∨ 335) → 337)) → 335 → 333
 // MAYBE
 
 // val g8 = to_church
@@ -222,7 +230,7 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀380, 335, 384. {380 ≤ 380 → 335, 380 ≥ ∀A, B. A → ⊤ → A, 335 ≥ ⊤ → 380, 384 ≤ 384 → 385, 384 ≥ ∀A. A → A} ⟹ 335
+//│ g12: ∀391, 346, 395. {391 ≤ 391 → 346, 391 ≥ ∀A, B. A → ⊤ → A, 346 ≥ ⊤ → 391, 395 ≤ 395 → 396, 395 ≥ ∀A. A → A} ⟹ 346
 // MAYBE
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
@@ -233,5 +241,5 @@ val g14 = ((f) =>
     let a = ((u: Unit) => f(id))
     a(unit) as ((Int) -> ([B] -> (B) -> B))
 ) (const(const(id)))
-//│ g14: ∀438. Int → 438 → 438
+//│ g14: ∀449. Int → 449 → 449
 // OK

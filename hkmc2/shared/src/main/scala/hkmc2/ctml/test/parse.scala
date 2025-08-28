@@ -263,11 +263,11 @@ def parseExpr(mlExpr: Term): Expr =
       val expr  = parseExpr(mlExpr)
       val type_ = parseType(mlType)
       EAscr(expr, type_)
-    // Parse pattern matching.
-    case Term.IfLike(_, Split.Let(_, mlScrutinee, mlCases)) =>
-      val expr  = parseExpr(mlScrutinee)
-      val cases = parseCases(mlCases)
-      EMatch(expr, cases)
+    case Term.IfLike(_, Split.Let(_, mlCondition, Split.Cons(Branch(_, _, Split.Else(mlThen)), Split.Else(mlElse)))) =>
+      val condition = parseExpr(mlCondition)
+      val then_ = parseExpr(mlThen)
+      val else_ = parseExpr(mlElse)
+      EApp(EApp(EApp(EVar("_if_"), condition), then_), else_)
     case Term.IfLike(_, mlMatch) =>
       parseMatch(mlMatch)
     case _ =>

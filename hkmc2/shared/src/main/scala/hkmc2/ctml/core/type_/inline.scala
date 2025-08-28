@@ -23,12 +23,12 @@ class TypeInlineParams(
   def setTypeVar(var_ : TypeVar) = TypeInlineParams(var_, substitute, ctx)
 
 /** Implementation of the type variable inlining operation. */
-object TypeInline extends TypeVarApplicator[Const[Type], TypeInlineParams](
+object TypeInline extends TypeShadowApplicator[Const[Type], TypeInlineParams](
   TypeContextApplicator[Const[Type], TypeInlineParams](
     new TypeDispatcher[Const[Type], Id, TypeInlineParams](
       TypeSimplifyCombinator[TypeInlineParams]
     ):
-      override def apply(type_ : Type, params: TypeInlineParams): Type =
+      override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
         type_ match
           case TVar(var_) if var_ == params.var_ =>
             params.substitute
@@ -41,5 +41,5 @@ object TypeInline extends TypeVarApplicator[Const[Type], TypeInlineParams](
         )
   )
 ):
-  override def apply(univ: TUniv): Type =
+  override def univ(univ: TUniv): Type =
     univ

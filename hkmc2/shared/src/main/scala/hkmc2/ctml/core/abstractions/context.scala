@@ -12,19 +12,20 @@ trait WithContext[This <: WithContext[This]]:
   /** Set the typing context of the object. */
   def setContext(ctx: Context): This
 
+/** Handle contextual information while applying a transformation on a type. */
 class TypeContextApplicator[T[+_], P <: WithContext[P]](
-  applicator: TypeApplicator[T, P] & BoundsApplicator[Id, P] & TypeNode[T, Id, P],
+  next: TypeApplicator[T, P] & BoundsApplicator[Id, P] & TypeNode[T, Id, P],
 ) extends TypeApplicator[T, P]:
-  override def apply(type_ : Type, params: P): T[Type] =
+  override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TUniv(var_, body) =>
         val ctx = params.getContext.extend(declRigidVar(var_))
-        val bodyRes = this.apply(body, params.setContext(ctx))
-        applicator.getCombinator.univ(var_, bodyRes, params)
+        val bodyRes = first.apply(body, params.setContext(ctx))
+        next.getCombinator.univ(var_, bodyRes, params)
       case TConstrained(body, bounds) =>
         val ctx = params.getContext.extend(bounds)
-        val bodyRes = this.apply(body, params.setContext(ctx))
-        val boundsRes = applicator.apply(bounds, params)
-        applicator.getCombinator.constrained(bodyRes, boundsRes, params)
+        val bodyRes = first.apply(body, params.setContext(ctx))
+        val boundsRes = next.apply(bounds, params)
+        next.getCombinator.constrained(bodyRes, boundsRes, params)
       case _ =>
-        applicator.apply(type_, params)
+        next.apply(type_, params)

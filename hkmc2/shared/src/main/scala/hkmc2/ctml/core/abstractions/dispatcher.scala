@@ -4,7 +4,9 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.debug.*
 
 /** Applicator that recursively applies a combinator on the components of a type. */
-abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundsApplicator[B, P]:
+abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundsApplicator[B, P], TypeNode[T, B, P]:
+  override def getCombinator = this.combinator
+
   override def apply(type_ : Type, p: P): T[Type] =
     type_ match
       case TBot =>

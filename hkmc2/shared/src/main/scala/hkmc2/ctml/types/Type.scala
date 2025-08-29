@@ -122,7 +122,7 @@ extension (type_ : Type)
   private def getLambdaComponents(): List[Type] =
     type_ match
       case TLam(param, ret) =>
-        param :: ret.getInterComponents()
+        param :: ret.getLambdaComponents()
       case _ =>
         type_ :: Nil
 

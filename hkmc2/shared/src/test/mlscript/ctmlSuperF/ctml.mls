@@ -1,7 +1,7 @@
 :ctml
 
 declare fun _if_: [A] -> Bool -> A -> A -> A
-//│ _if_: ∀A. Bool → A → (A → A)
+//│ _if_: ∀A. Bool → A → A → A
 
 declare fun (==): [A] -> A -> A -> Bool
 //│ ==: ∀A. A → A → Bool
@@ -188,7 +188,7 @@ val g1a = z as ChurchInt
 // OK
 
 val g2 = s
-//│ g2: ∀δ, ζ, ε, η. {δ ≤ η → ζ} ⟹ (δ → ε → η) → δ → (ε → ζ)
+//│ g2: ∀δ, ζ, ε, η. {δ ≤ η → ζ} ⟹ (δ → ε → η) → δ → ε → ζ
 // OK
 
 // val g2a = s as ((ChurchInt) -> ChurchInt)

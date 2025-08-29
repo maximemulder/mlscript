@@ -238,10 +238,8 @@ def parseExpr(mlExpr: Term): Expr =
     // Parse literals as variables.
     case Term.UnitVal() | Term.Lit(Tree.UnitLit(_)) =>
       EVar("unit")
-    case Term.Lit(Tree.BoolLit(true)) =>
-      EVar("true_")
-    case Term.Lit(Tree.BoolLit(false)) =>
-      EVar("false_")
+    case Term.Lit(Tree.BoolLit(_)) =>
+      EVar("bool")
     case Term.Lit(Tree.IntLit(_)) =>
       EVar("int")
     case Term.Lit(Tree.DecLit(_)) =>
@@ -269,7 +267,7 @@ def parseExpr(mlExpr: Term): Expr =
       val condition = parseExpr(mlCondition)
       val then_ = parseExpr(mlThen)
       val else_ = parseExpr(mlElse)
-      EApp(EApp(EApp(EVar("if_"), condition), then_), else_)
+      EApp(EApp(EApp(EVar("_if_"), condition), then_), else_)
     case Term.IfLike(_, mlMatch) =>
       parseMatch(mlMatch)
     case _ =>

@@ -44,7 +44,7 @@ baz(true, false)
 //│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ (Int ⟹ {β ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {β ≤ Str, 18 ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {α ≤ Str, 18 ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Bool → 39.
 //│ Typing error tree:
 //│   ∀α, β. {α ≤ (Int ⟹ {β ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {β ≤ Str, 18 ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {α ≤ Str, 18 ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Bool → 39
-//│     ∀α. {40 ≤ (Int ⟹ {α ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {α ≤ Str, 18 ≥ Str}), α ≤ (Int ⟹ {40 ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {40 ≤ Str, 18 ≥ Str})} ⟹ 40 → α → ((Int ⟹ {40 ≤ Int, α ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, α ≤ Str})) ≤ Bool → 39
+//│     ∀β. {40 ≤ (Int ⟹ {β ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {β ≤ Str, 18 ≥ Str}), β ≤ (Int ⟹ {40 ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {40 ≤ Str, 18 ≥ Str})} ⟹ 40 → β → ((Int ⟹ {40 ≤ Int, β ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, β ≤ Str})) ≤ Bool → 39
 //│       {40 ≤ (Int ⟹ {41 ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {41 ≤ Str, 18 ≥ Str}), 41 ≤ (Int ⟹ {40 ≤ Int, 18 ≥ Int}) ∨ (Str ⟹ {40 ≤ Str, 18 ≥ Str})} ⟹ 40 → 41 → ((Int ⟹ {40 ≤ Int, 41 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, 41 ≤ Str})) ≤ Bool → 39
 //│         40 → 41 → ((Int ⟹ {40 ≤ Int, 41 ≤ Int}) ∨ (Str ⟹ {40 ≤ Str, 41 ≤ Str})) ≤ Bool → 39
 //│           Bool ≤ 40

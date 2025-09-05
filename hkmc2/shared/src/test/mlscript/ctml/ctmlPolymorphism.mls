@@ -30,7 +30,7 @@ foo((++), 1)
 //│ ═══[ERROR] Cannot solve judgment ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → 27.
 //│ Typing error tree:
 //│   ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → 27
-//│     ∀α. (Int → 28 → α) → 28 → α ≤ (Str → Str → Str) → 27
+//│     ∀β. (Int → 28 → β) → 28 → β ≤ (Str → Str → Str) → 27
 //│       (Int → 28 → 29) → 28 → 29 ≤ (Str → Str → Str) → 27
 //│         Str → Str → Str ≤ Int → 28 → 29
 //│           Int ≤ Str

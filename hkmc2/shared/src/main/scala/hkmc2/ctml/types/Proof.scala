@@ -22,7 +22,7 @@ given Show[ProofTree] =
   TreeShow
 
 /** A proof judgment. */
-abstract trait Judgment:
+sealed trait Judgment:
   /** Convert the judgment to a string. */
   def show(): String
 

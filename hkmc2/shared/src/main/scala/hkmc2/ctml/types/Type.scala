@@ -7,7 +7,7 @@ import hkmc2.ctml.util.given
 sealed trait Type:
   /** Get the string representation of the object. */
   override def toString: String =
-    showType(this)(using TypePrinter())
+    this.show
 
 /** The bottom type. */
 case object TBot extends Type
@@ -79,4 +79,4 @@ given Tree[Type] with
 /** Implementation of the `Show` trait for `Type`. */
 given Show[Type] with
   override def show(type_ : Type): String =
-    showType(type_)(using TypePrinter())
+    showType(type_)

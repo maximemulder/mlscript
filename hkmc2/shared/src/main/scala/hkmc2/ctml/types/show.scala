@@ -3,44 +3,8 @@ package hkmc2.ctml.types
 import scala.collection.mutable.HashMap as MutMap
 import hkmc2.ctml.core.debug.DebugInfo.output
 
-/** The list of greek letters used to display type variables. */
-val letters = List(
-  "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ",
-  "ν", "ξ", "ο", "π", "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω"
-)
-
-/** Printer that handles the pretty printing of types by renaming fresh variables to pretty
- *  letters. */
-class TypePrinter(aliases: MutMap[String, String] = MutMap()):
-  /** Check whether a letter is used in the scope. */
-  def hasLetter(letter: String): Boolean =
-    this.aliases.values.exists(_ == letter)
-
-  /** Get the next available letter available in the scope. */
-  def getNextLetter(): Option[String] =
-    letters.find(!this.hasLetter(_))
-
-  /** Add a binding to the scope. */
-  def addBinding(binding: String): Unit =
-    if !binding.matches("\\d+") then
-      return
-
-    this.getNextLetter() match
-      case Some(letter) =>
-        this.aliases.addOne((binding, letter))
-      case None =>
-        ()
-
-  /** Get the alias of a binding if there is one. */
-  def getAlias(binding: String): String =
-    this.aliases.get(binding) match
-      case Some(name) =>
-        name
-      case None =>
-        binding
-
 /** Convert the type to its string representation. */
-def showType(type_ : Type, parentOpen: Boolean = false)(using scope: TypePrinter): String =
+def showType(type_ : Type, parentOpen: Boolean = false): String =
   val (string, selfOpen) = type_ match
     case _: TBot =>
       ("⊥", false)
@@ -63,8 +27,6 @@ def showType(type_ : Type, parentOpen: Boolean = false)(using scope: TypePrinter
       (s"${showType(abs)}[${showType(arg)}]", false)
     case univ: TUniv =>
       val (vars, body) = getUnivComponents(univ)
-      for var_ <- vars do
-        scope.addBinding(var_.name)
       (s"∀${showTypeVars(vars)}. ${showType(body)}", true)
     case TConstrained(body, bounds) =>
       (s"{${showBounds(bounds)}} ⟹ ${showType(body)}", true)
@@ -78,15 +40,15 @@ def showType(type_ : Type, parentOpen: Boolean = false)(using scope: TypePrinter
   else
     string
 
-def showTypeVar(var_ : TypeVar)(using scope: TypePrinter): String =
-  scope.getAlias(var_.name)
+def showTypeVar(var_ : TypeVar): String =
+  var_.name
 
 /** Convert a list of type variables to its string representation. */
-def showTypeVars(vars: List[TypeVar])(using scope: TypePrinter): String =
-  vars.map(var_ => scope.getAlias(var_.name)).mkString(", ")
+def showTypeVars(vars: List[TypeVar]): String =
+  vars.map(_.name).mkString(", ")
 
 /** Implementation of the `Show` trait for `Clause`. */
-def showClause(clause: Clause)(using scope: TypePrinter): String =
+def showClause(clause: Clause): String =
   clause match
     case var_ : TermVarDecl =>
       showTermVarDecl(var_)
@@ -96,19 +58,19 @@ def showClause(clause: Clause)(using scope: TypePrinter): String =
       showBound(bound)
 
 /** Implementation of the `Show` trait for `TermVarDecl`. */
-def showTermVarDecl(decl : TermVarDecl)(using scope: TypePrinter): String =
+def showTermVarDecl(decl : TermVarDecl): String =
   s"${decl.name}: ${showType(decl.type_)}"
 
 /** Implementation of the `Show` trait for `TypeVarDecl`. */
-def showTypeVarDecl(decl : TypeVarDecl)(using scope: TypePrinter): String =
+def showTypeVarDecl(decl : TypeVarDecl): String =
   s"${showTypeVar(decl.var_)} ${decl.kind}"
 
 /** Implementation of the `Show` trait for `Bound`. */
-def showBound(bound: Bound)(using scope: TypePrinter): String =
+def showBound(bound: Bound): String =
   s"${showTypeVar(bound.var_)} ${bound.dir} ${showType(bound.type_)}"
 
 /** Convert a list of bounds to its string representation. */
-def showBounds(bounds: List[Bound])(using scope: TypePrinter): String =
+def showBounds(bounds: List[Bound]): String =
   bounds.reverse.map(showBound(_)).mkString(", ")
 
 /** Get the right-recursive nested components of a lambda type. */

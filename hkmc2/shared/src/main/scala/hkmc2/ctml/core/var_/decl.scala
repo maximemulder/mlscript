@@ -4,11 +4,6 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.types.*
 
-val greekLetters = List(
-  "α", "β", "γ", "δ", "ε", "ζ", "η", "θ", "ι", "κ", "λ", "μ",
-  "ν", "ξ", "ο", "π", "ρ", "σ", "τ", "υ", "φ", "χ", "ψ", "ω"
-)
-
 // TODO: Do not use a global mutable counter.
 var freshVarCounter = 0
 
@@ -16,11 +11,7 @@ var freshVarCounter = 0
 def newFreshVarName(): String =
   val i = freshVarCounter
   freshVarCounter += 1
-
-  if i < greekLetters.size then
-    greekLetters(i)
-  else
-    i.toString()
+  i.toString()
 
 /** Get a new fresh type variable declaration with a new unique name. */
 def declNewFreshVar(): TypeVarDecl =

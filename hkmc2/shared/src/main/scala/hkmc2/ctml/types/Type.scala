@@ -1,12 +1,13 @@
 package hkmc2.ctml.types
 
 import hkmc2.ctml.util.*
+import hkmc2.ctml.util.given
 
 /** A type. */
 sealed trait Type:
   /** Get the string representation of the object. */
   override def toString: String =
-    this.showType()
+    showType(this)(using TypePrinter())
 
 /** The bottom type. */
 case object TBot extends Type
@@ -78,75 +79,4 @@ given Tree[Type] with
 /** Implementation of the `Show` trait for `Type`. */
 given Show[Type] with
   override def show(type_ : Type): String =
-    type_.showType()
-
-extension (type_ : Type)
-    /** Convert the type to its string representation. */
-  private def showType(parentOpen: Boolean = false): String =
-    val (string, selfOpen) = type_ match
-      case _: TBot =>
-        ("⊥", false)
-      case _: TTop =>
-        ("⊤", false)
-      case TVar(var_) =>
-        (var_.show, false)
-      case TTuple(left, right) =>
-        (s"⟨${left.showType(false)}, ${right.showType(false)}⟩", false)
-      case TLam(param, ret) =>
-        val components = param :: ret.getLambdaComponents()
-        (components.map(_.showType(true)).mkString(" → "), true)
-      case TUnion(left, right) =>
-        val components = left :: right.getUnionComponents()
-        (components.map(_.showType(true)).mkString(" ∨ "), true)
-      case TInter(left, right) =>
-        val components = left :: right.getInterComponents()
-        (components.map(_.showType(true)).mkString(" ∧ "), true)
-      case TApp(abs, arg) =>
-        (s"${abs.showType(false)}[${arg.showType(false)}]", false)
-      case univ: TUniv =>
-        val (vars, body) = univ.getUnivComponents()
-        (s"∀${showTypeVars(vars)}. ${body.showType(false)}", true)
-      case TConstrained(body, bounds) =>
-        (s"{${showBounds(bounds)}} ⟹ ${body.showType(false)}", true)
-      case TConstraining(body, bounds) =>
-        (s"${body.showType(false)} ⟹ {${showBounds(bounds)}}", true)
-
-    // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
-    // around it.
-    if parentOpen && selfOpen then
-      s"(${string})"
-    else
-      string
-
-  /** Get the right-recursive nested components of a lambda type. */
-  private def getLambdaComponents(): List[Type] =
-    type_ match
-      case TLam(param, ret) =>
-        param :: ret.getLambdaComponents()
-      case _ =>
-        type_ :: Nil
-
-  /** Get the right-recursive nested components of an union type. */
-  private def getUnionComponents(): List[Type] =
-    type_ match
-      case TUnion(left, right) =>
-        left :: right.getUnionComponents()
-      case _ =>
-        type_ :: Nil
-
-  /** Get the right-recursive nested components of an intersection type. */
-  private def getInterComponents(): List[Type] =
-    type_ match
-      case TInter(left, right) =>
-        left :: right.getInterComponents()
-      case _ =>
-        type_ :: Nil
-
-  /** Get the nested components of a universal type. */
-  private def getUnivComponents(): (List[TypeVar], Type) =
-    type_ match
-      case TUniv(var_, body) =>
-        val (nestedVars, nestedBody) = body.getUnivComponents()
-        (var_ :: nestedVars, nestedBody)
-      case _ =>
-        (Nil, type_)
+    showType(type_)(using TypePrinter())

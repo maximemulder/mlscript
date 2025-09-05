@@ -133,7 +133,3 @@ given Show[TypeVarKind] with
       case TypeVarKind.Class => "class"
       case TypeVarKind.Rigid => "rigid"
       case TypeVarKind.Fresh => "fresh"
-
-/** Convert a list of bounds to its string representation. */
-def showBounds(bounds: List[Bound]): String =
-  bounds.reverse.map(_.show).mkString(", ")

@@ -6,6 +6,7 @@ import hkmc2.Raise
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.abstractions.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given
 import hkmc2.ctml.util.*
@@ -36,7 +37,7 @@ class Tester(
   var ctx: Context,
   output: (String) => Unit,
   raise: (Line, FileName) ?=> (Source, String) => Unit,
-  scope: TypePrinter = TypePrinter()
+  prettyCtx: PrettyContext = PrettyContext()
 ):
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
@@ -56,7 +57,7 @@ class Tester(
         testStatement(stmt)
     catch
       case error: TypeError =>
-        raise(Source.Typing, error.getMessage())
+        raise(Source.Typing, error.prettify(prettyCtx).getMessage())
       case error: Throwable =>
         output(getStackTraceString(error))
         throw error
@@ -91,7 +92,7 @@ class Tester(
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
-    this.output(s"${name} = ${type_}")
+    this.output(s"${name} = ${type_.prettify(prettyCtx)}")
     val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(
       TypeVarDecl(var_, TypeVarKind.Rigid),
@@ -101,13 +102,13 @@ class Tester(
 
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
-    this.output(s"${name}: ${type_}")
+    this.output(s"${name}: ${type_.prettify(prettyCtx)}")
     this.ctx = this.ctx.extend(TermVarDecl(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
     val (type_, bounds) = infer(expr)(using this.ctx)
-    this.output(s"${name}: ${type_}")
+    this.output(s"${name}: ${type_.prettify(prettyCtx)}")
     this.ctx = this.ctx.extend(TermVarDecl(name, type_))
 
   /** Test an expression type inference. */
@@ -161,9 +162,9 @@ class Tester(
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =
-    this.output(showType(type_)(using this.scope))
+    this.output(type_.prettify(this.prettyCtx).show)
 
   /** Output the generated type bounds if there are some. */
   def outputClauses(clauses: Clauses) =
     if clauses != Clauses.empty then
-      this.output(clauses.show)
+      this.output(clauses.prettify(this.prettyCtx).show)

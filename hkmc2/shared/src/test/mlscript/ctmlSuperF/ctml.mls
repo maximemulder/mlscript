@@ -180,7 +180,7 @@ val f10 = choose(id, (x) => auto2(x))
 
 fun to_church(n) = if n == 0 then z else s(to_church(n - 1))
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:59)
+//│ FAILURE LOCATION: raise (test.scala:60)
 //│ ═══[ERROR] Variable 'to_church' not found in the context.
 
 val g1a = z as ChurchInt

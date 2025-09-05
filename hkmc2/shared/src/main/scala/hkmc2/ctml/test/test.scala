@@ -32,7 +32,12 @@ def test(
   tester.test(term)
   tester.ctx
 
-class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName) ?=> (Source, String) => Unit):
+class Tester(
+  var ctx: Context,
+  output: (String) => Unit,
+  raise: (Line, FileName) ?=> (Source, String) => Unit,
+  scope: TypePrinter = TypePrinter()
+):
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
@@ -156,7 +161,7 @@ class Tester(var ctx: Context, output: (String) => Unit, raise: (Line, FileName)
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =
-    this.output(type_.show)
+    this.output(showType(type_)(using this.scope))
 
   /** Output the generated type bounds if there are some. */
   def outputClauses(clauses: Clauses) =

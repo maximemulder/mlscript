@@ -12,7 +12,3 @@ case class TypeVar(val name: String):
 given Show[TypeVar] with
   override def show(var_ : TypeVar): String =
     var_.name
-
-/** Convert a list of type variables to its string representation. */
-def showTypeVars(vars: List[TypeVar]): String =
-  vars.map(_.show).mkString(", ")

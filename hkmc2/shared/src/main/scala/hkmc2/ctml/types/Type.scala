@@ -80,3 +80,81 @@ given Tree[Type] with
 given Show[Type] with
   override def show(type_ : Type): String =
     showType(type_)
+
+/** Convert the type to its string representation. */
+private def showType(type_ : Type, parentOpen: Boolean = false): String =
+  val (string, selfOpen) = type_ match
+    case _: TBot =>
+      ("⊥", false)
+    case _: TTop =>
+      ("⊤", false)
+    case TVar(var_) =>
+      (var_.show, false)
+    case TTuple(left, right) =>
+      (s"⟨${showType(left)}, ${showType(right)}⟩", false)
+    case TLam(param, ret) =>
+      val components = param :: getLambdaComponents(ret)
+      (components.map(showType(_, true)).mkString(" → "), true)
+    case TUnion(left, right) =>
+      val components = left :: getUnionComponents(right)
+      (components.map(showType(_, true)).mkString(" ∨ "), true)
+    case TInter(left, right) =>
+      val components = left :: getInterComponents(right)
+      (components.map(showType(_, true)).mkString(" ∧ "), true)
+    case TApp(abs, arg) =>
+      (s"${showType(abs)}[${showType(arg)}]", false)
+    case univ: TUniv =>
+      val (vars, body) = getUnivComponents(univ)
+      (s"∀${showTypeVars(vars)}. ${showType(body)}", true)
+    case TConstrained(body, bounds) =>
+      (s"{${showBounds(bounds)}} ⟹ ${showType(body)}", true)
+    case TConstraining(body, bounds) =>
+      (s"${showType(body)} ⟹ {${showBounds(bounds)}}", true)
+
+  // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
+  // around it.
+  if parentOpen && selfOpen then
+    s"(${string})"
+  else
+    string
+
+/** Convert a list of type variables to its string representation. */
+private def showTypeVars(vars: List[TypeVar]): String =
+  vars.map(_.name).mkString(", ")
+
+/** Convert a list of bounds to its string representation. */
+private def showBounds(bounds: List[Bound]): String =
+  bounds.reverse.map(_.show).mkString(", ")
+
+/** Get the right-recursive nested components of a lambda type. */
+private def getLambdaComponents(type_ : Type): List[Type] =
+  type_ match
+    case TLam(param, ret) =>
+      param :: getLambdaComponents(ret)
+    case _ =>
+      type_ :: Nil
+
+/** Get the right-recursive nested components of an union type. */
+private def getUnionComponents(type_ : Type): List[Type] =
+  type_ match
+    case TUnion(left, right) =>
+      left :: getUnionComponents(right)
+    case _ =>
+      type_ :: Nil
+
+/** Get the right-recursive nested components of an intersection type. */
+private def getInterComponents(type_ : Type): List[Type] =
+  type_ match
+    case TInter(left, right) =>
+      left :: getInterComponents(right)
+    case _ =>
+      type_ :: Nil
+
+/** Get the nested components of a universal type. */
+private def getUnivComponents(type_ : Type): (List[TypeVar], Type) =
+  type_ match
+    case TUniv(var_, body) =>
+      val (nestedVars, nestedBody) = getUnivComponents(body)
+      (var_ :: nestedVars, nestedBody)
+    case _ =>
+      (Nil, type_)

@@ -1,7 +1,8 @@
-package hkmc2.ctml.core.abstractions
+package hkmc2.ctml.core.type_.traits
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.type_.traits.*
 
 /** Applicator that recursively applies a combinator on the components of a type. */
 abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundsApplicator[B, P], TypeNode[T, B, P]:

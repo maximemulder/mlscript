@@ -1,9 +1,10 @@
-package hkmc2.ctml.core.abstractions
+package hkmc2.ctml.core.type_.traits
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 

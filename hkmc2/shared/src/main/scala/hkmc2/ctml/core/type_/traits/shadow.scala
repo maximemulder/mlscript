@@ -1,5 +1,6 @@
-package hkmc2.ctml.core.abstractions
+package hkmc2.ctml.core.type_.traits
 
+import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 
 /** Trait for objects that carry a type variable. */

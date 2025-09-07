@@ -1,10 +1,11 @@
-package hkmc2.ctml.core.abstractions
+package hkmc2.ctml.core.type_.impls
 
 import scala.collection.mutable.HashMap as MutMap
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.debug.output
+import hkmc2.ctml.core.type_.traits.*
 
 extension (type_ : Type)
   /** Prettify a type in a context. */

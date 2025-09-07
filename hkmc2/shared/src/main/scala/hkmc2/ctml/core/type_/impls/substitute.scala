@@ -1,12 +1,13 @@
-package hkmc2.ctml.core.type_
+package hkmc2.ctml.core.type_.impls
 
 import hkmc2.ctml.core.var_.*
-import hkmc2.ctml.core.abstractions.*
+import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
 extension (type_ : Type)
-  /** Subsitute a type variable by another type variable in the type, without simplifying the resulting type. */
+  /** Subsitute a type variable by another type variable in the type, without simplifying the
+   *  resulting type. */
   def substitute(var_ : TypeVar, substitute: TypeVar): Type =
     TypeSubstitute(type_, TypeSubstituteParams(var_, substitute))
 

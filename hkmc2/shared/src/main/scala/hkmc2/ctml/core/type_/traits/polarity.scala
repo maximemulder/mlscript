@@ -12,23 +12,23 @@ trait WithPolarity[This <: WithPolarity[This]]:
 
 /** Applicator that recursively applies a combinator on the components of a type while tracking the
  *  type polarity. */
-abstract class TypePolarityDispatcher[T[+_], B[+_], P <: WithPolarity[P]](
-  combinator: TypeCombinator[T, B, P]
-) extends TypeDispatcher[T, B, P](combinator):
+abstract class TypePolarityApplicator[T[+_], B[+_], P <: WithPolarity[P]](
+  next: TypeApplicator[T, P] & TypeNode[T, B, P]
+) extends TypeApplicator[T, P], BoundsApplicator[B, P]:
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TLam(param, ret) =>
         val pol = params.getPolarity
-        combinator.lam(
+        next.getCombinator.lam(
           first.apply(param, params.setPolarity(pol.invert())),
           first.apply(ret, params),
           params,
         )
       case _ =>
-        super.apply(type_, params)
+        next.apply(type_, params)
 
   override def apply(bounds: List[Bound], params: P): B[List[Bound]] =
-    combinator.bounds(bounds.map(bound =>
+    next.getCombinator.bounds(bounds.map(bound =>
       val pol = bound.dir match
         case Direction.Sub =>
           params.getPolarity.invert()

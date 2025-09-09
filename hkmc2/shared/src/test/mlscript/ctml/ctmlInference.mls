@@ -30,14 +30,14 @@ foo(b)
 
 :e
 foo(c)
-//│ ═══[ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → 2.
+//│ ═══[ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → α.
 //│ Typing error tree:
-//│   (A → A) ∧ (B → B) ≤ C → 2
-//│     A → A ≤ C → 2
+//│   (A → A) ∧ (B → B) ≤ C → α
+//│     A → A ≤ C → α
 //│       C ≤ A
 //│         ⊤ ≤ A
 //│           ⊤ ≤ ⊥
-//│     B → B ≤ C → 2
+//│     B → B ≤ C → α
 //│       C ≤ B
 //│         ⊤ ≤ B
 //│           ⊤ ≤ ⊥

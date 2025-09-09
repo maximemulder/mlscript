@@ -98,17 +98,17 @@ baz(bot, bot)
 
 :e
 baz(1, "World")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → 6.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → 6
+//│   Int → Int ≤ Str → α
 //│     Str ≤ Int
 //│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥
 
 :e
 baz(1, top)
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ⊤ → 8.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ⊤ → α.
 //│ Typing error tree:
-//│   Int → Int ≤ ⊤ → 8
+//│   Int → Int ≤ ⊤ → α
 //│     ⊤ ≤ Int
 //│       ⊤ ≤ ⊥

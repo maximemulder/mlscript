@@ -19,27 +19,37 @@ class TypeVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends Wit
 /** Implementation of the get type variable polarities operation. */
 object TypeVarPolarities extends TypePolarityApplicator[Const[Polarities], Const[Polarities], TypeVarPolaritiesParams](
   new TypeDispatcher[Const[Polarities], Const[Polarities], TypeVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
+    override def apply(type_ : Type, params: TypeVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], TypeVarPolaritiesParams] = this): Polarities =
+      type_ match
+        case TVar(var_) if var_ == params.var_ =>
+          Polarities.fromPolarity(params.pol)
+        case _ =>
+          super.apply(type_, params)
+
     def apply(bounds: List[Bound], params: TypeVarPolaritiesParams): Polarities =
       JoinPolaritiesMonoid.combineMany(
         bounds.map(bound =>
           val varPolarities = if bound.var_ == params.var_
             then Polarities.fromPolarity(params.pol)
             else Polarities.empty
-          val typePolarities = this.apply(bound.type_, params)
+          val pol = bound.dir match
+            case Direction.Sub =>
+              params.getPolarity.invert()
+            case Direction.Super =>
+              params.getPolarity
+          val typePolarities = TypeVarPolarities.apply(bound.type_, params.setPolarity(pol))
           Polarities.join(varPolarities, typePolarities)
         )
       )
 ):
-  override def apply(type_ : Type, params: TypeVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], TypeVarPolaritiesParams] = this): Polarities =
-    type_ match
-      case TVar(var_) if var_ == params.var_ =>
-        Polarities.fromPolarity(params.pol)
-      case _ =>
-        super.apply(type_, params)
-
   override def bound(bound: Bound, params: TypeVarPolaritiesParams): Polarities =
     val varPolarities = if bound.var_ == params.var_
       then Polarities.fromPolarity(params.pol)
       else Polarities.empty
-    val typePolarities = this.apply(bound.type_, params)
+    val pol = bound.dir match
+      case Direction.Sub =>
+        params.getPolarity.invert()
+      case Direction.Super =>
+        params.getPolarity
+    val typePolarities = TypeVarPolarities.apply(bound.type_, params.setPolarity(pol))
     Polarities.join(varPolarities, typePolarities)

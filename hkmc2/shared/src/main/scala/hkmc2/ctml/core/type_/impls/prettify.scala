@@ -51,7 +51,7 @@ extension (bound: Bound)
 
 extension (var_ : TypeVar)
   def prettify(prettyCtx: PrettyContext): TypeVar =
-    prettyCtx.getVar(var_)
+    prettyCtx.get(var_)
 
 extension (judgement: Judgment)
   def prettify(prettyCtx: PrettyContext): Judgment =
@@ -109,25 +109,23 @@ class PrettyContext(vars: MutMap[TypeVar, String] = MutMap()):
   def getNextLetter(): Option[String] =
     letters.find(!this.hasLetter(_))
 
-  /** Add a type variable to this context. */
-  def addVar(var_ : TypeVar): Unit =
+  /** Get the pretty alias of a type variable in this context. */
+  def get(var_ : TypeVar): TypeVar =
+    // Do not prettify non-fresh type variables.
     if !var_.name.matches("\\d+") then
-      return
+      return var_
 
-    if this.vars.get(var_).isDefined then
-      return
+    // Return the pretty alias of the type variable if it is already in the context.
+    this.vars.get(var_) match
+      case Some(name) =>
+        return TypeVar(name)
+      case None =>
 
+    // Add a pretty variable alias to the context if there is space remaining.
     this.getNextLetter() match
       case Some(letter) =>
         this.vars.addOne((var_, letter))
-      case None =>
-        ()
-
-  /** Get the pretty version of a type variable in this context. */
-  def getVar(var_ : TypeVar): TypeVar =
-    this.vars.get(var_) match
-      case Some(name) =>
-        TypeVar(name)
+        TypeVar(letter)
       case None =>
         var_
 
@@ -137,10 +135,8 @@ object TypePrettifier extends TypeDispatcher[Id, Id, PrettyContext](TypeIdentity
       case TVar(var_) =>
         TVar(var_.prettify(prettyCtx))
       case TUniv(var_, body) =>
-        prettyCtx.addVar(var_)
-        val prettyVar = var_.prettify(prettyCtx)
         TUniv(
-          prettyVar,
+          var_.prettify(prettyCtx),
           this.apply(body, prettyCtx),
         )
       case _ =>

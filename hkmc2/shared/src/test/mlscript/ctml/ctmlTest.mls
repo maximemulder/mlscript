@@ -12,12 +12,12 @@ foo(1, 2)
 fun bop(a, b) =
   let x = foo(a, b)
   x
-//│ bop: ∀α, β, γ, δ. {α ≤ (Int ⟹ {γ ≤ Int, 16 ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, 16 ≥ Str}), α ≥ β, β ≤ (Int ⟹ {γ ≤ Int, 16 ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, 16 ≥ Str}), γ ≤ (Int ⟹ {α ≤ Int, 16 ≥ Int}) ∨ (Str ⟹ {α ≤ Str, 16 ≥ Str}), γ ≥ δ, δ ≤ (Int ⟹ {α ≤ Int, 16 ≥ Int}) ∨ (Str ⟹ {α ≤ Str, 16 ≥ Str})} ⟹ β → δ → ((Int ⟹ {α ≤ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≤ Str}))
+//│ bop: ∀α, β, γ, δ. {α ≤ (Int ⟹ {γ ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, ε ≥ Str}), α ≥ β, β ≤ (Int ⟹ {γ ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, ε ≥ Str}), γ ≤ (Int ⟹ {α ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {α ≤ Str, ε ≥ Str}), γ ≥ δ, δ ≤ (Int ⟹ {α ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {α ≤ Str, ε ≥ Str})} ⟹ β → δ → ((Int ⟹ {α ≤ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≤ Str}))
 
 bop(0, 1)
-//│ Int ∨ (Str ⟹ {24 ≤ Str, 25 ≤ Str})
-//│ 16 ≥ Int, 16 ≥ Int, 16 ≥ Int, 16 ≥ Int
+//│ Int ∨ (Str ⟹ {β ≤ Str, α ≤ Str})
+//│ γ ≥ Int, γ ≥ Int, γ ≥ Int, γ ≥ Int
 
 bop("0", "1")
-//│ (Int ⟹ {32 ≤ Int, 33 ≤ Int}) ∨ Str
-//│ 16 ≥ Str, 16 ≥ Str, 16 ≥ Str, 16 ≥ Str
+//│ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ Str
+//│ γ ≥ Str, γ ≥ Str, γ ≥ Str, γ ≥ Str

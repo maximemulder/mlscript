@@ -9,31 +9,39 @@ id(1)
 id("Hello")
 //│ Str
 
-fun idInt(x) = (x as Int)
-//│ idInt: Int → Int
+val idInt: [T extends Int] -> T -> Int = id
+//│ idInt: ∀T. {T ≤ Int} ⟹ T → Int
 
 idInt(1)
 //│ Int
 
 :e
 idInt("Hello")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
-//│       ⊤ ≤ Int
-//│         ⊤ ≤ ⊥
+//│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α
+//│     {β ≤ Int} ⟹ β → Int ≤ Str → α
+//│       β → Int ≤ Str → α
+//│         Str ≤ β
+//│           Str ≤ Int
+//│             ⊤ ≤ Int
+//│               ⊤ ≤ ⊥
 
-// FIXME: Force new bounds on explicit type annotations ?
-:fixme
-val inc: [T extends Int] -> T -> Int = (x) => x + 1
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ∀T. {T ≤ Int} ⟹ T → Int.
+:e
+val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
+//│ ═══[ERROR] Cannot solve judgment ∀α. α → α ≤ ∀A. {A ≤ Int} ⟹ {A ≥ Str} ⟹ A → A.
 //│ Typing error tree:
-//│   Int → Int ≤ ∀T. {T ≤ Int} ⟹ T → Int
-//│     Int → Int ≤ {α ≤ Int} ⟹ α → Int
-//│       α ≤ Int
-//│         ⊤ ≤ Int
-//│           ⊤ ≤ ⊥
+//│   ∀α. α → α ≤ ∀A. {A ≤ Int} ⟹ {A ≥ Str} ⟹ A → A
+//│     ∀α. α → α ≤ {β ≤ Int} ⟹ {β ≥ Str} ⟹ β → β
+//│       γ → γ ≤ {β ≤ Int} ⟹ {β ≥ Str} ⟹ β → β
+//│         γ → γ ≤ {β ≥ Str} ⟹ β → β
+//│           Str ≤ β
+//│             Str ≤ Int
+//│               ⊤ ≤ Int
+//│                 ⊤ ≤ ⊥
+
+val inc: [T extends Int] -> T -> Int = (x) => x + 1
+//│ inc: ∀T. {T ≤ Int} ⟹ T → Int
 
 :e
 val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
@@ -42,28 +50,4 @@ val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
 //│   Str → Str ≤ Int → α
 //│     Int ≤ Str
 //│       Int ≤ ⊥
-//│         ⊤ ≤ ⊥
-
-// FIXME: Force new bounds on explicit type annotations ?
-:fixme
-val idInt: [T extends Int] -> T -> Int = (x) => x
-//│ ═══[ERROR] Cannot solve judgment ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int.
-//│ Typing error tree:
-//│   ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int
-//│     ∀α. α → α ≤ {β ≤ Int} ⟹ β → Int
-//│       γ → γ ≤ {β ≤ Int} ⟹ β → Int
-//│         β ≤ Int
-//│           ⊤ ≤ Int
-//│             ⊤ ≤ ⊥
-
-idInt(1)
-//│ Int
-
-:e
-idInt("Hello")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
-//│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
-//│       ⊤ ≤ Int
 //│         ⊤ ≤ ⊥

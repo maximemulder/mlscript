@@ -9,13 +9,13 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
-/** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction in a context. */
-def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
-  ctx.seqUnit(subtypeDir(left, right, dir), ins)
-
 /** Sequentially constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
   ctx.seqUnit(subtype(sub, sup), ins)
+
+/** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction in a context. */
+def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
+  ctx.seqUnit(subtypeDir(left, right, dir), ins)
 
 /** Sequentially constrain a type variable bound in a context. */
 def subtypeBoundSeq(bound: Bound, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
@@ -88,14 +88,20 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   // Subtyping of fresh variables in constraining mode.
 
-  if sub.isFreshVar && sup.isFreshVar then
-    return subtypeFreshVars(sub.as[TVar].var_, sup.as[TVar].var_)
+  (sub, sup) match
+    case (TVar(sub), TVar(sup)) if sub.isFresh && sup.isFresh =>
+      return subtypeFreshVars(sub, sup)
+    case _ =>
 
-  if sub.isFreshVar then
-    return subtypeFreshVarSub(sub.as[TVar].var_, sup)
+  sub match
+    case TVar(sub) if sub.isFresh =>
+      return subtypeFreshVar(sub, sup, Direction.Sub)
+    case _ =>
 
-  if sup.isFreshVar then
-    return subtypeFreshVarSup(sup.as[TVar].var_, sub)
+  sup match
+    case TVar(sup) if sup.isFresh =>
+      return subtypeFreshVar(sup, sub, Direction.Super)
+    case _ =>
 
   // Subtyping of union and intersection types.
 
@@ -134,59 +140,59 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of rigid variables or fresh variables in checking mode.
 
   (sub, sup) match
-    case (subVar: TVar, supVar: TVar) =>
-      return subtypeRigidVars(subVar.var_, supVar.var_)
-    case (subVar: TVar, _) =>
-      val upperBound = ctx.getVarUpperBound(subVar.var_)
+    case (sub: TVar, sup: TVar) =>
+      return subtypeRigidVars(sub.var_, sup.var_)
+    case (sub: TVar, _) =>
+      val upperBound = ctx.getVarUpperBound(sub.var_)
       return subtype(upperBound, sup)
-    case (_, supVar: TVar) =>
-      val lowerBound = ctx.getVarLowerBound(supVar.var_)
+    case (_, sup: TVar) =>
+      val lowerBound = ctx.getVarLowerBound(sup.var_)
       return subtype(sub, lowerBound)
     case (_, _) =>
 
   // Subtyping of universal types.
 
   sup match
-    case supUniv: TUniv =>
-      return subtypeUnivSup(sub, supUniv)
+    case sup: TUniv =>
+      return subtypeUnivSup(sub, sup)
     case _ =>
 
   sub match
-    case subUniv: TUniv =>
-      return subtypeUnivSub(subUniv, sup)
+    case sub: TUniv =>
+      return subtypeUnivSub(sub, sup)
     case _ =>
 
   // Subtyping of constrained types.
 
-  sup match
-    case supConstrained: TConstrained =>
-      return subtypeConstrainedSup(sub, supConstrained)
+  sub match
+    case sub: TConstrained =>
+      return subtypeConstrained(sub, sup, Direction.Sub)
     case _ =>
 
-  sub match
-    case subConstrained: TConstrained =>
-      return subtypeConstrainedSub(subConstrained, sup)
+  sup match
+    case sup: TConstrained =>
+      return subtypeConstrained(sup, sub, Direction.Super)
     case _ =>
 
   // Subtyping of tuple types.
 
   (sub, sup) match
-    case (subTuple: TTuple, supTuple: TTuple) =>
-      return subtypeTuple(subTuple, supTuple)
+    case (sub: TTuple, sup: TTuple) =>
+      return subtypeTuple(sub, sup)
     case _ =>
 
   // Subtyping of lambda types.
 
   (sub, sup) match
-    case (subLam: TLam, supLam: TLam) =>
-      return subtypeLam(subLam, supLam)
+    case (sub: TLam, sup: TLam) =>
+      return subtypeLam(sub, sup)
     case _ =>
 
   // Subtyping of type applications.
 
   (sub, sup) match
-    case (subApp: TApp, supApp: TApp) =>
-      return subtypeApp(subApp, supApp)
+    case (sub: TApp, sup: TApp) =>
+      return subtypeApp(sub, sup)
     case _ =>
 
   throw TypeError()
@@ -200,18 +206,11 @@ def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
     case Order.Equal =>
       Clauses.empty
     case Order.Lesser =>
-      subtypeFreshVarSup(sup, TVar(sub))
+      subtypeFreshVar(sup, TVar(sub), Direction.Super)
     case Order.Greater =>
-      subtypeFreshVarSub(sub, TVar(sup))
+      subtypeFreshVar(sub, TVar(sup), Direction.Sub)
 
-/** Constrain a type variable to be subtype of a type. */
-def subtypeFreshVarSub(var_ : TypeVar, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  subtypeFreshVar(var_, sup, Direction.Sub)
-
-/** Constrain a type variable to be supertype of a type. */
-def subtypeFreshVarSup(var_ : TypeVar, sub: Type)(using ctx: Context, mode: Mode): Clauses =
-  subtypeFreshVar(var_, sub, Direction.Super)
-
+/** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFreshVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =
   val boundType = ctx.getVarBound(var_, dir)
   val boundCombinedType = combine(boundType, type_, dir)
@@ -243,15 +242,10 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Claus
   val freshSup = sup.freshen()
   subtypeSeq(sub, freshSup.body, declRigidVar(freshSup.var_).asClauses)
 
-/** Constrain a constrained type to be a subtype of another type. */
-def subtypeConstrainedSub(sub: TConstrained, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val outs = sub.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
-  subtypeSeq(sub.body, sup, outs)
-
-/** Constrain a type to be a subtype of a constrained type. */
-def subtypeConstrainedSup(sub: Type, sup: TConstrained)(using ctx: Context, mode: Mode): Clauses =
-  val outs = sup.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
-  subtypeSeq(sub, sup.body, outs)
+/** Constrain a constrained type to be a subtype or supertype of another type. */
+def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =
+  val clauses = constrained.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
+  subtypeDirSeq(constrained.body, type_, dir, clauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: Mode): Clauses =

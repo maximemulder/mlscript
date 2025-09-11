@@ -43,6 +43,9 @@ val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
 //│ inc: ∀T. {T ≤ Int} ⟹ T → Int
 
+inc(1)
+//│ Int
+
 :e
 val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
 //│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → α.

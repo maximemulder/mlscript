@@ -24,11 +24,15 @@ val int    : Int
 val num    : Num
 val string : Str
 
-val fix: [A] -> (A -> A) -> A
+val _if_: [A] -> Bool -> A -> A -> A
+val fix:  [A] -> (A -> A) -> A
 
 val (+):  Int -> Int -> Int
 val (-):  Int -> Int -> Int
 val (++): Str -> Str -> Str
+val (==): [A] -> A -> A -> Bool
+val (&&): Bool -> Bool -> Bool
+val (||): Bool -> Bool -> Bool
 
 // SuperF test suite specific terms.
 

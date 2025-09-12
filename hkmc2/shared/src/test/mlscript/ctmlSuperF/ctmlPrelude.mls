@@ -24,6 +24,12 @@ val int    : Int
 val num    : Num
 val string : Str
 
+val fix: [A] -> (A -> A) -> A
+
+val (+):  Int -> Int -> Int
+val (-):  Int -> Int -> Int
+val (++): Str -> Str -> Str
+
 // SuperF test suite specific terms.
 
 declare class List[A]

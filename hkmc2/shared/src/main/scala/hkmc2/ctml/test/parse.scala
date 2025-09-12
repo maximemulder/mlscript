@@ -16,11 +16,25 @@ import hkmc2.semantics.QuantVar
 import hkmc2.semantics.Spd
 import hkmc2.semantics.Split
 import hkmc2.semantics.Statement
+import hkmc2.semantics.Symbol
 import hkmc2.semantics.Term
 import hkmc2.semantics.TermDefinition
 import hkmc2.semantics.TypeAliasSymbol
 import hkmc2.semantics.TypeDef
 import hkmc2.syntax.Tree
+import hkmc2.ctml.core.debug.output
+
+/** Check whether a MLScript term contains a given symbol. */
+def constainsSymbol(mlTerm: Term, mlSymbol: Symbol): Boolean =
+  mlTerm match
+    case Term.Ref(mlTermSymbol) if mlTermSymbol == mlSymbol =>
+      true
+    case _ =>
+      mlTerm.subTerms.exists(constainsSymbol(_, mlSymbol))
+
+/** Wrap a recursive term in a fixed-point combinator. */
+def wrapRecursive(name: String, expr: Expr): Expr =
+  EApp(EVar("fix"), ELam(name, expr))
 
 /** Convert an MLScript block to CTML statements. */
 def parseStmts(mlStmts: Term): List[Stmt] =
@@ -101,7 +115,12 @@ def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
 def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType.map(parseType(_))
-  val expr = parseExprVarBody(mlParams, mlType, mlExpr)
+  var expr = parseExprVarBody(mlParams, mlType, mlExpr)
+
+  // If the term is recursive, wrap it in a fixed-point combinator.
+  if constainsSymbol(mlExpr, mlSymbol) then
+    expr = wrapRecursive(name, expr)
+
   StmtExprVar(name, expr)
 
 /** Convert an MLScript term declaration to a CTML expression body. */

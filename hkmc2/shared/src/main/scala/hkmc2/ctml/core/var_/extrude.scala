@@ -33,7 +33,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
           (type_, Clauses.empty)
         case TypeVarKind.Rigid =>
           extrudeRigidVar(var_)
-        case TypeVarKind.Fresh =>
+        case TypeVarKind.Flex =>
           extrudeFreshVar(var_)
     case TBot | TTop | TVar(_) =>
       (type_, Clauses.empty)

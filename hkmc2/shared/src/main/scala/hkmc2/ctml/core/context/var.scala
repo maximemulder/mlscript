@@ -11,7 +11,7 @@ extension (ctx: Context)
   def flexify(var_ : TypeVar): Context =
     Context(ctx.clauses.map(_ match
       case TypeVarDecl(ctxvar, TypeVarKind.Rigid) if ctxvar == var_ =>
-        TypeVarDecl(var_, TypeVarKind.Fresh)
+        TypeVarDecl(var_, TypeVarKind.Flex)
       case clause =>
         clause
     ))
@@ -97,7 +97,7 @@ extension (var_ : TypeVar)(using ctx: Context)
 
   /** Check whether the type variable is a fresh type variable. */
   def isFresh: Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Fresh
+    ctx.getTypeVarKind(var_) == TypeVarKind.Flex
 
   /** Check whether the type variable is a rigid type variable. */
   def isRigid: Boolean =

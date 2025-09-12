@@ -1,0 +1,24 @@
+:ctml
+
+fun fibonacci(n) =
+  if n == 0 || n == 1 then
+    n
+  else
+    fibonacci(n - 2) + fibonacci(n - 1)
+//│ fibonacci: Int → Int
+
+fun zero(i) =
+  if i == 0
+    then i
+    else zero(i - 1)
+//│ zero: Int → Int
+
+val infinite = infinite + 1
+//│ infinite: Int
+
+fun id(x) =
+  id(x)
+//│ id: ⊤ → ⊥
+
+val never = never
+//│ never: ⊥

@@ -86,7 +86,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   if sup.is[TTop] then
     return Clauses.empty
 
-  // Subtyping of fresh variables in constraining mode.
+  // Subtyping of flexible type variables.
 
   (sub, sup) match
     case (TVar(sub), TVar(sup)) if sub.isFresh && sup.isFresh =>
@@ -137,7 +137,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
       )
     case _ =>
 
-  // Subtyping of rigid variables or fresh variables in checking mode.
+  // Subtyping of rigid type variables.
 
   (sub, sup) match
     case (sub: TVar, sup: TVar) =>
@@ -235,12 +235,14 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: Mode): Clauses =
   val freshSub = sub.freshen()
-  subtypeSeq(freshSub.body, sup, declFreshVar(freshSub.var_).asClauses)
+  given Context = ctx.extend(declFlexVar(freshSub.var_))
+  subtype(freshSub.body, sup)
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Clauses =
   val freshSup = sup.freshen()
-  subtypeSeq(sub, freshSup.body, declRigidVar(freshSup.var_).asClauses)
+  given Context = ctx.extend(declRigidVar(freshSup.var_))
+  subtype(sub, freshSup.body)
 
 /** Constrain a constrained type to be a subtype or supertype of another type. */
 def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =

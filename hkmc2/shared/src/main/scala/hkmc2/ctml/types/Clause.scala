@@ -84,8 +84,8 @@ enum TypeVarKind:
   case Class
   /** A rigid type variable, whose bounds cannot be refined during type checking. */
   case Rigid
-  /** A rigid type variable, whose bounds may be refined during type checking. */
-  case Fresh
+  /** A flexible type variable, whose bounds may be refined during type checking. */
+  case Flex
 
   /** Get the string representation of the object. */
   override def toString: String =
@@ -132,4 +132,4 @@ given Show[TypeVarKind] with
     kind match
       case TypeVarKind.Class => "class"
       case TypeVarKind.Rigid => "rigid"
-      case TypeVarKind.Fresh => "fresh"
+      case TypeVarKind.Flex  => "flex"

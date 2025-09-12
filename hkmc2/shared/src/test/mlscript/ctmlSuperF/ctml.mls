@@ -178,10 +178,9 @@ val f10 = choose(id, (x) => auto2(x))
 //│ f10: ∀α. (∀A. A → A) → α → α
 // OK
 
-fun to_church(n) = if n == 0 then z else s(to_church(n - 1))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:60)
-//│ ═══[ERROR] Variable 'to_church' not found in the context.
+val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
+//│ toChurch: ∀α, β. Int → ((∀γ. ⊤ → γ → γ) ∨ (((β ∨ α) → α) → β → α))
+// OK
 
 val g1a = z as ChurchInt
 //│ g1a: ChurchInt
@@ -208,19 +207,21 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 
 val g7 = (s(s(z)))(s(s(z)))
 //│ g7: ∀α, β, γ, δ. ((β → (α ∧ γ)) ∧ ((γ ∨ δ) → β)) → δ → α
+// OK (could be simplified)
+
+val g8 = toChurch
+//│ g8: ∀α, β. Int → ((∀γ. ⊤ → γ → γ) ∨ (((β ∨ α) → α) → β → α))
 // MAYBE
 
-// val g8 = to_church
-// TODO
-
-// val g8a = to_church : ((Int) -> ChurchInt)
-// TODO
+val g8a = toChurch as ((Int) -> ChurchInt)
+//│ g8a: Int → ChurchInt
+// OK
 
 // fun g9(x) = if true then x else g9(g9)(x)
-// TODO
+// NOT OK (infinite recursion)
 
 // val g10 = ((x) => x(x))((x) => x(x))
-// TODO
+// NOT OK (infinite recursion)
 
 val g11 = auto(auto2(id))
 //│ g11: ∀A. A → A

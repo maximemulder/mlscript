@@ -12,7 +12,7 @@ trait WithTypeVar[This <: WithTypeVar[This]]:
 
 /** Handle variable shadowing while applying a transformation on a type. */
 trait TypeShadowApplicator[T[+_], P <: WithTypeVar[P]](
-  next: TypeApplicator[T, P]
+  val next: TypeApplicator[T, P]
 ) extends TypeApplicator[T, P]:
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match

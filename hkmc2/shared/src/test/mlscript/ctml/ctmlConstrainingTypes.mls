@@ -76,19 +76,19 @@ bar(true, true)
 
 foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 //│ (Int → Int → Int) ∧ (Str → Str → Str)
-//│ α ≤ Str, β ≥ Str, α ≥ Str, β ≤ Str, γ ≥ Str, α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α fresh, β fresh, γ fresh, δ ≤ Int, ε ≥ Int, δ ≥ Int, ε ≤ Int, ζ ≥ Int, δ ≥ (Int ⟹ {ζ ≤ Int, ε ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, ε ≤ Str}), ε ≤ (Int ⟹ {ζ ≤ Int, δ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, δ ≥ Str}), ζ ≤ (Int ⟹ {ε ≤ Int, δ ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, δ ≥ Str}), δ fresh, ε fresh, ζ fresh
+//│ α ≤ Str, β ≥ Str, α ≥ Str, β ≤ Str, γ ≥ Str, α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α flex, β flex, γ flex, δ ≤ Int, ε ≥ Int, δ ≥ Int, ε ≤ Int, ζ ≥ Int, δ ≥ (Int ⟹ {ζ ≤ Int, ε ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, ε ≤ Str}), ε ≤ (Int ⟹ {ζ ≤ Int, δ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, δ ≥ Str}), ζ ≤ (Int ⟹ {ε ≤ Int, δ ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, δ ≥ Str}), δ flex, ε flex, ζ flex
 
 foo as (Int -> Int -> Int)
 //│ Int → Int → Int
-//│ α ≤ Int, β ≥ Int, α ≥ Int, β ≤ Int, γ ≥ Int, α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α fresh, β fresh, γ fresh
+//│ α ≤ Int, β ≥ Int, α ≥ Int, β ≤ Int, γ ≥ Int, α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α flex, β flex, γ flex
 
 foo as (Str -> Str -> Str)
 //│ Str → Str → Str
-//│ α ≤ Str, β ≥ Str, α ≥ Str, β ≤ Str, γ ≥ Str, α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α fresh, β fresh, γ fresh
+//│ α ≤ Str, β ≥ Str, α ≥ Str, β ≤ Str, γ ≥ Str, α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α flex, β flex, γ flex
 
 foo as (Bot -> Bot -> Top)
 //│ ⊥ → ⊥ → ⊤
-//│ α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α fresh, β fresh, γ fresh
+//│ α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≤ Int, α ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, α ≥ Str}), γ ≤ (Int ⟹ {β ≤ Int, α ≥ Int}) ∨ (Str ⟹ {β ≤ Str, α ≥ Str}), α flex, β flex, γ flex
 
 :e
 foo as (Bool -> Bool -> Bool)

@@ -18,6 +18,7 @@ private class GetVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) exte
   def setTypeVar(var_ : TypeVar): GetVarPolaritiesParams = GetVarPolaritiesParams(var_, pol)
 
   def getPolarity = pol
+
   def setPolarity(pol: Polarity) = GetVarPolaritiesParams(var_, pol)
 
 /** Shadowing mode of the "get type variable polarities" operation. */

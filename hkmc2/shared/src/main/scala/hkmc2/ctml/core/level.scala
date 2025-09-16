@@ -38,6 +38,10 @@ extension (ctx: Context)
     if levelVars == Nil then
       return (type_, outs)
 
+    val typeVars = type_.getVars()(using ctx.extend(outs))
+    typeVars.filter(levelVars.contains(_))
+    // Until no progress is made ???
+
     // Ignore, inline, or add constraints for each type variables of this level.
     val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, to) =>
       ctx.processLevelVar(to._1, var_, levelVars.toSet, to._2)
@@ -55,8 +59,8 @@ extension (ctx: Context)
     given Context = fullCtx
 
     // Ignore type variables that are not directly or indirectly used by the type inferred.
-    if !type_.usesVar(var_) then
-      return ignoreVar(type_, var_, outs)
+    // if !type_.usesVar(var_) then
+    //   return ignoreVar(type_, var_, outs)
 
     val lowerBound = fullCtx.getVarLowerBound(var_)
     val upperBound = fullCtx.getVarUpperBound(var_)

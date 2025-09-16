@@ -53,6 +53,11 @@ extension (ctx: Context)
   def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[TypeVar], outs: Clauses): (Type, Clauses) =
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
+
+    // Ignore type variables that are not directly or indirectly used by the type inferred.
+    if !type_.usesVar(var_) then
+      return ignoreVar(type_, var_, outs)
+
     val lowerBound = fullCtx.getVarLowerBound(var_)
     val upperBound = fullCtx.getVarUpperBound(var_)
     val polarities = type_.getVarPolarities(var_)

@@ -225,9 +225,9 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀α, β, γ. {α ≤ α → β, α ≥ ∀A, B. A → ⊤ → A, β ≥ ⊤ → α, γ ≤ γ → δ, γ ≥ ∀A. A → A} ⟹ β
+//│ g12: ∀α, β. {α ≤ α → β, α ≥ ∀A, B. A → B → A, β ≥ ⊤ → α} ⟹ β
 // MAYBE
-// Technically ok, but the type could be simplified and there is a variable leak.
+// Technically ok, but the type could be simplified.
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
 //│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩

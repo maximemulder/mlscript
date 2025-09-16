@@ -5,7 +5,7 @@ import scala.util.boundary.break
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.util.given
@@ -32,5 +32,5 @@ extension (ctx: Context)
   /** Check whether a type variable is recursive, that is, whether it appears in its own bounds. */
   def isVarRecursive(var_ : TypeVar): Boolean =
     ctx.varBounds(var_)
-      .map((bound) => bound.type_.hasVar(var_))
+      .map((bound) => bound.type_.containsVar(var_))
       .foldM()(using AnyMonoid)

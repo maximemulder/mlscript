@@ -1,5 +1,6 @@
 package hkmc2.ctml.core.type_
 
+import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 
 extension (clauses: Clauses)
@@ -11,7 +12,7 @@ extension (clause: Clause)
   /** Get the list of type variables that directly depend on another type variable in the clause. */
   def getDependentVars(var_ : TypeVar): Set[TypeVar] =
     clause match
-      case Bound(boundVar, _ ,boundType) if boundVar != var_ && boundType.hasVar(var_) =>
+      case Bound(boundVar, _ ,boundType) if boundVar != var_ && boundType.containsVar(var_) =>
         Set(boundVar)
       case _ =>
         Set.empty

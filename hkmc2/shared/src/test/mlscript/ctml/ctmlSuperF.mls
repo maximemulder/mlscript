@@ -1,5 +1,73 @@
 :ctml
 
+// SuperF test suite definitions.
+
+declare class List[A]
+declare class ST[S, A]
+declare type ChurchInt = [A] -> (A -> A) -> (A -> A)
+//│ ChurchInt = ∀A. (A → A) → A → A
+
+declare fun head: [A] -> List[A] -> A
+declare fun tail: [A] -> List[A] -> List[A]
+declare fun nil: [A] -> List[A]
+declare fun cons: [A] -> A -> List[A] -> List[A]
+declare fun single: [A] -> A -> List[A]
+declare fun append: [A] -> List[A] -> List[A] -> List[A]
+declare fun length: [A] -> List[A] -> Int
+//│ head: ∀A. List[A] → A
+//│ tail: ∀A. List[A] → List[A]
+//│ nil: ∀A. List[A]
+//│ cons: ∀A. A → List[A] → List[A]
+//│ single: ∀A. A → List[A]
+//│ append: ∀A. List[A] → List[A] → List[A]
+//│ length: ∀A. List[A] → Int
+
+declare fun const: [A, B] -> A -> B -> A
+declare fun id: [A] -> A -> A
+declare fun ids: List[[A] -> A -> A]
+declare fun inc: Int -> Int
+declare fun choose: [A] -> A -> A -> A
+declare fun poly: ([A] -> A -> A) -> (Int, Bool)
+declare fun fst: [A, B] -> ((A, B)) -> A
+//│ const: ∀A, B. A → B → A
+//│ id: ∀A. A → A
+//│ ids: List[∀A. A → A]
+//│ inc: Int → Int
+//│ choose: ∀A. A → A → A
+//│ poly: (∀A. A → A) → ⟨Int, Bool⟩
+//│ fst: ∀A, B. ⟨A, B⟩ → A
+
+declare fun auto: ([A] -> A -> A) -> ([A] -> A -> A)
+declare fun auto2: [B] -> ([A] -> A -> A) -> (B -> B)
+//│ auto: (∀A. A → A) → (∀A. A → A)
+//│ auto2: ∀B. (∀A. A → A) → B → B
+
+declare fun map: [A, B] -> (A -> B) -> List[A] -> List[B]
+declare fun app: [A, B] -> (A -> B) -> A -> B
+declare fun revapp: [A, B] -> (A) -> (A -> B) -> B
+//│ map: ∀A, B. (A → B) → List[A] → List[B]
+//│ app: ∀A, B. (A → B) → A → B
+//│ revapp: ∀A, B. A → (A → B) → B
+
+declare fun runST: [A] -> ([S] -> ST[S, A]) -> A
+declare fun argST: [S] -> (ST[S, Int])
+//│ runST: ∀A. (∀S. ST[S][A]) → A
+//│ argST: ∀S. ST[S][Int]
+
+declare fun zero: ChurchInt
+declare fun succ: ChurchInt -> ChurchInt
+//│ zero: ChurchInt
+//│ succ: ChurchInt → ChurchInt
+
+val z = (f, x) => x
+val s = (n, f, x) => f(n(f, x))
+val n3 = s(s(s(z)))
+//│ z: ∀α. ⊤ → α → α
+//│ s: ∀β, γ, δ, ε. {β ≤ ε → γ} ⟹ (β → δ → ε) → β → δ → γ
+//│ n3: ∀ζ, η, θ, ι. ((η → ζ) ∧ (θ → η) ∧ (ι → θ)) → ι → ζ
+
+// SuperF test suite terms.
+
 declare fun f: [A] -> ((A) -> A) -> List[A] -> A
 //│ f: ∀A. (A → A) → List[A] → A
 
@@ -226,8 +294,7 @@ val g12 = ((y) =>
     y(const)
 ) ((x) => x(x))
 //│ g12: ∀α, β. {α ≤ α → β, α ≥ ∀A, B. A → B → A, β ≥ ⊤ → α} ⟹ β
-// MAYBE
-// Technically ok, but the type could be simplified.
+// OK (however, the type could be simplified)
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
 //│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩

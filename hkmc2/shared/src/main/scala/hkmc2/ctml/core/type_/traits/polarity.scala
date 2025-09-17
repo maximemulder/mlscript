@@ -14,7 +14,9 @@ trait WithPolarity[This <: WithPolarity[This]]:
  *  type polarity. */
 abstract class TypePolarityApplicator[T[+_], B[+_], P <: WithPolarity[P]](
   next: TypeApplicator[T, P] & TypeNode[T, B, P]
-) extends TypeApplicator[T, P], BoundsApplicator[B, P]:
+) extends TypeApplicator[T, P], BoundsApplicator[B, P], TypeNode[T, B, P]:
+  override def getCombinator: TypeCombinator[T, B, P] = next.getCombinator
+
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TLam(param, ret) =>

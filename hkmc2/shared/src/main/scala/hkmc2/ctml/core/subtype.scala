@@ -89,17 +89,17 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of flexible type variables.
 
   (sub, sup) match
-    case (TVar(sub), TVar(sup)) if sub.isFresh && sup.isFresh =>
+    case (TVar(sub), TVar(sup)) if sub.isFlex && sup.isFlex =>
       return subtypeFreshVars(sub, sup)
     case _ =>
 
   sub match
-    case TVar(sub) if sub.isFresh =>
+    case TVar(sub) if sub.isFlex =>
       return subtypeFreshVar(sub, sup, Direction.Sub)
     case _ =>
 
   sup match
-    case TVar(sup) if sup.isFresh =>
+    case TVar(sup) if sup.isFlex =>
       return subtypeFreshVar(sup, sub, Direction.Super)
     case _ =>
 

@@ -17,18 +17,16 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}))
+//│ baz: ∀α, β, γ. {γ ≤ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}))
 
 baz(1, 1)
 //│ (Int ⟹ {α ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})
-//│ γ ≥ Int
 
 baz("", "")
 //│ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ (Str ⟹ {β ≤ Str})
-//│ γ ≥ Str
 
 baz(bot, bot)
-//│ ∀α, β. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})} ⟹ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})
+//│ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ (Str ⟹ {β ≤ Str, α ≤ Str})
 
 :e
 baz(1, "")
@@ -44,19 +42,20 @@ baz(1, "")
 
 :e
 baz(true, false)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Bool → δ.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {γ ≤ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Bool → δ.
 //│ Typing error tree:
-//│   ∀α, β. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Bool → δ
-//│     ∀β. {ε ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {ε ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, γ ≥ Str})} ⟹ ε → β → ((Int ⟹ {ε ≤ Int, β ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, β ≤ Str})) ≤ Bool → δ
-//│       {ε ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), ζ ≤ (Int ⟹ {ε ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, γ ≥ Str})} ⟹ ε → ζ → ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str})) ≤ Bool → δ
-//│         ε → ζ → ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str})) ≤ Bool → δ
-//│           Bool ≤ ε
-//│             Bool ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str})
-//│               Bool ≤ Int ⟹ {ζ ≤ Int, γ ≥ Int}
-//│                 Bool ≤ Int
-//│                   Bool ≤ ⊥
-//│                     ⊤ ≤ ⊥
-//│               Bool ≤ Str ⟹ {ζ ≤ Str, γ ≥ Str}
-//│                 Bool ≤ Str
-//│                   Bool ≤ ⊥
-//│                     ⊤ ≤ ⊥
+//│   ∀α, β, γ. {γ ≤ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ α → β → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Bool → δ
+//│     ∀β, γ. {γ ≤ (Int ⟹ {ε ≤ Int, β ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {ε ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, γ ≥ Str}), ε ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ ε → β → ((Int ⟹ {ε ≤ Int, β ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, β ≤ Str})) ≤ Bool → δ
+//│       ∀γ. {γ ≤ (Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str}), ζ ≤ (Int ⟹ {ε ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, γ ≥ Str}), ε ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str})} ⟹ ε → ζ → ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str})) ≤ Bool → δ
+//│         {η ≤ (Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str}), ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (Str ⟹ {ε ≤ Str, η ≥ Str}), ε ≤ (Int ⟹ {ζ ≤ Int, η ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, η ≥ Str})} ⟹ ε → ζ → ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str})) ≤ Bool → δ
+//│           ε → ζ → ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≤ Str, ζ ≤ Str})) ≤ Bool → δ
+//│             Bool ≤ ε
+//│               Bool ≤ (Int ⟹ {ζ ≤ Int, η ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, η ≥ Str})
+//│                 Bool ≤ Int ⟹ {ζ ≤ Int, η ≥ Int}
+//│                   Bool ≤ Int
+//│                     Bool ≤ ⊥
+//│                       ⊤ ≤ ⊥
+//│                 Bool ≤ Str ⟹ {ζ ≤ Str, η ≥ Str}
+//│                   Bool ≤ Str
+//│                     Bool ≤ ⊥
+//│                       ⊤ ≤ ⊥

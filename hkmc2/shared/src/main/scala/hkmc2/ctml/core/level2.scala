@@ -155,9 +155,10 @@ def inlineVar(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ct
 
 /** Implementation of `inlineVar`. */
 def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  given Context = ctx.extend(outs)
   (
-    type_.inline(var_, bound),
-    outs.mapBounds(b => Bound(b.var_, b.dir, b.type_.inline(var_, bound))).removeTypeVar(var_),
+    type_.inline(var_),
+    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))).removeTypeVar(var_),
   )
 
 /** Ignore a type variable in a type. */
@@ -168,7 +169,7 @@ def ignoreVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): 
 def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   (
     type_,
-    outs.removeTypeVar(var_),
+    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))).removeTypeVar(var_),
   )
 
 /** Quantify a type variable in a type. */

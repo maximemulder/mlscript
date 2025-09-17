@@ -15,6 +15,12 @@ enum Direction:
       case Sub   => Super
       case Super => Sub
 
+  /** The type polarity relevant to the subtyping direction. */
+  def pol: Polarity =
+    this match
+      case Sub   => Polarity.Negative
+      case Super => Polarity.Positive
+
   /** Get the string representation of the object. */
   override def toString: String =
     this.show

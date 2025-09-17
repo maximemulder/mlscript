@@ -88,7 +88,7 @@ fun a4(x) = x(x)
 // OK
 
 val a5 = id(auto)
-//│ a5: (∀A. A → A) → (∀A. A → A)
+//│ a5: ∀A. (∀A. A → A) → A → A
 // OK
 
 val a6 = id(auto2)
@@ -96,7 +96,7 @@ val a6 = id(auto2)
 // OK
 
 val a7 = choose(id, auto)
-//│ a7: (∀A. A → A) → (∀A. A → A)
+//│ a7: ∀A. (∀A. A → A) → A → A
 // OK
 
 val a8 = choose(id, auto2)
@@ -294,7 +294,7 @@ val g12 = ((y) =>
     y(const)
 ) ((x) => x(x))
 //│ g12: ∀A, B. ⊤ → A → B → A
-// OK (however, the type could be simplified)
+// OK
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
 //│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩

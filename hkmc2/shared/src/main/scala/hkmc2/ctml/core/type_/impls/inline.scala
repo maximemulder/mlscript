@@ -4,42 +4,52 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.core.context.getVarBound
+import hkmc2.ctml.core.debug.output
 
 extension (type_ : Type)
   /** Replace a type variable by a substitute type in a type, simplifying the resulting type if
       possible. */
-  def inline(var_ : TypeVar, substitute: Type)(using ctx: Context): Type =
-    TypeInline(type_, TypeInlineParams(var_, substitute, ctx))
+  def inline(var_ : TypeVar)(using ctx: Context): Type =
+    TypeInline1(type_, TypeInlineParams(var_, Polarity.Positive, ctx))
 
 /** Parameters of the type variable inlining operation. */
 class TypeInlineParams(
   val var_ : TypeVar,
-  val substitute: Type,
+  val pol: Polarity,
   val ctx: Context,
-) extends WithContext[TypeInlineParams], WithTypeVar[TypeInlineParams]:
+) extends WithContext[TypeInlineParams], WithPolarity[TypeInlineParams], WithTypeVar[TypeInlineParams]:
   def getContext = ctx
-  def setContext(ctx: Context) = TypeInlineParams(var_, substitute, ctx)
+  def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx)
+  def getPolarity = pol
+  def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx)
   def getTypeVar = var_
-  def setTypeVar(var_ : TypeVar) = TypeInlineParams(var_, substitute, ctx)
+  def setTypeVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx)
 
 /** Implementation of the type variable inlining operation. */
-object TypeInline extends TypeShadowApplicator[Const[Type], TypeInlineParams](
-  TypeContextApplicator[Const[Type], TypeInlineParams](
-    new TypeDispatcher[Const[Type], Id, TypeInlineParams](
-      TypeSimplifyCombinator[TypeInlineParams]
-    ):
-      override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
-        type_ match
-          case TVar(var_) if var_ == params.var_ =>
-            params.substitute
-          case _ =>
-            super.apply(type_, params)
-
-      override def apply(bounds: List[Bound], params: TypeInlineParams): List[Bound] =
-        bounds.map(bound =>
-          Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
-        )
-  )
-):
+object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](TypeInline2):
   override def univ(univ: TUniv): Type =
     univ
+
+private object TypeInline2 extends TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3)
+
+private object TypeInline3 extends TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4) {
+  override def bound(bound: Bound, params: TypeInlineParams): Id[Bound] =
+    // output(s"POLARITY ${params.var_} ${params.pol}")
+    Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
+}
+
+private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlineParams](TypeSimplifyCombinator[TypeInlineParams]):
+  override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
+    type_ match
+      case TVar(var_) if var_ == params.var_ =>
+        // output(s"INLINE ${var_} WITH ${params.ctx.getVarBound(var_, params.pol.dir)} POL ${params.pol}")
+        params.ctx.getVarBound(var_, params.pol.dir)
+      case _ =>
+        super.apply(type_, params)
+
+  override def apply(bounds: List[Bound], params: TypeInlineParams): List[Bound] =
+    // output(s"DISPATCHER ${params.var_} ${params.pol}")
+    bounds.map(bound =>
+      Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
+    )

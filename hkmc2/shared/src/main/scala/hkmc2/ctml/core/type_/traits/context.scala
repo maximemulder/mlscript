@@ -16,7 +16,9 @@ trait WithContext[This <: WithContext[This]]:
 /** Handle contextual information while applying a transformation on a type. */
 class TypeContextApplicator[T[+_], P <: WithContext[P]](
   next: TypeApplicator[T, P] & BoundsApplicator[Id, P] & TypeNode[T, Id, P],
-) extends TypeApplicator[T, P]:
+) extends TypeApplicator[T, P], TypeNode[T, Id, P]:
+  def getCombinator: TypeCombinator[T, Id, P] = next.getCombinator
+
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TUniv(var_, body) =>

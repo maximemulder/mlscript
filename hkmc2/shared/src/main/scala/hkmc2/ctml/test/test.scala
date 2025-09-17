@@ -58,6 +58,7 @@ class Tester(
     catch
       case error: TypeError =>
         raise(Source.Typing, error.prettify(prettyCtx).getMessage())
+        // output(getStackTraceString(error))
       case error: Throwable =>
         output(getStackTraceString(error))
         throw error

@@ -4,7 +4,7 @@ fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo: ∀α, β, γ. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ α → β → γ
+//│ foo: ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ α → β → γ
 
 foo(1, 2)
 //│ Int
@@ -12,12 +12,26 @@ foo(1, 2)
 fun bop(a, b) =
   let x = foo(a, b)
   x
-//│ bop: ∀α, β, γ, δ. {α ≤ (Int ⟹ {γ ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, ε ≥ Str}), α ≥ β, β ≤ (Int ⟹ {γ ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, ε ≥ Str}), γ ≤ (Int ⟹ {α ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {α ≤ Str, ε ≥ Str}), γ ≥ δ, δ ≤ (Int ⟹ {α ≤ Int, ε ≥ Int}) ∨ (Str ⟹ {α ≤ Str, ε ≥ Str})} ⟹ β → δ → ((Int ⟹ {α ≤ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≤ Str}))
+//│ bop: ∀α, β, γ. {γ ≤ δ, β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), β ≥ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), α ≥ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})) → ((Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})) → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str}))
 
 bop(0, 1)
-//│ Int ∨ (Str ⟹ {β ≤ Str, α ≤ Str})
-//│ γ ≥ Int, γ ≥ Int, γ ≥ Int, γ ≥ Int
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:60)
+//│ ═══[ERROR] Type variable '12' not found in the context.
+//│ Typing error tree:
+//│   ∀α, β, γ. {γ ≤ δ, β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), β ≥ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), α ≥ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})) → ((Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})) → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Int → ε
+//│     ∀β, γ. {γ ≤ δ, β ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), β ≥ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), ζ ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), ζ ≥ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, β ≤ Str})) ≤ Int → ε
+//│       ∀γ. {γ ≤ δ, η ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), η ≥ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), ζ ≤ (Int ⟹ {η ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, γ ≥ Str}), ζ ≥ (Int ⟹ {η ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {η ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, η ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, η ≤ Str})) ≤ Int → ε
+//│         {θ ≤ δ, η ≤ (Int ⟹ {ζ ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, θ ≥ Str}), η ≥ (Int ⟹ {ζ ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, θ ≥ Str}), ζ ≤ (Int ⟹ {η ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, θ ≥ Str}), ζ ≥ (Int ⟹ {η ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, θ ≥ Str})} ⟹ ((Int ⟹ {η ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, θ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, θ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, η ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, η ≤ Str})) ≤ Int → ε
+//│           θ ≤ δ
 
 bop("0", "1")
-//│ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ Str
-//│ γ ≥ Str, γ ≥ Str, γ ≥ Str, γ ≥ Str
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:60)
+//│ ═══[ERROR] Type variable '12' not found in the context.
+//│ Typing error tree:
+//│   ∀α, β, γ. {γ ≤ δ, β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), β ≥ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), α ≥ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})) → ((Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})) → ((Int ⟹ {α ≤ Int, β ≤ Int}) ∨ (Str ⟹ {α ≤ Str, β ≤ Str})) ≤ Str → ε
+//│     ∀β, γ. {γ ≤ δ, β ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), β ≥ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), ζ ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str}), ζ ≥ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, β ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, β ≤ Str})) ≤ Str → ε
+//│       ∀γ. {γ ≤ δ, η ≤ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), η ≥ (Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str}), ζ ≤ (Int ⟹ {η ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, γ ≥ Str}), ζ ≥ (Int ⟹ {η ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, γ ≥ Str})} ⟹ ((Int ⟹ {η ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, γ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, η ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, η ≤ Str})) ≤ Str → ε
+//│         {θ ≤ δ, η ≤ (Int ⟹ {ζ ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, θ ≥ Str}), η ≥ (Int ⟹ {ζ ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, θ ≥ Str}), ζ ≤ (Int ⟹ {η ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, θ ≥ Str}), ζ ≥ (Int ⟹ {η ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, θ ≥ Str})} ⟹ ((Int ⟹ {η ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {η ≤ Str, θ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, θ ≥ Int}) ∨ (Str ⟹ {ζ ≤ Str, θ ≥ Str})) → ((Int ⟹ {ζ ≤ Int, η ≤ Int}) ∨ (Str ⟹ {ζ ≤ Str, η ≤ Str})) ≤ Str → ε
+//│           θ ≤ δ

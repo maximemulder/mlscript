@@ -41,6 +41,32 @@ extension (clauses: AsClauses)
       .map(_.type_)
 
 extension (clauses: Clauses)
+  /** Map over the clauses. */
+  def map(f: Clause => Clause): Clauses =
+    Clauses(clauses.elems.map(f))
+
+  /** Map over the bounds in the clauses. */
+  def mapBounds(f: Bound => Bound): Clauses =
+    clauses.map(_ match
+      case bound: Bound =>
+        f(bound)
+      case clause =>
+        clause
+    )
+
+  /** Filter the clauses. */
+  def filter(f: Clause => Boolean): Clauses =
+    Clauses(clauses.elems.filter(f))
+
+  /** Filter the bounds in the clauses. */
+  def filterBounds(f: Bound => Boolean): Clauses =
+    clauses.filter(_ match
+      case bound: Bound =>
+        f(bound)
+      case _ =>
+        true
+    )
+
   /** Remove the declaration and bounds of a type variable in the clauses. */
   def removeTypeVar(var_ : TypeVar): Clauses =
     clauses

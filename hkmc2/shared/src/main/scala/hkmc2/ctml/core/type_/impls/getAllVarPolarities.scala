@@ -10,11 +10,11 @@ import hkmc2.ctml.util.given
 import hkmc2.ctml.core.clauses.varBound
 
 extension (type_ : Type)
-  /** Get the polarities at which a type variable occurs in the type and its variables. */
+  /** Get the polarities at which a type variable occurs in the type and its variable bounds. */
   def getAllVarPolarities(var_ : TypeVar)(using ctx: Context): Polarities =
     GetAllVarPolarities1(type_, GetAllVarPolaritiesParams(var_, Polarity.Positive, ctx, MutSet()))
 
-/** Parameters of the get type variable polarities operation. */
+/** Parameters of the "get all type variable polarities"" operation. */
 private class GetAllVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity, val ctx: Context, val cache: MutSet[(Polarity, TypeVar)]) extends WithPolarity[GetAllVarPolaritiesParams], WithTypeVar[GetAllVarPolaritiesParams]:
   def getTypeVar: TypeVar = var_
 
@@ -24,12 +24,17 @@ private class GetAllVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity, v
 
   def setPolarity(pol: Polarity) = GetAllVarPolaritiesParams(var_, pol, ctx, cache)
 
-/** Shadowing mode of the "get type variable all polarities" operation. */
+/** Shadowing mode of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities1 extends TypeShadowApplicator[Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities2):
+  override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams]): Polarities =
+    val a = super.apply(type_, params)
+    // output(s"${params.var_} IN ${type_} AT ${params.pol} = ${a}")
+    a
+
   override def univ(univ: TUniv): Const[Polarities][Type] =
     Polarities.empty
 
-/** Polarity mode of the "get type variable all polarities" operation. */
+/** Polarity mode of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities2 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities3):
   override def bound(bound: Bound, params: GetAllVarPolaritiesParams): Polarities =
     val varPolarities = if bound.var_ == params.var_
@@ -43,7 +48,7 @@ private object GetAllVarPolarities2 extends TypePolarityApplicator[Const[Polarit
     val typePolarities = GetAllVarPolarities1.apply(bound.type_, params.setPolarity(pol))
     Polarities.join(varPolarities, typePolarities)
 
-/** Dispatching mode of the "get type variable all polarities" operation. */
+/** Dispatching mode of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities3 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
   override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams] = this): Polarities =
     type_ match

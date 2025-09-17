@@ -92,15 +92,12 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
       (var_.show, false)
     case TTuple(left, right) =>
       (s"⟨${showType(left)}, ${showType(right)}⟩", false)
-    case TLam(param, ret) =>
-      val components = param :: getLambdaComponents(ret)
-      (components.map(showType(_, true)).mkString(" → "), true)
-    case TUnion(left, right) =>
-      val components = left :: getUnionComponents(right)
-      (components.map(showType(_, true)).mkString(" ∨ "), true)
-    case TInter(left, right) =>
-      val components = left :: getInterComponents(right)
-      (components.map(showType(_, true)).mkString(" ∧ "), true)
+    case lambda: TLam =>
+      (lambda.getLambdaComponents.map(showType(_, true)).mkString(" → "), true)
+    case union: TUnion =>
+      (union.getUnionComponents.map(showType(_, true)).mkString(" ∨ "), true)
+    case inter: TInter =>
+      (inter.getInterComponents.map(showType(_, true)).mkString(" ∧ "), true)
     case TApp(abs, arg) =>
       (s"${showType(abs)}[${showType(arg)}]", false)
     case univ: TUniv =>
@@ -126,35 +123,36 @@ private def showTypeVars(vars: List[TypeVar]): String =
 private def showBounds(bounds: List[Bound]): String =
   bounds.reverse.map(_.show).mkString(", ")
 
-/** Get the right-recursive nested components of a lambda type. */
-private def getLambdaComponents(type_ : Type): List[Type] =
-  type_ match
-    case TLam(param, ret) =>
-      param :: getLambdaComponents(ret)
-    case _ =>
-      type_ :: Nil
+extension (type_ : Type)
+  /** Get the right-recursive nested lambda components of the type. */
+  def getLambdaComponents: List[Type] =
+    type_ match
+      case TLam(param, ret) =>
+        param :: ret.getLambdaComponents
+      case _ =>
+        type_ :: Nil
 
-/** Get the right-recursive nested components of an union type. */
-private def getUnionComponents(type_ : Type): List[Type] =
-  type_ match
-    case TUnion(left, right) =>
-      left :: getUnionComponents(right)
-    case _ =>
-      type_ :: Nil
+  /** Get the right-recursive nested union components of the type. */
+  def getUnionComponents: List[Type] =
+    type_ match
+      case TUnion(left, right) =>
+        left :: right.getUnionComponents
+      case _ =>
+        type_ :: Nil
 
-/** Get the right-recursive nested components of an intersection type. */
-private def getInterComponents(type_ : Type): List[Type] =
-  type_ match
-    case TInter(left, right) =>
-      left :: getInterComponents(right)
-    case _ =>
-      type_ :: Nil
+  /** Get the right-recursive nested intersection components of the type. */
+  def getInterComponents: List[Type] =
+    type_ match
+      case TInter(left, right) =>
+        left :: right.getInterComponents
+      case _ =>
+        type_ :: Nil
 
-/** Get the nested components of a universal type. */
-private def getUnivComponents(type_ : Type): (List[TypeVar], Type) =
-  type_ match
-    case TUniv(var_, body) =>
-      val (nestedVars, nestedBody) = getUnivComponents(body)
-      (var_ :: nestedVars, nestedBody)
-    case _ =>
-      (Nil, type_)
+  /** Get the nested universal components of the type. */
+  def getUnivComponents: (List[TypeVar], Type) =
+    type_ match
+      case TUniv(var_, body) =>
+        val (nestedVars, nestedBody) = body.getUnivComponents
+        (var_ :: nestedVars, nestedBody)
+      case _ =>
+        (Nil, type_)

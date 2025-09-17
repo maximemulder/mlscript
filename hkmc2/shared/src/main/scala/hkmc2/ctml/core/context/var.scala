@@ -74,11 +74,11 @@ extension (type_ : Type)(using ctx: Context)
       case _ =>
         false
 
-  /** Check whether the type is a fresh type variable. */
-  def isFreshVar: Boolean =
+  /** Check whether the type is a flexible type variable. */
+  def isFlexVar: Boolean =
     type_ match
       case TVar(var_) =>
-        var_.isFresh
+        var_.isFlex
       case _ =>
         false
 
@@ -95,13 +95,17 @@ extension (var_ : TypeVar)(using ctx: Context)
   def isClass: Boolean =
     ctx.getTypeVarKind(var_) == TypeVarKind.Class
 
-  /** Check whether the type variable is a fresh type variable. */
-  def isFresh: Boolean =
+  /** Check whether the type variable is a flexible type variable. */
+  def isFlex: Boolean =
     ctx.getTypeVarKind(var_) == TypeVarKind.Flex
 
   /** Check whether the type variable is a rigid type variable. */
   def isRigid: Boolean =
     ctx.getTypeVarKind(var_) == TypeVarKind.Rigid
+
+  /** Check whether the type variable is recursive. */
+  def isRecursive: Boolean =
+    ctx.isVarRecursive(var_)
 
 extension (univ: TUniv)
   /** Substitute the quantified variable of a universal type with a new fresh type variable. */

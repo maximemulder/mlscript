@@ -65,7 +65,7 @@ extension (ctx: Context)
     val lowerBound = fullCtx.getVarLowerBound(var_)
     val upperBound = fullCtx.getVarUpperBound(var_)
     val polarities = type_.getVarPolarities(var_)
-    if polarities == Polarities(true, true) || fullCtx.isVarConstrained(var_, levelVars) || fullCtx.isVarRecursive(var_) then
+    if polarities == Polarities(true, true) || fullCtx.isVarConstrained(var_, levelVars) || var_.isRecursive then
       quantifyVar(type_, var_, lowerBound, upperBound, outs)
     else if polarities == Polarities(true, false) then
       inlineVar(type_, var_, upperBound, outs)

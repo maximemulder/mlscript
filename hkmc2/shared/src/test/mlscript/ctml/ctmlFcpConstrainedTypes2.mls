@@ -1,0 +1,93 @@
+:ctml
+
+val f(n) =
+  n(0)
+//│ f: ∀α. (Int → α) → α
+
+:e
+f(top)
+//│ ═══[ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ ⊤ → β.
+//│ Typing error tree:
+//│   ∀α. (Int → α) → α ≤ ⊤ → β
+//│     (Int → γ) → γ ≤ ⊤ → β
+//│       ⊤ ≤ Int → γ
+
+:e
+f(top)(top)
+//│ ═══[ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ ⊤ → β.
+//│ Typing error tree:
+//│   ∀α. (Int → α) → α ≤ ⊤ → β
+//│     (Int → γ) → γ ≤ ⊤ → β
+//│       ⊤ ≤ Int → γ
+
+val f(n, m) =
+  n(0)
+//│ f: ∀α. (Int → α) → ⊤ → α
+
+:e
+f(top, top)
+//│ ═══[ERROR] Cannot solve judgment ∀α. (Int → α) → ⊤ → α ≤ ⊤ → β.
+//│ Typing error tree:
+//│   ∀α. (Int → α) → ⊤ → α ≤ ⊤ → β
+//│     (Int → γ) → ⊤ → γ ≤ ⊤ → β
+//│       ⊤ ≤ Int → γ
+
+:e
+f(top, top)
+//│ ═══[ERROR] Cannot solve judgment ∀α. (Int → α) → ⊤ → α ≤ ⊤ → β.
+//│ Typing error tree:
+//│   ∀α. (Int → α) → ⊤ → α ≤ ⊤ → β
+//│     (Int → γ) → ⊤ → γ ≤ ⊤ → β
+//│       ⊤ ≤ Int → γ
+
+:e
+val test(extr) =
+  let f = (n, m) => n(0)
+  let _ = extr(f)
+  f(0)
+//│ ═══[ERROR] Cannot solve judgment α → β ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ.
+//│ Typing error tree:
+//│   α → β ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ
+//│     ∀γ. (Int → γ) → ⊤ → γ ≤ α
+//│       ∀γ. (Int → γ) → ⊤ → γ ≤ Int → ε
+//│         (Int → ζ) → ⊤ → ζ ≤ Int → ε
+//│           Int ≤ Int → ζ
+//│             ⊤ ≤ Int → ζ
+
+:e
+val test(extr, x) =
+  let f = (n, m) => x(n(0))
+  let _ = extr(f)
+  f(0)
+//│ ═══[ERROR] Cannot solve judgment α → β ≤ ((Int → γ) → ⊤ → δ) → ε.
+//│ Typing error tree:
+//│   α → β ≤ ((Int → γ) → ⊤ → δ) → ε
+//│     (Int → γ) → ⊤ → δ ≤ α
+//│       (Int → γ) → ⊤ → δ ≤ Int → ζ
+//│         Int ≤ Int → γ
+//│           ⊤ ≤ Int → γ
+
+:e
+val test(extr, x) =
+  let f = (n, m) => x(n(0))
+  f(0)
+//│ ═══[ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ ((Int → β) → ⊤ → γ) → δ.
+//│ Typing error tree:
+//│   ∀α. (Int → α) → α ≤ ((Int → β) → ⊤ → γ) → δ
+//│     (Int → ε) → ε ≤ ((Int → β) → ⊤ → γ) → δ
+//│       (Int → β) → ⊤ → γ ≤ Int → ε
+//│         Int ≤ Int → β
+//│           ⊤ ≤ Int → β
+
+:e
+val test(extr, x) =
+  let f = (n, m) => n(x, 0)
+  f(0)
+//│ ═══[ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ.
+//│ Typing error tree:
+//│   ∀α. (Int → α) → α ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ
+//│     (Int → ε) → ε ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ
+//│       ∀β. (γ → Int → β) → ⊤ → β ≤ Int → ε
+//│         (γ → Int → ζ) → ⊤ → ζ ≤ Int → ε
+//│           Int ≤ γ → Int → ζ
+//│             ⊤ ≤ γ → Int → ζ

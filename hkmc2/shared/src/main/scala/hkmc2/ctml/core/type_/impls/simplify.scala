@@ -23,6 +23,6 @@ object TypeSimplify extends TypeContextApplicator[Const[Type], TypeSimplifyParam
   new TypeDispatcher[Const[Type], Id, TypeSimplifyParams](
     TypeSimplifyCombinator[TypeSimplifyParams]
   ):
-    override def apply(bounds: List[Bound], p: TypeSimplifyParams): Id[List[Bound]] =
-      bounds
+    override def apply(bound: Bound, p: TypeSimplifyParams): Bound =
+      bound
 )

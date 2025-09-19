@@ -35,7 +35,6 @@ private object TypeInline2 extends TypeContextApplicator[Const[Type], TypeInline
 
 private object TypeInline3 extends TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4) {
   override def bound(bound: Bound, params: TypeInlineParams): Id[Bound] =
-    // output(s"POLARITY ${params.var_} ${params.pol}")
     Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
 }
 
@@ -43,13 +42,9 @@ private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlinePar
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
-        // output(s"INLINE ${var_} WITH ${params.ctx.getVarBound(var_, params.pol.dir)} POL ${params.pol}")
         params.ctx.getVarBound(var_, params.pol.dir)
       case _ =>
         super.apply(type_, params)
 
-  override def apply(bounds: List[Bound], params: TypeInlineParams): List[Bound] =
-    // output(s"DISPATCHER ${params.var_} ${params.pol}")
-    bounds.map(bound =>
-      Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
-    )
+  override def apply(bound: Bound, params: TypeInlineParams): Bound =
+    Bound(bound.var_, bound.dir, this.apply(bound.type_, params))

@@ -142,5 +142,5 @@ object TypePrettifier extends TypeDispatcher[Id, Id, PrettyContext](TypeIdentity
       case _ =>
         super.apply(type_, prettyCtx)
 
-  override def apply(bounds: List[Bound], prettyCtx: PrettyContext): List[Bound] =
-    bounds.map(_.prettify(prettyCtx))
+  override def apply(bound: Bound, prettyCtx: PrettyContext): Bound =
+    bound.prettify(prettyCtx)

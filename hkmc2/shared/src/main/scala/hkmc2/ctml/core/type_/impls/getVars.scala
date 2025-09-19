@@ -18,7 +18,5 @@ private object GetVars extends TypeDispatcher[Const[Set[TypeVar]], Const[Set[Typ
       case _ =>
         super.apply(type_, params)
 
-  override def apply(bounds: List[Bound], params: Unit): Set[TypeVar] =
-    bounds.flatMap(bound =>
-      bound.var_ :: GetVars(bound.type_, params).toList
-    ).toSet
+  override def apply(bound: Bound, params: Unit): Set[TypeVar] =
+    GetVars(bound.type_, params)

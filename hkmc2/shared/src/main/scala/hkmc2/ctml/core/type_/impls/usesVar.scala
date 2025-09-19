@@ -77,8 +77,8 @@ private object UsesVar2 extends TypeChainApplicator[Const[Boolean], UsesVarParam
 
 /** Dispatching node of the "uses type variable" operation. */
 private object UsesVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean], UsesVarParams](UsesVar4):
-      def apply(bounds: List[Bound], params: UsesVarParams): Boolean =
-        false
+  override def apply(bound: Bound, params: UsesVarParams): Boolean =
+    false
 
 /** Monoidal combination node of the "uses type variable" operation. */
 private object UsesVar4 extends TypeMonoidCombinator[Boolean, UsesVarParams](AnyMonoid)

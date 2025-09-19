@@ -29,12 +29,10 @@ object TypeSubstitute extends TypeShadowApplicator(
         case _ =>
           super.apply(type_, params)
 
-    override def apply(bounds: List[Bound], params: TypeSubstituteParams): List[Bound] =
-      bounds.map(bound =>
-        val newVar  = this.substitute(bound.var_, params)
-        val newType = this.apply(bound.type_, params)
-        Bound(newVar, bound.dir, newType)
-      )
+    override def apply(bound: Bound, params: TypeSubstituteParams): Bound =
+      val newVar  = this.substitute(bound.var_, params)
+      val newType = this.apply(bound.type_, params)
+      Bound(newVar, bound.dir, newType)
 
     def substitute(var_ : TypeVar, params: TypeSubstituteParams): TypeVar =
         if var_ == params.var_ then

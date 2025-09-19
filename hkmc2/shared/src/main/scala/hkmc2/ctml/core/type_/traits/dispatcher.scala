@@ -3,6 +3,7 @@ package hkmc2.ctml.core.type_.traits
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.traits.*
+import hkmc2.syntax.Keyword.`override`
 
 /** Applicator that recursively applies a combinator on the components of a type. */
 abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundsApplicator[B, P], TypeNode[T, B, P]:
@@ -64,3 +65,11 @@ abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, 
           this.apply(bounds, p),
           p,
         )
+
+  override def apply(bounds: List[Bound], p: P): B[List[Bound]] =
+    combinator.bounds(
+      bounds.map(this.apply(_, p)),
+      p,
+    )
+
+  def apply(bound: Bound, p: P): B[Bound]

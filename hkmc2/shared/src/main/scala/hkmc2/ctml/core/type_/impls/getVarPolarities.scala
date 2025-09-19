@@ -51,18 +51,14 @@ private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities
 
 /** Dispatching node of the "get type variable polarities" operation. */
 private object GetVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
-  override def apply(bounds: List[Bound], params: GetVarPolaritiesParams): Polarities =
-    JoinPolaritiesMonoid.combineMany(
-      bounds.map(bound =>
-        val varPolarities = if bound.var_ == params.var_
-          then Polarities.fromPolarity(params.pol)
-          else Polarities.empty
-        val pol = bound.dir match
-          case Direction.Sub =>
-            params.getPolarity.invert()
-          case Direction.Super =>
-            params.getPolarity
-        val typePolarities = GetVarPolarities1.apply(bound.type_, params.setPolarity(pol))
-        Polarities.join(varPolarities, typePolarities)
-      )
-    )
+  override def apply(bound: Bound, params: GetVarPolaritiesParams): Polarities =
+    val varPolarities = if bound.var_ == params.var_
+      then Polarities.fromPolarity(params.pol)
+      else Polarities.empty
+    val pol = bound.dir match
+      case Direction.Sub =>
+        params.getPolarity.invert()
+      case Direction.Super =>
+        params.getPolarity
+    val typePolarities = GetVarPolarities1.apply(bound.type_, params.setPolarity(pol))
+    Polarities.join(varPolarities, typePolarities)

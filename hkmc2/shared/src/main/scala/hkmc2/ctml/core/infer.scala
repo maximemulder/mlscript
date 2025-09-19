@@ -47,6 +47,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
         val (argType, argClauses) = inferSeq(app.arg, lamClauses)
         val retType = TVar(retVar)
         val mockLamType = TLam(argType, retType)
+        given VarCache = VarCache()
         val consrainClauses = subtypeSeq(lamType, mockLamType, argClauses)
         (retType, consrainClauses)
       )
@@ -54,6 +55,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
     // Type ascription.
     case ascr: EAscr =>
       val (inferType, inferClauses) = infer(ascr.expr)
+      given VarCache = VarCache()
       val constrainClauses = subtypeSeq(inferType, ascr.type_, inferClauses)
       (ascr.type_, constrainClauses)
 
@@ -70,6 +72,7 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
     .map(_.pattern)
     .joinManySeq(scrutineeClauses)
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
+  given VarCache = VarCache()
   val patternsClauses = subtypeSeq(scrutineeType, patternsType, scrutineeClauses)
   val patternsCtx = ctx.extend(patternsClauses)
   // Infer each match case.
@@ -93,6 +96,9 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
 
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, casesType: Type)(using ctx: Context): Clauses =
-  val patternClauses = subtype(scrutineeType, case_.pattern)
+  val patternClauses =
+    given VarCache = VarCache()
+    subtype(scrutineeType, case_.pattern)
   val (bodyType, bodyClauses) = inferSeq(case_.body, patternClauses)
+  given VarCache = VarCache()
   subtypeSeq(bodyType, casesType, bodyClauses)

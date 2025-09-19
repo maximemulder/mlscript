@@ -1,6 +1,6 @@
 package hkmc2.ctml.core.type_.impls
 
-import scala.collection.mutable.Set as MutSet
+import hkmc2.ctml.util.OrderedSet as MutSet
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*

@@ -1,7 +1,6 @@
 package hkmc2.ctml.core.var_
 
 import scala.collection.mutable.Map as MutMap
-import hkmc2.ctml.util.OrderedSet as MutSet
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
@@ -103,5 +102,6 @@ private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
+      given VarCache = VarCache()
       val outs = subtypeDirSeq(freshType, bound, pol.dir, freshDecl.asClauses)
       (freshType, outs)

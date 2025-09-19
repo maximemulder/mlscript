@@ -12,10 +12,23 @@ def meet(left: Type, right: Type)(using ctx: Context): Type =
 
 /** Implementation of `meet`. */
 def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
-  if checkSubtype(right, left) then
+/*  if checkSubtype(right, left) then
     return right
 
   if checkSubtype(left, right) then
+    return left
+
+*/
+  val a =
+    given VarCache = VarCache()
+    checkSubtype(right, left)
+  if a then
+    return right
+
+  val b =
+    given VarCache = VarCache()
+    checkSubtype(left, right)
+  if b then
     return left
 
   meetMerge(left, right) match

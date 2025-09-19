@@ -1,5 +1,7 @@
 package hkmc2.ctml.test
 
+import scala.collection.mutable.Set as MutSet
+
 import hkmc2.Diagnostic.Source
 import hkmc2.ErrorReport
 import hkmc2.Raise
@@ -135,18 +137,25 @@ class Tester(
 
   /** Test subtyping between two types. */
   def testSubtyping(sub: Type, sup: Type): Clauses =
+    given VarCache = VarCache()
     subtype(sub, sup)(using this.ctx)
 
   /** Test supertyping between two types. */
   def testSupertyping(sup: Type, sub: Type): Clauses =
+    given VarCache = VarCache()
     subtype(sub, sup)(using this.ctx)
 
   /** Test equivalence between two types. */
   def testTypeEquivalence(left: Type, right: Type): Clauses =
     given Context = this.ctx
     try
-      val subClauses = subtype(left, right)
-      subtypeSeq(right, left, subClauses)
+      val subClauses =
+        given VarCache = VarCache()
+        subtype(left, right)
+      val b =
+        given VarCache = VarCache()
+        subtypeSeq(right, left, subClauses)
+      b
     catch
       case error: TypeError =>
         error.addStep(TypeEquivalenceJudgment(left, right))

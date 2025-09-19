@@ -11,10 +11,16 @@ def join(left: Type, right: Type)(using ctx: Context): Type =
 
 /** Implementation of `join`. */
 def joinImpl(left: Type, right: Type)(using ctx: Context): Type =
-  if checkSubtype(left, right) then
+  val a =
+    given VarCache = VarCache()
+    checkSubtype(left, right)
+  if a then
     return right
 
-  if checkSubtype(right, left) then
+  val b =
+    given VarCache = VarCache()
+    checkSubtype(right, left)
+  if b then
     return left
 
   TUnion(left, right)

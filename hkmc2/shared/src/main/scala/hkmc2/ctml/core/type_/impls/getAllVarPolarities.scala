@@ -24,33 +24,14 @@ private class GetAllVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity, v
 
   def setPolarity(pol: Polarity) = GetAllVarPolaritiesParams(var_, pol, ctx, cache)
 
-/** Shadowing mode of the "get all type variable polarities" operation. */
+/** Shadowing node of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities1 extends TypeShadowApplicator[Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities2):
-  override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams]): Polarities =
-    val a = super.apply(type_, params)
-    // output(s"${params.var_} IN ${type_} AT ${params.pol} = ${a}")
-    a
-
   override def univ(univ: TUniv): Const[Polarities][Type] =
     Polarities.empty
 
-/** Polarity mode of the "get all type variable polarities" operation. */
-private object GetAllVarPolarities2 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities3):
-  override def bound(bound: Bound, params: GetAllVarPolaritiesParams): Polarities =
-    val varPolarities = if bound.var_ == params.var_
-      then Polarities.fromPolarity(params.pol)
-      else Polarities.empty
-    val pol = bound.dir match
-      case Direction.Sub =>
-        params.getPolarity.invert()
-      case Direction.Super =>
-        params.getPolarity
-    val typePolarities = GetAllVarPolarities1.apply(bound.type_, params.setPolarity(pol))
-    Polarities.join(varPolarities, typePolarities)
-
-/** Dispatching mode of the "get all type variable polarities" operation. */
-private object GetAllVarPolarities3 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
-  override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams] = this): Polarities =
+/** Get polarity node of the "get all type variable polarities" operation. */
+private object GetAllVarPolarities2 extends TypeChainApplicator[Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities3):
+  override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams]): Polarities =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
         Polarities.fromPolarity(params.pol)
@@ -65,8 +46,24 @@ private object GetAllVarPolarities3 extends TypeDispatcher[Const[Polarities], Co
             case None =>
               Polarities.empty
       case _ =>
-        super.apply(type_, params)
+        next.apply(type_, params)
 
+/** Polarity node of the "get all type variable polarities" operation. */
+private object GetAllVarPolarities3 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities4):
+  override def bound(bound: Bound, params: GetAllVarPolaritiesParams): Polarities =
+    val varPolarities = if bound.var_ == params.var_
+      then Polarities.fromPolarity(params.pol)
+      else Polarities.empty
+    val pol = bound.dir match
+      case Direction.Sub =>
+        params.getPolarity.invert()
+      case Direction.Super =>
+        params.getPolarity
+    val typePolarities = GetAllVarPolarities1.apply(bound.type_, params.setPolarity(pol))
+    Polarities.join(varPolarities, typePolarities)
+
+/** Dispatching node of the "get all type variable polarities" operation. */
+private object GetAllVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
   override def apply(bounds: List[Bound], params: GetAllVarPolaritiesParams): Polarities =
     JoinPolaritiesMonoid.combineMany(
       bounds.map(bound =>

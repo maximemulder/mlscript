@@ -21,11 +21,12 @@ private class GetVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) exte
 
   def setPolarity(pol: Polarity) = GetVarPolaritiesParams(var_, pol)
 
-/** Shadowing mode of the "get type variable polarities" operation. */
+/** Shadowing node of the "get type variable polarities" operation. */
 private object GetVarPolarities1 extends TypeShadowApplicator[Const[Polarities], GetVarPolaritiesParams](GetVarPolarities2):
   override def univ(univ: TUniv): Const[Polarities][Type] =
     Polarities.empty
 
+/** Get polarity node of the "get type variable polarities" operation. */
 private object GetVarPolarities2 extends TypeChainApplicator[Const[Polarities], GetVarPolaritiesParams](GetVarPolarities3):
   override def apply(type_ : Type, params: GetVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetVarPolaritiesParams]): Polarities =
     type_ match
@@ -34,7 +35,7 @@ private object GetVarPolarities2 extends TypeChainApplicator[Const[Polarities], 
       case _ =>
         next.apply(type_, params)
 
-/** Polarity mode of the "get type variable polarities" operation. */
+/** Polarity node of the "get type variable polarities" operation. */
 private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](GetVarPolarities4):
   override def bound(bound: Bound, params: GetVarPolaritiesParams): Polarities =
     val varPolarities = if bound.var_ == params.var_
@@ -48,7 +49,7 @@ private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities
     val typePolarities = GetVarPolarities1.apply(bound.type_, params.setPolarity(pol))
     Polarities.join(varPolarities, typePolarities)
 
-/** Dispatching mode of the "get type variable polarities" operation. */
+/** Dispatching node of the "get type variable polarities" operation. */
 private object GetVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
   override def apply(bounds: List[Bound], params: GetVarPolaritiesParams): Polarities =
     JoinPolaritiesMonoid.combineMany(

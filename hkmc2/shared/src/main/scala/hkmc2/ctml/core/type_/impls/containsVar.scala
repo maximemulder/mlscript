@@ -63,8 +63,8 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Contains
 
 /** Dispatching node of the "contains type variable" operation. */
 private object ContainsVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar4):
-      def apply(bounds: List[Bound], p: ContainsVarParams): Boolean =
-        false
+  def apply(bounds: Bound, p: ContainsVarParams): Boolean =
+    false
 
 /** Monoidal combination node of the "contains type variable" operation. */
 private object ContainsVar4 extends TypeMonoidCombinator[Boolean, ContainsVarParams](AnyMonoid)

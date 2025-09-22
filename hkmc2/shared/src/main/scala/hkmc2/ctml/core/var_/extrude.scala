@@ -83,7 +83,7 @@ private def extrudeFreshVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       (type_, Clauses.empty)
     case None =>
       // TODO: Declare the variable at the right level.
-      val freshDecl = declNewFreshVar()
+      val freshDecl = declFreshFlexVar()
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
@@ -98,7 +98,7 @@ private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       (type_, Clauses.empty)
     case None =>
       // TODO: Declare the variable at the right level.
-      val freshDecl = declNewFreshVar()
+      val freshDecl = declFreshFlexVar()
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)

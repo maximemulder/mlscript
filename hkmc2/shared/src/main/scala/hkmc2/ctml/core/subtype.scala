@@ -8,6 +8,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.type_.impls.substitute
 
 /** Sequentially constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain): Clauses =
@@ -234,13 +235,15 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode)
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: Mode): Clauses =
-  val freshSub = sub.freshen()
-  subtypeSeq(freshSub.body, sup, declFlexVar(freshSub.var_).asClauses)
+  val freshDecl = declFreshFlexVar(Some(sub.var_))
+  val freshBody = sub.body.substitute(sub.var_, freshDecl.var_)
+  subtypeSeq(freshBody, sup, freshDecl.asClauses)
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode): Clauses =
-  val freshSup = sup.freshen()
-  subtypeSeq(sub, freshSup.body, declRigidVar(freshSup.var_).asClauses)
+  val freshDecl = declFreshRigidVar(Some(sup.var_))
+  val freshBody = sup.body.substitute(sup.var_, freshDecl.var_)
+  subtypeSeq(sub, freshBody, freshDecl.asClauses)
 
 /** Constrain a constrained type to be a subtype or supertype of another type. */
 def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =

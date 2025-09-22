@@ -10,8 +10,8 @@ extension (ctx: Context)
   /** Make a type variable flexible. */
   def flexify(var_ : TypeVar): Context =
     Context(ctx.clauses.map(_ match
-      case TypeVarDecl(ctxvar, TypeVarKind.Rigid) if ctxvar == var_ =>
-        TypeVarDecl(var_, TypeVarKind.Flex)
+      case TypeVarDecl(ctxvar, TypeVarKind.Rigid, original) if ctxvar == var_ =>
+        TypeVarDecl(var_, TypeVarKind.Flex, original)
       case clause =>
         clause
     ))
@@ -106,10 +106,3 @@ extension (var_ : TypeVar)(using ctx: Context)
   /** Check whether the type variable is recursive. */
   def isRecursive: Boolean =
     ctx.isVarRecursive(var_)
-
-extension (univ: TUniv)
-  /** Substitute the quantified variable of a universal type with a new fresh type variable. */
-  def freshen(): TUniv =
-    val freshDecl = declNewFreshVar()
-    val body = univ.body.substitute(univ.var_, freshDecl.var_)
-    TUniv(freshDecl.var_, body)

@@ -1,6 +1,6 @@
 package hkmc2.ctml.core
 
-import scala.collection.mutable.Set as SetMut
+import hkmc2.ctml.util.OrderedSet as MutSet
 
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
@@ -43,7 +43,7 @@ extension (ctx: Context)
   /** Check whether a type variable is a variable of this level, that is, if it not depended on by
    *  a variable of a lower level.
    */
-  def isLevelVar(var_ : TypeVar, outs: Clauses)(using cache: SetMut[TypeVar] = SetMut()): Boolean =
+  def isLevelVar(var_ : TypeVar, outs: Clauses)(using cache: MutSet[TypeVar] = MutSet()): Boolean =
     // Get the list of type variables that directly depend on the type variable.
     var dependentVars = outs.getDependentVars(var_)
 

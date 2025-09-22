@@ -1,6 +1,6 @@
 package hkmc2.ctml.core.var_
 
-import scala.collection.mutable.Set as SetMut
+import hkmc2.ctml.util.OrderedSet as MutSet
 import scala.collection.mutable.ListBuffer
 
 import hkmc2.ctml.core.context.*
@@ -31,11 +31,11 @@ given Show[VarDependencies] =
 extension (var_ : TypeVar)
   /** Get the dependencies of a type variable in a context. */
   def getDependencies()(using ctx: Context): VarDependencies =
-    given SetMut[TypeVar] = SetMut()
+    given MutSet[TypeVar] = MutSet()
     var_.getDependenciesImpl()
 
   /** Implementation of `getDependencies`. */
-  private def getDependenciesImpl()(using ctx: Context, cache: SetMut[TypeVar]): VarDependencies =
+  private def getDependenciesImpl()(using ctx: Context, cache: MutSet[TypeVar]): VarDependencies =
     // Get the direct dependency type variables.
     val dependencyVars = if !cache.contains(var_) then
       ctx.getVarLowerBound(var_).getVars() ++ ctx.getVarUpperBound(var_).getVars()

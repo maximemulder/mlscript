@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.var_
 
 import scala.collection.mutable.Map as MutMap
+import hkmc2.ctml.util.OrderedSet as MutSet
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*

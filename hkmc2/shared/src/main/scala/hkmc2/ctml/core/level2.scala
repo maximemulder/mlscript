@@ -15,7 +15,7 @@ extension (ctx: Context)
    *  that level. */
   def withFreshVarLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
     // Create a new fresh type variable, make it a type, and add it to the context.
-    val freshDecl = declNewFreshVar()
+    val freshDecl = declFreshFlexVar()
     val freshCtx = ctx.extend(freshDecl)
 
     // Evaluate the type inference function with the fresh type variable.

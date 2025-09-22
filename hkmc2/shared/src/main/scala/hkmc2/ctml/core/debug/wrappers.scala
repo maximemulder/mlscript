@@ -78,7 +78,13 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
   if !DebugFlags.var_ then
     return decl
 
-  output(s"${decl.var_} ${decl.kind}")
+  output(s"${decl.var_} ${decl.kind}${decl.original match
+    case Some(original) =>
+      s" freshen ${original}"
+    case None =>
+      ""
+  }")
+
   decl
 
 /** Decorate the type variable quantification function to print debug information. */

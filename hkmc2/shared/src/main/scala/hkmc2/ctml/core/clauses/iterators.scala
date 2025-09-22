@@ -127,7 +127,7 @@ extension (clauses: Iterator[Clause])
   /** Iterate over the sub-clauses in the scope of a type variable in the clauses. */
   def typeVarClauses(var_ : TypeVar): Iterator[Clause] =
     clauses.takeWhile(_ match
-      case TypeVarDecl(declVar, _) if declVar == var_ =>
+      case TypeVarDecl(declVar, _, _) if declVar == var_ =>
         false
       case _ =>
         true
@@ -137,7 +137,7 @@ extension (clause: Clause)
   /** Check whether the clause is the declaration of a given type variable.  */
   def isTypeVarDecl(var_ : TypeVar): Boolean =
     clause match
-      case TypeVarDecl(declVar, _) if declVar == var_ =>
+      case TypeVarDecl(declVar, _, _) if declVar == var_ =>
         true
       case _ =>
         false

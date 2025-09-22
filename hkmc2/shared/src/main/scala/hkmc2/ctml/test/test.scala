@@ -84,19 +84,19 @@ class Tester(
   /** Add a class to the context. */
   def testClassDecl(name: String) =
     val var_ = TypeVar(name)
-    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Class))
+    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Class, None))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String) =
     val var_ = TypeVar(name)
-    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Rigid))
+    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Rigid, None))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_.prettify(prettyCtx)}")
     val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(
-      TypeVarDecl(var_, TypeVarKind.Rigid),
+      TypeVarDecl(var_, TypeVarKind.Rigid, None),
       Bound(var_, Direction.Sub,   type_),
       Bound(var_, Direction.Super, type_),
     )

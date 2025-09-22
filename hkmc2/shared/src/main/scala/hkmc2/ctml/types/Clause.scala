@@ -60,6 +60,8 @@ case class TypeVarDecl(
   var_ : TypeVar,
   /** The type variable kind. */
   kind: TypeVarKind,
+  /** The original type variable if the variable is fresh. */
+  original: Option[TypeVar],
 ) extends Clause:
   /** Get the string representation of the object. */
   override def toString: String =

@@ -13,15 +13,24 @@ def newFreshVarName(): String =
   freshVarCounter += 1
   i.toString()
 
-/** Get a new fresh flexible type variable declaration with a new unique name. */
-def declNewFreshVar(): TypeVarDecl =
-  val name = newFreshVarName()
-  declFlexVar(TypeVar(name))
+/** Get a new fresh type variable. */
+def newFreshVar(): TypeVar =
+  TypeVar(newFreshVarName())
 
-/** Get a new flexible type variable declaration with a given name. */
-def declFlexVar(var_ : TypeVar): TypeVarDecl =
-  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Flex))
+/** Get a new fresh rigid type variable declaration. */
+def declFreshRigidVar(original: Option[TypeVar] = None): TypeVarDecl =
+  val var_ = newFreshVar()
+  declRigidVar(var_, original)
 
-/** Get a new rigid type variable declaration with a given name. */
-def declRigidVar(var_ : TypeVar): TypeVarDecl =
-  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Rigid))
+/** Get a new fresh flexible type variable declaration. */
+def declFreshFlexVar(original: Option[TypeVar] = None): TypeVarDecl =
+  val var_ = newFreshVar()
+  declFlexVar(var_, original)
+
+/** Get a new rigid type variable declaration. */
+def declRigidVar(var_ : TypeVar, original: Option[TypeVar] = None): TypeVarDecl =
+  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Rigid, original))
+
+/** Get a new flexible type variable declaration. */
+def declFlexVar(var_ : TypeVar, original: Option[TypeVar] = None): TypeVarDecl =
+  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Flex, original))

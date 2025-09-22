@@ -8,8 +8,8 @@ extension (ctx: Context)
   def freeze(): Context =
     Context(ctx.clauses.map(clause =>
       clause match
-        case TypeVarDecl(var_, TypeVarKind.Flex) =>
-          TypeVarDecl(var_, TypeVarKind.Rigid)
+        case TypeVarDecl(var_, TypeVarKind.Flex, original) =>
+          TypeVarDecl(var_, TypeVarKind.Rigid, original)
         case _ =>
           clause
     ))

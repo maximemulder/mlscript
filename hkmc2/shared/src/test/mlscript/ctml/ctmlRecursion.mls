@@ -11,7 +11,7 @@ fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: Int → Int
+//│ zero: ∀α. {α ≤ α, α ≥ α} ⟹ Int → α
 
 val infinite = infinite + 1
 //│ infinite: Int
@@ -21,4 +21,4 @@ fun id(x) =
 //│ id: ⊤ → ⊥
 
 val never = never
-//│ never: ⊥
+//│ never: ∀α. {α ≥ α} ⟹ α

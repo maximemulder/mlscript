@@ -116,12 +116,15 @@ extension (ctx: Context)
     // TODO: Add a `var_.isConstrained` method.
     if polarities == Polarities(false, false) then
       ignoreVar(type_, var_, outs)
-    else if polarities == Polarities(true, true) then
-      // output(s"VAR ${var_} POS+NEG")
-      quantifyVar(type_, var_, lowerBound, upperBound, outs)
     else if var_.isRecursive then
       // output(s"VAR ${var_} RECURSIVE")
       quantifyVar(type_, var_, lowerBound, upperBound, outs)
+    else if polarities == Polarities(true, true) then
+      // output(s"VAR ${var_} POS+NEG")
+      if checkEqual(lowerBound, upperBound) then
+        inlineVar(type_, var_, lowerBound, outs)
+      else
+        quantifyVar(type_, var_, lowerBound, upperBound, outs)
     else if fullCtx.isVarConstrained(var_, levelVars) then
       // output(s"VAR ${var_} CONSTRAINED")
       quantifyVar(type_, var_, lowerBound, upperBound, outs)

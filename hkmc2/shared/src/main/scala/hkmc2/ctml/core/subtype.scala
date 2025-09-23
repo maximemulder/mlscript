@@ -83,6 +83,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   mode match
     case Mode.Constrain =>
+      if cache.checkFlex(sub, sup) then
+        // output("HIT CACHE MAIN")
+        return Clauses.empty
+    case _ =>
+
+  mode match
+    case Mode.Constrain =>
       if sup.is[TConstraining] then
         val (supBody, supBounds) = sup.splitConstrainings()
         val bodyClauses = subtype(sub, supBody)
@@ -110,8 +117,9 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   // Subtyping of flexible type variables.
 
-  if (sub.isFlexVar || sup.isFlexVar) && cache.checkFlex(sub, sup) then
-    return Clauses.empty
+  /* if (sub.isFlexVar || sup.isFlexVar) && cache.checkFlex(sub, sup) then
+    output("HIT CACHE VAR")
+    return Clauses.empty */
 
   (sub, sup) match
     case (TVar(sub), TVar(sup)) if sub.isFlex && sup.isFlex =>

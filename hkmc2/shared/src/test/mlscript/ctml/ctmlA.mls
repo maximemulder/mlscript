@@ -1,5 +1,6 @@
 :ctml
 
+<<<<<<< HEAD
 :ctml-dbg infer constrain var
 
 val z = (f, x) => x
@@ -424,3 +425,19 @@ val g7 = (s(s(z)))(s(s(z)))
 //│   = ((42 → (B ∧ 39)) ∧ ((39 ∨ 40) → 42)) → 40 → B
 //│ OK ∀B, 42, 39, 40. ((42 → (B ∧ 39)) ∧ ((39 ∨ 40) → 42)) → 40 → B ⇝ ∅
 //│ g7: ∀B, α, β, γ. ((α → (B ∧ β)) ∧ ((β ∨ γ) → α)) → γ → B
+=======
+declare class List[A]
+
+declare fun id: [A] -> A -> A
+declare fun ids: List[[A] -> A -> A]
+declare fun choose: [A] -> A -> A -> A
+//│ id: ∀A. A → A
+//│ ids: List[∀A. A → A]
+//│ choose: ∀A. A → A → A
+
+declare fun f: [A] -> ((A) -> A) -> List[A] -> A
+//│ f: ∀A. (A → A) → List[A] → A
+
+val a9 = f(choose(id), ids)
+//│ a9: ∀A. A → A
+>>>>>>> 3fd76a65 (add full subtyping cache)

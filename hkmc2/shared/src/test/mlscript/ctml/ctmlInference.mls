@@ -30,17 +30,8 @@ foo(b)
 
 :e
 foo(c)
-//│ ═══[ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → α.
-//│ Typing error tree:
-//│   (A → A) ∧ (B → B) ≤ C → α
-//│     A → A ≤ C → α
-//│       C ≤ A
-//│         ⊤ ≤ A
-//│           ⊤ ≤ ⊥
-//│     B → B ≤ C → α
-//│       C ≤ B
-//│         ⊤ ≤ B
-//│           ⊤ ≤ ⊥
+//│ B
+//│ FAILURE: Unexpected lack of type error
 
 foo(d)
 //│ A ∨ B

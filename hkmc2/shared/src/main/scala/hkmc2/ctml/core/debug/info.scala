@@ -9,7 +9,7 @@ object DebugInfo:
   var currentCallDepth = 0
 
   /** The maximum call depth. */
-  val maxCallDepth = 30
+  val maxCallDepth = 50
 
   /** The maximum step count. */
   var currentStepCount = 0

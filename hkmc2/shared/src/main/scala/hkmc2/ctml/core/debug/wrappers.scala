@@ -94,9 +94,9 @@ def debugQuantifyVar(impl: (Type, TypeVar, Type, Type, Clauses) => (Type, Clause
 
   (type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses) =>
     outputContext(s"quantify ${var_} with ${lowerBound} and ${upperBound} in ${type_}")
-    val newType = impl(type_, var_, lowerBound, upperBound, outs)
+    val (newType, newOuts) = impl(type_, var_, lowerBound, upperBound, outs)
     output(s"= ${newType}")
-    newType
+    (newType, newOuts)
 
 /** Decorate the type variable inlining function to print debug information. */
 def debugInlineVar(impl: (Type, TypeVar, Type, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Type, Clauses) => (Type, Clauses) =

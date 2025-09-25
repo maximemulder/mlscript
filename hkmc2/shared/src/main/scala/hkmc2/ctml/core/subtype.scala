@@ -82,7 +82,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   val cache2 = // mode match
     // case Mode.Constrain =>
       if cache.checkFlex(sub, sup) then
-        // output("HIT CACHE MAIN")
+        // output(s"HIT CACHE ${sub} <= ${sup}")
         return Clauses.empty
       cache.addFlex(sub, sup)
     // case _ =>

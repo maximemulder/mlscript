@@ -1,6 +1,6 @@
 package hkmc2.ctml.core
 
-import hkmc2.ctml.util.OrderedSet as MutSet
+import scala.collection.immutable.Set as Set
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
@@ -12,24 +12,22 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.impls.substitute
 
-case class VarCache(flexs: MutSet[(Type, Type)] = MutSet(), rigids: MutSet[(Type, Type)] = MutSet()):
-  /** Check whether two types are in the flexible variable cache, and add them if that is not the
-   *  case. */
+case class VarCache(flexs: Set[(Type, Type)] = Set(), rigids: Set[(Type, Type)] = Set()):
+  /** Check whether two types are in the flexible variable cache. */
   def checkFlex(sub: Type, sup: Type): Boolean =
-    if this.flexs.contains((sub, sup)) then
-      return true
+    this.flexs.contains((sub, sup))
 
-    this.flexs.add((sub, sup))
-    return false
+  /** Add two types to the flexible variable cache. */
+  def addFlex(sub: Type, sup: Type): VarCache =
+    VarCache(this.flexs + ((sub, sup)), this.rigids)
 
-  /** Check whether two types are in the rigid variable cache, and add them if that is not the
-   *  case. */
+  /** Check whether two types are in the rigid variable cache. */
   def checkRigid(sub: Type, sup: Type): Boolean =
-    if this.rigids.contains((sub, sup)) then
-      return true
+    this.rigids.contains((sub, sup))
 
-    this.rigids.add((sub, sup))
-    return false
+  /** Add two types to the rigid variable cache. */
+  def addRigid(sub: Type, sup: Type): VarCache =
+    VarCache(this.flexs, this.rigids + ((sub, sup)))
 
 /** Sequentially constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
@@ -81,12 +79,16 @@ def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constr
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   // Subtyping of constraining types.
 
-  mode match
+  val cache2 = mode match
     case Mode.Constrain =>
       if cache.checkFlex(sub, sup) then
         // output("HIT CACHE MAIN")
         return Clauses.empty
+      cache.addFlex(sub, sup)
     case _ =>
+      cache
+
+  given VarCache = cache2
 
   mode match
     case Mode.Constrain =>
@@ -172,18 +174,27 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   // Subtyping of rigid type variables.
 
-  if (sub.isRigidVar || sup.isRigidVar) && cache.checkRigid(sub, sup) then
-    throw TypeError()
-
   (sub, sup) match
     case (sub: TVar, sup: TVar) =>
-      return subtypeRigidVars(sub.var_, sup.var_)
+      if cache2.checkRigid(sub, sup) then
+        throw TypeError()
+      else
+        given VarCache = cache2.addRigid(sub, sup)
+        return subtypeRigidVars(sub.var_, sup.var_)
     case (sub: TVar, _) =>
-      val upperBound = ctx.getVarUpperBound(sub.var_)
-      return subtype(upperBound, sup)
+      if cache2.checkRigid(sub, sup) then
+        throw TypeError()
+      else
+        given VarCache = cache2.addRigid(sub, sup)
+        val upperBound = ctx.getVarUpperBound(sub.var_)
+        return subtype(upperBound, sup)
     case (_, sup: TVar) =>
-      val lowerBound = ctx.getVarLowerBound(sup.var_)
-      return subtype(sub, lowerBound)
+      if cache2.checkRigid(sub, sup) then
+        throw TypeError()
+      else
+        given VarCache = cache2.addRigid(sub, sup)
+        val lowerBound = ctx.getVarLowerBound(sup.var_)
+        return subtype(sub, lowerBound)
     case (_, _) =>
 
   // Subtyping of universal types.

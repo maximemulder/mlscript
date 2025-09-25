@@ -241,7 +241,7 @@ val f10 = choose(id, (x) => auto2(x))
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β, γ, δ, ε. {α ≤ γ, α ≥ δ, β ≤ γ, γ ≥ (α ∨ β) ∨ ε, δ ≤ α ∧ ε, ε ≤ γ, ε ≥ δ} ⟹ Int → ((∀ζ. ⊤ → ζ → ζ) ∨ ((γ → β) → δ → β))
+//│ toChurch: ∀α, β. {α ≤ β, β ≥ α} ⟹ Int → ((∀γ. ⊤ → γ → γ) ∨ ((β → α) → β → α))
 // OK
 
 val g1a = z as ChurchInt
@@ -272,7 +272,7 @@ val g7 = (s(s(z)))(s(s(z)))
 // OK (could be simplified)
 
 val g8 = toChurch
-//│ g8: ∀α, β, γ, δ, ε. {α ≤ γ, α ≥ δ, β ≤ γ, γ ≥ (α ∨ β) ∨ ε, δ ≤ α ∧ ε, ε ≤ γ, ε ≥ δ} ⟹ Int → ((∀ζ. ⊤ → ζ → ζ) ∨ ((γ → β) → δ → β))
+//│ g8: ∀α, β. {α ≤ β, β ≥ α} ⟹ Int → ((∀γ. ⊤ → γ → γ) ∨ ((β → α) → β → α))
 // MAYBE
 
 val g8a = toChurch as ((Int) -> ChurchInt)

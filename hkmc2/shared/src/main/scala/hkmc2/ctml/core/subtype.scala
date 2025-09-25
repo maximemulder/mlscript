@@ -79,14 +79,14 @@ def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constr
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   // Subtyping of constraining types.
 
-  val cache2 = mode match
-    case Mode.Constrain =>
+  val cache2 = // mode match
+    // case Mode.Constrain =>
       if cache.checkFlex(sub, sup) then
         // output("HIT CACHE MAIN")
         return Clauses.empty
       cache.addFlex(sub, sup)
-    case _ =>
-      cache
+    // case _ =>
+    //   cache
 
   given VarCache = cache2
 
@@ -252,14 +252,20 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode, 
     // If both variables are equal then they are subtype.
     case Order.Equal =>
       Clauses.empty
+    // OLD CODE: Variables used to be subtyped according to their order.
     /* case Order.Lesser =>
       subtypeFreshVar(sup, TVar(sub), Direction.Super)
     case Order.Greater =>
       subtypeFreshVar(sub, TVar(sup), Direction.Sub) */
+    // OLD CODE: Variables used to be both subtyped.
+    /* case _ =>
+      val a = subtypeFreshVar(sub, TVar(sup), Direction.Sub)
+      val b = subtypeFreshVar(sup, TVar(sub), Direction.Super)(using ctx.extend(a))
+      a.concat(b) */
     case _ =>
-      val a = subtypeFlexVar(sub, TVar(sup), Direction.Sub)
-      val b = subtypeFlexVar(sup, TVar(sub), Direction.Super)(using ctx.extend(a))
-      a.concat(b)
+      val lower = ctx.getVarLowerBound(sup)
+      val upper = ctx.getVarUpperBound(sub)
+      subtypeSeq(lower, upper, Clauses(List(Bound(sub, Direction.Sub, TVar(sup)), Bound(sup, Direction.Super, TVar(sub)))))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =

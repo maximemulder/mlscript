@@ -9,9 +9,9 @@ var freshVarCounter = 0
 
 // Special variable renamings that should be applied for debugging.
 val renamings = Map(
-  30 -> "A",
-  38 -> "B",
-  41 -> "C",
+  32 -> "A",
+  46 -> "B",
+  53 -> "C",
 )
 
 /** Get a new unique fresh type variable name. */

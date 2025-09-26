@@ -91,17 +91,17 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   (sub, sup) match
     case (TVar(sub), TVar(sup)) if sub.isFlex && sup.isFlex =>
-      return subtypeFreshVars(sub, sup)
+      return subtypeFlexVars(sub, sup)
     case _ =>
 
   sub match
     case TVar(sub) if sub.isFlex =>
-      return subtypeFreshVar(sub, sup, Direction.Sub)
+      return subtypeFlexVar(sub, sup, Direction.Sub)
     case _ =>
 
   sup match
     case TVar(sup) if sup.isFlex =>
-      return subtypeFreshVar(sup, sub, Direction.Super)
+      return subtypeFlexVar(sup, sub, Direction.Super)
     case _ =>
 
   // Subtyping of union and intersection types.
@@ -198,28 +198,28 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   throw TypeError()
 
-// Fresh variables.
+// Flexible type variables.
 
 /** Constrain a type variable to be subtype of another type variable. */
-def subtypeFreshVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
+def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   ctx.compareVarLevels(sub, sup) match
     // If both variables are equal then they are subtype.
     case Order.Equal =>
       Clauses.empty
     case Order.Lesser =>
-      subtypeFreshVar(sup, TVar(sub), Direction.Super)
+      subtypeFlexVar(sup, TVar(sub), Direction.Super)
     case Order.Greater =>
-      subtypeFreshVar(sub, TVar(sup), Direction.Sub)
+      subtypeFlexVar(sub, TVar(sup), Direction.Sub)
 
 /** Constrain a type variable to be subtype or supertype of another type. */
-def subtypeFreshVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =
+def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode): Clauses =
   val boundType = ctx.getVarBound(var_, dir)
   val boundCombinedType = combine(boundType, type_, dir)
   val bound = Bound(var_, dir, boundCombinedType)
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
   subtypeDirSeq(oppositeBoundType, boundCombinedType, dir, bound.asClauses)
 
-// Rigid variables.
+// Rigid type variables.
 
 def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode): Clauses =
   ctx.compareVarLevels(sub, sup) match

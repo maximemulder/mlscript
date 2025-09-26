@@ -8,10 +8,10 @@ import hkmc2.ctml.types.*
 var freshVarCounter = 0
 
 // Special variable renamings that should be applied for debugging.
-val renamings = Map(
-  32 -> "A",
-  46 -> "B",
-  53 -> "C",
+val renamings = Map[Int, String](
+  // 32 -> "A",
+  // 46 -> "B",
+  // 53 -> "C",
 )
 
 /** Get a new unique fresh type variable name. */

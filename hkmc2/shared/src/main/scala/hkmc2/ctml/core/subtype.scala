@@ -273,7 +273,7 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
   val boundCombinedType = combine(boundType, type_, dir)
   val bound = Bound(var_, dir, boundCombinedType)
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
-  subtypeDirSeq(oppositeBoundType, boundCombinedType, dir, bound.asClauses)
+  subtypeDirSeq(oppositeBoundType, type_, dir, bound.asClauses)
 
 // Rigid type variables.
 

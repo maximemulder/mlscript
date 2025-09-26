@@ -7,11 +7,22 @@ import hkmc2.ctml.types.*
 // TODO: Do not use a global mutable counter.
 var freshVarCounter = 0
 
+// Special variable renamings that should be applied for debugging.
+val renamings = Map(
+  30 -> "A",
+  38 -> "B",
+  41 -> "C",
+)
+
 /** Get a new unique fresh type variable name. */
 def newFreshVarName(): String =
   val i = freshVarCounter
   freshVarCounter += 1
-  i.toString()
+  renamings.get(i) match
+    case Some(renaming) =>
+      renaming
+    case _ =>
+      i.toString()
 
 /** Get a new fresh type variable. */
 def newFreshVar(): TypeVar =

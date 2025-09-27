@@ -1,23 +1,21 @@
 package hkmc2.ctml.core
 
 import hkmc2.ctml.util.OrderedSet as MutSet
-import scala.collection.mutable.ListBuffer
 
-import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
-import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
-/*
+import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.var_.*
+
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
   def withFreshVarLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
     // Create a new fresh type variable, make it a type, and add it to the context.
-    val freshDecl = declNewFreshVar()
+    val freshDecl = declFreshFlexVar()
     val freshCtx = ctx.extend(freshDecl)
 
     // Evaluate the type inference function with the fresh type variable.
@@ -30,49 +28,6 @@ extension (ctx: Context)
 
     // Solve the level.
     ctx.solveLevel(type_, outs)
-
-  /** Solve a type inference level by processing each new variable of that level. */
-  def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
-    // Get the type variables of this level.
-    val levelVars = ctx.getLevelVars(outs)
-    if levelVars == Nil then
-      return (type_, outs)
-
-    val typeVars = type_.getVars()(using ctx.extend(outs))
-    typeVars.filter(levelVars.contains(_))
-    // Until no progress is made ???
-
-    // Ignore, inline, or add constraints for each type variables of this level.
-    val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, to) =>
-      ctx.processLevelVar(to._1, var_, levelVars.toSet, to._2)
-    )
-
-    // Get the type variables of this level that were not ignored or inlined.
-    val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
-
-    remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
-      quantifyVar2(to._1, var_, to._2)
-    )
-
-  def processLevelVar(type_ : Type, var_ : TypeVar, levelVars: Set[TypeVar], outs: Clauses): (Type, Clauses) =
-    val fullCtx = ctx.extend(outs)
-    given Context = fullCtx
-
-    // Ignore type variables that are not directly or indirectly used by the type inferred.
-    // if !type_.usesVar(var_) then
-    //   return ignoreVar(type_, var_, outs)
-
-    val lowerBound = fullCtx.getVarLowerBound(var_)
-    val upperBound = fullCtx.getVarUpperBound(var_)
-    val polarities = type_.getVarPolarities(var_)
-    if polarities == Polarities(true, true) || fullCtx.isVarConstrained(var_, levelVars) || var_.isRecursive then
-      quantifyVar(type_, var_, lowerBound, upperBound, outs)
-    else if polarities == Polarities(true, false) then
-      inlineVar(type_, var_, upperBound, outs)
-    else if polarities == Polarities(false, true) then
-      inlineVar(type_, var_, lowerBound, outs)
-    else
-      ignoreVar(type_, var_, outs)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =
@@ -108,13 +63,83 @@ extension (ctx: Context)
 
     types.exists(_.getConstrainedVars().contains(var_))
 
+  def solveLevel(type_ : Type, touts: Clauses): (Type, Clauses) =
+    val levelVars = ctx.getLevelVars(touts)
+    // output(s"LEVEL VARS ${levelVars}")
+
+    // TODO: Use full context or non-context function.
+/*    val typeVars = type_.getVars()(using ctx.extend(outs))
+    // output(s"TYPE VARS ${typeVars}")
+
+    // Get the intersection of variables present in the type and in the level.
+    val processVars = levelVars.filter(typeVars.contains(_))
+    // output(s"COMMON VARS ${processVars}")
+
+    // Get the variables that are present in the level but not in the type.
+    val removeVars = levelVars.filter(!typeVars.contains(_))
+    // output(s"REMOVE VARS ${removeVars}") */
+
+    val outs = ctx.removeUnusedBounds(type_, touts, levelVars.toSet)
+
+    // Ignore, inline, or add constraints for each type variables of this level.
+    val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, to) =>
+      ctx.processLevelVar(to._1, var_, to._2, levelVars.toSet)
+    )
+
+    // Get the type variables of this level that were not ignored or inlined.
+    val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
+
+    remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
+      quantifyVar2(to._1, var_, to._2)(using ctx)
+    )
+
+  def removeUnusedBounds(type_ : Type, outs: Clauses, levelVars: Set[TypeVar]): Clauses =
+    outs.filterBounds(bound =>
+      if !levelVars.contains(bound.var_) then
+        true
+      else
+        val polarities = type_.getAllVarPolarities(bound.var_)(using ctx.extend(outs))
+        bound.dir match
+          case Direction.Sub =>
+            polarities.negative
+          case Direction.Super =>
+            polarities.positive
+    )
+
+  def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses, levelVars: Set[TypeVar]) =
+    val fullCtx = ctx.extend(outs)
+    given Context = fullCtx
+    val lowerBound = fullCtx.getVarLowerBound(var_)
+    val upperBound = fullCtx.getVarUpperBound(var_)
+    val polarities = type_.getAllVarPolarities(var_)
+    // TODO: Can just check if the var is contrained by any other variable of the context.
+    // TODO: Add a `var_.isConstrained` method.
+    if polarities == Polarities(false, false) then
+      ignoreVar(type_, var_, outs)
+    else if var_.isRecursive then
+      // output(s"VAR ${var_} RECURSIVE")
+      quantifyVar(type_, var_, lowerBound, upperBound, outs)
+    else if polarities == Polarities(true, true) then
+      // output(s"VAR ${var_} POS+NEG")
+      if checkEqual(lowerBound, upperBound) then
+        inlineVar(type_, var_, lowerBound, outs)
+      else
+        quantifyVar(type_, var_, lowerBound, upperBound, outs)
+    else if fullCtx.isVarConstrained(var_, levelVars) then
+      // output(s"VAR ${var_} CONSTRAINED")
+      quantifyVar(type_, var_, lowerBound, upperBound, outs)
+    else if polarities == Polarities(true, false) then
+      inlineVar(type_, var_, upperBound, outs)
+    else
+      inlineVar(type_, var_, lowerBound, outs)
+
 /** Quantify a type variable in a type. */
 def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   debugQuantifyVar(quantifyVarImpl)(type_, var_, lowerBound, upperBound, outs)
 
 /** Implementation of `quantifyVar`. */
 def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  val bounds = removeImplicitBounds(List(
+  /* val bounds = removeImplicitBounds(List(
     Bound(var_, Direction.Super, lowerBound),
     Bound(var_, Direction.Sub, upperBound),
   ))
@@ -124,7 +149,8 @@ def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: 
     // Only the bounds of the variable are removed from the clauses, the variable declaration will
     // be removed later when all remaining type variables of this level are quantified.
     outs.removeTypeVarBounds(var_),
-  )
+  ) */
+    (type_, outs)
 
 /** Inline a type variable in a type. */
 def inlineVar(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
@@ -132,9 +158,10 @@ def inlineVar(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ct
 
 /** Implementation of `inlineVar`. */
 def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  given Context = ctx.extend(outs)
   (
-    type_.inline(var_, bound),
-    outs.removeTypeVar(var_),
+    type_.inline(var_),
+    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))).removeTypeVar(var_),
   )
 
 /** Ignore a type variable in a type. */
@@ -145,13 +172,22 @@ def ignoreVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): 
 def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   (
     type_,
-    outs.removeTypeVar(var_),
+    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))).removeTypeVar(var_),
   )
 
 /** Quantify a type variable in a type. */
-def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses): (Type, Clauses) =
+def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  // output(s"QUANTIFY VAR 2 ${var_}")
+  // If a polarity is not reachable, remove the bound ???
+  val fullCtx = ctx.extend(outs)
+  val lowerBound = fullCtx.getVarLowerBound(var_)
+  val upperBound = fullCtx.getVarUpperBound(var_)
+  val bounds = removeImplicitBounds(List(
+    Bound(var_, Direction.Super, lowerBound),
+    Bound(var_, Direction.Sub, upperBound),
+  ))
+
   (
-    TUniv(var_, type_),
-    outs.removeTypeVarDecl(var_),
+    TUniv(var_, makeConstrainedType(type_, bounds)),
+    outs.removeTypeVar(var_),
   )
-*/

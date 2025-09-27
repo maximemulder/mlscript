@@ -186,15 +186,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
         throw TypeError()
       else
         given VarCache = cache2.addRigid(sub, sup)
-        val upperBound = ctx.getVarUpperBound(sub.var_)
-        return subtype(upperBound, sup)
+        return subtype(sub.var_.upperBound, sup)
     case (_, sup: TVar) =>
       if cache2.checkRigid(sub, sup) then
         throw TypeError()
       else
         given VarCache = cache2.addRigid(sub, sup)
-        val lowerBound = ctx.getVarLowerBound(sup.var_)
-        return subtype(sub, lowerBound)
+        return subtype(sub, sup.var_.lowerBound)
     case (_, _) =>
 
   // Subtyping of universal types.
@@ -283,11 +281,9 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode,
     case Order.Equal =>
       return Clauses.empty
     case Order.Lesser =>
-      val lowerBound = ctx.getVarLowerBound(sup)
-      subtype(TVar(sub), lowerBound)
+      subtype(TVar(sub), sup.lowerBound)
     case Order.Greater =>
-      val upperBound = ctx.getVarUpperBound(sub)
-      subtype(upperBound, TVar(sup))
+      subtype(sub.upperBound, TVar(sup))
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =

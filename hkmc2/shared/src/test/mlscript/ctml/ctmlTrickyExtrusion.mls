@@ -1,0 +1,78 @@
+:ctml
+
+// Tests copied from the `TrickyExtrusion.mls` file. Most of these tests fail in CTML because the
+// inferred types, although not incorrect, are not precise enough.
+
+declare val fst: [T] -> (T, Top) -> T
+declare val snd: [T] -> (Top, T) -> T
+declare val id: [T] -> T -> T
+declare val not: Bool -> Bool
+declare val inc: Int -> Int
+//│ fst: ∀T. T → ⊤ → T
+//│ snd: ∀T. ⊤ → T → T
+//│ id: ∀T. T → T
+//│ not: Bool → Bool
+//│ inc: Int → Int
+
+val True = true
+//│ True: Bool
+
+fun test(f) =
+  let r(x, g) = (g(x), unit)
+  (r(0, inc), r(true, not))
+//│ test: ⊤ → ⟨⟨Int, Unit⟩, ⟨Bool, Unit⟩⟩
+
+fun test(f) =
+  (f(0), f(true))
+//│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
+
+fun test(f) =
+  let r(x) = f(x)
+  (r(0), r(true))
+//│ test: ∀α, β, γ. {α ≥ γ, β ≥ γ, γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
+
+:fixme
+fun test(f) =
+  let r(x, g) = (g(x), f(x))
+  (r(0, inc), r(true, not))
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ.
+//│ Typing error tree:
+//│   ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
+//│     ∀β. ((Int → (Int → Int) → η) ∧ (Bool → (Bool → Bool) → β)) → ⟨η, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
+//│       ((Int → (Int → Int) → η) ∧ (Bool → (Bool → Bool) → θ)) → ⟨η, θ⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
+//│         γ → (∀δ. (γ → δ) → ⟨δ, ε⟩) ≤ (Int → (Int → Int) → η) ∧ (Bool → (Bool → Bool) → θ)
+//│           γ → (∀δ. (γ → δ) → ⟨δ, ε⟩) ≤ Bool → (Bool → Bool) → θ
+//│             Bool ≤ γ
+//│               Bool ≤ Int
+//│                 Bool ≤ ⊥
+//│                   ⊤ ≤ ⊥
+
+fun test(f) =
+  let r(x) = f(x)
+  (r(0), r(true))
+//│ test: ∀α, β, γ. {α ≥ γ, β ≥ γ, γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
+
+:fixme
+fst(test(id)) + 1
+//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α
+//│     ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ Int
+//│       ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ ⊥
+
+:fixme
+not(snd(test(id)))
+//│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (∀α. α → α) → β.
+//│ Typing error tree:
+//│   Bool → Bool ≤ (∀α. α → α) → β
+//│     ∀α. α → α ≤ Bool
+//│       ∀α. α → α ≤ ⊥
+//│         γ → γ ≤ ⊥
+
+:e
+not(fst(test(id)))
+//│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α.
+//│ Typing error tree:
+//│   Bool → Bool ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α
+//│     ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ Bool
+//│       ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ ⊥

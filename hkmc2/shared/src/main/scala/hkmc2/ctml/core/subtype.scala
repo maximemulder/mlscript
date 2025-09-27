@@ -263,9 +263,9 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode, 
       val b = subtypeFreshVar(sup, TVar(sub), Direction.Super)(using ctx.extend(a))
       a.concat(b) */
     case _ =>
-      val lower = ctx.getVarLowerBound(sup)
-      val upper = ctx.getVarUpperBound(sub)
-      subtypeSeq(lower, upper, Clauses(List(Bound(sub, Direction.Sub, TVar(sup)), Bound(sup, Direction.Super, TVar(sub)))))
+      val subUpperBound = meet(TVar(sup), sub.upperBound)
+      val supLowerBound = join(TVar(sub), sup.lowerBound)
+      subtypeSeq(sup.lowerBound, sub.upperBound, Clauses(List(Bound(sub, Direction.Sub, subUpperBound), Bound(sup, Direction.Super, supLowerBound))))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =

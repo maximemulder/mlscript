@@ -16,9 +16,9 @@ fun zero(i) =
 val infinite = infinite + 1
 //│ infinite: Int
 
-fun id(x) =
-  id(x)
-//│ id: ⊤ → ⊥
+fun recursive(x) =
+  recursive(x)
+//│ recursive: ⊤ → ⊥
 
 val never = never
-//│ never: ∀α. {α ≥ α} ⟹ α
+//│ never: ⊥

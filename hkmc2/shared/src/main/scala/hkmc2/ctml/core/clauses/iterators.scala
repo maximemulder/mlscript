@@ -1,5 +1,6 @@
 package hkmc2.ctml.core.clauses
 
+import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
@@ -47,12 +48,20 @@ extension (clauses: Clauses)
 
   /** Map over the bounds in the clauses. */
   def mapBounds(f: Bound => Bound): Clauses =
-    clauses.map(_ match
-      case bound: Bound =>
-        f(bound)
-      case clause =>
-        clause
-    )
+    clauses
+      .map(_ match
+        case bound: Bound =>
+          f(bound)
+        case clause =>
+          clause
+      )
+      .filter(
+        _ match
+          case bound: Bound =>
+            !isBoundImplicit(bound)
+          case clause =>
+            true
+      )
 
   /** Filter the clauses. */
   def filter(f: Clause => Boolean): Clauses =

@@ -1,6 +1,8 @@
 :ctml
 
-// SuperF test suite definitions.
+// Tests copied from the SuperF paper test suite.
+
+// Definitions
 
 declare class List[A]
 declare class ST[S, A]
@@ -66,7 +68,7 @@ val n3 = s(s(s(z)))
 //│ s: ∀β, γ, δ, ε. {β ≤ ε → γ} ⟹ (β → δ → ε) → β → δ → γ
 //│ n3: ∀ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο. {η ≥ θ, θ ≤ η, ι ≥ κ, κ ≤ ι, λ ≥ μ, μ ≤ λ, μ ≥ ν, ν ≤ μ, ν ≥ ο, ξ ≤ ο, ο ≤ ν, ο ≥ ξ} ⟹ ((η → ζ) ∧ (ι → θ) ∧ (λ → κ)) → ξ → ζ
 
-// SuperF test suite terms.
+// Terms
 
 declare fun f: [A] -> ((A) -> A) -> List[A] -> A
 //│ f: ∀A. (A → A) → List[A] → A

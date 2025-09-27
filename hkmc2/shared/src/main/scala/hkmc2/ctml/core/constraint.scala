@@ -71,17 +71,20 @@ def makeLambdaType(param: Type, ret: Type): Type =
     case _ =>
       TLam(param, ret)
 
-/** Filter a list of bounds by removing the bounds that are implicit, that is, that a type variable
- *  is a subtype of the top type or a supertype of the bottom type.
- */
+/** Check whether or not a bound is implicit, that is, satisfied no matter the context. */
+def isBoundImplicit(bound: Bound): Boolean =
+  (bound.dir, bound.type_) match
+    case (Direction.Sub, TTop) | (Direction.Super, TBot) =>
+      true
+    case (_, TVar(var_)) if var_ == bound.var_ =>
+      true
+    case _ =>
+      false
+
+/** Filter a list of bounds by removing the implicit bounds, that is, the bounds that are always
+ *  satisfied no matter the context. */
 def removeImplicitBounds(bounds: List[Bound]): List[Bound] =
-  bounds.flatMap(bound =>
-    (bound.dir, bound.type_) match
-      case (Direction.Sub, TTop) | (Direction.Super, TBot) =>
-        None
-      case _ =>
-        Some(bound)
-  )
+  bounds.filter(!isBoundImplicit(_))
 
 extension (ctx: Context)
   /** Filter a list of bounds by removing the bounds that are already satisfied in the context. */

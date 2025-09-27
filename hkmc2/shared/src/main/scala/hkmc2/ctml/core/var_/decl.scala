@@ -4,15 +4,11 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.types.*
 
-// TODO: Do not use a global mutable counter.
+/** Global counter used to create unique fresh type variables. */
 var freshVarCounter = 0
 
-// Special variable renamings that should be applied for debugging.
-val renamings = Map[Int, String](
-  // 32 -> "A",
-  // 46 -> "B",
-  // 53 -> "C",
-)
+/** Special fresh type variable renamings that should be applied for debugging. */
+val renamings = Map[Int, String]()
 
 /** Get a new unique fresh type variable name. */
 def newFreshVarName(): String =

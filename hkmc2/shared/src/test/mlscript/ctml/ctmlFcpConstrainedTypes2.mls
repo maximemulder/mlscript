@@ -1,5 +1,7 @@
 :ctml
 
+// Tests copied from the `FcpConstrainedTypes2.mls` file.
+
 val f(n) =
   n(0)
 //│ f: ∀α. (Int → α) → α

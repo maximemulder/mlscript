@@ -75,20 +75,18 @@ def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constr
       error.addStep(SubtypingJudgment(sub, sup, mode))
       throw error
 
+def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
+  val newCache =
+    if cache.checkFlex(sub, sup) then
+      return Clauses.empty
+    cache.addFlex(sub, sup)
+
+  given VarCache = newCache
+  subtypeImpl(sub, sup)
+
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   // Subtyping of constraining types.
-
-  val cache2 = // mode match
-    // case Mode.Constrain =>
-      if cache.checkFlex(sub, sup) then
-        // output(s"HIT CACHE ${sub} <= ${sup}")
-        return Clauses.empty
-      cache.addFlex(sub, sup)
-    // case _ =>
-    //   cache
-
-  given VarCache = cache2
 
   mode match
     case Mode.Constrain =>
@@ -118,10 +116,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
     return Clauses.empty
 
   // Subtyping of flexible type variables.
-
-  /* if (sub.isFlexVar || sup.isFlexVar) && cache.checkFlex(sub, sup) then
-    output("HIT CACHE VAR")
-    return Clauses.empty */
 
   (sub, sup) match
     case (TVar(sub), TVar(sup)) if sub.isFlex && sup.isFlex =>
@@ -176,22 +170,22 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   (sub, sup) match
     case (sub: TVar, sup: TVar) =>
-      if cache2.checkRigid(sub, sup) then
+      if cache.checkRigid(sub, sup) then
         throw TypeError()
       else
-        given VarCache = cache2.addRigid(sub, sup)
+        given VarCache = cache.addRigid(sub, sup)
         return subtypeRigidVars(sub.var_, sup.var_)
     case (sub: TVar, _) =>
-      if cache2.checkRigid(sub, sup) then
+      if cache.checkRigid(sub, sup) then
         throw TypeError()
       else
-        given VarCache = cache2.addRigid(sub, sup)
+        given VarCache = cache.addRigid(sub, sup)
         return subtype(sub.var_.upperBound, sup)
     case (_, sup: TVar) =>
-      if cache2.checkRigid(sub, sup) then
+      if cache.checkRigid(sub, sup) then
         throw TypeError()
       else
-        given VarCache = cache2.addRigid(sub, sup)
+        given VarCache = cache.addRigid(sub, sup)
         return subtype(sub, sup.var_.lowerBound)
     case (_, _) =>
 
@@ -250,16 +244,6 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode, 
     // If both variables are equal then they are subtype.
     case Order.Equal =>
       Clauses.empty
-    // OLD CODE: Variables used to be subtyped according to their order.
-    /* case Order.Lesser =>
-      subtypeFreshVar(sup, TVar(sub), Direction.Super)
-    case Order.Greater =>
-      subtypeFreshVar(sub, TVar(sup), Direction.Sub) */
-    // OLD CODE: Variables used to be both subtyped.
-    /* case _ =>
-      val a = subtypeFreshVar(sub, TVar(sup), Direction.Sub)
-      val b = subtypeFreshVar(sup, TVar(sub), Direction.Super)(using ctx.extend(a))
-      a.concat(b) */
     case _ =>
       val subUpperBound = meet(TVar(sup), sub.upperBound)
       val supLowerBound = join(TVar(sub), sup.lowerBound)
@@ -312,7 +296,7 @@ def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode, cache: VarC
   val paramClauses = subtype(sup.param, sub.param)
   subtypeSeq(sub.ret, sup.ret, paramClauses)
 
-/** Constrain a typa application to be a subtype of another typa application. */
+/** Constrain a type application to be a subtype of another typa application. */
 def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
   val absClauses = subtype(sup.abs, sub.abs)
   // Arguments are covariant for now.

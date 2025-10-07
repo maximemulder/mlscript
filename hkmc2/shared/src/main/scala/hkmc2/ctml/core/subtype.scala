@@ -69,12 +69,13 @@ def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constr
       sub1
 
   try
-    subtypeWithDebug(subtypeImpl)(sub, sup)
+    subtypeWithDebug(subtypeCache)(sub, sup)
   catch
     case error: TypeError =>
       error.addStep(SubtypingJudgment(sub, sup, mode))
       throw error
 
+/** Implementation of `constrainSub` with query cache. */
 def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   val newCache =
     if cache.checkFlex(sub, sup) then
@@ -288,19 +289,25 @@ def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  val leftClauses = subtype(sub.left, sup.left)
-  subtypeSeq(sub.right, sup.right, leftClauses)
+  ctx.all(
+    subtype(sub.left,  sup.left),
+    subtype(sub.right, sup.right),
+  )
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
 def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  val paramClauses = subtype(sup.param, sub.param)
-  subtypeSeq(sub.ret, sup.ret, paramClauses)
+  ctx.all(
+    subtype(sup.param, sub.param),
+    subtype(sub.ret,   sup.ret),
+  )
 
 /** Constrain a type application to be a subtype of another typa application. */
 def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  val absClauses = subtype(sup.abs, sub.abs)
-  // Arguments are covariant for now.
-  subtypeSeq(sub.arg, sup.arg, absClauses)
+  ctx.all(
+    subtype(sub.abs, sup.abs),
+    // Arguments are covariant for now.
+    subtype(sub.arg, sup.arg),
+  )
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
 def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: Mode, cache: VarCache): Clauses =

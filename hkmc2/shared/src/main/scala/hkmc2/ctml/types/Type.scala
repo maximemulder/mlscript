@@ -103,10 +103,12 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
     case univ: TUniv =>
       val (vars, body) = getUnivComponents(univ)
       (s"∀${showTypeVars(vars)}. ${showType(body)}", true)
-    case TConstrained(body, bound) =>
-      (s"{${bound.show}} ⟹ ${showType(body)}", true)
-    case TConstraining(body, bound) =>
-      (s"${showType(body)} ⟹ {${bound.show}}", true)
+    case constrained: TConstrained =>
+      val (body, bounds) = constrained.getConstrainedComponents
+      (s"{${bounds.map(_.show).mkString(", ")}} ⟹ ${showType(body)}", true)
+    case constraining: TConstraining =>
+      val (body, bounds) = constraining.getConstrainingComponents
+      (s"${body} ⟹ {${bounds.map(_.show).mkString(", ")}}", true)
 
   // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
   // around it.

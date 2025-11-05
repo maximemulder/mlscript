@@ -92,18 +92,18 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   mode match
     case Mode.Constrain =>
       if sup.is[TConstraining] then
-        val (supBody, supBounds) = sup.splitConstrainings()
+        val (supBody, supBounds) = sup.getConstrainingComponents
         val bodyClauses = subtype(sub, supBody)
         return Clauses(supBounds).concat(bodyClauses)
 
       if sub.is[TConstraining] then
-        val (subBody, subBounds) = sub.splitConstrainings()
+        val (subBody, subBounds) = sub.getConstrainingComponents
         val bodyClauses = subtype(subBody, sup)
         return Clauses(subBounds).concat(bodyClauses)
     case Mode.Check =>
       if sub.is[TConstraining] || sup.is[TConstraining] then
-        val (subBody, subBounds) = sub.splitConstrainings()
-        val (supBody, supBounds) = sup.splitConstrainings()
+        val (subBody, subBounds) = sub.getConstrainingComponents
+        val (supBody, supBounds) = sup.getConstrainingComponents
         val boundsClauses = subtypeBounds(subBounds, supBounds)
         val bodyClauses = subtype(subBody, supBody)
         return Clauses.empty

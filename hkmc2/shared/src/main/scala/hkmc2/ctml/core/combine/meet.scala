@@ -61,8 +61,8 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
   // Meet constraining types.
 
   if left.is[TConstraining] || right.is[TConstraining] then
-    val (leftBody,  leftBounds)  = left.splitConstrainings()
-    val (rightBody, rightBounds) = right.splitConstrainings()
+    val (leftBody,  leftBounds)  = left.getConstrainingComponents
+    val (rightBody, rightBounds) = right.getConstrainingComponents
     if checkDisjoint(leftBody, rightBody) then
       return Some(TBot)
 

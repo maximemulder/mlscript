@@ -70,8 +70,8 @@ private object UsesVar2 extends TypeChainApplicator[Const[Boolean], UsesVarParam
         false
       case TConstrained(body, bound) =>
         first.apply(body, params) || (if bound.var_ == params.var_ then false else first.apply(bound.type_, params))
-      case TConstraining(body, bounds) =>
-        first.apply(body, params) || bounds.map(_.containsVar(params.var_)).foldM()(using AnyMonoid)
+      case TConstraining(body, bound) =>
+        first.apply(body, params) || bound.containsVar(params.var_)
       case _ =>
         next.apply(type_, params)
 

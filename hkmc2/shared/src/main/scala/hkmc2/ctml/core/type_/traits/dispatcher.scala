@@ -53,10 +53,10 @@ abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, 
           first.apply(body, p),
           p,
         )
-      case TConstrained(body, bounds) =>
+      case TConstrained(body, bound) =>
         combinator.constrained(
           first.apply(body, p),
-          this.apply(bounds, p),
+          this.apply(bound, p),
           p,
         )
       case TConstraining(body, bounds) =>

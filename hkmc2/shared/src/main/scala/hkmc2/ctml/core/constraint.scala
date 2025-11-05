@@ -9,8 +9,9 @@ extension (type_ : Type)
   /** Split the body type and constrained bounds of the type. */
   def splitConstrained(): (Type, List[Bound]) =
     type_ match
-      case TConstrained(body, bounds) =>
-        (body, bounds)
+      case TConstrained(body, bound) =>
+        val (innerBody, bounds) = body.splitConstrained()
+        (innerBody, bound :: bounds)
       case _ =>
         (type_, Nil)
 
@@ -39,19 +40,21 @@ def makeConstrainingType(type_ : Type, bounds: List[Bound]): Type =
 
 /** Make a constrained type, simplifying it if possible. */
 def makeConstrainedType(type_ : Type, bounds: List[Bound]): Type =
-  bounds match
-    case Nil =>
-      type_
+  type_ match
+    case TUniv(var_, body) =>
+      TUniv(
+        var_,
+        makeConstrainedType(body, bounds)
+      )
     case _ =>
-      type_ match
-        case TUniv(var_, body) =>
-          val type_ = makeConstrainedType(body, bounds)
-          TUniv(var_, type_)
-        case TConstrained(body, otherBounds) =>
-          TConstrained(body, otherBounds ::: bounds)
-        case _ =>
-          TConstrained(type_, bounds)
-
+      bounds match
+        case Nil =>
+          type_
+        case bound :: bounds =>
+          TConstrained(
+            makeConstrainedType(type_, bounds),
+            bound
+          )
 /** Make a constrained type by adding a lower bound to a type. */
 def makeLowerBound(body: Type, var_ : TypeVar, type_ : Type): Type =
   val bound = Bound(var_, Direction.Super, type_)

@@ -156,3 +156,21 @@ extension (type_ : Type)
         (var_ :: nestedVars, nestedBody)
       case _ =>
         (Nil, type_)
+
+  /** Get the nested constrained components of the type. */
+  def getConstrainedComponents: (Type, List[Bound]) =
+    type_ match
+      case TConstrained(body, bound) =>
+        val (nestedBody, nestedBounds) = body.getConstrainedComponents
+        (nestedBody, bound :: nestedBounds)
+      case _ =>
+        (type_, Nil)
+
+  /** Get the nested constraining components of the type. */
+  def getConstrainingComponents: (Type, List[Bound]) =
+    type_ match
+      case TConstraining(body, bound) =>
+        val (nestedBody, nestedBounds) = body.getConstrainingComponents
+        (nestedBody, bound :: nestedBounds)
+      case _ =>
+        (type_, Nil)

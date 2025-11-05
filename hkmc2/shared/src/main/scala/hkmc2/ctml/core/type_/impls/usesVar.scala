@@ -68,8 +68,8 @@ private object UsesVar2 extends TypeChainApplicator[Const[Boolean], UsesVarParam
           bounds.map(_.usesVar(params)).foldM()(using AnyMonoid)
       case TUniv(typeVar, _) if typeVar == params.var_ =>
         false
-      case TConstrained(body, bounds) =>
-        first.apply(body, params) || bounds.map(bound => if bound.var_ == params.var_ then false else first.apply(bound.type_, params)).foldM()(using AnyMonoid)
+      case TConstrained(body, bound) =>
+        first.apply(body, params) || (if bound.var_ == params.var_ then false else first.apply(bound.type_, params))
       case TConstraining(body, bounds) =>
         first.apply(body, params) || bounds.map(_.containsVar(params.var_)).foldM()(using AnyMonoid)
       case _ =>

@@ -284,7 +284,7 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode, cache:
 
 /** Constrain a constrained type to be a subtype or supertype of another type. */
 def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  val clauses = constrained.bounds.foldRight(Clauses.empty)(subtypeBoundSeq)
+  val clauses = subtypeBound(constrained.bound)
   subtypeDirSeq(constrained.body, type_, dir, clauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */

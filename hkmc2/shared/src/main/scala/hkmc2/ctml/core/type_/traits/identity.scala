@@ -33,8 +33,8 @@ class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
   def univ(var_ : TypeVar, body: Type, p: P): TUniv =
     TUniv(var_, body)
 
-  def constrained(body: Type, bounds: List[Bound], p: P): TConstrained =
-    TConstrained(body, bounds)
+  def constrained(body: Type, bound: Bound, p: P): TConstrained =
+    TConstrained(body, bound)
 
   def constraining(body: Type, bounds: List[Bound], p: P): TConstraining =
     TConstraining(body, bounds)

@@ -37,7 +37,7 @@ private object GetVarPolarities2 extends TypeChainApplicator[Const[Polarities], 
 
 /** Polarity node of the "get type variable polarities" operation. */
 private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](GetVarPolarities4):
-  override def bound(bound: Bound, params: GetVarPolaritiesParams): Polarities =
+  override def bound1(bound: Bound, params: GetVarPolaritiesParams): Polarities =
     val varPolarities = if bound.var_ == params.var_
       then Polarities.fromPolarity(params.pol)
       else Polarities.empty

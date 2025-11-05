@@ -14,7 +14,7 @@ trait WithPolarity[This <: WithPolarity[This]]:
  *  type polarity. */
 abstract class TypePolarityApplicator[T[+_], B[+_], P <: WithPolarity[P]](
   next: TypeApplicator[T, P] & TypeNode[T, B, P]
-) extends TypeApplicator[T, P], BoundsApplicator[B, P], TypeNode[T, B, P]:
+) extends TypeApplicator[T, P], BoundApplicator[B, P], TypeNode[T, B, P]:
   override def getCombinator: TypeCombinator[T, B, P] = next.getCombinator
 
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
@@ -29,14 +29,12 @@ abstract class TypePolarityApplicator[T[+_], B[+_], P <: WithPolarity[P]](
       case _ =>
         next.apply(type_, params)
 
-  override def apply(bounds: List[Bound], params: P): B[List[Bound]] =
-    next.getCombinator.bounds(bounds.map(bound =>
-      val pol = bound.dir match
-        case Direction.Sub =>
-          params.getPolarity.invert()
-        case Direction.Super =>
-          params.getPolarity
-      this.bound(bound, params.setPolarity(pol))
-    ), params)
+  override def apply(bound: Bound, params: P): B[Bound] =
+    val pol = bound.dir match
+      case Direction.Sub =>
+        params.getPolarity.invert()
+      case Direction.Super =>
+        params.getPolarity
+    this.bound1(bound, params.setPolarity(pol))
 
-  def bound(bound: Bound, params: P): B[Bound]
+  def bound1(bound: Bound, params: P): B[Bound]

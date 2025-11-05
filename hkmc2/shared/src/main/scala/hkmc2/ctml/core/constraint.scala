@@ -5,26 +5,6 @@ import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
 
-extension (type_ : Type)
-  // TODO: Move with `getXComponents` functions ?
-  /** Split the body type and constrained bounds of the type. */
-  def splitConstrained(): (Type, List[Bound]) =
-    type_ match
-      case TConstrained(body, bound) =>
-        val (innerBody, bounds) = body.splitConstrained()
-        (innerBody, bound :: bounds)
-      case _ =>
-        (type_, Nil)
-
-  /** Split the body type and constraining bounds of the type. */
-  def splitConstrainings(): (Type, List[Bound]) =
-    type_ match
-      case TConstraining(body, bound) =>
-        val (innerBody, bounds) = body.splitConstrainings()
-        (innerBody, bound :: bounds)
-      case _ =>
-        (type_, Nil)
-
 /** Make a constraining type, simplifying it if possible. */
 def makeConstrainingType(type_ : Type, bounds: List[Bound]): Type =
   type_ match

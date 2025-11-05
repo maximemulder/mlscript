@@ -36,7 +36,7 @@ trait TypeCombinator[T[_], B[_], P]:
   def constrained(body: T[Type], bounds: B[Bound], p: P): T[TConstrained]
 
   /** Get a constraining type combination. */
-  def constraining(body: T[Type], bounds: B[List[Bound]], p: P): T[TConstraining]
+  def constraining(body: T[Type], bounds: B[Bound], p: P): T[TConstraining]
 
   /** Get some type variable bounds combination. */
   def bounds(bounds: List[B[Bound]], p: P): B[List[Bound]]

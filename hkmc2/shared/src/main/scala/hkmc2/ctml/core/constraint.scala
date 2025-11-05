@@ -6,6 +6,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
 
 extension (type_ : Type)
+  // TODO: Move with `getXComponents` functions ?
   /** Split the body type and constrained bounds of the type. */
   def splitConstrained(): (Type, List[Bound]) =
     type_ match
@@ -18,25 +19,29 @@ extension (type_ : Type)
   /** Split the body type and constraining bounds of the type. */
   def splitConstrainings(): (Type, List[Bound]) =
     type_ match
-      case TConstraining(body, bounds) =>
-        (body, bounds)
+      case TConstraining(body, bound) =>
+        val (innerBody, bounds) = body.splitConstrainings()
+        (innerBody, bound :: bounds)
       case _ =>
         (type_, Nil)
 
 /** Make a constraining type, simplifying it if possible. */
 def makeConstrainingType(type_ : Type, bounds: List[Bound]): Type =
-  bounds match
-    case Nil =>
-      type_
+  type_ match
+    case TUniv(var_, body) =>
+      TUniv(
+        var_,
+        makeConstrainingType(body, bounds)
+      )
     case _ =>
-      type_ match
-        case TUniv(var_, body) =>
-          val type_ = makeConstrainingType(body, bounds)
-          TUniv(var_, type_)
-        case TConstraining(body, otherBounds) =>
-          TConstraining(body, otherBounds ::: bounds)
-        case _ =>
-          TConstraining(type_, bounds)
+      bounds match
+        case Nil =>
+          type_
+        case bound :: bounds =>
+          TConstraining(
+            makeConstrainingType(type_, bounds),
+            bound
+          )
 
 /** Make a constrained type, simplifying it if possible. */
 def makeConstrainedType(type_ : Type, bounds: List[Bound]): Type =
@@ -55,6 +60,7 @@ def makeConstrainedType(type_ : Type, bounds: List[Bound]): Type =
             makeConstrainedType(type_, bounds),
             bound
           )
+
 /** Make a constrained type by adding a lower bound to a type. */
 def makeLowerBound(body: Type, var_ : TypeVar, type_ : Type): Type =
   val bound = Bound(var_, Direction.Super, type_)

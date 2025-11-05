@@ -19,10 +19,9 @@ extension (type_ : Type)(using ctx: Context)
         var escapedVars = body.findEscapedVars()
         escapedVars ++= bound.findEscapedVars()
         escapedVars
-      case TConstraining(body, bounds) =>
+      case TConstraining(body, bound) =>
         var escapedVars = body.findEscapedVars()
-        for bound <- bounds do
-          escapedVars ++= bound.findEscapedVars()
+        escapedVars ++= bound.findEscapedVars()
         escapedVars
       case _ =>
         type_.accumulate(_.findEscapedVars())

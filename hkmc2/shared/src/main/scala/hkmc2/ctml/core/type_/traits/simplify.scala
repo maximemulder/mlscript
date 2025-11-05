@@ -42,8 +42,8 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
     val filteredBounds = params.getContext.removeSatisfiedBounds(List(bound))
     makeConstrainedType(body, filteredBounds)
 
-  def constraining(body: Type, bounds: List[Bound], params: P): Type =
-    val filteredBounds = params.getContext.removeSatisfiedBounds(bounds)
+  def constraining(body: Type, bound: Bound, params: P): Type =
+    val filteredBounds = params.getContext.removeSatisfiedBounds(List(bound))
     makeConstrainingType(body, filteredBounds)
 
   def bounds(bounds: List[Bound], params: P): List[Bound] =

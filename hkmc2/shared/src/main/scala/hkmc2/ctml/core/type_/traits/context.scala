@@ -15,7 +15,7 @@ trait WithContext[This <: WithContext[This]]:
 
 /** Handle contextual information while applying a transformation on a type. */
 class TypeContextApplicator[T[+_], P <: WithContext[P]](
-  next: TypeApplicator[T, P] & BoundsApplicator[Id, P] & TypeNode[T, Id, P],
+  next: TypeApplicator[T, P] & BoundApplicator[Id, P] & TypeNode[T, Id, P],
 ) extends TypeApplicator[T, P], TypeNode[T, Id, P]:
   def getCombinator: TypeCombinator[T, Id, P] = next.getCombinator
 
@@ -25,11 +25,10 @@ class TypeContextApplicator[T[+_], P <: WithContext[P]](
         val ctx = params.getContext.extend(declRigidVar(var_))
         val bodyRes = first.apply(body, params.setContext(ctx))
         next.getCombinator.univ(var_, bodyRes, params)
-      case TConstrained(body, bounds) =>
-        val ctx = params.getContext.extend(bounds)
+      case TConstrained(body, bound) =>
+        val ctx = params.getContext.extend(bound)
         val bodyRes = first.apply(body, params.setContext(ctx))
-        // TODO: This is very ugly.
-        val boundsRes = next.apply(List(bounds), params)
-        next.getCombinator.constrained(bodyRes, boundsRes(0), params)
+        val boundRes = next.apply(bound, params)
+        next.getCombinator.constrained(bodyRes, boundRes, params)
       case _ =>
         next.apply(type_, params)

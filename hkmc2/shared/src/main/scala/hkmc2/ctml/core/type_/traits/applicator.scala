@@ -8,6 +8,6 @@ trait TypeApplicator[T[+_], P]:
   def apply(type_ : Type, p: P)(using first: TypeApplicator[T, P] = this): T[Type]
 
 /** Trait that describes a function application on some type variable bounds. */
-trait BoundsApplicator[B[+_], P]:
+trait BoundApplicator[B[+_], P]:
   /** Apply the transformation on some type variable bounds with the given parameters. */
-  def apply(bounds: List[Bound], p: P): B[List[Bound]]
+  def apply(bound: Bound, p: P): B[Bound]

@@ -34,7 +34,7 @@ object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](T
 private object TypeInline2 extends TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3)
 
 private object TypeInline3 extends TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4) {
-  override def bound(bound: Bound, params: TypeInlineParams): Id[Bound] =
+  override def bound1(bound: Bound, params: TypeInlineParams): Id[Bound] =
     Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
 }
 

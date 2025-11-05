@@ -29,7 +29,7 @@ fun test(f) =
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α, β, γ. {α ≥ γ, β ≥ γ, γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
+//│ test: ∀α, β, γ. {α ≥ γ} ⟹ {β ≥ γ} ⟹ {γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
 
 :fixme
 fun test(f) =
@@ -50,7 +50,7 @@ fun test(f) =
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α, β, γ. {α ≥ γ, β ≥ γ, γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
+//│ test: ∀α, β, γ. {α ≥ γ} ⟹ {β ≥ γ} ⟹ {γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
 
 :fixme
 fst(test(id)) + 1

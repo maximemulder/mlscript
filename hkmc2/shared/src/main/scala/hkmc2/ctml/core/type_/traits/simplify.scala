@@ -38,8 +38,8 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
   def univ(var_ : TypeVar, body: Type, params: P): Type =
     TUniv(var_, body)
 
-  def constrained(body: Type, bounds: List[Bound], params: P): Type =
-    val filteredBounds = params.getContext.removeSatisfiedBounds(bounds)
+  def constrained(body: Type, bound: Bound, params: P): Type =
+    val filteredBounds = params.getContext.removeSatisfiedBounds(List(bound))
     makeConstrainedType(body, filteredBounds)
 
   def constraining(body: Type, bounds: List[Bound], params: P): Type =

@@ -33,7 +33,7 @@ trait TypeCombinator[T[_], B[_], P]:
   def univ(var_ : TypeVar, body: T[Type], p: P): T[TUniv]
 
   /** Get a constrained type combination. */
-  def constrained(body: T[Type], bounds: B[List[Bound]], p: P): T[TConstrained]
+  def constrained(body: T[Type], bounds: B[Bound], p: P): T[TConstrained]
 
   /** Get a constraining type combination. */
   def constraining(body: T[Type], bounds: B[List[Bound]], p: P): T[TConstraining]

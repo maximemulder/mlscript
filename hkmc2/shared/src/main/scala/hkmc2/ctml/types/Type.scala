@@ -37,7 +37,7 @@ case class TApp(val abs: Type, val arg: Type) extends Type
 case class TUniv(val var_ : TypeVar, val body: Type) extends Type
 
 /** A constrained type. */
-case class TConstrained(val body: Type, val bounds: List[Bound]) extends Type
+case class TConstrained(val body: Type, val bound: Bound) extends Type
 
 /** A constraining type. */
 case class TConstraining(val body: Type, val bounds: List[Bound]) extends Type
@@ -66,8 +66,8 @@ extension (type_ : Type)
         List(abs, arg)
       case TUniv(_, body) =>
         List(body)
-      case TConstrained(body, bounds) =>
-        bounds.map(_.type_) :+ body
+      case TConstrained(body, bound) =>
+        List(bound.type_, body)
       case TConstraining(body, bounds) =>
         bounds.map(_.type_) :+ body
 
@@ -103,8 +103,8 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
     case univ: TUniv =>
       val (vars, body) = getUnivComponents(univ)
       (s"∀${showTypeVars(vars)}. ${showType(body)}", true)
-    case TConstrained(body, bounds) =>
-      (s"{${showBounds(bounds)}} ⟹ ${showType(body)}", true)
+    case TConstrained(body, bound) =>
+      (s"{${bound.show}} ⟹ ${showType(body)}", true)
     case TConstraining(body, bounds) =>
       (s"${showType(body)} ⟹ {${showBounds(bounds)}}", true)
 

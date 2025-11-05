@@ -28,7 +28,8 @@ class TypeContextApplicator[T[+_], P <: WithContext[P]](
       case TConstrained(body, bounds) =>
         val ctx = params.getContext.extend(bounds)
         val bodyRes = first.apply(body, params.setContext(ctx))
-        val boundsRes = next.apply(bounds, params)
-        next.getCombinator.constrained(bodyRes, boundsRes, params)
+        // TODO: This is very ugly.
+        val boundsRes = next.apply(List(bounds), params)
+        next.getCombinator.constrained(bodyRes, boundsRes(0), params)
       case _ =>
         next.apply(type_, params)

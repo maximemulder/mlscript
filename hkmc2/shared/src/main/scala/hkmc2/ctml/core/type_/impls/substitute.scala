@@ -35,10 +35,10 @@ object TypeSubstitute extends TypeShadowApplicator(
       Bound(newVar, bound.dir, newType)
 
     def substitute(var_ : TypeVar, params: TypeSubstituteParams): TypeVar =
-        if var_ == params.var_ then
-          params.substitute
-        else
-          var_
+      if var_ == params.var_ then
+        params.substitute
+      else
+        var_
 ):
   override def univ(univ: TUniv): Type =
     univ

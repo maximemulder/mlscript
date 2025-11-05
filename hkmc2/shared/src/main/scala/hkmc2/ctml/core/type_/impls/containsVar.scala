@@ -56,8 +56,8 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Contains
         false
       case TConstrained(body, bound) =>
         first.apply(body, p) || (if bound.var_ == p.var_ then false else first.apply(bound.type_, p))
-      case TConstraining(body, bounds) =>
-        first.apply(body, p) || bounds.map(_.containsVar(p.var_)).foldM()(using AnyMonoid)
+      case TConstraining(body, bound) =>
+        first.apply(body, p) || bound.containsVar(p.var_)
       case _ =>
         next.apply(type_, p)
 

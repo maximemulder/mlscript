@@ -31,6 +31,9 @@ A <= (A | B)
 (A & B) == (B & A)
 //│ OK
 
+([Y, Z] -> (Y, Z)) <= ((Int, Str) | (Str, Int))
+//│ OK
+
 // Unions and intersections distributvity.
 
 (A | (B & C)) == ((A | B) & (A | C))
@@ -49,6 +52,8 @@ A <= (A | B)
 
 ((A | C) -> (B & D)) <= ((A -> B) & (C -> D))
 //│ OK
+
+// Type errors
 
 :e
 (A | B) <= A
@@ -80,6 +85,18 @@ A <= (A & B)
 //│         C → D ≤ A → D
 //│           A ≤ C
 //│             A ≤ ⊥
+//│               ⊤ ≤ ⊥
+
+:e
+((Int, Str) | (Str, Int)) <= ([A, B] -> (A, B))
+//│ ═══[ERROR] Cannot solve judgment ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩.
+//│ Typing error tree:
+//│   ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩
+//│     ⟨Int, Str⟩ ≤ ∀A, B. ⟨A, B⟩
+//│       ⟨Int, Str⟩ ≤ ∀B. ⟨α, B⟩
+//│         ⟨Int, Str⟩ ≤ ⟨α, β⟩
+//│           Int ≤ α
+//│             Int ≤ ⊥
 //│               ⊤ ≤ ⊥
 
 // Function intersections type inference.

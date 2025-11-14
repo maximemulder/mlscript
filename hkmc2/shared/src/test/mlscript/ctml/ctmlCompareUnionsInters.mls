@@ -31,8 +31,17 @@ A <= (A | B)
 (A & B) == (B & A)
 //│ OK
 
+// Unions and intersection with flexible variables.
+
 ([Y, Z] -> (Y, Z)) <= ((Int, Str) | (Str, Int))
 //│ OK
+
+declare type Y
+declare type Z
+
+(Y, Z) <= ((Int, Str) | (Str, Int))
+//│ OK
+//│ Z ≤ (Str ⟹ {Y ≤ Int}) ∨ (Int ⟹ {Y ≤ Str}), Y ≤ (Int ⟹ {Z ≤ Str}) ∨ (Str ⟹ {Z ≤ Int})
 
 // Unions and intersections distributvity.
 

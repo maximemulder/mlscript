@@ -2,6 +2,7 @@ package hkmc2.ctml.test
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
+import hkmc2.semantics.Annot
 import hkmc2.semantics.BlockMemberSymbol
 import hkmc2.semantics.Branch
 import hkmc2.semantics.ClassDef
@@ -22,7 +23,7 @@ import hkmc2.semantics.TermDefinition
 import hkmc2.semantics.TypeAliasSymbol
 import hkmc2.semantics.TypeDef
 import hkmc2.syntax.Tree
-import hkmc2.ctml.core.debug.output
+import hkmc2.syntax.Keyword
 
 /** Check whether a MLScript term contains a given symbol. */
 def constainsSymbol(mlTerm: Term, mlSymbol: Symbol): Boolean =
@@ -54,8 +55,8 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
         parseClassDecl(mlSymbol)
-      case TypeDef(mlSymbol, _, None, _, _) =>
-        parseTypeDecl(mlSymbol)
+      case TypeDef(mlSymbol, _, None, _, mlAnnotations) =>
+        parseTypeDecl(mlSymbol, mlAnnotations)
       case TypeDef(mlSymbol, _, Some(mlType), _, _) =>
         parseTypeVar(mlSymbol, mlType)
       case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
@@ -87,12 +88,18 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
 /** Convert an MLScript class declaration to a CTML class declaration. */
 def parseClassDecl(mlSymbol: BlockMemberSymbol): Stmt =
   val name = mlSymbol.nme
-  StmtClassDecl(name)
+  StmtTypeDecl(name, TypeVarKind.Class)
 
 /** Convert an MLScript type declaration to a CTML type variable declaration. */
-def parseTypeDecl(mlSymbol: TypeAliasSymbol): Stmt =
+def parseTypeDecl(mlSymbol: TypeAliasSymbol, mlAnnotations: List[Annot]): Stmt =
   val name = mlSymbol.nme
-  StmtTypeDecl(name)
+  val kind = if mlAnnotations.exists(_ match
+    case Annot.Modifier(Keyword.`declare`) =>
+      true
+    case _ =>
+      false
+  ) then TypeVarKind.Flex else TypeVarKind.Rigid
+  StmtTypeDecl(name, kind)
 
 /** Convert an MLScript type alias to a CTML type variable assignment. */
 def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term): Stmt =

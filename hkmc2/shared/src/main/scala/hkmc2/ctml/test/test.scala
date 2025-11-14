@@ -68,10 +68,8 @@ class Tester(
   /** Test a statement */
   def testStatement(stmt: Stmt) =
     stmt match
-      case StmtClassDecl(name) =>
-        this.testClassDecl(name)
-      case StmtTypeDecl(name) =>
-        this.testTypeDecl(name)
+      case StmtTypeDecl(name, kind) =>
+        this.testTypeDecl(name, kind)
       case StmtTypeVar(name, type_) =>
         this.testTypeVar(name, type_)
       case StmtExprDecl(name, type_) =>
@@ -83,15 +81,10 @@ class Tester(
       case StmtTypeRel(rel, left, right) =>
         this.testTypeRel(rel, left, right)
 
-  /** Add a class to the context. */
-  def testClassDecl(name: String) =
-    val var_ = TypeVar(name)
-    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Class, None))
-
   /** Add a type variable to the context. */
-  def testTypeDecl(name: String) =
+  def testTypeDecl(name: String, kind: TypeVarKind) =
     val var_ = TypeVar(name)
-    this.ctx = this.ctx.extend(TypeVarDecl(var_, TypeVarKind.Rigid, None))
+    this.ctx = this.ctx.extend(TypeVarDecl(var_, kind, None))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =

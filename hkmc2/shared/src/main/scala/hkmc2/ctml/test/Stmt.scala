@@ -5,11 +5,8 @@ import hkmc2.ctml.types.*
 /** A CTML statement, which is used in the type system. */
 sealed trait Stmt
 
-/** A class declaration. */
-case class StmtClassDecl(name: String) extends Stmt
-
 /** A type variable declaration. */
-case class StmtTypeDecl(name: String) extends Stmt
+case class StmtTypeDecl(name: String, kind: TypeVarKind) extends Stmt
 
 /** A type variable assignment. */
 case class StmtTypeVar(name: String, type_ : Type) extends Stmt

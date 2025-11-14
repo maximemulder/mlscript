@@ -1,7 +1,7 @@
 :ctml
 
-declare type Z
-declare type S
+type Z
+type S
 
 fun wf: ((Z, Z) -> Z) & ((Z, S) -> S) & ((S, Z | S) -> S)
 //│ wf: ((Z → Z → Z) ∧ (Z → S → S)) ∧ (S → (Z ∨ S) → S)

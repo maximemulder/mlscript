@@ -1,9 +1,9 @@
 :ctml
 
-declare class A
-declare class B
-declare class C
-declare class D
+class A
+class B
+class C
+class D
 
 // Simple unions and intersections.
 

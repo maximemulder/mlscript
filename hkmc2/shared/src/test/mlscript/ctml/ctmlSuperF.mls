@@ -4,9 +4,9 @@
 
 // Definitions
 
-declare class List[A]
-declare class ST[S, A]
-declare type ChurchInt = [A] -> (A -> A) -> (A -> A)
+class List[A]
+class ST[S, A]
+type ChurchInt = [A] -> (A -> A) -> (A -> A)
 //│ ChurchInt = ∀A. (A → A) → A → A
 
 declare fun head: [A] -> List[A] -> A

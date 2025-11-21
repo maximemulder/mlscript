@@ -53,11 +53,13 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
     mlStmt match
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _) =>
         return None
-      case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, _) =>
+      case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol)
-      case TypeDef(mlSymbol, _, None, _, mlAnnotations) =>
-        parseTypeDecl(mlSymbol, mlAnnotations)
-      case TypeDef(mlSymbol, _, Some(mlType), _, _) =>
+      case TypeDef(mlSymbol, _, None, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
+        parseRigidVarDecl(mlSymbol)
+      case TypeDef(mlSymbol, _, None, _, mlAnnotations) if isAbstract(mlAnnotations) =>
+        parseFlexVarDecl(mlSymbol)
+      case TypeDef(mlSymbol, _, Some(mlType), _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseTypeVar(mlSymbol, mlType)
       case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
         parseExprDecl(mlSymbol, mlType)
@@ -90,16 +92,15 @@ def parseClassDecl(mlSymbol: BlockMemberSymbol): Stmt =
   val name = mlSymbol.nme
   StmtTypeDecl(name, TypeVarKind.Class)
 
-/** Convert an MLScript type declaration to a CTML type variable declaration. */
-def parseTypeDecl(mlSymbol: TypeAliasSymbol, mlAnnotations: List[Annot]): Stmt =
+/** Convert an MLScript type declaration to a CTML rigid type variable declaration. */
+def parseRigidVarDecl(mlSymbol: TypeAliasSymbol): Stmt =
   val name = mlSymbol.nme
-  val kind = if mlAnnotations.exists(_ match
-    case Annot.Modifier(Keyword.`declare`) =>
-      true
-    case _ =>
-      false
-  ) then TypeVarKind.Flex else TypeVarKind.Rigid
-  StmtTypeDecl(name, kind)
+  StmtTypeDecl(name, TypeVarKind.Rigid)
+
+/** Convert an MLScript type declaration to a CTML flexible type variable declaration. */
+def parseFlexVarDecl(mlSymbol: TypeAliasSymbol): Stmt =
+  val name = mlSymbol.nme
+  StmtTypeDecl(name, TypeVarKind.Flex)
 
 /** Convert an MLScript type alias to a CTML type variable assignment. */
 def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term): Stmt =
@@ -403,3 +404,14 @@ def getElemTerm(elem: Elem): Term =
   elem match
     case Fld(_, term, _) => term
     case Spd(_, term)    => term
+
+/** Check whether a list of annotations has a `declare` keyword, which is used to differentiate
+ *  flexible and rigid type variable declarations.
+ */
+def isAbstract(mlAnnotations: List[Annot]): Boolean =
+  mlAnnotations.exists(_ match
+    case Annot.Modifier(Keyword.`declare`) =>
+      true
+    case _ =>
+      false
+  )

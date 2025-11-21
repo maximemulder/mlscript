@@ -1,7 +1,7 @@
 :ctml
 
-declare class A
-declare class B
+class A
+class B
 
 type T = Bot
 //│ T = ⊥

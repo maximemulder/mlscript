@@ -1,8 +1,8 @@
 :ctml
 
-declare class A
-declare class B
-declare class C
+class A
+class B
+class C
 
 declare val a: A
 //│ a: A

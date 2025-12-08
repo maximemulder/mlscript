@@ -53,10 +53,8 @@ extension (ctx: Context)
   /** Get the join of the bounds of a variable in two lists of constraints. */
   def joinVarBounds(var_ : TypeVar, lefts: List[Bound], rights: List[Bound], dir: Direction) =
     given Context = ctx
-    val leftBounds  = lefts.filterVarDir(var_, dir)
-    val rightBounds = rights.filterVarDir(var_, dir)
-    val leftBound  = leftBounds.combineMany(dir)
-    val rightBound = rightBounds.combineMany(dir)
+    val leftBound  = lefts.getVarDirType(var_, dir)
+    val rightBound = rights.getVarDirType(var_, dir)
     Config.mergeMode match
       case MergeMode.Constraining =>
         val leftType =

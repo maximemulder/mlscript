@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.debug
 
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.context.*
 
 /** Convert a value to a string and print it with the debug print function. */
 def output(value : Any*) =
@@ -9,11 +10,20 @@ def output(value : Any*) =
 /** Print a debugging message with the context if the context flag is enabled. */
 def outputContext(message: String)(using ctx: Context) =
   val fullMessage = if DebugFlags.context then
-    message.concat(s" in ${ctx}")
+    message.concat(s" in ${cleanContext(ctx)}")
   else
     message
 
   output(fullMessage)
+
+/** Clean the context by removing definitions from the prelude. */
+def cleanContext(ctx: Context): Context =
+  ctx.map(_.takeWhile(_ match
+    case TermVarDecl("||", _) =>
+      false
+    case _ =>
+      true
+  ))
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode)(using Context): (Type, Type) => Clauses =

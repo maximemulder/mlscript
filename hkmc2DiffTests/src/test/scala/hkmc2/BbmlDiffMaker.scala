@@ -24,23 +24,32 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
         importFile(bbPreludeFile, verbose = false)
 
   /** The CTML command. */
-  val ctmlOpt = new NullaryCommand("ctml"):
+  val ctmlCommand = new NullaryCommand("ctml"):
     override def onSet(): Unit =
       super.onSet()
       // Assign the global CTML fresh variable counter.
       hkmc2.ctml.core.var_.freshVarCounter = 0
-      hkmc2.ctml.core.debug.DebugInfo.reset()
+      hkmc2.ctml.core.debug.Config.reset()
+      hkmc2.ctml.core.debug.DebugFlags.reset()
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init
         given Config = mkConfig
         importFile(ctmlPreludeFilePath, verbose = false)
 
   /** The CTML debug command. */
-  val ctmlDbgOpt = new Command("ctml-dbg")(line =>
+  val ctmlDebugCommand = new Command("ctml-dbg")(line =>
     val flags = line.split(" ")
     for flag <- flags do
       if !hkmc2.ctml.core.debug.DebugFlags.applyFlag(flag) then
         output(s"Unknown CTML debug term '${flag}'.")
+  )
+
+  /** The CTML merge mode command. */
+  val ctmlMergeModeCommand = new Command("ctml-merge")(line =>
+    val flags = line.split(" ")
+    for flag <- flags do
+      if !hkmc2.ctml.core.debug.Config.apply(flag) then
+        output(s"Unknown CTML merge term '${flag}'.")
   )
 
   /** The CTML typing context. */
@@ -71,5 +80,5 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       val sty = simplif(true, 0)(ty)
       printer.print(sty)
 
-    if ctmlOpt.isSet then
+    if ctmlCommand.isSet then
       this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, inImport, output.apply, raise)

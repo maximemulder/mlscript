@@ -16,7 +16,7 @@ abstract class MLsDiffMaker extends DiffMaker:
   val bbmlOpt: Command[?]
 
   /** Constraint types command. */
-  val ctmlOpt: Command[?]
+  val ctmlCommand: Command[?]
 
   val rootPath: Str // * Absolute path to the root of the project
   val preludeFile: io.Path // * Contains declarations of JS builtins

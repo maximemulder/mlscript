@@ -34,6 +34,9 @@ object Config:
 
   def apply(flag: String): Boolean =
     flag match
+      case "" =>
+        this.mergeMode = MergeMode.Constraining
+        return true
       case "constraining" =>
         this.mergeMode = MergeMode.Constraining
         return true

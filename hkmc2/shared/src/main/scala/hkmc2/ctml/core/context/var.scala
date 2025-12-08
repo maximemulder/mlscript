@@ -9,12 +9,12 @@ import hkmc2.ctml.types.*
 extension (ctx: Context)
   /** Make a type variable flexible. */
   def flexify(var_ : TypeVar): Context =
-    Context(ctx.clauses.map(_ match
+    ctx.mapClauses(_ match
       case TypeVarDecl(ctxvar, TypeVarKind.Rigid, original) if ctxvar == var_ =>
         TypeVarDecl(var_, TypeVarKind.Flex, original)
       case clause =>
         clause
-    ))
+    )
 
   /** Get the type of a term variable. */
   def getVarType(name: String): Type =

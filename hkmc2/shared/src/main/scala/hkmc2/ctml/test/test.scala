@@ -44,7 +44,7 @@ class Tester(
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
-    DebugInfo.output = output
+    Config.output = output
 
     // Try to parse the input term.
     val stmts = try

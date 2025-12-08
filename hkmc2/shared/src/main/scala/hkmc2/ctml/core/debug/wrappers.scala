@@ -4,7 +4,7 @@ import hkmc2.ctml.types.*
 
 /** Convert a value to a string and print it with the debug print function. */
 def output(value : Any*) =
-  DebugInfo.output(("  " * DebugInfo.currentCallDepth) + value.map(_.toString()).mkString(" "))
+  Config.output(("  " * Config.currentCallDepth) + value.map(_.toString()).mkString(" "))
 
 /** Print a debugging message with the context if the context flag is enabled. */
 def outputContext(message: String)(using ctx: Context) =
@@ -122,16 +122,16 @@ def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Cont
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
-  if DebugInfo.currentStepCount >= DebugInfo.maxStepCount then
+  if Config.currentStepCount >= Config.maxStepCount then
     throw Exception("Exceeded maximum step count.")
 
-  if DebugInfo.currentCallDepth >= DebugInfo.maxCallDepth then
+  if Config.currentCallDepth >= Config.maxCallDepth then
     throw Exception("Exceeded maximum call depth.")
 
-  DebugInfo.currentStepCount += 1
-  DebugInfo.currentCallDepth += 1
+  Config.currentStepCount += 1
+  Config.currentCallDepth += 1
 
   try
     f()
   finally
-    DebugInfo.currentCallDepth -= 1
+    Config.currentCallDepth -= 1

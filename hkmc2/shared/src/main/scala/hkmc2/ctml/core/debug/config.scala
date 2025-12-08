@@ -1,9 +1,19 @@
 package hkmc2.ctml.core.debug
 
+/** The mode used to merge clauses. */
+enum MergeMode:
+  /** Merge using constraining types. */
+  case Constraining
+  /** Merge using constrained types. */
+  case Constrained
+
 /** Debugging information. */
-object DebugInfo:
+object Config:
   /** The global debug print function. */
   var output: String => Unit = (message) => print(message)
+
+  /** The mode used to merge clauses. */
+  var mergeMode = MergeMode.Constraining
 
   /** The current call depth. */
   var currentCallDepth = 0
@@ -21,6 +31,17 @@ object DebugInfo:
   def reset() =
     this.currentCallDepth = 0
     this.currentStepCount = 0
+
+  def apply(flag: String): Boolean =
+    flag match
+      case "constraining" =>
+        this.mergeMode = MergeMode.Constraining
+        return true
+      case "constrained" =>
+        this.mergeMode = MergeMode.Constrained
+        return true
+      case _ =>
+        return false
 
 /** Debugging flags. */
 object DebugFlags:

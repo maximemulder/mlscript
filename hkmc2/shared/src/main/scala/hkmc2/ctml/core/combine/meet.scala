@@ -42,21 +42,21 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
 
   // Meet union-splittable types.
 
-  var leftUnionSplit = splitUnion(left)
-  if leftUnionSplit.isDefined then
-    val (leftLeft, leftRight) = leftUnionSplit.get
-    return Some(join(
-      meet(leftLeft,  right),
-      meet(leftRight, right),
-    ))
+  splitUnion(left) match
+    case Some(leftLeft, leftRight) =>
+      return Some(join(
+        meet(leftLeft,  right),
+        meet(leftRight, right),
+      ))
+    case None =>
 
-  var rightUnionSplit = splitUnion(right)
-  if rightUnionSplit.isDefined then
-    val (rightLeft, rightRight) = rightUnionSplit.get
-    return Some(join(
-      meet(left, rightLeft),
-      meet(left, rightRight),
-    ))
+  splitUnion(right) match
+    case Some(rightLeft, rightRight) =>
+      return Some(join(
+        meet(left, rightLeft),
+        meet(left, rightRight),
+      ))
+    case None =>
 
   // Meet constraining types.
 
@@ -72,8 +72,10 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
 
   // Meet lambda types.
 
-  if left.is[TLam] && right.is[TLam] then
-    return meetLambdas(left.as[TLam], right.as[TLam])
+  (left, right) match
+    case (left: TLam, right: TLam) =>
+      meetLambdas(left, right)
+    case _ =>
 
   // Meet disjoint types.
 

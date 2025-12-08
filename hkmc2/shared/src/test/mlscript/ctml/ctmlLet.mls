@@ -4,14 +4,6 @@ fun foo(a) =
   let b = a
   let c = b
   c
-//│ SUBTYPE CONSTRAINED {6 ≥ 8, 7 ≤ 8, 8 ≥ 7, 8 ≤ 6} ⟹ 7 → 6 ≤ 0 → 1
-//│ SUBTYPE BOUND 6 ≥ 8
-//│ SUBTYPE CONSTRAINED {7 ≤ 8, 8 ≥ 7, 8 ≤ 6} ⟹ 7 → 6 ≤ 0 → 1
-//│ SUBTYPE BOUND 7 ≤ 8
-//│ SUBTYPE CONSTRAINED {8 ≥ 7, 8 ≤ 6} ⟹ 7 → 6 ≤ 0 → 1
-//│ SUBTYPE BOUND 8 ≥ 7
-//│ SUBTYPE CONSTRAINED {8 ≤ 6} ⟹ 7 → 6 ≤ 0 → 1
-//│ SUBTYPE BOUND 8 ≤ 6
 //│ foo: ∀α, β, γ, δ, ε. {α ≥ β, β ≥ γ, β ≤ α, γ ≥ ε, γ ≤ β, δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ δ → α
 
 fun bar(a) =
@@ -29,46 +21,16 @@ fun baz(a, b) =
 //│
 
 baz(1, 1)
-//│ SUBTYPE CONSTRAINED {24 ≤ (Int ⟹ {26 ≥ Int, 25 ≤ Int}) ∨ (Str ⟹ {26 ≥ Str, 25 ≤ Str}), 25 ≤ (Int ⟹ {26 ≥ Int, 24 ≤ Int}) ∨ (Str ⟹ {26 ≥ Str, 24 ≤ Str}), 26 ≥ (Int ⟹ {25 ≤ Int, 24 ≤ Int}) ∨ (Str ⟹ {25 ≤ Str, 24 ≤ Str})} ⟹ 24 → 25 → 26 ≤ Int → 23
-//│ SUBTYPE BOUND 24 ≤ (Int ⟹ {26 ≥ Int, 25 ≤ Int}) ∨ (Str ⟹ {26 ≥ Str, 25 ≤ Str})
-//│ SUBTYPE CONSTRAINED {25 ≤ (Int ⟹ {26 ≥ Int, 24 ≤ Int}) ∨ (Str ⟹ {26 ≥ Str, 24 ≤ Str}), 26 ≥ (Int ⟹ {25 ≤ Int, 24 ≤ Int}) ∨ (Str ⟹ {25 ≤ Str, 24 ≤ Str})} ⟹ 24 → 25 → 26 ≤ Int → 23
-//│ SUBTYPE BOUND 25 ≤ (Int ⟹ {26 ≥ Int, 24 ≤ Int}) ∨ (Str ⟹ {26 ≥ Str, 24 ≤ Str})
-//│ SUBTYPE CONSTRAINED {26 ≥ (Int ⟹ {25 ≤ Int, 24 ≤ Int}) ∨ (Str ⟹ {25 ≤ Str, 24 ≤ Str})} ⟹ 24 → 25 → 26 ≤ Int → 23
-//│ SUBTYPE BOUND 26 ≥ (Int ⟹ {25 ≤ Int, 24 ≤ Int}) ∨ (Str ⟹ {25 ≤ Str, 24 ≤ Str})
 //│ Int
 
 baz("", "")
-//│ SUBTYPE CONSTRAINED {29 ≤ (Int ⟹ {31 ≥ Int, 30 ≤ Int}) ∨ (Str ⟹ {31 ≥ Str, 30 ≤ Str}), 30 ≤ (Int ⟹ {31 ≥ Int, 29 ≤ Int}) ∨ (Str ⟹ {31 ≥ Str, 29 ≤ Str}), 31 ≥ (Int ⟹ {30 ≤ Int, 29 ≤ Int}) ∨ (Str ⟹ {30 ≤ Str, 29 ≤ Str})} ⟹ 29 → 30 → 31 ≤ Str → 28
-//│ SUBTYPE BOUND 29 ≤ (Int ⟹ {31 ≥ Int, 30 ≤ Int}) ∨ (Str ⟹ {31 ≥ Str, 30 ≤ Str})
-//│ SUBTYPE CONSTRAINED {30 ≤ (Int ⟹ {31 ≥ Int, 29 ≤ Int}) ∨ (Str ⟹ {31 ≥ Str, 29 ≤ Str}), 31 ≥ (Int ⟹ {30 ≤ Int, 29 ≤ Int}) ∨ (Str ⟹ {30 ≤ Str, 29 ≤ Str})} ⟹ 29 → 30 → 31 ≤ Str → 28
-//│ SUBTYPE BOUND 30 ≤ (Int ⟹ {31 ≥ Int, 29 ≤ Int}) ∨ (Str ⟹ {31 ≥ Str, 29 ≤ Str})
-//│ SUBTYPE CONSTRAINED {31 ≥ (Int ⟹ {30 ≤ Int, 29 ≤ Int}) ∨ (Str ⟹ {30 ≤ Str, 29 ≤ Str})} ⟹ 29 → 30 → 31 ≤ Str → 28
-//│ SUBTYPE BOUND 31 ≥ (Int ⟹ {30 ≤ Int, 29 ≤ Int}) ∨ (Str ⟹ {30 ≤ Str, 29 ≤ Str})
 //│ Str
 
 baz(bot, bot)
-//│ SUBTYPE CONSTRAINED {34 ≤ (Int ⟹ {36 ≥ Int, 35 ≤ Int}) ∨ (Str ⟹ {36 ≥ Str, 35 ≤ Str}), 35 ≤ (Int ⟹ {36 ≥ Int, 34 ≤ Int}) ∨ (Str ⟹ {36 ≥ Str, 34 ≤ Str}), 36 ≥ (Int ⟹ {35 ≤ Int, 34 ≤ Int}) ∨ (Str ⟹ {35 ≤ Str, 34 ≤ Str})} ⟹ 34 → 35 → 36 ≤ ⊥ → 33
-//│ SUBTYPE BOUND 34 ≤ (Int ⟹ {36 ≥ Int, 35 ≤ Int}) ∨ (Str ⟹ {36 ≥ Str, 35 ≤ Str})
-//│ SUBTYPE CONSTRAINED {35 ≤ (Int ⟹ {36 ≥ Int, 34 ≤ Int}) ∨ (Str ⟹ {36 ≥ Str, 34 ≤ Str}), 36 ≥ (Int ⟹ {35 ≤ Int, 34 ≤ Int}) ∨ (Str ⟹ {35 ≤ Str, 34 ≤ Str})} ⟹ 34 → 35 → 36 ≤ ⊥ → 33
-//│ SUBTYPE BOUND 35 ≤ (Int ⟹ {36 ≥ Int, 34 ≤ Int}) ∨ (Str ⟹ {36 ≥ Str, 34 ≤ Str})
-//│ SUBTYPE CONSTRAINED {36 ≥ (Int ⟹ {35 ≤ Int, 34 ≤ Int}) ∨ (Str ⟹ {35 ≤ Str, 34 ≤ Str})} ⟹ 34 → 35 → 36 ≤ ⊥ → 33
-//│ SUBTYPE BOUND 36 ≥ (Int ⟹ {35 ≤ Int, 34 ≤ Int}) ∨ (Str ⟹ {35 ≤ Str, 34 ≤ Str})
-//│ SUBTYPE CONSTRAINED {37 ≤ (Int ⟹ {39 ≥ Int, 38 ≤ Int}) ∨ (Str ⟹ {39 ≥ Str, 38 ≤ Str}), 38 ≤ (Int ⟹ {39 ≥ Int, 37 ≤ Int}) ∨ (Str ⟹ {39 ≥ Str, 37 ≤ Str}), 39 ≥ (Int ⟹ {38 ≤ Int, 37 ≤ Int}) ∨ (Str ⟹ {38 ≤ Str, 37 ≤ Str})} ⟹ 38 → 39 ≤ ⊥ → 32
-//│ SUBTYPE BOUND 37 ≤ (Int ⟹ {39 ≥ Int, 38 ≤ Int}) ∨ (Str ⟹ {39 ≥ Str, 38 ≤ Str})
-//│ SUBTYPE CONSTRAINED {38 ≤ (Int ⟹ {39 ≥ Int, 37 ≤ Int}) ∨ (Str ⟹ {39 ≥ Str, 37 ≤ Str}), 39 ≥ (Int ⟹ {38 ≤ Int, 37 ≤ Int}) ∨ (Str ⟹ {38 ≤ Str, 37 ≤ Str})} ⟹ 38 → 39 ≤ ⊥ → 32
-//│ SUBTYPE BOUND 38 ≤ (Int ⟹ {39 ≥ Int, 37 ≤ Int}) ∨ (Str ⟹ {39 ≥ Str, 37 ≤ Str})
-//│ SUBTYPE CONSTRAINED {39 ≥ (Int ⟹ {38 ≤ Int, 37 ≤ Int}) ∨ (Str ⟹ {38 ≤ Str, 37 ≤ Str})} ⟹ 38 → 39 ≤ ⊥ → 32
-//│ SUBTYPE BOUND 39 ≥ (Int ⟹ {38 ≤ Int, 37 ≤ Int}) ∨ (Str ⟹ {38 ≤ Str, 37 ≤ Str})
 //│ ∀α, β. (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ (Str ⟹ {β ≤ Str, α ≤ Str})
 
 :e
 baz(1, "")
-//│ SUBTYPE CONSTRAINED {42 ≤ (Int ⟹ {44 ≥ Int, 43 ≤ Int}) ∨ (Str ⟹ {44 ≥ Str, 43 ≤ Str}), 43 ≤ (Int ⟹ {44 ≥ Int, 42 ≤ Int}) ∨ (Str ⟹ {44 ≥ Str, 42 ≤ Str}), 44 ≥ (Int ⟹ {43 ≤ Int, 42 ≤ Int}) ∨ (Str ⟹ {43 ≤ Str, 42 ≤ Str})} ⟹ 42 → 43 → 44 ≤ Int → 41
-//│ SUBTYPE BOUND 42 ≤ (Int ⟹ {44 ≥ Int, 43 ≤ Int}) ∨ (Str ⟹ {44 ≥ Str, 43 ≤ Str})
-//│ SUBTYPE CONSTRAINED {43 ≤ (Int ⟹ {44 ≥ Int, 42 ≤ Int}) ∨ (Str ⟹ {44 ≥ Str, 42 ≤ Str}), 44 ≥ (Int ⟹ {43 ≤ Int, 42 ≤ Int}) ∨ (Str ⟹ {43 ≤ Str, 42 ≤ Str})} ⟹ 42 → 43 → 44 ≤ Int → 41
-//│ SUBTYPE BOUND 43 ≤ (Int ⟹ {44 ≥ Int, 42 ≤ Int}) ∨ (Str ⟹ {44 ≥ Str, 42 ≤ Str})
-//│ SUBTYPE CONSTRAINED {44 ≥ (Int ⟹ {43 ≤ Int, 42 ≤ Int}) ∨ (Str ⟹ {43 ≤ Str, 42 ≤ Str})} ⟹ 42 → 43 → 44 ≤ Int → 41
-//│ SUBTYPE BOUND 44 ≥ (Int ⟹ {43 ≤ Int, 42 ≤ Int}) ∨ (Str ⟹ {43 ≤ Str, 42 ≤ Str})
 //│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
@@ -78,12 +40,6 @@ baz(1, "")
 
 :e
 baz(true, false)
-//│ SUBTYPE CONSTRAINED {47 ≤ (Int ⟹ {49 ≥ Int, 48 ≤ Int}) ∨ (Str ⟹ {49 ≥ Str, 48 ≤ Str}), 48 ≤ (Int ⟹ {49 ≥ Int, 47 ≤ Int}) ∨ (Str ⟹ {49 ≥ Str, 47 ≤ Str}), 49 ≥ (Int ⟹ {48 ≤ Int, 47 ≤ Int}) ∨ (Str ⟹ {48 ≤ Str, 47 ≤ Str})} ⟹ 47 → 48 → 49 ≤ Bool → 46
-//│ SUBTYPE BOUND 47 ≤ (Int ⟹ {49 ≥ Int, 48 ≤ Int}) ∨ (Str ⟹ {49 ≥ Str, 48 ≤ Str})
-//│ SUBTYPE CONSTRAINED {48 ≤ (Int ⟹ {49 ≥ Int, 47 ≤ Int}) ∨ (Str ⟹ {49 ≥ Str, 47 ≤ Str}), 49 ≥ (Int ⟹ {48 ≤ Int, 47 ≤ Int}) ∨ (Str ⟹ {48 ≤ Str, 47 ≤ Str})} ⟹ 47 → 48 → 49 ≤ Bool → 46
-//│ SUBTYPE BOUND 48 ≤ (Int ⟹ {49 ≥ Int, 47 ≤ Int}) ∨ (Str ⟹ {49 ≥ Str, 47 ≤ Str})
-//│ SUBTYPE CONSTRAINED {49 ≥ (Int ⟹ {48 ≤ Int, 47 ≤ Int}) ∨ (Str ⟹ {48 ≤ Str, 47 ≤ Str})} ⟹ 47 → 48 → 49 ≤ Bool → 46
-//│ SUBTYPE BOUND 49 ≥ (Int ⟹ {48 ≤ Int, 47 ≤ Int}) ∨ (Str ⟹ {48 ≤ Str, 47 ≤ Str})
 //│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ (Str ⟹ {β ≤ Str, α ≤ Str})} ⟹ α → β → γ ≤ Bool → δ.
 //│ Typing error tree:
 //│   ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ (Str ⟹ {β ≤ Str, α ≤ Str})} ⟹ α → β → γ ≤ Bool → δ
@@ -107,40 +63,16 @@ baz(true, false)
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ SUBTYPE CONSTRAINED {56 ≤ (Int ⟹ {58 ≥ Int, 57 ≤ Int}) ∨ (Str ⟹ {58 ≥ Str, 57 ≤ Str}), 57 ≤ (Int ⟹ {58 ≥ Int, 56 ≤ Int}) ∨ (Str ⟹ {58 ≥ Str, 56 ≤ Str}), 58 ≥ (Int ⟹ {57 ≤ Int, 56 ≤ Int}) ∨ (Str ⟹ {57 ≤ Str, 56 ≤ Str})} ⟹ 56 → 57 → 58 ≤ 50 → 55
-//│ SUBTYPE BOUND 56 ≤ (Int ⟹ {58 ≥ Int, 57 ≤ Int}) ∨ (Str ⟹ {58 ≥ Str, 57 ≤ Str})
-//│ SUBTYPE CONSTRAINED {57 ≤ (Int ⟹ {58 ≥ Int, 56 ≤ Int}) ∨ (Str ⟹ {58 ≥ Str, 56 ≤ Str}), 58 ≥ (Int ⟹ {57 ≤ Int, 56 ≤ Int}) ∨ (Str ⟹ {57 ≤ Str, 56 ≤ Str})} ⟹ 56 → 57 → 58 ≤ 50 → 55
-//│ SUBTYPE BOUND 57 ≤ (Int ⟹ {58 ≥ Int, 56 ≤ Int}) ∨ (Str ⟹ {58 ≥ Str, 56 ≤ Str})
-//│ SUBTYPE CONSTRAINED {58 ≥ (Int ⟹ {57 ≤ Int, 56 ≤ Int}) ∨ (Str ⟹ {57 ≤ Str, 56 ≤ Str})} ⟹ 56 → 57 → 58 ≤ 50 → 55
-//│ SUBTYPE BOUND 58 ≥ (Int ⟹ {57 ≤ Int, 56 ≤ Int}) ∨ (Str ⟹ {57 ≤ Str, 56 ≤ Str})
 //│ bop: ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∨ (Str ⟹ {β ≤ Str, α ≤ Str})} ⟹ α → β → γ
 
 bop(0, 1)
-//│ SUBTYPE CONSTRAINED {62 ≤ (Int ⟹ {64 ≥ Int, 63 ≤ Int}) ∨ (Str ⟹ {64 ≥ Str, 63 ≤ Str}), 63 ≤ (Int ⟹ {64 ≥ Int, 62 ≤ Int}) ∨ (Str ⟹ {64 ≥ Str, 62 ≤ Str}), 64 ≥ (Int ⟹ {63 ≤ Int, 62 ≤ Int}) ∨ (Str ⟹ {63 ≤ Str, 62 ≤ Str})} ⟹ 62 → 63 → 64 ≤ Int → 61
-//│ SUBTYPE BOUND 62 ≤ (Int ⟹ {64 ≥ Int, 63 ≤ Int}) ∨ (Str ⟹ {64 ≥ Str, 63 ≤ Str})
-//│ SUBTYPE CONSTRAINED {63 ≤ (Int ⟹ {64 ≥ Int, 62 ≤ Int}) ∨ (Str ⟹ {64 ≥ Str, 62 ≤ Str}), 64 ≥ (Int ⟹ {63 ≤ Int, 62 ≤ Int}) ∨ (Str ⟹ {63 ≤ Str, 62 ≤ Str})} ⟹ 62 → 63 → 64 ≤ Int → 61
-//│ SUBTYPE BOUND 63 ≤ (Int ⟹ {64 ≥ Int, 62 ≤ Int}) ∨ (Str ⟹ {64 ≥ Str, 62 ≤ Str})
-//│ SUBTYPE CONSTRAINED {64 ≥ (Int ⟹ {63 ≤ Int, 62 ≤ Int}) ∨ (Str ⟹ {63 ≤ Str, 62 ≤ Str})} ⟹ 62 → 63 → 64 ≤ Int → 61
-//│ SUBTYPE BOUND 64 ≥ (Int ⟹ {63 ≤ Int, 62 ≤ Int}) ∨ (Str ⟹ {63 ≤ Str, 62 ≤ Str})
 //│ Int
 
 bop("0", "1")
-//│ SUBTYPE CONSTRAINED {67 ≤ (Int ⟹ {69 ≥ Int, 68 ≤ Int}) ∨ (Str ⟹ {69 ≥ Str, 68 ≤ Str}), 68 ≤ (Int ⟹ {69 ≥ Int, 67 ≤ Int}) ∨ (Str ⟹ {69 ≥ Str, 67 ≤ Str}), 69 ≥ (Int ⟹ {68 ≤ Int, 67 ≤ Int}) ∨ (Str ⟹ {68 ≤ Str, 67 ≤ Str})} ⟹ 67 → 68 → 69 ≤ Str → 66
-//│ SUBTYPE BOUND 67 ≤ (Int ⟹ {69 ≥ Int, 68 ≤ Int}) ∨ (Str ⟹ {69 ≥ Str, 68 ≤ Str})
-//│ SUBTYPE CONSTRAINED {68 ≤ (Int ⟹ {69 ≥ Int, 67 ≤ Int}) ∨ (Str ⟹ {69 ≥ Str, 67 ≤ Str}), 69 ≥ (Int ⟹ {68 ≤ Int, 67 ≤ Int}) ∨ (Str ⟹ {68 ≤ Str, 67 ≤ Str})} ⟹ 67 → 68 → 69 ≤ Str → 66
-//│ SUBTYPE BOUND 68 ≤ (Int ⟹ {69 ≥ Int, 67 ≤ Int}) ∨ (Str ⟹ {69 ≥ Str, 67 ≤ Str})
-//│ SUBTYPE CONSTRAINED {69 ≥ (Int ⟹ {68 ≤ Int, 67 ≤ Int}) ∨ (Str ⟹ {68 ≤ Str, 67 ≤ Str})} ⟹ 67 → 68 → 69 ≤ Str → 66
-//│ SUBTYPE BOUND 69 ≥ (Int ⟹ {68 ≤ Int, 67 ≤ Int}) ∨ (Str ⟹ {68 ≤ Str, 67 ≤ Str})
 //│ Str
 
 :e
 bop(0, "1")
-//│ SUBTYPE CONSTRAINED {72 ≤ (Int ⟹ {74 ≥ Int, 73 ≤ Int}) ∨ (Str ⟹ {74 ≥ Str, 73 ≤ Str}), 73 ≤ (Int ⟹ {74 ≥ Int, 72 ≤ Int}) ∨ (Str ⟹ {74 ≥ Str, 72 ≤ Str}), 74 ≥ (Int ⟹ {73 ≤ Int, 72 ≤ Int}) ∨ (Str ⟹ {73 ≤ Str, 72 ≤ Str})} ⟹ 72 → 73 → 74 ≤ Int → 71
-//│ SUBTYPE BOUND 72 ≤ (Int ⟹ {74 ≥ Int, 73 ≤ Int}) ∨ (Str ⟹ {74 ≥ Str, 73 ≤ Str})
-//│ SUBTYPE CONSTRAINED {73 ≤ (Int ⟹ {74 ≥ Int, 72 ≤ Int}) ∨ (Str ⟹ {74 ≥ Str, 72 ≤ Str}), 74 ≥ (Int ⟹ {73 ≤ Int, 72 ≤ Int}) ∨ (Str ⟹ {73 ≤ Str, 72 ≤ Str})} ⟹ 72 → 73 → 74 ≤ Int → 71
-//│ SUBTYPE BOUND 73 ≤ (Int ⟹ {74 ≥ Int, 72 ≤ Int}) ∨ (Str ⟹ {74 ≥ Str, 72 ≤ Str})
-//│ SUBTYPE CONSTRAINED {74 ≥ (Int ⟹ {73 ≤ Int, 72 ≤ Int}) ∨ (Str ⟹ {73 ≤ Str, 72 ≤ Str})} ⟹ 72 → 73 → 74 ≤ Int → 71
-//│ SUBTYPE BOUND 74 ≥ (Int ⟹ {73 ≤ Int, 72 ≤ Int}) ∨ (Str ⟹ {73 ≤ Str, 72 ≤ Str})
 //│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α

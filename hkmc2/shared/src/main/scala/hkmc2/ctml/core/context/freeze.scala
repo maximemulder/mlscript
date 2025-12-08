@@ -6,10 +6,10 @@ extension (ctx: Context)
   /** Freeze a typing context by replacing all the flexible type variables by rigid type
    *  variables. */
   def freeze(): Context =
-    Context(ctx.clauses.map(clause =>
+    ctx.mapClauses(clause =>
       clause match
         case TypeVarDecl(var_, TypeVarKind.Flex, original) =>
           TypeVarDecl(var_, TypeVarKind.Rigid, original)
         case _ =>
           clause
-    ))
+    )

@@ -55,7 +55,7 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Contains
       case TUniv(typeVar, _) if typeVar == p.var_ =>
         false
       case TConstrained(body, bound) =>
-        first.apply(body, p) || (if bound.var_ == p.var_ then false else first.apply(bound.type_, p))
+        first.apply(body, p) || bound.containsVar(p.var_)
       case TConstraining(body, bound) =>
         first.apply(body, p) || bound.containsVar(p.var_)
       case _ =>

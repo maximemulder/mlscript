@@ -33,12 +33,11 @@ val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
 //│ Typing error tree:
 //│   ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
 //│     ∀α. α → α ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
-//│       γ → γ ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
-//│         γ → γ ≤ {β ≥ Str} ⟹ β → β
-//│           Str ≤ β
-//│             Str ≤ Int
-//│               ⊤ ≤ Int
-//│                 ⊤ ≤ ⊥
+//│       ∀α. α → α ≤ {β ≥ Str} ⟹ β → β
+//│         Str ≤ β
+//│           Str ≤ Int
+//│             ⊤ ≤ Int
+//│               ⊤ ≤ ⊥
 
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
 //│ inc: ∀T. {T ≤ Int} ⟹ T → Int

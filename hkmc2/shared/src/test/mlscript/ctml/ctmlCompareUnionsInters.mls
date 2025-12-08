@@ -41,7 +41,7 @@ declare type Z
 
 (Y, Z) <= ((Int, Str) | (Str, Int))
 //│ OK
-//│ Z ≤ (Str ⟹ {Y ≤ Int}) ∨ (Int ⟹ {Y ≤ Str}), Y ≤ (Int ⟹ {Z ≤ Str}) ∨ (Str ⟹ {Z ≤ Int})
+//│ Z ≤ ({Y ≤ Int} ⟹ Str) ∧ ({Y ≤ Str} ⟹ Int), Y ≤ ({Z ≤ Str} ⟹ Int) ∧ ({Z ≤ Int} ⟹ Str)
 
 // Unions and intersections distributvity.
 
@@ -120,7 +120,7 @@ baz("Hello", "World")
 //│ Str
 
 baz(bot, bot)
-//│ Int ∨ Str
+//│ ⊥
 
 :e
 baz(1, "World")

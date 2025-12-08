@@ -25,7 +25,7 @@ object Config:
   var currentStepCount = 0
 
   /** The maximum step count. */
-  val maxStepCount = 5000
+  val maxStepCount = 10000
 
   /** Reset the CTML debug information. */
   def reset() =

@@ -9,6 +9,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.debug.Config.output
 
 extension (ctx: Context)
   // Merge bounds
@@ -79,4 +80,4 @@ extension (ctx: Context)
           given Context = rightCtx
           val filteredRights = rightCtx.removeSatisfiedBounds(rights)
           makeConstrainedType(rightBound, filteredRights)
-        meet(leftType, rightType)
+        meet(leftType, rightType)(using cache = VarCache())

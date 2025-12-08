@@ -29,6 +29,7 @@ object Config:
 
   /** Reset the CTML debug information. */
   def reset() =
+    this.mergeMode = MergeMode.Constraining
     this.currentCallDepth = 0
     this.currentStepCount = 0
 

@@ -2,40 +2,47 @@
 
 :ctml-merge constrained
 
-:ctml-dbg
-
 fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ SIMPLIFY INTER
-//│ SIMPLIFY INTER
-//│ SIMPLIFY INTER
-//│ foo: ∀α. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)} ⟹ α → (∀β. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)))
+//│ foo: ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ
 
 foo(1, 2)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: raise (test.scala:62)
-//│ ═══[ERROR] Type variable '2' not found in the context.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → δ.
 //│ Typing error tree:
-//│   ∀α. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)} ⟹ α → (∀β. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str))) ≤ Int → δ
-//│     {ε ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)} ⟹ ε → (∀β. {β ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({β ≤ Str, ε ≤ Str} ⟹ Str))) ≤ Int → δ
-//│       ε → (∀β. {β ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({β ≤ Str, ε ≤ Str} ⟹ Str))) ≤ Int → δ
-//│         Int ≤ ε
-//│           Int ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)
-//│             Int ≤ {γ ≥ Int, β ≤ Int} ⟹ Int
-//│               ⊤ ≤ {γ ≥ Int, β ≤ Int} ⟹ Int
-//│                 Int ≤ γ
+//│   ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → δ
+//│     ∀β, γ. {ε ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({β ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → β → γ ≤ Int → δ
+//│       ∀γ. {ε ≤ ({γ ≥ Int, ζ ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ζ ≤ Str} ⟹ Str), ζ ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str), γ ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → γ ≤ Int → δ
+//│         {ε ≤ ({η ≥ Int, ζ ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ζ ≤ Str} ⟹ Str), ζ ≤ ({η ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ε ≤ Str} ⟹ Str), η ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Int → δ
+//│           {ζ ≤ ({η ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ε ≤ Str} ⟹ Str), η ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Int → δ
+//│             {η ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Int → δ
+//│               ε → ζ → η ≤ Int → δ
+//│                 Int ≤ ε
+//│                   Int ≤ ({η ≥ Int, ζ ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ζ ≤ Str} ⟹ Str)
+//│                     Int ≤ {η ≥ Int, ζ ≤ Int} ⟹ Int
+//│                       ⊤ ≤ {η ≥ Int, ζ ≤ Int} ⟹ Int
+//│                         ⊤ ≤ {ζ ≤ Int} ⟹ Int
+//│                           ⊤ ≤ Int
+//│                             ⊤ ≤ ⊥
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Type variable '2' not found in the context.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → δ.
 //│ Typing error tree:
-//│   ∀α. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)} ⟹ α → (∀β. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str))) ≤ Int → δ
-//│     {ε ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)} ⟹ ε → (∀β. {β ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({β ≤ Str, ε ≤ Str} ⟹ Str))) ≤ Int → δ
-//│       ε → (∀β. {β ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str)} ⟹ β → (({β ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({β ≤ Str, ε ≤ Str} ⟹ Str))) ≤ Int → δ
-//│         Int ≤ ε
-//│           Int ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str)
-//│             Int ≤ {γ ≥ Int, β ≤ Int} ⟹ Int
-//│               ⊤ ≤ {γ ≥ Int, β ≤ Int} ⟹ Int
-//│                 Int ≤ γ
+//│   ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → δ
+//│     ∀β, γ. {ε ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({β ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → β → γ ≤ Int → δ
+//│       ∀γ. {ε ≤ ({γ ≥ Int, ζ ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ζ ≤ Str} ⟹ Str), ζ ≤ ({γ ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({γ ≥ Str, ε ≤ Str} ⟹ Str), γ ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → γ ≤ Int → δ
+//│         {ε ≤ ({η ≥ Int, ζ ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ζ ≤ Str} ⟹ Str), ζ ≤ ({η ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ε ≤ Str} ⟹ Str), η ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Int → δ
+//│           {ζ ≤ ({η ≥ Int, ε ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ε ≤ Str} ⟹ Str), η ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Int → δ
+//│             {η ≥ ({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Int → δ
+//│               ε → ζ → η ≤ Int → δ
+//│                 Int ≤ ε
+//│                   Int ≤ ({η ≥ Int, ζ ≤ Int} ⟹ Int) ∧ ({η ≥ Str, ζ ≤ Str} ⟹ Str)
+//│                     Int ≤ {η ≥ Int, ζ ≤ Int} ⟹ Int
+//│                       ⊤ ≤ {η ≥ Int, ζ ≤ Int} ⟹ Int
+//│                         ⊤ ≤ {ζ ≤ Int} ⟹ Int
+//│                           ⊤ ≤ Int
+//│                             ⊤ ≤ ⊥

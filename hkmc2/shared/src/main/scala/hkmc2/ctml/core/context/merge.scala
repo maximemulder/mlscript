@@ -3,6 +3,8 @@ package hkmc2.ctml.core.context
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
+import hkmc2.ctml.core.debug.Config
+import hkmc2.ctml.core.debug.MergeMode
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
@@ -23,8 +25,8 @@ extension (ctx: Context)
 
   /** Merge two lists of bounds such that either of those must be satisfied. */
   def joinBounds(leftClauses: Clauses, rightClauses: Clauses): List[Bound] =
-    val lefts = leftClauses.bounds.toList
-    val rights = rightClauses.bounds.toList
+    val lefts = leftClauses.bounds
+    val rights = rightClauses.bounds
     val lowerBounds = joinBoundsDir(lefts, rights, Direction.Sub)
     val upperBounds = joinBoundsDir(lefts, rights, Direction.Super)
     lowerBounds ::: upperBounds
@@ -55,14 +57,28 @@ extension (ctx: Context)
     val rightBounds = rights.filterVarDir(var_, dir)
     val leftBound  = leftBounds.combineMany(dir)
     val rightBound = rightBounds.combineMany(dir)
-    val leftType  =
-      val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
-      given Context = leftCtx
-      val filteredLefts = leftCtx.removeSatisfiedBounds(lefts)
-      makeConstrainingType(leftBound, filteredLefts)
-    val rightType =
-      val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
-      given Context = rightCtx
-      val filteredRights = rightCtx.removeSatisfiedBounds(rights)
-      makeConstrainingType(rightBound, filteredRights)
-    join(leftType, rightType)
+    Config.mergeMode match
+      case MergeMode.Constraining =>
+        val leftType =
+          val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
+          given Context = leftCtx
+          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts)
+          makeConstrainingType(leftBound, filteredLefts)
+        val rightType =
+          val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
+          given Context = rightCtx
+          val filteredRights = rightCtx.removeSatisfiedBounds(rights)
+          makeConstrainingType(rightBound, filteredRights)
+        join(leftType, rightType)
+      case MergeMode.Constrained =>
+        val leftType =
+          val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
+          given Context = leftCtx
+          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts)
+          makeConstrainedType(leftBound, filteredLefts)
+        val rightType =
+          val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
+          given Context = rightCtx
+          val filteredRights = rightCtx.removeSatisfiedBounds(rights)
+          makeConstrainedType(rightBound, filteredRights)
+        meet(leftType, rightType)

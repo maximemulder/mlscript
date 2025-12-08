@@ -3,6 +3,7 @@ package hkmc2.ctml.core.var_
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.VarCache
 
 extension (type_ : Type)
   /** Remove cyclic type variable constraints in a type, that is, when a type variable is
@@ -10,7 +11,7 @@ extension (type_ : Type)
    *
    *  The subtyping direction refers to the type variable on the left and the type on the right.
    */
-  def removeCyclicVar(var_ : TypeVar, dir: Direction)(using Context): Type =
+  def removeCyclicVar(var_ : TypeVar, dir: Direction)(using Context, VarCache): Type =
     type_ match
       case TVar(typeVar) if typeVar == var_ =>
         getExtremalType(dir)

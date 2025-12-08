@@ -43,7 +43,7 @@ def subtypeBoundSeq(bound: Bound, ins: Clauses)(using ctx: Context, mode: Mode =
 
 /** Constrain a type variable bound to be satisfied. */
 def subtypeBound(bound: Bound)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  given Context = ctx.flexify(bound.var_)
+  // given Context = ctx.flexify(bound.var_)
   subtypeDir(TVar(bound.var_), bound.type_, bound.dir)
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */

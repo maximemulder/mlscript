@@ -7,6 +7,7 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.debug.Config.output
 
 /** Combinator that combines the components of a type into that type while simplifying it if
  *  possible by using the information available in the typing context. */
@@ -30,7 +31,8 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
     join(left, right)(using params.getContext)
 
   def inter(left: Type, right: Type, params: P): Type =
-    meet(left, right)(using params.getContext)
+    output("SIMPLIFY INTER")
+    meet(left, right)(using params.getContext, VarCache())
 
   def app(abs: Type, arg: Type, params: P): Type =
     TApp(abs, arg)

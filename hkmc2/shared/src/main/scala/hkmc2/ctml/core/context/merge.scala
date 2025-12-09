@@ -68,7 +68,7 @@ extension (ctx: Context)
           given Context = rightCtx
           val filteredRights = rightCtx.removeSatisfiedBounds(rights)
           makeConstrainingType(rightBound, filteredRights)
-        join(leftType, rightType)
+        join(leftType, rightType)(using cache = VarCache())
       case MergeMode.Constrained =>
         val leftType =
           val leftCtx = ctx.extend(Bound(var_, dir, leftBound))

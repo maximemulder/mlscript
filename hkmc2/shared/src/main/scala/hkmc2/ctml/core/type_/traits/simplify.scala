@@ -27,7 +27,7 @@ class TypeSimplifyCombinator[P <: WithContext[P]] extends TypeCombinator[Const[T
     makeLambdaType(param, ret)
 
   def union(left: Type, right: Type, params: P): Type =
-    join(left, right)(using params.getContext)
+    join(left, right)(using params.getContext, VarCache())
 
   def inter(left: Type, right: Type, params: P): Type =
     meet(left, right)(using params.getContext, VarCache())

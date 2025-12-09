@@ -37,10 +37,6 @@ def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: Mod
 def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   ctx.seqUnit(subtypeDir(left, right, dir), ins)
 
-/** Sequentially constrain a type variable bound in a context. */
-def subtypeBoundSeq(bound: Bound, ins: Clauses)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
-  ctx.seqUnit(subtypeBound(bound), ins)
-
 /** Constrain a type variable bound to be satisfied. */
 def subtypeBound(bound: Bound)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
   // given Context = ctx.flexify(bound.var_)

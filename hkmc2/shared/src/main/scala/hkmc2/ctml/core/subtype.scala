@@ -76,6 +76,8 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Con
   val newCache =
     if cache.checkFlex(sub, sup) then
       return Clauses.empty
+    if cache.checkRigid(sub, sup) then
+      throw TypeError()
     cache.addFlex(sub, sup)
 
   given VarCache = newCache
@@ -167,23 +169,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   (sub, sup) match
     case (sub: TVar, sup: TVar) if sub.isRigidVar || sup.isRigidVar =>
-      if cache.checkRigid(sub, sup) then
-        throw TypeError()
-      else
-        given VarCache = cache.addRigid(sub, sup)
-        return subtypeRigidVars(sub.var_, sup.var_)
+      given VarCache = cache.addRigid(sub, sup)
+      return subtypeRigidVars(sub.var_, sup.var_)
     case (sub: TVar, _) if sub.isRigidVar =>
-      if cache.checkRigid(sub, sup) then
-        throw TypeError()
-      else
-        given VarCache = cache.addRigid(sub, sup)
-        return subtype(sub.var_.upperBound, sup)
+      given VarCache = cache.addRigid(sub, sup)
+      return subtype(sub.var_.upperBound, sup)
     case (_, sup: TVar) if sup.isRigidVar =>
-      if cache.checkRigid(sub, sup) then
-        throw TypeError()
-      else
-        given VarCache = cache.addRigid(sub, sup)
-        return subtype(sub, sup.var_.lowerBound)
+      given VarCache = cache.addRigid(sub, sup)
+      return subtype(sub, sup.var_.lowerBound)
     case (_, _) =>
 
   // Subtyping of universal types.
@@ -217,23 +210,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   (sub, sup) match
     case (sub: TVar, sup: TVar) if sub.isClassVar || sup.isClassVar =>
-      if cache.checkRigid(sub, sup) then
-        throw TypeError()
-      else
-        given VarCache = cache.addRigid(sub, sup)
-        return subtypeRigidVars(sub.var_, sup.var_)
+      given VarCache = cache.addRigid(sub, sup)
+      return subtypeRigidVars(sub.var_, sup.var_)
     case (sub: TVar, _) if sub.isClassVar =>
-      if cache.checkRigid(sub, sup) then
-        throw TypeError()
-      else
-        given VarCache = cache.addRigid(sub, sup)
-        return subtype(sub.var_.upperBound, sup)
+      given VarCache = cache.addRigid(sub, sup)
+      return subtype(sub.var_.upperBound, sup)
     case (_, sup: TVar) if sup.isClassVar =>
-      if cache.checkRigid(sub, sup) then
-        throw TypeError()
-      else
-        given VarCache = cache.addRigid(sub, sup)
-        return subtype(sub, sup.var_.lowerBound)
+      given VarCache = cache.addRigid(sub, sup)
+      return subtype(sub, sup.var_.lowerBound)
     case (_, _) =>
 
   // Subtyping of tuple types.

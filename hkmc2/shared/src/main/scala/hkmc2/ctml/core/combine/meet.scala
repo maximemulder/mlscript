@@ -12,13 +12,6 @@ def meet(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type =
 
 /** Implementation of `meet`. */
 def meetImpl(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type =
-/*  if checkSubtype(right, left) then
-    return right
-
-  if checkSubtype(left, right) then
-    return left
-
-*/
   if checkSubtype(right, left) then
     return right
 

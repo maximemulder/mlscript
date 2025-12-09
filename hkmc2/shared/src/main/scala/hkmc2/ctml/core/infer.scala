@@ -70,7 +70,7 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   // Get the union of the cases.
   val patternsType = match_.cases
     .map(_.pattern)
-    .joinManySeq(scrutineeClauses)
+    .joinManySeq(scrutineeClauses)(using ctx, VarCache())
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
   given VarCache = VarCache()
   val patternsClauses = subtypeSeq(scrutineeType, patternsType, scrutineeClauses)

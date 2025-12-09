@@ -78,7 +78,12 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Con
       return Clauses.empty
     if cache.checkRigid(sub, sup) then
       throw TypeError()
-    cache.addFlex(sub, sup)
+    // TODO: Really not sure about the following one:
+    mode match
+      case Mode.Constrain =>
+        cache.addFlex(sub, sup)
+      case Mode.Check =>
+        cache.addRigid(sub, sup)
 
   given VarCache = newCache
   subtypeImpl(sub, sup)

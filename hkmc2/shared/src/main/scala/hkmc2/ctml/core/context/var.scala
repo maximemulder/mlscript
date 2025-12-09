@@ -5,10 +5,13 @@ import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.debug.*
 
 extension (ctx: Context)
   /** Make a type variable flexible. */
   def flexify(var_ : TypeVar): Context =
+    if DebugFlags.var_ then
+      output(s"flexify ${var_}")
     ctx.mapClauses(_ match
       case TypeVarDecl(ctxvar, TypeVarKind.Rigid, original) if ctxvar == var_ =>
         TypeVarDecl(var_, TypeVarKind.Flex, original)

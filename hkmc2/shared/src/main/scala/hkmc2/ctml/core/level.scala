@@ -9,6 +9,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.combine.getExtremalType
 
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
@@ -159,9 +160,14 @@ def inlineVar(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ct
 /** Implementation of `inlineVar`. */
 def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   given Context = ctx.extend(outs)
+  // TODO: Make that cleaner. Be careful, the simplifications of a bound must not rely on the bound
+  // itself, as it is circular reasoning and can then lose valuable information.
+  val b = outs.mapBounds(
+    b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx.extend(Bound(b.var_, b.dir, getExtremalType(b.dir)), Bound(b.var_, b.dir.invert(), getExtremalType(b.dir.invert()))))))
+  ).removeTypeVar(var_)
   (
     type_.inline(var_),
-    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))).removeTypeVar(var_),
+    b,
   )
 
 /** Ignore a type variable in a type. */

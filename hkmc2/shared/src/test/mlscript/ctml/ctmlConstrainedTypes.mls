@@ -10,25 +10,22 @@ id("Hello")
 //│ Str
 
 val idInt: [T extends Int] -> T -> Int = id
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:62)
-//│ ═══[ERROR] Cannot solve judgment ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int.
-//│ Typing error tree:
-//│   ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int
-//│     ∀α. α → α ≤ {β ≤ Int} ⟹ β → Int
-//│       γ → γ ≤ {β ≤ Int} ⟹ β → Int
-//│         β ≤ Int
-//│           ⊤ ≤ Int
-//│             ⊤ ≤ ⊥
+//│ idInt: ∀T. {T ≤ Int} ⟹ T → Int
 
 idInt(1)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:62)
-//│ ═══[ERROR] Variable 'idInt' not found in the context.
+//│ Int
 
 :e
 idInt("Hello")
-//│ ═══[ERROR] Variable 'idInt' not found in the context.
+//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
+//│ Typing error tree:
+//│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α
+//│     {β ≤ Int} ⟹ β → Int ≤ Str → α
+//│       β → Int ≤ Str → α
+//│         Str ≤ β
+//│           Str ≤ Int
+//│             ⊤ ≤ Int
+//│               ⊤ ≤ ⊥
 
 :e
 val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
@@ -37,29 +34,29 @@ val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
 //│   ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
 //│     ∀α. α → α ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
 //│       γ → γ ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
-//│         β ≤ Int
-//│           ⊤ ≤ Int
-//│             ⊤ ≤ ⊥
+//│         γ → γ ≤ {β ≥ Str} ⟹ β → β
+//│           Str ≤ β
+//│             Str ≤ Int
+//│               ⊤ ≤ Int
+//│                 ⊤ ≤ ⊥
 
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:62)
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ∀T. {T ≤ Int} ⟹ T → Int.
-//│ Typing error tree:
-//│   Int → Int ≤ ∀T. {T ≤ Int} ⟹ T → Int
-//│     Int → Int ≤ {α ≤ Int} ⟹ α → Int
-//│       α ≤ Int
-//│         ⊤ ≤ Int
-//│           ⊤ ≤ ⊥
+//│ inc: ∀T. {T ≤ Int} ⟹ T → Int
 
 inc(1)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:62)
-//│ ═══[ERROR] Variable 'inc' not found in the context.
+//│ Int
 
 :e
 inc("Hello")
-//│ ═══[ERROR] Variable 'inc' not found in the context.
+//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
+//│ Typing error tree:
+//│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α
+//│     {β ≤ Int} ⟹ β → Int ≤ Str → α
+//│       β → Int ≤ Str → α
+//│         Str ≤ β
+//│           Str ≤ Int
+//│             ⊤ ≤ Int
+//│               ⊤ ≤ ⊥
 
 :e
 val incError: [T extends Int] -> T -> Int = (x) => x ++ 1

@@ -6,61 +6,59 @@ import hkmc2.ctml.core.type_.traits.*
 import hkmc2.syntax.Keyword.`override`
 
 /** Applicator that recursively applies a combinator on the components of a type. */
-abstract class TypeDispatcher[T[+_], B[+_], P](combinator: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundApplicator[B, P], TypeNode[T, B, P]:
-  override def getCombinator = this.combinator
-
+abstract class TypeDispatcher[T[+_], B[+_], P](last: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundApplicator[B, P]:
   override def apply(type_ : Type, p: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TBot =>
-        combinator.bot(p)
+        last.bot(p)
       case TTop =>
-        combinator.top(p)
+        last.top(p)
       case TVar(var_) =>
-        combinator.var_(var_)
+        last.var_(var_)
       case TTuple(left, right) =>
-        combinator.tuple(
+        last.tuple(
           first.apply(left, p),
           first.apply(right, p),
           p,
         )
       case TLam(param, ret) =>
-        combinator.lam(
+        last.lam(
           first.apply(param, p),
           first.apply(ret, p),
           p,
         )
       case TUnion(left, right) =>
-        combinator.union(
+        last.union(
           first.apply(left, p),
           first.apply(right, p),
           p,
         )
       case TInter(left, right) =>
-        combinator.inter(
+        last.inter(
           first.apply(left, p),
           first.apply(right, p),
           p,
         )
       case TApp(abs, arg) =>
-        combinator.app(
+        last.app(
           first.apply(abs, p),
           first.apply(arg, p),
           p,
         )
       case TUniv(var_, body) =>
-        combinator.univ(
+        last.univ(
           var_,
           first.apply(body, p),
           p,
         )
       case TConstrained(body, bound) =>
-        combinator.constrained(
+        last.constrained(
           first.apply(body, p),
           this.apply(bound, p),
           p,
         )
       case TConstraining(body, bounds) =>
-        combinator.constraining(
+        last.constraining(
           first.apply(body, p),
           this.apply(bounds, p),
           p,

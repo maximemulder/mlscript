@@ -11,6 +11,8 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.combine.getExtremalType
 import hkmc2.ctml.core.type_.traits.removeVarDirectCycles
+import hkmc2.ctml.core.type_.impls.getAllVarPolarities.*
+import hkmc2.ctml.core.type_.impls.inline.*
 
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve

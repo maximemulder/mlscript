@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.type_.impls
+package hkmc2.ctml.core.type_.impls.simplify
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.combine.*
@@ -21,8 +21,10 @@ class TypeSimplifyParams(val ctx: Context) extends ContextParams[TypeSimplifyPar
 /** Implementation of the type simplification operation. */
 object TypeSimplify extends TypeContextApplicator[Const[Type], TypeSimplifyParams](
   new TypeDispatcher[Const[Type], Id, TypeSimplifyParams](
-    TypeSimplifyCombinator[TypeSimplifyParams]
+    Combinator
   ):
     override def apply(bound: Bound, p: TypeSimplifyParams): Bound =
       bound
-)
+, Combinator)
+
+private def Combinator = TypeSimplifyCombinator[TypeSimplifyParams]

@@ -7,15 +7,14 @@ import hkmc2.ctml.types.*
 /** Applicator that recursively applies a combinator on the components of a type while tracking the
  *  type polarity. */
 abstract class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
-  next: TypeApplicator[T, P] & TypeNode[T, B, P]
-) extends TypeApplicator[T, P], BoundApplicator[B, P], TypeNode[T, B, P]:
-  override def getCombinator: TypeCombinator[T, B, P] = next.getCombinator
-
+  next: TypeApplicator[T, P],
+  last: TypeCombinator[T, B, P],
+) extends TypeApplicator[T, P], BoundApplicator[B, P]:
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TLam(param, ret) =>
         val pol = params.pol
-        next.getCombinator.lam(
+        last.lam(
           first.apply(param, params.setPolarity(pol.invert())),
           first.apply(ret, params),
           params,

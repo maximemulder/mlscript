@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.type_.impls
+package hkmc2.ctml.core.type_.impls.inline
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
@@ -29,14 +29,14 @@ object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](T
   override def univ(univ: TUniv): Type =
     univ
 
-private object TypeInline2 extends TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3)
+private object TypeInline2 extends TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3, Combinator)
 
-private object TypeInline3 extends TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4) {
+private object TypeInline3 extends TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4, Combinator) {
   override def bound1(bound: Bound, params: TypeInlineParams): Id[Bound] =
     Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
 }
 
-private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlineParams](TypeSimplifyCombinator[TypeInlineParams]):
+private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlineParams](Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
@@ -46,3 +46,5 @@ private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlinePar
 
   override def apply(bound: Bound, params: TypeInlineParams): Bound =
     Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
+
+private def Combinator = TypeSimplifyCombinator[TypeInlineParams]

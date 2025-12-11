@@ -37,9 +37,3 @@ trait TypeCombinator[T[_], B[_], P]:
 
   /** Get a constraining type combination. */
   def constraining(body: T[Type], bounds: B[Bound], p: P): T[TConstraining]
-
-/** Trait that describes a node in an operation that can forward the final combinator of the
- *  operation. */
-trait TypeNode[T[_], B[_], P]:
-  /** Get the final combinator of the operation. */
-  def getCombinator: TypeCombinator[T, B, P]

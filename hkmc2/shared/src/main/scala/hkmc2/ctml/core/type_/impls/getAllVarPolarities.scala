@@ -45,18 +45,7 @@ private object GetAllVarPolarities2 extends TypeChainApplicator[Const[Polarities
         next.apply(type_, params)
 
 /** Polarity node of the "get all type variable polarities" operation. */
-private object GetAllVarPolarities3 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities4, Combinator):
-  override def bound1(bound: Bound, params: GetAllVarPolaritiesParams): Polarities =
-    val varPolarities = if bound.var_ == params.var_
-      then Polarities.fromPolarity(params.pol)
-      else Polarities.empty
-    val pol = bound.dir match
-      case Direction.Sub =>
-        params.pol.invert()
-      case Direction.Super =>
-        params.pol
-    val typePolarities = GetAllVarPolarities1.apply(bound.type_, params.setPolarity(pol))
-    Polarities.join(varPolarities, typePolarities)
+private def GetAllVarPolarities3 = TypePolarityApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities4, Combinator)
 
 /** Dispatching node of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](Combinator):

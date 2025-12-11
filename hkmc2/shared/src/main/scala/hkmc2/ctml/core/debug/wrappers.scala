@@ -98,24 +98,24 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
   decl
 
 /** Decorate the type variable quantification function to print debug information. */
-def debugQuantifyVar(impl: (Type, TypeVar, Type, Type, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Type, Type, Clauses) => (Type, Clauses) =
+def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
   if !DebugFlags.var_ then
     return impl
 
-  (type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses) =>
-    outputContext(s"quantify ${var_} with ${lowerBound} and ${upperBound} in ${type_}")
-    val (newType, newOuts) = impl(type_, var_, lowerBound, upperBound, outs)
+  (type_ : Type, var_ : TypeVar, outs: Clauses) =>
+    outputContext(s"quantify ${var_} in ${type_}")
+    val (newType, newOuts) = impl(type_, var_, outs)
     output(s"= ${newType}")
     (newType, newOuts)
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, TypeVar, Type, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Type, Clauses) => (Type, Clauses) =
+def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
   if !DebugFlags.var_ then
     return impl
 
-  (type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses) =>
-    outputContext(s"inline ${var_} with ${bound} in ${type_}")
-    val (newType, newOuts) = impl(type_, var_, bound, outs)
+  (type_ : Type, var_ : TypeVar, outs: Clauses) =>
+    outputContext(s"inline ${var_} in ${type_}")
+    val (newType, newOuts) = impl(type_, var_, outs)
     output(s"= ${newType}")
     (newType, newOuts)
 

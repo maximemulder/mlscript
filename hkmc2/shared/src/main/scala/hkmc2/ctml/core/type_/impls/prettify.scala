@@ -4,6 +4,7 @@ import scala.collection.mutable.HashMap as MutMap
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.debug.output
 import hkmc2.ctml.core.type_.traits.*
 
@@ -14,8 +15,7 @@ extension (type_ : Type)
 
 extension (clauses: Clauses)
   def prettify(prettyCtx: PrettyContext): Clauses =
-    // TODO: Add a `Clauses.map` function.
-    Clauses(clauses.elems.map(_.prettify(prettyCtx)))
+    clauses.map(_.prettify(prettyCtx))
 
 extension (clause: Clause)
   def prettify(prettyCtx: PrettyContext): Clause =

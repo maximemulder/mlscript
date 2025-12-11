@@ -46,6 +46,3 @@ class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator[Const
   def constraining(body: Type, bound: Bound, params: P): Type =
     val filteredBounds = params.ctx.removeSatisfiedBounds(List(bound))
     makeConstrainingType(body, filteredBounds)
-
-  def bounds(bounds: List[Bound], params: P): List[Bound] =
-    bounds

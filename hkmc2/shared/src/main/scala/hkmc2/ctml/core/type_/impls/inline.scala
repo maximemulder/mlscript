@@ -29,12 +29,9 @@ object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](T
   override def univ(univ: TUniv): Type =
     univ
 
-private object TypeInline2 extends TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3, Combinator)
+private def TypeInline2 = TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3, Combinator)
 
-private object TypeInline3 extends TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4, Combinator) {
-  override def bound1(bound: Bound, params: TypeInlineParams): Id[Bound] =
-    Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
-}
+private def TypeInline3 = TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4, Combinator)
 
 private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlineParams](Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =

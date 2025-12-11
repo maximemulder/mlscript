@@ -67,4 +67,4 @@ private object ContainsVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean
     false
 
 /** Monoidal combination node of the "contains type variable" operation. */
-private object ContainsVar4 extends TypeMonoidCombinator[Boolean, ContainsVarParams](AnyMonoid)
+private def ContainsVar4 = TypeMonoidCombinator[Boolean, ContainsVarParams](AnyMonoid)

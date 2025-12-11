@@ -2,6 +2,7 @@ package hkmc2.ctml.core.type_.impls
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
@@ -37,9 +38,8 @@ extension (bound: Bound)
       bound.type_.containsVar(var_)
 
 /** Parameters of the "contains type variable" operation. */
-private class ContainsVarParams(val var_ : TypeVar) extends WithTypeVar[ContainsVarParams]:
-  def getTypeVar = var_
-  def setTypeVar(var_ : TypeVar) = ContainsVarParams(var_)
+private class ContainsVarParams(val var_ : TypeVar) extends TypeVarParams[ContainsVarParams]:
+  override def setVar(var_ : TypeVar) = ContainsVarParams(var_)
 
 /** Shadowing node of the "contains type variable" operation. */
 private object ContainsVar1 extends TypeShadowApplicator[Const[Boolean], ContainsVarParams](ContainsVar2):

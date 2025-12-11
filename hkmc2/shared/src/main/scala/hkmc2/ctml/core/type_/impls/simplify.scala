@@ -5,7 +5,7 @@ import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
-import hkmc2.ctml.core.type_.traits.{TypeContextApplicator, WithContext}
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.TypeDispatcher
 
 extension (type_ : Type)
@@ -14,7 +14,7 @@ extension (type_ : Type)
     TypeSimplify(type_, TypeSimplifyParams(ctx))
 
 /** Parameters of the type simplification operation. */
-class TypeSimplifyParams(val ctx: Context) extends WithContext[TypeSimplifyParams]:
+class TypeSimplifyParams(val ctx: Context) extends ContextParams[TypeSimplifyParams]:
   def getContext = ctx
   def setContext(ctx: Context) = TypeSimplifyParams(ctx)
 

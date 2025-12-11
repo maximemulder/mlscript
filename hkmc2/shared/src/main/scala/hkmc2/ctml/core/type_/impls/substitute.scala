@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.type_.impls
 
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
@@ -15,9 +16,8 @@ extension (type_ : Type)
 class TypeSubstituteParams(
   val var_ : TypeVar,
   val substitute: TypeVar,
-) extends WithTypeVar[TypeSubstituteParams]:
-  def getTypeVar = var_
-  def setTypeVar(var_ : TypeVar) = TypeSubstituteParams(var_, substitute)
+) extends TypeVarParams[TypeSubstituteParams]:
+  def setVar(var_ : TypeVar) = TypeSubstituteParams(var_, substitute)
 
 /** Implementation of the type substitution operation. */
 object TypeSubstitute extends TypeShadowApplicator(

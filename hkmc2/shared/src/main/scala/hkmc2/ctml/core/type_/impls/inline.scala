@@ -3,6 +3,7 @@ package hkmc2.ctml.core.type_.impls
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.core.context.getVarBound
 import hkmc2.ctml.core.debug.output
@@ -18,13 +19,10 @@ class TypeInlineParams(
   val var_ : TypeVar,
   val pol: Polarity,
   val ctx: Context,
-) extends WithContext[TypeInlineParams], WithPolarity[TypeInlineParams], WithTypeVar[TypeInlineParams]:
-  def getContext = ctx
-  def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx)
-  def getPolarity = pol
-  def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx)
-  def getTypeVar = var_
-  def setTypeVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx)
+) extends ContextParams[TypeInlineParams], PolarityParams[TypeInlineParams], TypeVarParams[TypeInlineParams]:
+  override def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx)
+  override def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx)
+  override def setVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx)
 
 /** Implementation of the type variable inlining operation. */
 object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](TypeInline2):

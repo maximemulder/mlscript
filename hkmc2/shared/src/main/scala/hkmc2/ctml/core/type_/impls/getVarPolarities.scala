@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.type_.impls
 
 import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
@@ -12,14 +13,9 @@ extension (type_ : Type)
     GetVarPolarities1(type_, GetVarPolaritiesParams(var_, Polarity.Positive))
 
 /** Parameters of the get type variable polarities operation. */
-private class GetVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends WithPolarity[GetVarPolaritiesParams], WithTypeVar[GetVarPolaritiesParams]:
-  def getTypeVar: TypeVar = var_
-
-  def setTypeVar(var_ : TypeVar): GetVarPolaritiesParams = GetVarPolaritiesParams(var_, pol)
-
-  def getPolarity = pol
-
-  def setPolarity(pol: Polarity) = GetVarPolaritiesParams(var_, pol)
+private class GetVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends PolarityParams[GetVarPolaritiesParams], TypeVarParams[GetVarPolaritiesParams]:
+  override def setVar(var_ : TypeVar) = GetVarPolaritiesParams(var_, pol)
+  override def setPolarity(pol: Polarity) = GetVarPolaritiesParams(var_, pol)
 
 /** Shadowing node of the "get type variable polarities" operation. */
 private object GetVarPolarities1 extends TypeShadowApplicator[Const[Polarities], GetVarPolaritiesParams](GetVarPolarities2):
@@ -43,9 +39,9 @@ private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities
       else Polarities.empty
     val pol = bound.dir match
       case Direction.Sub =>
-        params.getPolarity.invert()
+        params.pol.invert()
       case Direction.Super =>
-        params.getPolarity
+        params.pol
     val typePolarities = GetVarPolarities1.apply(bound.type_, params.setPolarity(pol))
     Polarities.join(varPolarities, typePolarities)
 
@@ -57,8 +53,8 @@ private object GetVarPolarities4 extends TypeDispatcher[Const[Polarities], Const
       else Polarities.empty
     val pol = bound.dir match
       case Direction.Sub =>
-        params.getPolarity.invert()
+        params.pol.invert()
       case Direction.Super =>
-        params.getPolarity
+        params.pol
     val typePolarities = GetVarPolarities1.apply(bound.type_, params.setPolarity(pol))
     Polarities.join(varPolarities, typePolarities)

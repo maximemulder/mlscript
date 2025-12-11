@@ -5,6 +5,7 @@ import hkmc2.ctml.util.OrderedSet as MutSet
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
@@ -44,9 +45,8 @@ extension (bound: Bound)
       bound.type_.usesVar(params: UsesVarParams)
 
 /** Parameters of the "uses type variable" operation. */
-private class UsesVarParams(val var_ : TypeVar, val ctx: Context, val cache: MutSet[TypeVar]) extends WithTypeVar[UsesVarParams]:
-  def getTypeVar = var_
-  def setTypeVar(var_ : TypeVar) = UsesVarParams(var_, ctx, cache)
+private class UsesVarParams(val var_ : TypeVar, val ctx: Context, val cache: MutSet[TypeVar]) extends TypeVarParams[UsesVarParams]:
+  override def setVar(var_ : TypeVar) = UsesVarParams(var_, ctx, cache)
 
 /** Shadowing node of the "uses type variable" operation. */
 private object UsesVar1 extends TypeShadowApplicator[Const[Boolean], UsesVarParams](UsesVar2):

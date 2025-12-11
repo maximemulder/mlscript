@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.type_.impls
+package hkmc2.ctml.core.type_.impls.getVarPolarities
 
 import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.type_.*
@@ -32,7 +32,7 @@ private object GetVarPolarities2 extends TypeChainApplicator[Const[Polarities], 
         next.apply(type_, params)
 
 /** Polarity node of the "get type variable polarities" operation. */
-private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](GetVarPolarities4):
+private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](GetVarPolarities4, Combinator):
   override def bound1(bound: Bound, params: GetVarPolaritiesParams): Polarities =
     val varPolarities = if bound.var_ == params.var_
       then Polarities.fromPolarity(params.pol)
@@ -46,7 +46,7 @@ private object GetVarPolarities3 extends TypePolarityApplicator[Const[Polarities
     Polarities.join(varPolarities, typePolarities)
 
 /** Dispatching node of the "get type variable polarities" operation. */
-private object GetVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](TypeMonoidCombinator(JoinPolaritiesMonoid)):
+private object GetVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetVarPolaritiesParams](Combinator):
   override def apply(bound: Bound, params: GetVarPolaritiesParams): Polarities =
     val varPolarities = if bound.var_ == params.var_
       then Polarities.fromPolarity(params.pol)
@@ -58,3 +58,5 @@ private object GetVarPolarities4 extends TypeDispatcher[Const[Polarities], Const
         params.pol
     val typePolarities = GetVarPolarities1.apply(bound.type_, params.setPolarity(pol))
     Polarities.join(varPolarities, typePolarities)
+
+private def Combinator = TypeMonoidCombinator[Polarities, GetVarPolaritiesParams](JoinPolaritiesMonoid)

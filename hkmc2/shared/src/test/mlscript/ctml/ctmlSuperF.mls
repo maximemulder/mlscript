@@ -282,7 +282,7 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 // OK
 
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β. {α ≥ α → (β ∨ α), α ≤ α → β, β ≥ β ∨ α, β ≤ α → β} ⟹ α → (β ∨ α)
+//│ g9: ∀α, β. {α ≥ α → (β ∨ α), α ≤ α → β, β ≥ α, β ≤ α → β} ⟹ α → (β ∨ α)
 // MAYBE
 
 val g10 = ((x) => x(x))((x) => x(x))

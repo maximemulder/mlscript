@@ -10,6 +10,7 @@ import hkmc2.ctml.core.debug.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.combine.getExtremalType
+import hkmc2.ctml.core.type_.traits.removeVarDirectCycles
 
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
@@ -110,36 +111,34 @@ extension (ctx: Context)
   def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses, levelVars: Set[TypeVar]) =
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
-    val lowerBound = fullCtx.getVarLowerBound(var_)
-    val upperBound = fullCtx.getVarUpperBound(var_)
     val polarities = type_.getAllVarPolarities(var_)
-    // TODO: Can just check if the var is contrained by any other variable of the context.
-    // TODO: Add a `var_.isConstrained` method.
     if polarities == Polarities(false, false) then
       ignoreVar(type_, var_, outs)
     else if var_.isRecursive then
-      // output(s"VAR ${var_} RECURSIVE")
-      quantifyVar(type_, var_, lowerBound, upperBound, outs)
+      // output(s"RECURSIVE ${var_}")
+      quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, true) then
-      // output(s"VAR ${var_} POS+NEG")
+      val lowerBound = fullCtx.getVarLowerBound(var_)
+      val upperBound = fullCtx.getVarUpperBound(var_)
+      // output(s"TRUE TRUE ${var_}")
       if checkEqual(lowerBound, upperBound) then
-        inlineVar(type_, var_, lowerBound, outs)
+        inlineVar(type_, var_, outs)
       else
-        quantifyVar(type_, var_, lowerBound, upperBound, outs)
+        quantifyVar(type_, var_, outs)
     else if fullCtx.isVarConstrained(var_, levelVars) then
-      // output(s"VAR ${var_} CONSTRAINED")
-      quantifyVar(type_, var_, lowerBound, upperBound, outs)
+      // output(s"CONSTRAINED ${var_}")
+      quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, false) then
-      inlineVar(type_, var_, upperBound, outs)
+      inlineVar(type_, var_, outs)
     else
-      inlineVar(type_, var_, lowerBound, outs)
+      inlineVar(type_, var_, outs)
 
 /** Quantify a type variable in a type. */
-def quantifyVar(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  debugQuantifyVar(quantifyVarImpl)(type_, var_, lowerBound, upperBound, outs)
+def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  debugQuantifyVar(quantifyVarImpl)(type_, var_, outs)
 
 /** Implementation of `quantifyVar`. */
-def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def quantifyVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   /* val bounds = removeImplicitBounds(List(
     Bound(var_, Direction.Super, lowerBound),
     Bound(var_, Direction.Sub, upperBound),
@@ -154,17 +153,21 @@ def quantifyVarImpl(type_ : Type, var_ : TypeVar, lowerBound: Type, upperBound: 
     (type_, outs)
 
 /** Inline a type variable in a type. */
-def inlineVar(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  debugInlineVar(inlineVarImpl)(type_, var_, bound, outs)
+def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  debugInlineVar(inlineVarImpl)(type_, var_, outs)
 
 /** Implementation of `inlineVar`. */
-def inlineVarImpl(type_ : Type, var_ : TypeVar, bound: Type, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   given Context = ctx.extend(outs)
   // TODO: Make that cleaner. Be careful, the simplifications of a bound must not rely on the bound
   // itself, as it is circular reasoning and can then lose valuable information.
   val b = outs.mapBounds(
     b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx.extend(Bound(b.var_, b.dir, getExtremalType(b.dir)), Bound(b.var_, b.dir.invert(), getExtremalType(b.dir.invert()))))))
-  ).removeTypeVar(var_)
+  )
+  .mapBounds(
+    b => Bound(b.var_, b.dir, b.type_.removeVarDirectCycles(b.var_, b.dir.pol))
+  )
+  .removeTypeVar(var_)
   (
     type_.inline(var_),
     b,

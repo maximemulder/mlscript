@@ -1,0 +1,9 @@
+:ctml
+
+:ctml-cfg constrained
+
+fun foo(a) =
+  if a is
+    Int then (a as Int)
+    Str then (a as Str)
+//│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∧ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β

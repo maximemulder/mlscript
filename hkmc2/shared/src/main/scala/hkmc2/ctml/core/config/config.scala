@@ -8,7 +8,7 @@ enum MergeMode:
   case Constrained
 
 /** Debugging information. */
-object Config:
+class Config:
   /** The global debug print function. */
   var output: String => Unit = (message) => print(message)
 
@@ -27,28 +27,14 @@ object Config:
   /** The maximum step count. */
   val maxStepCount = 5000
 
-  /** Reset the CTML debug information. */
-  def reset() =
-    this.mergeMode = MergeMode.Constraining
-    this.currentCallDepth = 0
-    this.currentStepCount = 0
-
-  def apply(flag: String): Boolean =
-    flag match
-      case "" =>
-        this.mergeMode = MergeMode.Constraining
-        return true
-      case "constraining" =>
-        this.mergeMode = MergeMode.Constraining
-        return true
-      case "constrained" =>
-        this.mergeMode = MergeMode.Constrained
-        return true
-      case _ =>
-        return false
+  /** The debugging configuration. */
+  var debug = Debug()
 
 /** Debugging flags. */
-object Debug:
+class Debug:
+  /** Show debugging information flag. */
+  var enabled = false
+
   /** Show typing context debug flag. */
   var context = false
 
@@ -73,11 +59,4 @@ object Debug:
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None
 
-  def reset() =
-    this.context   = false
-    this.infer     = false
-    this.constrain = false
-    this.check     = false
-    this.join      = false
-    this.meet      = false
-    this.var_      = false
+var config = Config()

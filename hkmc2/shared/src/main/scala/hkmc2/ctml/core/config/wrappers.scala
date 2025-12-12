@@ -5,17 +5,23 @@ import hkmc2.ctml.core.context.*
 
 /** Convert a value to a string and print it with the debug print function. */
 def output(value : Any*): Unit =
-  if Debug.depth.exists(_ < Config.currentCallDepth) then
+  if config.debug.depth.exists(_ < config.currentCallDepth) then
     return
 
-  if Debug.depth.exists(_ == Config.currentCallDepth) then
-    Config.output(("  " * Config.currentCallDepth) + "...")
+  if config.debug.depth.exists(_ == config.currentCallDepth) then
+    config.output(("  " * config.currentCallDepth) + "...")
 
-  Config.output(("  " * Config.currentCallDepth) + value.map(_.toString()).mkString(" "))
+  config.output(("  " * config.currentCallDepth) + value.map(_.toString()).mkString(" "))
+
+def debug(value: Any*): Unit =
+  if !config.debug.enabled then
+    return
+
+  output(value*)
 
 /** Print a debugging message with the context if the context flag is enabled. */
 def outputContext(message: String)(using ctx: Context) =
-  val fullMessage = if Debug.context then
+  val fullMessage = if config.debug.context then
     message.concat(s" in ${cleanContext(ctx)}")
   else
     message
@@ -33,10 +39,10 @@ def cleanContext(ctx: Context): Context =
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode)(using Context): (Type, Type) => Clauses =
-  if mode == Mode.Constrain && !Debug.constrain then
+  if mode == Mode.Constrain && !config.debug.constrain then
     return impl
 
-  if mode == Mode.Check && !Debug.check then
+  if mode == Mode.Check && !config.debug.check then
     return impl
 
   (sub: Type, sup: Type) =>
@@ -52,7 +58,7 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode)(using Cont
 
 /** Decorate the type inference function to print debug information. */
 def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type, Clauses) =
-  if !Debug.infer then
+  if !config.debug.infer then
     return impl
 
   (expr: Expr) =>
@@ -69,7 +75,7 @@ def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type,
 
 /** Decorate the type join function to print debug information. */
 def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
-  if !Debug.join then
+  if !config.debug.join then
     return impl
 
   (left: Type, right: Type) =>
@@ -80,7 +86,7 @@ def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Ty
 
 /** Decorate the type meet function to print debug information. */
 def meetWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
-  if !Debug.meet then
+  if !config.debug.meet then
     return impl
 
   (left: Type, right: Type) =>
@@ -91,7 +97,7 @@ def meetWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Ty
 
 /** Print a type variable declaration as a debug information. */
 def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
-  if !Debug.var_ then
+  if !config.debug.var_ then
     return decl
 
   output(s"${decl.var_} ${decl.kind}${decl.original match
@@ -105,7 +111,7 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
 
 /** Decorate the type variable quantification function to print debug information. */
 def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
-  if !Debug.var_ then
+  if !config.debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
@@ -116,7 +122,7 @@ def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Co
 
 /** Decorate the type variable inlining function to print debug information. */
 def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
-  if !Debug.var_ then
+  if !config.debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
@@ -127,7 +133,7 @@ def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Cont
 
 /** Decorate the type variable ignoring function to print debug information. */
 def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
-  if !Debug.var_ then
+  if !config.debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
@@ -138,16 +144,16 @@ def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Cont
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
-  if Config.currentStepCount >= Config.maxStepCount then
+  if config.currentStepCount >= config.maxStepCount then
     throw Exception("Exceeded maximum step count.")
 
-  if Config.currentCallDepth >= Config.maxCallDepth then
+  if config.currentCallDepth >= config.maxCallDepth then
     throw Exception("Exceeded maximum call depth.")
 
-  Config.currentStepCount += 1
-  Config.currentCallDepth += 1
+  config.currentStepCount += 1
+  config.currentCallDepth += 1
 
   try
     f()
   finally
-    Config.currentCallDepth -= 1
+    config.currentCallDepth -= 1

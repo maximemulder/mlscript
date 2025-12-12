@@ -8,7 +8,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
 /** Handle contextual information while applying a transformation on a type. */
-class TypeContextApplicator[T[+_], P <: ContextParams[P]](
+final class TypeContextApplicator[T[+_], P <: ContextParams[P]](
   next: TypeApplicator[T, P] & BoundApplicator[Id, P],
   last: TypeCombinator[T, Id, P]
 ) extends TypeApplicator[T, P]:

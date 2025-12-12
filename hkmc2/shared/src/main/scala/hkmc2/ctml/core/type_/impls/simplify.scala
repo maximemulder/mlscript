@@ -11,20 +11,17 @@ import hkmc2.ctml.core.type_.traits.TypeDispatcher
 extension (type_ : Type)
   /** Simplify the type based on the information available in a context. */
   def simplify()(using ctx: Context): Type =
-    TypeSimplify(type_, TypeSimplifyParams(ctx))
+    Applicator(type_, TypeSimplifyParams(ctx))
 
 /** Parameters of the type simplification operation. */
-class TypeSimplifyParams(val ctx: Context) extends ContextParams[TypeSimplifyParams]:
-  def getContext = ctx
+private class TypeSimplifyParams(val ctx: Context) extends ContextParams[TypeSimplifyParams]:
   def setContext(ctx: Context) = TypeSimplifyParams(ctx)
 
 /** Implementation of the type simplification operation. */
-object TypeSimplify extends TypeContextApplicator[Const[Type], TypeSimplifyParams](
-  new TypeDispatcher[Const[Type], Id, TypeSimplifyParams](
-    Combinator
-  ):
-    override def apply(bound: Bound, p: TypeSimplifyParams): Bound =
-      bound
-, Combinator)
+private def Applicator = TypeContextApplicator[Const[Type], TypeSimplifyParams](Dispatcher, Combinator)
+
+private object Dispatcher extends TypeDispatcher[Const[Type], Id, TypeSimplifyParams](Combinator):
+  override def apply(bound: Bound, p: TypeSimplifyParams): Bound =
+    bound
 
 private def Combinator = TypeSimplifyCombinator[TypeSimplifyParams]

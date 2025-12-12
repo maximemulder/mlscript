@@ -1,0 +1,61 @@
+:ctml
+
+:ctml-cfg constrained
+
+:ctml-dbg var context
+
+fun foo(a) =
+  if a is
+    Int then (a as Int)
+    Str then (a as Str)
+//│ 0 flex
+//│ 1 flex
+//│ quantify 0 in 0 → 1 in 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str), 1 flex, 0 ≤ Int ∨ Str, a: 0, 0 flex
+//│ = 0 → 1
+//│ quantify 1 in 0 → 1 in 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str), 1 flex, 0 ≤ Int ∨ Str, a: 0, 0 flex
+//│ = 0 → 1
+//│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
+
+val foo2: (Int -> Int) & (Str -> Str) = foo
+//│ 2 flex freshen 0
+//│ 3 flex freshen 1
+//│ 4 flex freshen 0
+//│ 5 flex freshen 1
+//│ foo2: (Int → Int) ∧ (Str → Str)
+
+:e
+val foo2: (Int -> Int) & (Bool -> Bool) = foo
+//│ 6 flex freshen 0
+//│ 7 flex freshen 1
+//│ 8 flex freshen 0
+//│ 9 flex freshen 1
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ (Int → Int) ∧ (Bool → Bool).
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ (Int → Int) ∧ (Bool → Bool)
+//│     ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → Bool
+//│       ∀β. {γ ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → β ≤ Bool → Bool
+//│         {γ ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str), δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
+//│           {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
+//│             γ → δ ≤ Bool → Bool
+//│               Bool ≤ γ
+//│                 Bool ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str)
+//│                   Bool ≤ {δ ≥ Int} ⟹ Int
+//│                     Bool ≤ Int
+//│                       Bool ≤ ⊥
+//│                         ⊤ ≤ ⊥
+//│                   Bool ≤ {δ ≥ Str} ⟹ Str
+//│                     Bool ≤ Str
+//│                       Bool ≤ ⊥
+//│                         ⊤ ≤ ⊥
+
+foo(bot)
+//│ 10 flex
+//│ 11 flex freshen 0
+//│ 12 flex freshen 1
+//│ inline 11 in 10 in 10 ≥ 12, 12 ≥ ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str), 12 flex, 11 flex, 10 flex, foo2: (Int → Int) ∧ (Str → Str), foo: ∀0, 1. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str)} ⟹ 0 → 1
+//│ = 10
+//│ inline 10 in 10 in 10 ≥ 12, 12 ≥ ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str), 12 flex, 10 flex, foo2: (Int → Int) ∧ (Str → Str), foo: ∀0, 1. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str)} ⟹ 0 → 1
+//│ = 12
+//│ inline 12 in 12 in 12 ≥ ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str), 12 flex, foo2: (Int → Int) ∧ (Str → Str), foo: ∀0, 1. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str)} ⟹ 0 → 1
+//│ = ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str)
+//│ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)

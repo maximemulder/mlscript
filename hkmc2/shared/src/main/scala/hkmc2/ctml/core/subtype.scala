@@ -5,7 +5,7 @@ import scala.collection.immutable.Set as Set
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*

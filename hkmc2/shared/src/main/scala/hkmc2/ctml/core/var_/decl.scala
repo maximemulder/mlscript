@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.var_
 
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.types.*
 
 /** Global counter used to create unique fresh type variables. */

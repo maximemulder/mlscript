@@ -6,7 +6,7 @@ import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.core.context.getVarBound
-import hkmc2.ctml.core.debug.output
+import hkmc2.ctml.core.config.output
 
 extension (type_ : Type)
   /** Replace a type variable by a substitute type in a type, simplifying the resulting type if

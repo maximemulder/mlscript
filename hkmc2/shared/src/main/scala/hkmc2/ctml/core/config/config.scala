@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.debug
+package hkmc2.ctml.core.config
 
 /** The mode used to merge clauses. */
 enum MergeMode:
@@ -48,7 +48,7 @@ object Config:
         return false
 
 /** Debugging flags. */
-object DebugFlags:
+object Debug:
   /** Show typing context debug flag. */
   var context = false
 
@@ -70,29 +70,8 @@ object DebugFlags:
   /** Show type variable calls debug flag. */
   var var_ = false
 
-  /** Apply a flag to the debugging flags */
-  def applyFlag(flag: String): Boolean =
-    flag match
-      case "" =>
-        this.reset()
-      case "context" =>
-        this.context   = true
-      case "infer" =>
-        this.infer     = true
-      case "constrain" =>
-        this.constrain = true
-      case "check" =>
-        this.check     = true
-      case "join" =>
-        this.join      = true
-      case "meet" =>
-        this.meet      = true
-      case "var" =>
-        this.var_      = true
-      case _ =>
-        return false
-
-    return true
+  /** Maximum show depth debug flag. */
+  var depth: Option[Int] = None
 
   def reset() =
     this.context   = false

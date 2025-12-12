@@ -7,7 +7,7 @@ import hkmc2.ErrorReport
 import hkmc2.Raise
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given

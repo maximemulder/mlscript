@@ -1,15 +1,21 @@
-package hkmc2.ctml.core.debug
+package hkmc2.ctml.core.config
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
 
 /** Convert a value to a string and print it with the debug print function. */
-def output(value : Any*) =
+def output(value : Any*): Unit =
+  if Debug.depth.exists(_ < Config.currentCallDepth) then
+    return
+
+  if Debug.depth.exists(_ == Config.currentCallDepth) then
+    Config.output(("  " * Config.currentCallDepth) + "...")
+
   Config.output(("  " * Config.currentCallDepth) + value.map(_.toString()).mkString(" "))
 
 /** Print a debugging message with the context if the context flag is enabled. */
 def outputContext(message: String)(using ctx: Context) =
-  val fullMessage = if DebugFlags.context then
+  val fullMessage = if Debug.context then
     message.concat(s" in ${cleanContext(ctx)}")
   else
     message
@@ -27,10 +33,10 @@ def cleanContext(ctx: Context): Context =
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode)(using Context): (Type, Type) => Clauses =
-  if mode == Mode.Constrain && !DebugFlags.constrain then
+  if mode == Mode.Constrain && !Debug.constrain then
     return impl
 
-  if mode == Mode.Check && !DebugFlags.check then
+  if mode == Mode.Check && !Debug.check then
     return impl
 
   (sub: Type, sup: Type) =>
@@ -46,7 +52,7 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode)(using Cont
 
 /** Decorate the type inference function to print debug information. */
 def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type, Clauses) =
-  if !DebugFlags.infer then
+  if !Debug.infer then
     return impl
 
   (expr: Expr) =>
@@ -63,7 +69,7 @@ def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type,
 
 /** Decorate the type join function to print debug information. */
 def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
-  if !DebugFlags.join then
+  if !Debug.join then
     return impl
 
   (left: Type, right: Type) =>
@@ -74,7 +80,7 @@ def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Ty
 
 /** Decorate the type meet function to print debug information. */
 def meetWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
-  if !DebugFlags.meet then
+  if !Debug.meet then
     return impl
 
   (left: Type, right: Type) =>
@@ -85,7 +91,7 @@ def meetWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Ty
 
 /** Print a type variable declaration as a debug information. */
 def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
-  if !DebugFlags.var_ then
+  if !Debug.var_ then
     return decl
 
   output(s"${decl.var_} ${decl.kind}${decl.original match
@@ -99,7 +105,7 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
 
 /** Decorate the type variable quantification function to print debug information. */
 def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
-  if !DebugFlags.var_ then
+  if !Debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
@@ -110,7 +116,7 @@ def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Co
 
 /** Decorate the type variable inlining function to print debug information. */
 def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
-  if !DebugFlags.var_ then
+  if !Debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
@@ -121,7 +127,7 @@ def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Cont
 
 /** Decorate the type variable ignoring function to print debug information. */
 def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
-  if !DebugFlags.var_ then
+  if !Debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>

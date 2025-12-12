@@ -29,24 +29,20 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
       super.onSet()
       // Assign the global CTML fresh variable counter.
       hkmc2.ctml.core.var_.freshVarCounter = 0
-      hkmc2.ctml.core.config.Config.reset()
-      hkmc2.ctml.core.config.Debug.reset()
+      hkmc2.ctml.core.config.config = hkmc2.ctml.core.config.Config()
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init
         given Config = mkConfig
         importFile(ctmlPreludeFilePath, verbose = false)
 
+  /** The CTML configuration command. */
+  val ctmlMergeModeCommand = new Command("ctml-cfg")(line =>
+    hkmc2.ctml.core.config.applyConfigArguments(line.split(" ").toList)
+  )
+
   /** The CTML debug command. */
   val ctmlDebugCommand = new Command("ctml-dbg")(line =>
     hkmc2.ctml.core.config.applyDebugArguments(line.split(" ").toList)
-  )
-
-  /** The CTML configuration command. */
-  val ctmlMergeModeCommand = new Command("ctml-cfg")(line =>
-    val flags = line.split(" ")
-    for flag <- flags do
-      if !hkmc2.ctml.core.config.Config.apply(flag) then
-        output(s"Unknown CTML merge term '${flag}'.")
   )
 
   /** The CTML typing context. */

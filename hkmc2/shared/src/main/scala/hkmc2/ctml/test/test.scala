@@ -7,7 +7,7 @@ import hkmc2.ErrorReport
 import hkmc2.Raise
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.config.*
+import hkmc2.ctml.core.config.config
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given
@@ -44,7 +44,7 @@ class Tester(
   /** Run a CTML test on an input term. */
   def test(term: Term): Unit =
     // Assign global CTML debug output function.
-    Config.output = output
+    config.output = output
 
     // Try to parse the input term.
     val stmts = try

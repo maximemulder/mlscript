@@ -110,6 +110,10 @@ extension (var_ : TypeVar)(using ctx: Context)
   def isRecursive: Boolean =
     ctx.isVarRecursive(var_)
 
+  /** Get the bound of a type variable in a given direction. */
+  def bound(dir: Direction) =
+    ctx.getVarBound(var_, dir)
+
   /** Get the lower bound of the type variable. */
   def lowerBound: Type =
     ctx.getVarLowerBound(var_)

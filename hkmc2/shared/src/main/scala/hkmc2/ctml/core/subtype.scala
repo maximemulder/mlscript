@@ -260,6 +260,11 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode, 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
   val boundType = var_.bound(dir)
+
+  // Do not return new clauses if the bound is already satisfied.
+  if checkSubtypeDir(boundType, type_, dir) then
+    return Clauses.empty
+
   val boundCombinedType = combine(boundType, type_, dir)
   val bound = Bound(var_, dir, boundCombinedType)
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
@@ -336,6 +341,13 @@ def checkSubtype(sub: Type, sup: Type)(using ctx: Context, cache: VarCache): Boo
       return false
 
   return true
+
+def checkSubtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context, cache: VarCache): Boolean =
+  dir match
+    case Direction.Sub =>
+      checkSubtype(sub, sup)
+    case Direction.Super =>
+      checkSubtype(sup, sub)
 
 /** Check whether tow types are equal without requiring any additional constraint. */
 def checkEqual(left: Type, right: Type)(using ctx: Context): Boolean =

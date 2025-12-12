@@ -4,7 +4,6 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.combine.getExtremalType
-import hkmc2.ctml.core.config.Config.output
 
 extension (type_ : Type)
   def removeVarDirectCycles(var_ : TypeVar, pol: Polarity): Type =

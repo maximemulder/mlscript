@@ -3,13 +3,12 @@ package hkmc2.ctml.core.context
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.config.Config
-import hkmc2.ctml.core.config.MergeMode
+import hkmc2.ctml.core.config.config
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
-import hkmc2.ctml.core.config.Config.output
 
 extension (ctx: Context)
   // Merge bounds
@@ -56,7 +55,7 @@ extension (ctx: Context)
     given Context = ctx
     val leftBound  = lefts.getVarDirType(var_, dir)
     val rightBound = rights.getVarDirType(var_, dir)
-    Config.mergeMode match
+    config.mergeMode match
       case MergeMode.Constraining =>
         val leftType =
           val leftCtx = ctx.extend(Bound(var_, dir, leftBound))

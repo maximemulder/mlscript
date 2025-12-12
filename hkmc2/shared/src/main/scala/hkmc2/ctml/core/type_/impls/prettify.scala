@@ -5,7 +5,7 @@ import scala.collection.mutable.HashMap as MutMap
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.clauses.*
-import hkmc2.ctml.core.debug.output
+import hkmc2.ctml.core.config.output
 import hkmc2.ctml.core.type_.traits.*
 
 extension (type_ : Type)

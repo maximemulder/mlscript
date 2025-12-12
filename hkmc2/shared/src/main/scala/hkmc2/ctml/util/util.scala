@@ -98,3 +98,9 @@ extension [T](list: ListBuffer[T])
   def appendAllUnique(elements: Iterable[T]) =
     for element <- elements do
       list.appendUnique(element)
+
+  def popFront: Option[T] =
+    if list.isEmpty then
+      return None
+
+    Some(list.remove(0))

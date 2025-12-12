@@ -1,61 +1,1353 @@
 :ctml
 
-:ctml-cfg constrained
+:ctml-dbg var context join check
 
-:ctml-dbg var context
-
-fun foo(a) =
-  if a is
-    Int then (a as Int)
-    Str then (a as Str)
+fun zero(i) =
+  if i == 0
+    then i
+    else zero(i - 1)
 //│ 0 flex
 //│ 1 flex
-//│ quantify 0 in 0 → 1 in 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str), 1 flex, 0 ≤ Int ∨ Str, a: 0, 0 flex
-//│ = 0 → 1
-//│ quantify 1 in 0 → 1 in 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str), 1 flex, 0 ≤ Int ∨ Str, a: 0, 0 flex
-//│ = 0 → 1
-//│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
-
-val foo2: (Int -> Int) & (Str -> Str) = foo
-//│ 2 flex freshen 0
-//│ 3 flex freshen 1
-//│ 4 flex freshen 0
-//│ 5 flex freshen 1
-//│ foo2: (Int → Int) ∧ (Str → Str)
-
-:e
-val foo2: (Int -> Int) & (Bool -> Bool) = foo
-//│ 6 flex freshen 0
-//│ 7 flex freshen 1
-//│ 8 flex freshen 0
-//│ 9 flex freshen 1
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ (Int → Int) ∧ (Bool → Bool).
-//│ Typing error tree:
-//│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ (Int → Int) ∧ (Bool → Bool)
-//│     ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → Bool
-//│       ∀β. {γ ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → β ≤ Bool → Bool
-//│         {γ ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str), δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
-//│           {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
-//│             γ → δ ≤ Bool → Bool
-//│               Bool ≤ γ
-//│                 Bool ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str)
-//│                   Bool ≤ {δ ≥ Int} ⟹ Int
-//│                     Bool ≤ Int
-//│                       Bool ≤ ⊥
-//│                         ⊤ ≤ ⊥
-//│                   Bool ≤ {δ ≥ Str} ⟹ Str
-//│                     Bool ≤ Str
-//│                       Bool ≤ ⊥
-//│                         ⊤ ≤ ⊥
-
-foo(bot)
-//│ 10 flex
-//│ 11 flex freshen 0
-//│ 12 flex freshen 1
-//│ inline 11 in 10 in 10 ≥ 12, 12 ≥ ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str), 12 flex, 11 flex, 10 flex, foo2: (Int → Int) ∧ (Str → Str), foo: ∀0, 1. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str)} ⟹ 0 → 1
+//│ 2 flex
+//│ 3 flex
+//│ 4 flex
+//│ 5 flex
+//│ 6 flex
+//│ 7 flex
+//│ 8 flex freshen A
+//│ check ⊤ ≤ 8 in 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ ⊥ in 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ check 8 ≤ ⊤ in 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ OK ⇝ ∅
+//│ join 2 and ⊥ in 8 flex, 7 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 2 ≤ ⊥ in 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ ⊥ in 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 2 in 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = 2
+//│ check 8 → Bool ≤ ⊥ in 2 ≤ 8, 8 ≥ 2, 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ FAIL
+//│ join ⊥ and 8 → Bool in 2 ≤ 8, 8 ≥ 2, 8 flex, 7 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check ⊥ ≤ 8 → Bool in 2 ≤ 8, 8 ≥ 2, 8 rigid, 7 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = 8 → Bool
+//│ inline 7 in 7 in 7 ≥ 8 → Bool, 2 ≤ 8, 8 ≥ 2, 8 flex, 7 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ NEW CONTEXT 2 ≤ 8, 8 ≥ 2, 8 flex
+//│ = 8 → Bool
+//│ check Int ≤ 2 in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check Int ≤ ⊥ in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ ⊥ in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 2 and Int in 2 ≤ 8, 8 ≥ 2, 8 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 2 ≤ Int in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ Int in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ Int in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ 2 in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ ⊥ in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 2 ∨ Int
+//│ check Bool ≤ ⊥ in 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ ⊥ in 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ join ⊥ and Bool in 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check ⊥ ≤ Bool in 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = Bool
+//│ inline 6 in 6 in 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ join 2 and Int in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 6 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 2 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ 2 in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 6 ≥ Bool, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 6 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 2 ∨ Int
+//│ NEW CONTEXT 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex
+//│ = Bool
+//│ 9 flex freshen A
+//│ check 9 → 9 → 9 ≤ ⊥ in 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ FAIL
+//│ join ⊥ and 9 → 9 → 9 in 9 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check ⊥ ≤ 9 → 9 → 9 in 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = 9 → 9 → 9
+//│ inline 5 in 5 in 5 ≥ 9 → 9 → 9, 9 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ join 2 and Int in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 5 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 2 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ 2 in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 5 ≥ 9 → 9 → 9, 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 5 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 2 ∨ Int
+//│ NEW CONTEXT 9 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex
+//│ = 9 → 9 → 9
+//│ check ⊥ ≤ ⊤ in 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 9 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ FAIL
+//│ quantify 9 in 9 → 9 → 9 in 9 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ = 9 → 9 → 9
+//│ 10 flex freshen 9
+//│ check 8 ≤ 10 in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 2 and ⊥ in 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 2 ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 2 in 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = 2
+//│ check 10 → 10 ≤ ⊥ in 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ FAIL
+//│ join ⊥ and 10 → 10 in 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check ⊥ ≤ 10 → 10 in 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = 10 → 10
+//│ inline 4 in 4 in 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 2 and Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 4 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 2 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 10 ∧ 8 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check 10 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check 8 ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ Int in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ 2 in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 8 ≤ ⊤, 8 ≥ ⊥, 4 ≥ 10 → 10, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 4 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 2 ∨ Int
+//│ NEW CONTEXT 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex
+//│ = 10 → 10
+//│ 11 flex
+//│ 12 flex
+//│ 13 flex
+//│ check 10 ∧ 8 ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 10 ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 8 ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 8 ≤ 10 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 2 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check Int ≤ 10 ∧ 8 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check Int ≤ 10 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ 2 in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check Int ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ∧ 8 ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 10 ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 8 ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check Int → Int ≤ ⊥ in 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ FAIL
+//│ join ⊥ and Int → Int in 2 ≤ (10 ∧ 8) ∧ Int, 13 flex, 12 flex, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check ⊥ ≤ Int → Int in 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = Int → Int
+//│ inline 13 in 13 in 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 flex, 12 flex, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check Int ≤ 10 ∧ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check Int ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check Int ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ∧ 8 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 10 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 8 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 13 ≥ Int → Int, 2 ≤ (10 ∧ 8) ∧ Int, 13 rigid, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ NEW CONTEXT 2 ≤ (10 ∧ 8) ∧ Int
+//│ = Int → Int
+//│ check Int ≤ ⊥ in 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ ⊥ in 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ join ⊥ and Int in 2 ≤ (10 ∧ 8) ∧ Int, 12 flex, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check ⊥ ≤ Int in 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
+//│ = Int
+//│ inline 12 in 12 in 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 flex, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 ∨ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check Int ≤ 10 ∧ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check Int ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check Int ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ∧ 8 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 10 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 8 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 12 ≥ Int, 2 ≤ (10 ∧ 8) ∧ Int, 12 rigid, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ NEW CONTEXT 2 ≤ (10 ∧ 8) ∧ Int
+//│ = Int
+//│ check ⊤ ≤ Int → 11 in 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ FAIL
+//│ check Int → 11 ≤ ⊤ in 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ 10 in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ 2 in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ ⊤ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ OK ⇝ ∅
+//│ join 11 and 2 in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 11 ≤ 2 in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ 2 in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 2 ≤ 11 in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 2 ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check (10 ∧ 8) ∧ Int ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check 10 ∧ 8 ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check 10 ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             check ⊤ ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             FAIL
+//│           FAIL
+//│           check 8 ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             check ⊤ ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check Int ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check ⊤ ≤ ⊥ in 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 11 ∨ 2
+//│ check ⊤ ≤ 3 in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check ⊤ ≤ ⊥ in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ check 3 ≤ ⊤ in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│ OK ⇝ ∅
+//│ join 10 and ⊥ in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 10 ≤ ⊥ in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ ⊥ in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 10 in 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 8 ≥ 2 ∨ Int, 2 ≤ 8, 8 ≥ 2, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   OK ⇝ ∅
 //│ = 10
-//│ inline 10 in 10 in 10 ≥ 12, 12 ≥ ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str), 12 flex, 10 flex, foo2: (Int → Int) ∧ (Str → Str), foo: ∀0, 1. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str)} ⟹ 0 → 1
-//│ = 12
-//│ inline 12 in 12 in 12 ≥ ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str), 12 flex, foo2: (Int → Int) ∧ (Str → Str), foo: ∀0, 1. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ Str} ⟹ Str), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ Str} ⟹ Str)} ⟹ 0 → 1
-//│ = ({11 ≤ Int} ⟹ Int) ∧ ({11 ≤ Str} ⟹ Str)
-//│ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)
+//│ inline 1 in 1 → 2 → 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│ join 11 and 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 1 flex, 0 flex
+//│   check 11 ≤ 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 10 ≤ 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 2 ≤ 11 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 2 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check (10 ∧ 8) ∧ Int ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check 10 ∧ 8 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check 10 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             FAIL
+//│           FAIL
+//│           check 8 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check Int ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 11 ∨ 2
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check 8 ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 3 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 3 ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check 8 ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 3 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 3 ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check Int ≤ 10 ∧ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check Int ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check Int ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check Int ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check Int ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check Int ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check Int ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ∧ 8 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 10 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 3 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 8 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 8 ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 8 ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 8 ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check 8 ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 8 ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│   check 3 ≤ 8 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│     check 3 ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 1 ≤ Int → 11, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 1 rigid, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ NEW CONTEXT 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1
+//│ = (Int → 11) → 2 → 3
+//│ check 10 ≤ ⊤ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ 10 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check ⊤ ≤ 11 ∨ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ 11 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│     check ⊤ ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 3 in (Int → 11) → 2 → 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 0 flex
+//│ = (Int → 11) → 2 → 3
+//│ check ⊥ ≤ 10 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check 10 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check 3 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 11 in (Int → 11) → 2 → 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 0 flex
+//│ = (Int → 11) → 2 → 3
+//│ join 11 and 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check 11 ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 10 ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check 3 ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check ⊤ ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 2 ≤ 11 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 2 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check (10 ∧ 8) ∧ Int ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check 10 ∧ 8 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           check 10 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             check 3 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│               check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           check 8 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check Int ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 11 ∨ 2
+//│ check 11 ∨ 2 ≤ 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check 11 ≤ 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 10 ≤ 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊥ ≤ ⊤ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 2 ≤ 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 2 ≤ 10 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check 2 ≤ 11 ∨ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check 2 ≤ 11 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           check 2 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             check (10 ∧ 8) ∧ Int ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│               check 10 ∧ 8 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                 check 10 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                   check 3 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                     check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│                 check 8 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                   check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                   FAIL
+//│                 FAIL
+//│               FAIL
+//│               check Int ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                 check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check ⊥ ≤ ⊤ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ check 3 ≤ 11 ∨ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check 3 ≤ 11 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 3 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 3 ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ 2 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 10 in (Int → 11) → 2 → 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 0 flex
+//│ = (Int → 11) → 2 → 3
+//│ inline 8 in (Int → 11) → 2 → 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 0 flex
+//│ join 11 and 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 flex, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 flex, 2 ≤ 8, 8 flex, 3 flex, i: 2, 2 flex, zero: 1, 0 flex
+//│   check 11 ≤ 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 10 ≤ 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ 2 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 2 ≤ 11 in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 2 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check (10 ∧ 8) ∧ Int ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check 10 ∧ 8 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           check 10 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             FAIL
+//│           FAIL
+//│           check 8 ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check Int ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 10 ≤ ⊤, 10 ≥ ⊥, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 11 ∨ 2
+//│ check ⊤ ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check ⊤ ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ ⊤ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check Int ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check Int ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check Int ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check Int ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check Int ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check Int ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check 3 ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ Int in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check ⊤ ≤ 10 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check ⊤ ≤ 11 ∨ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ 11 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│     check ⊤ ≤ 2 in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 10 ≤ ⊤ in 2 ≥ ⊥, 2 ≤ ⊤, 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ (10 ∧ 8) ∧ Int, 11 rigid, 2 ≤ 10 ∧ 8, 10 ≥ 2, 10 rigid, 2 ≤ 8, 8 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ NEW CONTEXT 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 flex, 2 ≤ 10, 10 ≥ 2, 10 flex, 3 flex, i: 2, 2 flex, zero: 1
+//│ = (Int → 11) → 2 → 3
+//│ check ⊥ ≤ 10 ∧ Int in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check 10 ∧ Int ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│   check 10 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check 3 ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     check ⊤ ≤ ⊥ in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 rigid, 2 ≤ 10, 10 ≥ 2, 10 rigid, 3 rigid, i: 2, 2 rigid, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 2 in (Int → 11) → 2 → 3 in 10 ≤ 3, 3 ≥ 10, 11 ≤ 10, 10 ≥ 11 ∨ 2, 2 ≤ 10 ∧ Int, 11 flex, 2 ≤ 10, 10 ≥ 2, 10 flex, 3 flex, i: 2, 2 flex, zero: 1, 0 flex
+//│ = (Int → 11) → 2 → 3
+//│ 14 flex freshen A
+//│ 15 flex freshen 3
+//│ 16 flex freshen 11
+//│ 17 flex freshen 10
+//│ 18 flex freshen 2
+//│ check ⊤ ≤ 15 in 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ ⊥ in 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ check 15 ≤ ⊤ in 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ join 17 and ⊥ in 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 17 ≤ ⊥ in 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ ⊥ in 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 17 in 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 17
+//│ check ⊤ ≤ 17 in 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ ⊤ in 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ join 16 and ⊥ in 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 16 ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 16 in 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 16
+//│ join 16 and 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 16 ≤ 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check 16 ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 17 ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check 15 ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 16 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ 16 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 16 ∨ 18
+//│ join ⊥ and 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊥ ≤ 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 18
+//│ check 18 ≤ 16 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ 16 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 16 and 16 ∨ 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 16 ≤ 16 ∨ 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊥ ≤ ⊤ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     OK ⇝ ∅
+//│     check 16 ≤ 18 in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 16 ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check 17 ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check 15 ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│             check ⊤ ≤ ⊥ in 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   OK ⇝ ∅
+//│ = 16 ∨ 18
+//│ join 16 and 18 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 16 ≤ 18 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check 16 ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 17 ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check 15 ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 16 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ 16 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 16 ∨ 18
+//│ join 16 and 18 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check 16 ≤ 18 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check 16 ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 17 ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check 15 ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 16 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ 16 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 16 ∨ 18
+//│ check 16 ∨ 18 ≤ 17 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check ⊥ ≤ ⊤ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ join 17 and 17 in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check ⊥ ≤ ⊤ in 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 17
+//│ check Int ≤ 17 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check Int ≤ 16 ∨ 18 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check Int ≤ 16 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check Int ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check Int ≤ 18 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check Int ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ Int in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check 15 ≤ Int in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ Int in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check ⊤ ≤ 17 ∧ Int in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ 17 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ 16 ∨ 18 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ 16 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│       check ⊤ ≤ 18 in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ∧ Int ≤ ⊤ in 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ Int → 16 in 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ FAIL
+//│ check Int → 16 ≤ ⊤ in 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check 18 → 15 ≤ ⊥ in 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ FAIL
+//│ join ⊥ and 18 → 15 in 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check ⊥ ≤ 18 → 15 in 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 18 → 15
+//│ check Int ≤ ⊥ in 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ ⊥ in 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ join ⊥ and Int in 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check ⊥ ≤ Int in 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = Int
+//│ check ⊤ ≤ 17 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ 16 ∨ 18 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ 16 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│     check ⊤ ≤ 18 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ Int in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ ⊤ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check Int ≤ 16 ∨ 18 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check Int ≤ 16 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check Int ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check ⊤ ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ 18 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ check Int ≤ 17 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ 16 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ check 16 ≤ ⊤ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│ OK ⇝ ∅
+//│ join 15 and ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 15 ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check ⊤ ≤ ⊥ in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 15 in 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 15
+//│ check Int → 16 ≤ 0 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check Int → 16 ≤ ⊥ in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ check 0 ≤ Int → 16 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check ⊤ ≤ Int → 16 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   FAIL
+//│ FAIL
+//│ join 14 and ⊥ in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 14 ≤ ⊥ in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check Int → 16 ≤ ⊥ in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 14 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 14 ≤ Int → 16, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   OK ⇝ ∅
+//│ = 14
+//│ inline 0 in 0 in 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│ check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check Int ≤ 16 ∨ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check Int ≤ 16 in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check Int ≤ 15 in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check Int ≤ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check Int ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│   check 15 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check 16 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 16 and 18 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1, 0 flex
+//│   check 16 ≤ 18 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check 16 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 17 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│     check 17 ∧ Int ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│       check 17 ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check ⊤ ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check ⊤ ≤ 15 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│             check ⊤ ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│               check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check Int ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│         check Int ≤ 15 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│           check Int ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│             check Int ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│               check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 0 ≥ 14, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1, 0 rigid
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 16 ∨ 18
+//│ NEW CONTEXT 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1
+//│ = 14
+//│ inline 14 in 14 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1
+//│ check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│   check Int ≤ 16 ∨ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│     check Int ≤ 16 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│       check Int ≤ 15 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check Int ≤ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│       check Int ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│   check 15 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│     check 16 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│       check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 16 and 18 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, 14 flex, i: 2, zero: 1
+//│   check 16 ≤ 18 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│     check 16 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│       check 17 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│           check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│     check 17 ∧ Int ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│       check 17 ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│           check ⊤ ≤ 15 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│             check ⊤ ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│               check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check Int ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│         check Int ≤ 15 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│           check Int ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│             check Int ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│               check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 14 ≥ 18 → 15, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, 14 rigid, i: 2, zero: 1
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 16 ∨ 18
+//│ NEW CONTEXT 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, i: 2, zero: 1
+//│ = 18 → 15
+//│ check 17 ≤ 16 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│   check 15 ≤ 16 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     check ⊥ ≤ ⊤ in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ check 16 ≤ 17 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│   check 16 ≤ 16 ∨ 18 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     check ⊥ ≤ ⊤ in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     OK ⇝ ∅
+//│     check 16 ≤ 18 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       check 16 ≤ Int in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         check 17 ≤ Int in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│           check 15 ≤ Int in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│             check 16 ≤ Int in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ inline 15 in 18 → 15 in 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, i: 2, zero: 1
+//│ check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│   check Int ≤ 16 ∨ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     check Int ≤ 16 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       check Int ≤ 15 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check Int ≤ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       check Int ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│   check 15 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     check 16 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 16 and 18 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 flex, 17 flex, 16 flex, 15 flex, i: 2, zero: 1
+//│   check 16 ≤ 18 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     check 16 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       check 17 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│           check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│     check 17 ∧ Int ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│       check 17 ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│           check ⊤ ≤ 15 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│             check ⊤ ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│               check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check Int ≤ 16 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│         check Int ≤ 15 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│           check Int ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│             check Int ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│               check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 15 ≤ 16, 16 ≥ 15, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 15, 15 ≥ 17, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 15, 15 ≥ 17, 18 rigid, 17 rigid, 16 rigid, 15 rigid, i: 2, zero: 1
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 16 ∨ 18
+//│ NEW CONTEXT 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 flex, 17 flex, 16 flex, i: 2, zero: 1
+//│ = 18 → 17
+//│ check ⊥ ≤ ⊤ in 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│ OK ⇝ ∅
+//│ check ⊥ ≤ ⊤ in 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│ OK ⇝ ∅
+//│ inline 16 in 18 → 17 in 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 flex, 17 flex, 16 flex, i: 2, zero: 1
+//│ check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│   check Int ≤ 16 ∨ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│     check Int ≤ 16 in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│       check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│       FAIL
+//│     FAIL
+//│     check Int ≤ 18 in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│       check Int ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│   check 16 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│     check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ join 17 and 18 in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 flex, 17 flex, 16 flex, i: 2, zero: 1
+//│   check 17 ≤ 18 in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│     check 17 ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│       check ⊤ ≤ Int in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│         check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 18 ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│     check 17 ∧ Int ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│       check ⊥ ≤ ⊤ in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│       OK ⇝ ∅
+//│       check Int ≤ 17 in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│         check Int ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│           check ⊤ ≤ ⊥ in 17 ≤ ⊤, 17 ≥ ⊥, 16 ≥ 17, 18 ≥ Int, 18 ≤ 17 ∧ Int, 17 ≤ 16, 17 ≥ 16 ∨ 18, 16 ≤ 17, 17 ≥ 16, 17 ≤ 16, 18 rigid, 17 rigid, 16 rigid, i: 2, zero: 1
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ = 17
+//│ NEW CONTEXT 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 flex, 17 flex, i: 2, zero: 1
+//│ = 18 → 17
+//│ check ⊥ ≤ ⊤ in 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│ FAIL
+//│ quantify 17 in 18 → 17 in 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 flex, 17 flex, i: 2, zero: 1
+//│ = 18 → 17
+//│ inline 18 in 18 → 17 in 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 flex, 17 flex, i: 2, zero: 1
+//│ check Int ≤ 17 in 18 ≥ ⊥, 18 ≤ ⊤, 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│   check Int ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│     check ⊤ ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 17 ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│   check ⊤ ≤ Int in 18 ≥ ⊥, 18 ≤ ⊤, 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│     check ⊤ ≤ ⊥ in 18 ≥ ⊥, 18 ≤ ⊤, 18 ≥ Int, 18 ≤ 17 ∧ Int, 18 rigid, 17 rigid, i: 2, zero: 1
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ NEW CONTEXT 17 flex, i: 2, zero: 1
+//│ = (17 ∧ Int) → 17
+//│ zero: ∀α. (α ∧ Int) → α

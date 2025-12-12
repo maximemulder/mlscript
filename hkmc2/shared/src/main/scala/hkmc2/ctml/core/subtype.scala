@@ -79,7 +79,10 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Con
     if cache.checkRigid(sub, sup) then
       throw TypeError()
 
-    cache.addFlex(sub, sup)
+    if sub.isRigidVar || sup.isRigidVar then
+      cache.addRigid(sub, sup)
+    else
+      cache.addFlex(sub, sup)
 
   given VarCache = newCache
   subtypeImpl(sub, sup)
@@ -262,13 +265,14 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
   val boundType = var_.bound(dir)
 
   // Do not return new clauses if the bound is already satisfied.
-  if checkSubtypeDir(boundType, type_, dir) then
-    return Clauses.empty
+  val clauses = if checkSubtypeDir(boundType, type_, dir) then
+    Clauses.empty
+  else
+    val boundCombinedType = combine(boundType, type_, dir)
+    Bound(var_, dir, boundCombinedType).asClauses
 
-  val boundCombinedType = combine(boundType, type_, dir)
-  val bound = Bound(var_, dir, boundCombinedType)
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
-  subtypeDirSeq(oppositeBoundType, type_, dir, bound.asClauses)
+  subtypeDirSeq(oppositeBoundType, type_, dir, clauses)
 
 // Rigid type variables.
 

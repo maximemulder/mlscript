@@ -6,7 +6,7 @@ import hkmc2.ctml.types.*
 
 /** Applicator that recursively applies a combinator on the components of a type while tracking the
  *  type polarity. */
-class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
+final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
   next: TypeApplicator[T, P] & BoundApplicator[B, P],
   last: TypeCombinator[T, B, P],
 ) extends TypeApplicator[T, P], BoundApplicator[B, P]:

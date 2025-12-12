@@ -2,23 +2,22 @@
 
 :ctml-cfg constrained
 
+// Function definitions
+
 fun foo(a) =
   if a is
     Int then (a as Int)
     Str then (a as Str)
 //│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
 
-val foo2: (Int -> Int) & (Str -> Str) = foo
-//│ foo2: (Int → Int) ∧ (Str → Str)
+// Functions overloads
 
-foo(1)
-//│ Int
-
-foo("Hello")
-//│ Str
+foo as (Int -> Int) & (Str -> Str)
+//│ (Int → Int) ∧ (Str → Str)
+//│ α ≤ Str, α ≥ Str, β ≥ Str, α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str), β ≤ ({α ≥ Int} ⟹ Int) ∨ ({α ≥ Str} ⟹ Str), α flex, β flex, ε ≤ Int, ε ≥ Int, ζ ≥ Int, ε ≥ ({ζ ≤ Int} ⟹ Int) ∧ ({ζ ≤ Str} ⟹ Str), ζ ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str), ε flex, ζ flex
 
 :e
-val foo2: (Int -> Int) & (Str -> Str) & (Bool -> Bool) = foo
+foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
 //│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
 //│ Typing error tree:
 //│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
@@ -37,6 +36,20 @@ val foo2: (Int -> Int) & (Str -> Str) & (Bool -> Bool) = foo
 //│                     Bool ≤ Str
 //│                       Bool ≤ ⊥
 //│                         ⊤ ≤ ⊥
+
+// Function applications
+
+val ios: Int | Str
+//│ ios: Int ∨ Str
+
+foo(1)
+//│ Int
+
+foo("Hello")
+//│ Str
+
+foo(ios)
+//│ Str ∨ Int
 
 :e
 foo(true)

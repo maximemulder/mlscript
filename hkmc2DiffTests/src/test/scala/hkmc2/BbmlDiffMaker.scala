@@ -41,8 +41,8 @@ abstract class BbmlDiffMaker extends JSBackendDiffMaker:
     hkmc2.ctml.core.config.applyDebugArguments(line.split(" ").toList)
   )
 
-  /** The CTML merge mode command. */
-  val ctmlMergeModeCommand = new Command("ctml-merge")(line =>
+  /** The CTML configuration command. */
+  val ctmlMergeModeCommand = new Command("ctml-cfg")(line =>
     val flags = line.split(" ")
     for flag <- flags do
       if !hkmc2.ctml.core.config.Config.apply(flag) then

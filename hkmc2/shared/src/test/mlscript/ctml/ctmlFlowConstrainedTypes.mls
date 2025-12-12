@@ -6,4 +6,30 @@ fun foo(a) =
   if a is
     Int then (a as Int)
     Str then (a as Str)
-//│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∧ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
+//│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
+
+foo(1)
+//│ Int
+
+foo("Hello")
+//│ Str
+
+:e
+foo(true)
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ
+//│     ∀β. {δ ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → β ≤ Bool → γ
+//│       {δ ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str), ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│         {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│           δ → ε ≤ Bool → γ
+//│             Bool ≤ δ
+//│               Bool ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)
+//│                 Bool ≤ {ε ≥ Int} ⟹ Int
+//│                   Bool ≤ Int
+//│                     Bool ≤ ⊥
+//│                       ⊤ ≤ ⊥
+//│                 Bool ≤ {ε ≥ Str} ⟹ Str
+//│                   Bool ≤ Str
+//│                     Bool ≤ ⊥
+//│                       ⊤ ≤ ⊥

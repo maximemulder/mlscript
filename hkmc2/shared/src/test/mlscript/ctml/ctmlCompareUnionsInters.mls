@@ -120,7 +120,7 @@ baz("Hello", "World")
 //│ Str
 
 baz(bot, bot)
-//│ Int ∨ Str
+//│ ⊥
 
 :e
 baz(1, "World")

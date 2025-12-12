@@ -1,0 +1,13 @@
+:ctml
+
+type Z
+type S
+
+fun wf: ((Z, Z) -> Z) & ((Z, S) -> S) & ((S, Z | S) -> S)
+//│ wf: ((Z → Z → Z) ∧ (Z → S → S)) ∧ (S → (Z ∨ S) → S)
+
+val zs: Z | S
+//│ zs: Z ∨ S
+
+wf(zs, zs)
+//│ Z ∨ S

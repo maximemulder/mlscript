@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.type_.traits
 
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.syntax.Keyword.`override`
 
@@ -57,9 +57,9 @@ abstract class TypeDispatcher[T[+_], B[+_], P](last: TypeCombinator[T, B, P]) ex
           this.apply(bound, p),
           p,
         )
-      case TConstraining(body, bounds) =>
+      case TConstraining(body, bound) =>
         last.constraining(
           first.apply(body, p),
-          this.apply(bounds, p),
+          this.apply(bound, p),
           p,
         )

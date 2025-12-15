@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.types.*
 
 extension (type_ : Type)

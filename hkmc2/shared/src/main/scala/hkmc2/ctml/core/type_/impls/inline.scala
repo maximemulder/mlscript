@@ -33,13 +33,13 @@ private def TypeInline2 = TypeContextApplicator[Const[Type], TypeInlineParams](T
 
 private def TypeInline3 = TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4, Combinator)
 
-private object TypeInline4 extends TypeDispatcher[Const[Type], Id, TypeInlineParams](Combinator):
+object TypeInline4 extends TypeLazyDispatcher(Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
-    type_ match
-      case TVar(var_) if var_ == params.var_ =>
-        params.ctx.getVarBound(var_, params.pol.dir)
-      case _ =>
-        super.apply(type_, params)
+  type_ match
+    case TVar(var_) if var_ == params.var_ =>
+      params.ctx.getVarBound(var_, params.pol.dir)
+    case _ =>
+      super.apply(type_, params)
 
   override def apply(bound: Bound, params: TypeInlineParams): Bound =
     Bound(bound.var_, bound.dir, this.apply(bound.type_, params))

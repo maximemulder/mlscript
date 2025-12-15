@@ -4,7 +4,7 @@ import hkmc2.ctml.util.OrderedSet as MutSet
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
-import hkmc2.ctml.core.debug.*
+import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
@@ -81,4 +81,4 @@ private object UsesVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean], U
     false
 
 /** Monoidal combination node of the "uses type variable" operation. */
-private object UsesVar4 extends TypeMonoidCombinator[Boolean, UsesVarParams](AnyMonoid)
+private def UsesVar4 = TypeMonoidCombinator[Boolean, UsesVarParams](AnyMonoid)

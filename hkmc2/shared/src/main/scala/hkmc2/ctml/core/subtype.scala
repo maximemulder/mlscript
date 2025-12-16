@@ -52,6 +52,7 @@ def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
+  // TODO: This code seems hacky and the implementation is inefficient. Investigate.
   val sup = sub1 match
     case TVar(subVar) =>
       sup1.removeCyclicVar(subVar, Direction.Sub)

@@ -43,7 +43,7 @@ def applyConfigArguments(arguments: List[String]): Unit =
     while buffer.nonEmpty do
       buffer.remove(0) match
         case "" =>
-          config = Config()
+          ()
         case "constraining" =>
           config.mergeMode = MergeMode.Constraining
         case "constrained" =>

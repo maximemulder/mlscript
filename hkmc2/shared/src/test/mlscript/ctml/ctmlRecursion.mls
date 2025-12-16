@@ -11,8 +11,7 @@ fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α. (α ∧ Int) → α
-// TODO: THERE IS A PROBLEM BECAUSE DURING INLINING, SOME TYPES ARE OVER-SIMPLIFIED DUE TO CIRCULAR REASONING. HOW TO AVOID THAT REASONING ?
+//│ zero: ∀α. {α ≥ Int} ⟹ (α ∧ Int) → α
 
 val infinite = infinite + 1
 //│ infinite: Int

@@ -45,18 +45,6 @@ def meetMerge(left: Type, right: Type)(using ctx: Context, cache: VarCache): Opt
       ))
     case None =>
 
-  // Meet constraining types.
-
-  if left.is[TConstraining] || right.is[TConstraining] then
-    val (leftBody,  leftBounds)  = left.getConstrainingComponents
-    val (rightBody, rightBounds) = right.getConstrainingComponents
-    if checkDisjoint(leftBody, rightBody) then
-      return Some(TBot)
-
-    val body = meet(leftBody, rightBody)
-    val bounds = ctx.meetBounds(leftBounds, rightBounds)
-    return Some(makeConstrainingType(body, bounds))
-
   // Meet lambda types.
 
   (left, right) match

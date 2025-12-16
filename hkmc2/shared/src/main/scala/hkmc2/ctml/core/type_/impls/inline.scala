@@ -6,7 +6,6 @@ import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.core.context.getVarBound
-import hkmc2.ctml.core.config.output
 
 extension (type_ : Type)
   /** Replace a type variable by a substitute type in a type, simplifying the resulting type if
@@ -19,10 +18,11 @@ class TypeInlineParams(
   val var_ : TypeVar,
   val pol: Polarity,
   val ctx: Context,
+  val boundedVar: Option[TypeVar] = None,
 ) extends ContextParams[TypeInlineParams], PolarityParams[TypeInlineParams], TypeVarParams[TypeInlineParams]:
-  override def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx)
-  override def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx)
-  override def setVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx)
+  override def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx, boundedVar)
+  override def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx, boundedVar)
+  override def setVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx, boundedVar)
 
 /** Implementation of the type variable inlining operation. */
 object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](TypeInline2):
@@ -37,9 +37,18 @@ object TypeInline4 extends TypeLazyDispatcher(Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
   type_ match
     case TVar(var_) if var_ == params.var_ =>
-      params.ctx.getVarBound(var_, params.pol.dir)
-    case _ =>
+      val bound = params.ctx.getVarBound(var_, params.pol.dir)
+      params.boundedVar match
+        case Some(boundedVar) =>
+          bound.removeVarDirectCycles(boundedVar, params.pol)
+        case None =>
+          bound
+    case TUnion(left, right) if params.pol == Polarity.Positive =>
       super.apply(type_, params)
+    case TInter(left, right) if params.pol == Polarity.Negative =>
+      super.apply(type_, params)
+    case _ =>
+      super.apply(type_, TypeInlineParams(params.var_, params.pol, params.ctx, None))
 
   override def apply(bound: Bound, params: TypeInlineParams): Bound =
     Bound(bound.var_, bound.dir, this.apply(bound.type_, params))

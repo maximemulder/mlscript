@@ -5,6 +5,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.core.var_.removeDirectVar
 import hkmc2.ctml.core.context.getVarBound
 
 extension (type_ : Type)
@@ -40,7 +41,7 @@ object TypeInline4 extends TypeLazyDispatcher(Combinator):
       val bound = params.ctx.getVarBound(var_, params.pol.dir)
       params.boundedVar match
         case Some(boundedVar) =>
-          bound.removeVarDirectCycles(boundedVar, params.pol)
+          bound.removeDirectVar(boundedVar, params.pol)
         case None =>
           bound
     case TUnion(left, right) if params.pol == Polarity.Positive =>

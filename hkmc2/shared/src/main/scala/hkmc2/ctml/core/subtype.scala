@@ -55,13 +55,13 @@ def subtype(sub1: Type, sup1: Type)(using ctx: Context, mode: Mode = Mode.Constr
   // TODO: This code seems hacky and the implementation is inefficient. Investigate.
   val sup = sub1 match
     case TVar(subVar) =>
-      sup1.removeCyclicVar(subVar, Direction.Sub)
+      sup1.removeDirectVar(subVar, Direction.Sub.pol)
     case _ =>
       sup1
 
   val sub = sup1 match
     case TVar(supVar) =>
-      sub1.removeCyclicVar(supVar, Direction.Super)
+      sub1.removeDirectVar(supVar, Direction.Super.pol)
     case _ =>
       sub1
 

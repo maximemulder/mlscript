@@ -10,7 +10,6 @@ import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.combine.getExtremalType
-import hkmc2.ctml.core.type_.traits.removeVarDirectCycles
 import hkmc2.ctml.core.type_.impls.getAllVarPolarities.*
 import hkmc2.ctml.core.type_.impls.inline.*
 

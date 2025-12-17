@@ -25,7 +25,7 @@ class Config:
   var currentStepCount = 0
 
   /** The maximum step count. */
-  val maxStepCount = 2000
+  val maxStepCount = 5000
 
   /** The debugging configuration. */
   var debug = Debug()

@@ -1,7 +1,9 @@
-// Primitive MLScript classes.
+// Primitive MLScript definitions.
 class Object
 class Function
 class untyped
+
+val equals
 
 // CTML top and bottom types.
 class Top

@@ -14,6 +14,7 @@ import hkmc2.semantics.LetDecl
 import hkmc2.semantics.Param
 import hkmc2.semantics.Pattern
 import hkmc2.semantics.QuantVar
+import hkmc2.semantics.SimpleSplit
 import hkmc2.semantics.Spd
 import hkmc2.semantics.Split
 import hkmc2.semantics.Statement
@@ -51,21 +52,21 @@ def parseStmts(mlStmts: Term): List[Stmt] =
 def parseStmt(mlStmt: Statement): Option[Stmt] =
   Some(
     mlStmt match
-      case Term.Lit(Tree.UnitLit(false)) | Import(_, _) =>
+      case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) =>
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol)
-      case TypeDef(mlSymbol, _, None, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
+      case TypeDef(mlSymbol, _, _, None, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseRigidVarDecl(mlSymbol)
-      case TypeDef(mlSymbol, _, None, _, mlAnnotations) if isAbstract(mlAnnotations) =>
+      case TypeDef(mlSymbol, _, _, None, _, mlAnnotations) if isAbstract(mlAnnotations) =>
         parseFlexVarDecl(mlSymbol)
-      case TypeDef(mlSymbol, _, Some(mlType), _, mlAnnotations) if !isAbstract(mlAnnotations) =>
+      case TypeDef(mlSymbol, _, _, Some(mlType), _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseTypeVar(mlSymbol, mlType)
-      case TermDefinition(_, _, mlSymbol, _, _, mlType, None, _, _, _, _) =>
+      case TermDefinition(_, mlSymbol, _, _, _, mlType, None, _, _, _, _, _) =>
         parseExprDecl(mlSymbol, mlType)
-      case TermDefinition(_, _, mlSymbol, mlParams, _, mlType, Some(mlExpr), _, _, _, _) =>
+      case TermDefinition(_, mlSymbol, _, mlParams, _, mlType, Some(mlExpr), _, _, _, _, _) =>
         parseExprVar(mlSymbol, mlParams.map(_.allParams).flatten.toList, mlType, mlExpr)
-      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "==" =>
+      case Term.App(Term.SynthSel(_, mlIdent), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlIdent.name == "equals" =>
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)
         StmtTypeRel(TypeRel.Eq, left, right)
@@ -290,7 +291,7 @@ def parseExpr(mlExpr: Term): Expr =
       val expr  = parseExpr(mlExpr)
       val type_ = parseType(mlType)
       EAscr(expr, type_)
-    case Term.IfLike(_, Split.Let(_, mlCondition, Split.Cons(Branch(_, _, Split.Else(mlThen)), Split.Else(mlElse)))) =>
+    case Term.IfLike(_, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, _, SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
       val condition = parseExpr(mlCondition)
       val then_ = parseExpr(mlThen)
       val else_ = parseExpr(mlElse)
@@ -355,21 +356,21 @@ def parseApp(mlLambda: Term, mlArgs: Term): Expr =
 /** Convert an MLScript lambda application to a CTML lambda application lambda. */
 def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
   mlArgs match
-  case mlArgs :+ Fld(_, mlArg, _) =>
-    val lambda = parseAppLambda(mlLambda, mlArgs)
-    val arg = parseExpr(mlArg)
-    EApp(lambda, arg)
-  case _ =>
-    parseExpr(mlLambda)
+    case mlArgs :+ Fld(_, mlArg, _) =>
+      val lambda = parseAppLambda(mlLambda, mlArgs)
+      val arg = parseExpr(mlArg)
+      EApp(lambda, arg)
+    case _ =>
+      mlLambda match
+        case Term.SynthSel(_, mlIdent) if mlIdent.name == "equals" =>
+          EVar("==")
+        case _ =>
+          parseExpr(mlLambda)
 
 /** Convert an MLScript split to a CTML pattern matching expression */
-def parseMatch(mlMatch: Split): EMatch =
+def parseMatch(mlMatch: SimpleSplit): EMatch =
   mlMatch match
-    case Split.Let(_, mlScrutinee, mlCases) =>
-      val scrutinee = parseExpr(mlScrutinee)
-      val cases     = parseCases(mlCases)
-      EMatch(scrutinee, cases)
-    case Split.Cons(mlCase @ Branch(mlScrutinee, _, _), mlCases) =>
+    case SimpleSplit.Cons(mlCase @ SimpleSplit.Head.Match(mlScrutinee, _, _), mlCases) =>
       val scrutinee = parseExpr(mlScrutinee)
       val case_     = parseCase(mlCase)
       val cases     = parseCases(mlCases)
@@ -378,11 +379,11 @@ def parseMatch(mlMatch: Split): EMatch =
       throw new ParseError(Term.Error)
 
 /** Convert an MLScript split to a list of CTML pattern matching cases. */
-def parseCases(mlCases: Split): List[EMatchCase] =
+def parseCases(mlCases: SimpleSplit): List[EMatchCase] =
   mlCases match
-    case Split.End =>
+    case SimpleSplit.End =>
       Nil
-    case Split.Cons(mlCase, mlCases) =>
+    case SimpleSplit.Cons(mlCase : SimpleSplit.Head.Match, mlCases) =>
       val case_ = parseCase(mlCase)
       val cases = parseCases(mlCases)
       case_ :: cases
@@ -390,9 +391,12 @@ def parseCases(mlCases: Split): List[EMatchCase] =
       throw new ParseError(Term.Error)
 
 /** Convert an MLScript branch to a CTML pattern matching case. */
-def parseCase(mlCase: Branch): EMatchCase =
+def parseCase(mlCase: SimpleSplit.Head.Match): EMatchCase =
+
+  // Match(Ref(a),Constructor(Ref(member:Int),None),Else(Asc(Ref(a),Ref(member:Int))))
+
   mlCase match
-    case Branch(_, Pattern.ClassLike(_, mlPattern, _, _), Split.Else(mlBody)) =>
+    case SimpleSplit.Head.Match(_, Pattern.Constructor(mlPattern, _), SimpleSplit.Else(mlBody)) =>
       val pattern = parseType(mlPattern)
       val body    = parseExpr(mlBody)
       EMatchCase(pattern, body)

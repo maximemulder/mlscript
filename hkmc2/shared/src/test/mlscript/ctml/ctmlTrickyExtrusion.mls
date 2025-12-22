@@ -6,12 +6,12 @@
 declare val fst: [T] -> (T, Top) -> T
 declare val snd: [T] -> (Top, T) -> T
 declare val id: [T] -> T -> T
-declare val not: Bool -> Bool
+declare val not': Bool -> Bool
 declare val inc: Int -> Int
 //│ fst: ∀T. T → ⊤ → T
 //│ snd: ∀T. ⊤ → T → T
 //│ id: ∀T. T → T
-//│ not: Bool → Bool
+//│ not': Bool → Bool
 //│ inc: Int → Int
 
 val True = true
@@ -19,7 +19,7 @@ val True = true
 
 fun test(f) =
   let r(x, g) = (g(x), unit)
-  (r(0, inc), r(true, not))
+  (r(0, inc), r(true, not'))
 //│ test: ⊤ → ⟨⟨Int, Unit⟩, ⟨Bool, Unit⟩⟩
 
 fun test(f) =
@@ -34,7 +34,7 @@ fun test(f) =
 :fixme
 fun test(f) =
   let r(x, g) = (g(x), f(x))
-  (r(0, inc), r(true, not))
+  (r(0, inc), r(true, not'))
 //│ ═══[ERROR] Cannot solve judgment ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ.
 //│ Typing error tree:
 //│   ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
@@ -61,7 +61,7 @@ fst(test(id)) + 1
 //│       ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ ⊥
 
 :fixme
-not(snd(test(id)))
+not'(snd(test(id)))
 //│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (∀α. α → α) → β.
 //│ Typing error tree:
 //│   Bool → Bool ≤ (∀α. α → α) → β
@@ -70,7 +70,7 @@ not(snd(test(id)))
 //│         γ → γ ≤ ⊥
 
 :e
-not(fst(test(id)))
+not'(fst(test(id)))
 //│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α.
 //│ Typing error tree:
 //│   Bool → Bool ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α

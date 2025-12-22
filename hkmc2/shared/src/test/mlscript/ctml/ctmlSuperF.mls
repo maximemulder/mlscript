@@ -31,6 +31,11 @@ declare fun inc: Int -> Int
 declare fun choose: [A] -> A -> A -> A
 declare fun poly: ([A] -> A -> A) -> (Int, Bool)
 declare fun fst: [A, B] -> ((A, B)) -> A
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: traverseSign (Resolver.scala:1061)
+//│ ╔══[ERROR] Expected a type, got block
+//│ ║  l.32: 	declare fun poly: ([A] -> A -> A) -> (Int, Bool)
+//│ ╙──      	                                           ^^^^
 //│ const: ∀A, B. A → B → A
 //│ id: ∀A. A → A
 //│ ids: List[∀A. A → A]

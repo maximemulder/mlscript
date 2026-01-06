@@ -8,7 +8,6 @@ fun foo(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ Cons(Match(Ref(a),Constructor(Ref(member:Int),None),Else(Asc(Ref(b),Ref(member:Int)))),Cons(Match(Ref(a),Constructor(Ref(member:Str),None),Else(Asc(Ref(b),Ref(member:Str)))),End))
 //│ 0 flex
 //│ 1 flex
 //│ join Str and ⊥ in b: 1, 1 flex, a: 0, 0 flex
@@ -10435,14 +10434,14 @@ fun foo(a, b) =
 //│ 	at hkmc2.ctml.core.infer$package$.inferImpl(infer.scala:34)
 //│ 	at hkmc2.ctml.core.infer$package$.infer$$anonfun$1(infer.scala:17)
 //│ 	at hkmc2.ctml.core.infer$package$.infer(infer.scala:17)
-//│ 	at hkmc2.ctml.test.Tester.testExprVar(test.scala:108)
-//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:80)
-//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$1(test.scala:61)
+//│ 	at hkmc2.ctml.test.Tester.testExprVar(test.scala:106)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:78)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$1(test.scala:59)
 //│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
 //│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
 //│ 	at scala.collection.immutable.List.foreach(List.scala:323)
-//│ 	at hkmc2.ctml.test.Tester.test(test.scala:60)
-//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:37)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:58)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:35)
 //│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:77)
 //│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
 //│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:51)
@@ -10478,12 +10477,13 @@ fun foo(a, b) =
 //│
 //│
 //│
+//│
 
 foo(1, 2)
 //│ 3 flex
 //│ 4 flex
 //│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:64)
+//│ FAILURE LOCATION: raise (test.scala:62)
 //│ ═══[ERROR] Variable 'foo' not found in the context.
 
 :e

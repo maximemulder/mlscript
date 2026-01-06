@@ -151,18 +151,8 @@ def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term):
 /** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =
   mlType match
-    case Term.Blk(mlLefts, mlRight) =>
-      parseTypeTuple(mlLefts, mlRight)
     case Term.Tup(mlElems) =>
-      if mlElems.length != 1 then
-        throw ParseError(mlType)
-
-      val mlElem = mlElems(0)
-      if mlElem.subTerms.length != 1 then
-        throw ParseError(mlType)
-
-      val mlTerm = mlElem.subTerms(0)
-      parseType(mlTerm)
+      parseTypeTuple(mlElems.init.map(_.subTerms(0)), mlElems.last.subTerms(0))
     case Term.Ref(mlSymbol) =>
       mlSymbol.nme match
         case "Top" =>
@@ -189,18 +179,14 @@ def parseType(mlType: Term): Type =
       throw ParseError(mlType)
 
 /** Convert an MLScript block to a CTML tuple type. */
-def parseTypeTuple(mlLefts: List[Statement], mlRight: Term): Type =
+def parseTypeTuple(mlLefts: List[Term], mlRight: Term): Type =
   mlLefts match
     case Nil =>
       parseType(mlRight)
     case mlLeft :: mlLefts =>
-      mlLeft match
-        case mlLeft: Term =>
-          val left  = parseType(mlLeft)
-          val right = parseType(mlRight)
-          TTuple(left, right)
-        case _ =>
-          throw ParseError(mlLeft)
+      val left  = parseType(mlLeft)
+      val right = parseType(mlRight)
+      TTuple(left, right)
 
 /** Convert an MLScript function type to a CTML type. */
 def parseTypeLambda(mlParams: Term, mlRet: Term): Type =

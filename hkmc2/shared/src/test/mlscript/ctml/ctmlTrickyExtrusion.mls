@@ -3,13 +3,13 @@
 // Tests copied from the `TrickyExtrusion.mls` file. Most of these tests fail in CTML because the
 // inferred types, although not incorrect, are not precise enough.
 
-declare val fst: [T] -> (T, Top) -> T
-declare val snd: [T] -> (Top, T) -> T
+declare val fst: [T] -> ([T, Top]) -> T
+declare val snd: [T] -> ([Top, T]) -> T
 declare val id: [T] -> T -> T
 declare val not': Bool -> Bool
 declare val inc: Int -> Int
-//│ fst: ∀T. T → ⊤ → T
-//│ snd: ∀T. ⊤ → T → T
+//│ fst: ∀T. ⟨T, ⊤⟩ → T
+//│ snd: ∀T. ⟨⊤, T⟩ → T
 //│ id: ∀T. T → T
 //│ not': Bool → Bool
 //│ inc: Int → Int
@@ -54,25 +54,30 @@ fun test(f) =
 
 :fixme
 fst(test(id)) + 1
-//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α.
+//│ ═══[ERROR] Cannot solve judgment Int → Int → Int ≤ (Bool ∨ Int) → α.
 //│ Typing error tree:
-//│   Int → Int → Int ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α
-//│     ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ Int
-//│       ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ ⊥
+//│   Int → Int → Int ≤ (Bool ∨ Int) → α
+//│     Int → Int → Int ≤ Bool → α
+//│       Bool ≤ Int
+//│         Bool ≤ ⊥
+//│           ⊤ ≤ ⊥
 
 :fixme
 not'(snd(test(id)))
-//│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (∀α. α → α) → β.
+//│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (Bool ∨ Int) → α.
 //│ Typing error tree:
-//│   Bool → Bool ≤ (∀α. α → α) → β
-//│     ∀α. α → α ≤ Bool
-//│       γ → γ ≤ Bool
-//│         γ → γ ≤ ⊥
+//│   Bool → Bool ≤ (Bool ∨ Int) → α
+//│     Bool → Bool ≤ Int → α
+//│       Int ≤ Bool
+//│         ⊤ ≤ Bool
+//│           ⊤ ≤ ⊥
 
 :e
 not'(fst(test(id)))
-//│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α.
+//│ ═══[ERROR] Cannot solve judgment Bool → Bool ≤ (Bool ∨ Int) → α.
 //│ Typing error tree:
-//│   Bool → Bool ≤ (⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩) → α
-//│     ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ Bool
-//│       ⊤ → ⟨Bool ∨ Int, Bool ∨ Int⟩ ≤ ⊥
+//│   Bool → Bool ≤ (Bool ∨ Int) → α
+//│     Bool → Bool ≤ Int → α
+//│       Int ≤ Bool
+//│         ⊤ ≤ Bool
+//│           ⊤ ≤ ⊥

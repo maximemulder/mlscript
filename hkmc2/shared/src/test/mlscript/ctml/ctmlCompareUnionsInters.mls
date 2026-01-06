@@ -33,13 +33,13 @@ A <= (A | B)
 
 // Unions and intersection with flexible variables.
 
-([Y, Z] -> (Y, Z)) <= ((Int, Str) | (Str, Int))
+([Y, Z] -> [Y, Z]) <= ([Int, Str] | [Str, Int])
 //│ OK
 
 declare type Y
 declare type Z
 
-(Y, Z) <= ((Int, Str) | (Str, Int))
+[Y, Z] <= ([Int, Str] | [Str, Int])
 //│ OK
 //│ Z ≤ (Str ⟹ {Y ≤ Int}) ∨ (Int ⟹ {Y ≤ Str}), Y ≤ (Int ⟹ {Z ≤ Str}) ∨ (Str ⟹ {Z ≤ Int})
 
@@ -97,7 +97,7 @@ A <= (A & B)
 //│               ⊤ ≤ ⊥
 
 :e
-((Int, Str) | (Str, Int)) <= ([A, B] -> (A, B))
+([Int, Str] | [Str, Int]) <= ([A, B] -> [A, B])
 //│ ═══[ERROR] Cannot solve judgment ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩.
 //│ Typing error tree:
 //│   ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩

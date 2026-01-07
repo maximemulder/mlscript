@@ -34,5 +34,3 @@ foo((++), 1)
 //│       (Int → δ → ε) → δ → ε ≤ (Str → Str → Str) → γ
 //│         Str → Str → Str ≤ Int → δ → ε
 //│           Int ≤ Str
-//│             Int ≤ ⊥
-//│               ⊤ ≤ ⊥

@@ -54,7 +54,6 @@ val test(extr) =
 //│       ∀γ. (Int → γ) → ⊤ → γ ≤ Int → ε
 //│         (Int → ζ) → ⊤ → ζ ≤ Int → ε
 //│           Int ≤ Int → ζ
-//│             ⊤ ≤ Int → ζ
 
 :e
 val test(extr, x) =
@@ -67,7 +66,6 @@ val test(extr, x) =
 //│     (Int → γ) → ⊤ → δ ≤ α
 //│       (Int → γ) → ⊤ → δ ≤ Int → ζ
 //│         Int ≤ Int → γ
-//│           ⊤ ≤ Int → γ
 
 :e
 val test(extr, x) =
@@ -79,7 +77,6 @@ val test(extr, x) =
 //│     (Int → ε) → ε ≤ ((Int → β) → ⊤ → γ) → δ
 //│       (Int → β) → ⊤ → γ ≤ Int → ε
 //│         Int ≤ Int → β
-//│           ⊤ ≤ Int → β
 
 :e
 val test(extr, x) =
@@ -92,4 +89,3 @@ val test(extr, x) =
 //│       ∀β. (γ → Int → β) → ⊤ → β ≤ Int → ε
 //│         (γ → Int → ζ) → ⊤ → ζ ≤ Int → ε
 //│           Int ≤ γ → Int → ζ
-//│             ⊤ ≤ γ → Int → ζ

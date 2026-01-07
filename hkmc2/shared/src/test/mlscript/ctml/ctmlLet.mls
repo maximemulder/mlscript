@@ -34,8 +34,6 @@ baz(1, "")
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int
-//│       ⊤ ≤ Int
-//│         ⊤ ≤ ⊥
 
 :e
 baz(true, false)
@@ -52,12 +50,8 @@ baz(true, false)
 //│                   Bool ≤ (Int ⟹ {η ≥ Int, ζ ≤ Int}) ∨ (Str ⟹ {η ≥ Str, ζ ≤ Str})
 //│                     Bool ≤ Int ⟹ {η ≥ Int, ζ ≤ Int}
 //│                       Bool ≤ Int
-//│                         Bool ≤ ⊥
-//│                           ⊤ ≤ ⊥
 //│                     Bool ≤ Str ⟹ {η ≥ Str, ζ ≤ Str}
 //│                       Bool ≤ Str
-//│                         Bool ≤ ⊥
-//│                           ⊤ ≤ ⊥
 
 fun bop(a, b) =
   let x = baz(a, b)
@@ -76,5 +70,3 @@ bop(0, "1")
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int
-//│       ⊤ ≤ Int
-//│         ⊤ ≤ ⊥

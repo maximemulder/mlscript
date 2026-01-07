@@ -16,7 +16,6 @@
 //│     Int → Int ≤ α → α
 //│       α ≤ Int
 //│         ⊤ ≤ Int
-//│           ⊤ ≤ ⊥
 
 :e
 ([A extends Str] -> A -> A) <= (Int -> Int)
@@ -27,7 +26,5 @@
 //│       α → α ≤ Int → Int
 //│         Int ≤ α
 //│           Int ≤ Str
-//│             Int ≤ ⊥
-//│               ⊤ ≤ ⊥
 
 // ([A extends Int restricts Str] -> A) <= Top

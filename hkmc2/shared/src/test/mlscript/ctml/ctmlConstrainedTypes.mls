@@ -24,8 +24,6 @@ idInt("Hello")
 //│       β → Int ≤ Str → α
 //│         Str ≤ β
 //│           Str ≤ Int
-//│             ⊤ ≤ Int
-//│               ⊤ ≤ ⊥
 
 :e
 val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
@@ -37,8 +35,6 @@ val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
 //│         γ → γ ≤ {β ≥ Str} ⟹ β → β
 //│           Str ≤ β
 //│             Str ≤ Int
-//│               ⊤ ≤ Int
-//│                 ⊤ ≤ ⊥
 
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
 //│ inc: ∀T. {T ≤ Int} ⟹ T → Int
@@ -55,8 +51,6 @@ inc("Hello")
 //│       β → Int ≤ Str → α
 //│         Str ≤ β
 //│           Str ≤ Int
-//│             ⊤ ≤ Int
-//│               ⊤ ≤ ⊥
 
 :e
 val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
@@ -64,5 +58,3 @@ val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
 //│ Typing error tree:
 //│   Str → Str ≤ Int → α
 //│     Int ≤ Str
-//│       Int ≤ ⊥
-//│         ⊤ ≤ ⊥

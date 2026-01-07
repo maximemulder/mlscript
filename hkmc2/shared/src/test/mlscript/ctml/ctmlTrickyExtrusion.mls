@@ -44,8 +44,6 @@ fun test(f) =
 //│           γ → (∀δ. (γ → δ) → ⟨δ, ε⟩) ≤ Bool → (Bool → Bool) → θ
 //│             Bool ≤ γ
 //│               Bool ≤ Int
-//│                 Bool ≤ ⊥
-//│                   ⊤ ≤ ⊥
 
 fun test(f) =
   let r(x) = f(x)
@@ -59,8 +57,6 @@ fst(test(id)) + 1
 //│   Int → Int → Int ≤ (Bool ∨ Int) → α
 //│     Int → Int → Int ≤ Bool → α
 //│       Bool ≤ Int
-//│         Bool ≤ ⊥
-//│           ⊤ ≤ ⊥
 
 :fixme
 not'(snd(test(id)))
@@ -69,8 +65,6 @@ not'(snd(test(id)))
 //│   Bool → Bool ≤ (Bool ∨ Int) → α
 //│     Bool → Bool ≤ Int → α
 //│       Int ≤ Bool
-//│         ⊤ ≤ Bool
-//│           ⊤ ≤ ⊥
 
 :e
 not'(fst(test(id)))
@@ -79,5 +73,3 @@ not'(fst(test(id)))
 //│   Bool → Bool ≤ (Bool ∨ Int) → α
 //│     Bool → Bool ≤ Int → α
 //│       Int ≤ Bool
-//│         ⊤ ≤ Bool
-//│           ⊤ ≤ ⊥

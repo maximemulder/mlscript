@@ -69,16 +69,12 @@ declare type Z
 //│ ═══[ERROR] Cannot solve judgment B ≤ A.
 //│ Typing error tree:
 //│   B ≤ A
-//│     ⊤ ≤ A
-//│       ⊤ ≤ ⊥
 
 :e
 A <= (A & B)
 //│ ═══[ERROR] Cannot solve judgment A ≤ B.
 //│ Typing error tree:
 //│   A ≤ B
-//│     A ≤ ⊥
-//│       ⊤ ≤ ⊥
 
 :e
 ((A -> B) & (C -> D)) <= ((A | C) -> (B & D))
@@ -89,12 +85,8 @@ A <= (A & B)
 //│       (A → B) ∧ (C → D) ≤ A → D
 //│         A → B ≤ A → D
 //│           B ≤ D
-//│             B ≤ ⊥
-//│               ⊤ ≤ ⊥
 //│         C → D ≤ A → D
 //│           A ≤ C
-//│             A ≤ ⊥
-//│               ⊤ ≤ ⊥
 
 :e
 ([Int, Str] | [Str, Int]) <= ([A, B] -> [A, B])
@@ -106,7 +98,6 @@ A <= (A & B)
 //│         ⟨Int, Str⟩ ≤ ⟨α, β⟩
 //│           Int ≤ α
 //│             Int ≤ ⊥
-//│               ⊤ ≤ ⊥
 
 // Function intersections type inference.
 
@@ -128,8 +119,6 @@ baz(1, "World")
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int
-//│       ⊤ ≤ Int
-//│         ⊤ ≤ ⊥
 
 :e
 baz(1, top)
@@ -137,4 +126,3 @@ baz(1, top)
 //│ Typing error tree:
 //│   Int → Int ≤ ⊤ → α
 //│     ⊤ ≤ Int
-//│       ⊤ ≤ ⊥

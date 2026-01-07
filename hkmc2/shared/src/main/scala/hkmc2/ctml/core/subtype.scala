@@ -210,20 +210,10 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   // Subtyping of class type variables.
 
-  // TODO: This is just a copy-paste of the rigid variable code for class variables, to evaluate it
-  // after constrained types. But this is obviously dirty.
-
   (sub, sup) match
-    case (sub: TVar, sup: TVar) if sub.isClassVar || sup.isClassVar =>
-      given VarCache = cache.addRigid(sub, sup)
-      return subtypeRigidVars(sub.var_, sup.var_)
-    case (sub: TVar, _) if sub.isClassVar =>
-      given VarCache = cache.addRigid(sub, sup)
-      return subtype(sub.var_.upperBound, sup)
-    case (_, sup: TVar) if sup.isClassVar =>
-      given VarCache = cache.addRigid(sub, sup)
-      return subtype(sub, sup.var_.lowerBound)
-    case (_, _) =>
+    case (sub: TVar, sup: TVar) if sub.isClassVar && sup.isClassVar && sub == sup =>
+      return Clauses.empty
+    case _ =>
 
   // Subtyping of tuple types.
 

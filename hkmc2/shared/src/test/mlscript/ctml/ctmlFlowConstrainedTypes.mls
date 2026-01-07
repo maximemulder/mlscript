@@ -50,12 +50,8 @@ foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
 //│                 Bool ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str)
 //│                   Bool ≤ {δ ≥ Int} ⟹ Int
 //│                     Bool ≤ Int
-//│                       Bool ≤ ⊥
-//│                         ⊤ ≤ ⊥
 //│                   Bool ≤ {δ ≥ Str} ⟹ Str
 //│                     Bool ≤ Str
-//│                       Bool ≤ ⊥
-//│                         ⊤ ≤ ⊥
 
 :e
 foo(true)
@@ -70,9 +66,5 @@ foo(true)
 //│               Bool ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)
 //│                 Bool ≤ {ε ≥ Int} ⟹ Int
 //│                   Bool ≤ Int
-//│                     Bool ≤ ⊥
-//│                       ⊤ ≤ ⊥
 //│                 Bool ≤ {ε ≥ Str} ⟹ Str
 //│                   Bool ≤ Str
-//│                     Bool ≤ ⊥
-//│                       ⊤ ≤ ⊥

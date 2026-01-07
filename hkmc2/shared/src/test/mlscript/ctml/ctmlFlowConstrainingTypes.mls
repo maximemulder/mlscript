@@ -73,12 +73,8 @@ foo as (Bool -> Bool -> Bool)
 //│                   Bool ≤ (Int ⟹ {ζ ≥ Int, ε ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, ε ≤ Str})
 //│                     Bool ≤ Int ⟹ {ζ ≥ Int, ε ≤ Int}
 //│                       Bool ≤ Int
-//│                         Bool ≤ ⊥
-//│                           ⊤ ≤ ⊥
 //│                     Bool ≤ Str ⟹ {ζ ≥ Str, ε ≤ Str}
 //│                       Bool ≤ Str
-//│                         Bool ≤ ⊥
-//│                           ⊤ ≤ ⊥
 
 :e
 foo as ((Int | Str) -> (Int | Str) -> (Int | Str))
@@ -96,8 +92,6 @@ foo as ((Int | Str) -> (Int | Str) -> (Int | Str))
 //│                     ε → ζ ≤ Str → (Int ∨ Str)
 //│                       Str ≤ ε
 //│                         Str ≤ Int
-//│                           ⊤ ≤ Int
-//│                             ⊤ ≤ ⊥
 
 :e
 foo as (Top -> Top -> Bot)
@@ -114,10 +108,8 @@ foo as (Top -> Top -> Bot)
 //│                   ⊤ ≤ (Int ⟹ {ζ ≥ Int, ε ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, ε ≤ Str})
 //│                     ⊤ ≤ Int ⟹ {ζ ≥ Int, ε ≤ Int}
 //│                       ⊤ ≤ Int
-//│                         ⊤ ≤ ⊥
 //│                     ⊤ ≤ Str ⟹ {ζ ≥ Str, ε ≤ Str}
 //│                       ⊤ ≤ Str
-//│                         ⊤ ≤ ⊥
 
 val int_or_string: Int | Str
 //│ int_or_string: Int ∨ Str
@@ -128,8 +120,6 @@ foo(1, "")
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int
-//│       ⊤ ≤ Int
-//│         ⊤ ≤ ⊥
 
 :e
 foo(1, int_or_string)
@@ -138,8 +128,6 @@ foo(1, int_or_string)
 //│   Int → Int ≤ (Int ∨ Str) → α
 //│     Int → Int ≤ Str → α
 //│       Str ≤ Int
-//│         ⊤ ≤ Int
-//│           ⊤ ≤ ⊥
 
 :e
 baz(true, 1)
@@ -147,8 +135,6 @@ baz(true, 1)
 //│ Typing error tree:
 //│   Str → Str ≤ Int → α
 //│     Int ≤ Str
-//│       Int ≤ ⊥
-//│         ⊤ ≤ ⊥
 
 :e
 baz(true, true)
@@ -156,5 +142,3 @@ baz(true, true)
 //│ Typing error tree:
 //│   Str → Str ≤ Bool → α
 //│     Bool ≤ Str
-//│       Bool ≤ ⊥
-//│         ⊤ ≤ ⊥

@@ -38,23 +38,19 @@ Bot <= A
 //│   Int ∧ Str ≡ ⊥
 //│     Int ∧ Str ≤ ⊥
 //│       Int ≤ ⊥
-//│         ⊤ ≤ ⊥
 //│       Str ≤ ⊥
-//│         ⊤ ≤ ⊥
 
 :e
 Top <= A
 //│ ═══[ERROR] Cannot solve judgment ⊤ ≤ A.
 //│ Typing error tree:
 //│   ⊤ ≤ A
-//│     ⊤ ≤ ⊥
 
 :e
 A <= Bot
 //│ ═══[ERROR] Cannot solve judgment A ≤ ⊥.
 //│ Typing error tree:
 //│   A ≤ ⊥
-//│     ⊤ ≤ ⊥
 
 :e
 A == B
@@ -62,8 +58,6 @@ A == B
 //│ Typing error tree:
 //│   A ≡ B
 //│     A ≤ B
-//│       A ≤ ⊥
-//│         ⊤ ≤ ⊥
 
 // Lambda types.
 
@@ -85,7 +79,6 @@ A == B
 //│ Typing error tree:
 //│   A → ⊥ ≤ ⊤ → ⊥
 //│     ⊤ ≤ A
-//│       ⊤ ≤ ⊥
 
 :e
 (Top -> A) <= (Top -> Bot)
@@ -93,7 +86,6 @@ A == B
 //│ Typing error tree:
 //│   ⊤ → A ≤ ⊤ → ⊥
 //│     A ≤ ⊥
-//│       ⊤ ≤ ⊥
 
 :e
 (Bot -> Top) <= (A -> Top)
@@ -101,7 +93,6 @@ A == B
 //│ Typing error tree:
 //│   ⊥ → ⊤ ≤ A → ⊤
 //│     A ≤ ⊥
-//│       ⊤ ≤ ⊥
 
 :e
 (Bot -> Top) <= (Bot -> A)
@@ -109,4 +100,3 @@ A == B
 //│ Typing error tree:
 //│   ⊥ → ⊤ ≤ ⊥ → A
 //│     ⊤ ≤ A
-//│       ⊤ ≤ ⊥

@@ -173,7 +173,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
   // Subtyping of rigid type variables.
 
   (sub, sup) match
-    case (sub: TVar, sup: TVar) if sub.isRigidVar || sup.isRigidVar =>
+    case (sub: TVar, sup: TVar) if sub.isRigidVar && sup.isRigidVar =>
       given VarCache = cache.addRigid(sub, sup)
       return subtypeRigidVars(sub.var_, sup.var_)
     case (sub: TVar, _) if sub.isRigidVar =>

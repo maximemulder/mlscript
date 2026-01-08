@@ -50,6 +50,14 @@ extension (bound: Bound)
       bound.type_.prettify(prettyCtx)
     )
 
+extension (constraint: Constraint)
+  def prettify(prettyCtx: PrettyContext): Constraint =
+    Constraint(
+      constraint.left.prettify(prettyCtx),
+      constraint.dir,
+      constraint.right.prettify(prettyCtx)
+    )
+
 extension (var_ : TypeVar)
   def prettify(prettyCtx: PrettyContext): TypeVar =
     prettyCtx.get(var_)
@@ -143,5 +151,5 @@ object TypePrettifier extends TypeDispatcher[Id, Id, PrettyContext](TypeIdentity
       case _ =>
         super.apply(type_, prettyCtx)
 
-  override def apply(bound: Bound, prettyCtx: PrettyContext): Bound =
-    bound.prettify(prettyCtx)
+  override def apply(constraint: Constraint, prettyCtx: PrettyContext): Constraint =
+    constraint.prettify(prettyCtx)

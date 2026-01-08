@@ -49,16 +49,15 @@ private def GetAllVarPolarities3 = TypePolarityApplicator[Const[Polarities], Con
 
 /** Dispatching node of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities4 extends TypeDispatcher[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](Combinator):
-  override def apply(bound: Bound, params: GetAllVarPolaritiesParams): Polarities =
-    val varPolarities = if bound.var_ == params.var_
-      then Polarities.fromPolarity(params.pol)
-      else Polarities.empty
-    val pol = bound.dir match
+  override def apply(constraint: Constraint, params: GetAllVarPolaritiesParams): Polarities =
+    // TODO: Check this code.
+    val leftPolarities = GetAllVarPolarities1.apply(constraint.left, params)
+    val pol = constraint.dir match
       case Direction.Sub =>
         params.pol.invert()
       case Direction.Super =>
         params.pol
-    val typePolarities = GetAllVarPolarities1.apply(bound.type_, params.setPolarity(pol))
-    Polarities.join(varPolarities, typePolarities)
+    val rightPolarities = GetAllVarPolarities1.apply(constraint.right, params.setPolarity(pol))
+    Polarities.join(leftPolarities, rightPolarities)
 
 private def Combinator = TypeMonoidCombinator[Polarities, GetAllVarPolaritiesParams](JoinPolaritiesMonoid)

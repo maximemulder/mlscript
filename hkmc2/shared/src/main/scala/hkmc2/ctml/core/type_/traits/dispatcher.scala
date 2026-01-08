@@ -6,7 +6,7 @@ import hkmc2.ctml.core.type_.traits.*
 import hkmc2.syntax.Keyword.`override`
 
 /** Applicator that recursively applies a combinator on the components of a type. */
-abstract class TypeDispatcher[T[+_], B[+_], P](last: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], BoundApplicator[B, P]:
+abstract class TypeDispatcher[T[+_], B[+_], P](last: TypeCombinator[T, B, P]) extends TypeApplicator[T, P], ConstraintApplicator[B, P]:
   override def apply(type_ : Type, p: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TBot =>
@@ -51,15 +51,15 @@ abstract class TypeDispatcher[T[+_], B[+_], P](last: TypeCombinator[T, B, P]) ex
           first.apply(body, p),
           p,
         )
-      case TConstrained(body, bound) =>
+      case TConstrained(body, constraint) =>
         last.constrained(
           first.apply(body, p),
-          this.apply(bound, p),
+          this.apply(constraint, p),
           p,
         )
-      case TConstraining(body, bound) =>
+      case TConstraining(body, constraint) =>
         last.constraining(
           first.apply(body, p),
-          this.apply(bound, p),
+          this.apply(constraint, p),
           p,
         )

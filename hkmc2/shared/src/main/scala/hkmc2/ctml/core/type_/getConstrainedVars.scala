@@ -8,10 +8,10 @@ extension (type_ : Type)
   /** Get the set of variables that appear in the bounds of a constraining type. */
   def getConstrainedVars(): Set[TypeVar] =
     type_ match
-      case TConstraining(body, bound) =>
+      case TConstraining(body, constraint) =>
         Set.concat(
           body.getConstrainedVars(),
-          List(bound.var_),
+          List(hackConstraintToBound(constraint).var_),
         )
       case TUnion(left, right) =>
         Set.concat(

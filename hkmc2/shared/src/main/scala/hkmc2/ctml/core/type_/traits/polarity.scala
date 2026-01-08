@@ -7,9 +7,9 @@ import hkmc2.ctml.types.*
 /** Applicator that recursively applies a combinator on the components of a type while tracking the
  *  type polarity. */
 final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
-  next: TypeApplicator[T, P] & BoundApplicator[B, P],
+  next: TypeApplicator[T, P] & ConstraintApplicator[B, P],
   last: TypeCombinator[T, B, P],
-) extends TypeApplicator[T, P], BoundApplicator[B, P]:
+) extends TypeApplicator[T, P], ConstraintApplicator[B, P]:
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match
       case TLam(param, ret) =>
@@ -22,10 +22,10 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
       case _ =>
         next.apply(type_, params)
 
-  override def apply(bound: Bound, params: P): B[Bound] =
-    val pol = bound.dir match
+  override def apply(constraint: Constraint, params: P): B[Constraint] =
+    val pol = constraint.dir match
       case Direction.Sub =>
         params.pol.invert()
       case Direction.Super =>
         params.pol
-    next.apply(bound, params.setPolarity(pol))
+    next.apply(constraint, params.setPolarity(pol))

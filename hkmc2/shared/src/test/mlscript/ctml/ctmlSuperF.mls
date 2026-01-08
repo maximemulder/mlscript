@@ -153,7 +153,7 @@ val c5 = cons(id, ids)
 // OK
 
 val c6 = cons((x) => x, ids)
-//│ c6: List[∀α. α → α]
+//│ c6: List[∀A. A → A]
 // OK
 
 val c7 = append(single(inc), single(id))
@@ -282,7 +282,7 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 // OK
 
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β. {α ≥ α → β, α ≤ β, β ≥ α} ⟹ α → β
+//│ g9: ∀α, β. {α ≥ α → β, α ≤ α → β, β ≤ α → β} ⟹ α → (β ∨ α)
 // MAYBE
 
 val g10 = ((x) => x(x))((x) => x(x))

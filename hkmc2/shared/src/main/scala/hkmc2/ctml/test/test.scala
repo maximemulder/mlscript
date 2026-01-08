@@ -111,7 +111,6 @@ class Tester(
   def testExpr(expr: Expr) =
     val (type_, outs) = infer(expr)(using this.ctx)
     this.outputType(type_)
-    this.outputClauses(outs)
 
   /** Test the relation between two types. */
   def testTypeRel(rel: TypeRel, left: Type, right: Type) =
@@ -126,7 +125,6 @@ class Tester(
         testTypeIncomparability(left, right)
 
     this.output("OK")
-    this.outputClauses(outs)
 
   /** Test subtyping between two types. */
   def testSubtyping(sub: Type, sup: Type): Clauses =

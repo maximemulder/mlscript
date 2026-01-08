@@ -2,11 +2,9 @@
 
 ([A] -> A -> A) == ([A] -> A -> A)
 //│ OK
-//│ α ≤ β, α ≥ β, α flex, β rigid, γ ≤ δ, γ ≥ δ, γ flex, δ rigid
 
 ([A] -> A -> A) <= (Int -> Int)
 //│ OK
-//│ α ≤ Int, α ≥ Int, α flex
 
 :e
 (Int -> Int) <= ([A] -> A -> A)

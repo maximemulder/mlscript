@@ -22,19 +22,15 @@ fun baz(a, b) =
 
 foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 //│ (Int → Int → Int) ∧ (Str → Str → Str)
-//│ α ≤ Str, β ≥ Str, α ≥ Str, β ≤ Str, γ ≥ Str, α ≥ (Int ⟹ {β ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {β ≤ Str, γ ≤ Str}), β ≤ (Int ⟹ {α ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≥ Str, γ ≤ Str}), γ ≤ (Int ⟹ {α ≥ Int, β ≤ Int}) ∨ (Str ⟹ {α ≥ Str, β ≤ Str}), α flex, β flex, γ flex, η ≤ Int, θ ≥ Int, η ≥ Int, θ ≤ Int, ι ≥ Int, η ≥ (Int ⟹ {θ ≤ Int, ι ≤ Int}) ∧ (Str ⟹ {θ ≤ Str, ι ≤ Str}), θ ≤ (Int ⟹ {η ≥ Int, ι ≤ Int}) ∨ (Str ⟹ {η ≥ Str, ι ≤ Str}), ι ≤ (Int ⟹ {η ≥ Int, θ ≤ Int}) ∨ (Str ⟹ {η ≥ Str, θ ≤ Str}), η flex, θ flex, ι flex
 
 foo as (Int -> Int -> Int)
 //│ Int → Int → Int
-//│ α ≤ Int, β ≥ Int, α ≥ Int, β ≤ Int, γ ≥ Int, α ≥ (Int ⟹ {β ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {β ≤ Str, γ ≤ Str}), β ≤ (Int ⟹ {α ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≥ Str, γ ≤ Str}), γ ≤ (Int ⟹ {α ≥ Int, β ≤ Int}) ∨ (Str ⟹ {α ≥ Str, β ≤ Str}), α flex, β flex, γ flex
 
 foo as (Str -> Str -> Str)
 //│ Str → Str → Str
-//│ α ≤ Str, β ≥ Str, α ≥ Str, β ≤ Str, γ ≥ Str, α ≥ (Int ⟹ {β ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {β ≤ Str, γ ≤ Str}), β ≤ (Int ⟹ {α ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≥ Str, γ ≤ Str}), γ ≤ (Int ⟹ {α ≥ Int, β ≤ Int}) ∨ (Str ⟹ {α ≥ Str, β ≤ Str}), α flex, β flex, γ flex
 
 foo as (Bot -> Bot -> Top)
 //│ ⊥ → ⊥ → ⊤
-//│ α ≥ (Int ⟹ {γ ≤ Int, β ≤ Int}) ∧ (Str ⟹ {γ ≤ Str, β ≤ Str}), γ ≤ (Int ⟹ {α ≥ Int, β ≤ Int}) ∨ (Str ⟹ {α ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {α ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {α ≥ Str, γ ≤ Str}), α flex, γ flex, β flex
 
 // Function applications
 

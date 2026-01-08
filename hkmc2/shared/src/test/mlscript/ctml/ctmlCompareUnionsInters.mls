@@ -41,7 +41,6 @@ declare type Z
 
 [Y, Z] <= ([Int, Str] | [Str, Int])
 //│ OK
-//│ Z ≤ (Str ⟹ {Y ≤ Int}) ∨ (Int ⟹ {Y ≤ Str}), Y ≤ (Int ⟹ {Z ≤ Str}) ∨ (Str ⟹ {Z ≤ Int})
 
 // Unions and intersections distributvity.
 

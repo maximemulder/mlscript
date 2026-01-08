@@ -253,17 +253,11 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Mode, 
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  val boundType = var_.bound(dir)
-
-  // Do not return new clauses if the bound is already satisfied.
-  val clauses = if checkSubtypeDir(boundType, type_, dir) then
-    Clauses.empty
-  else
-    val boundCombinedType = combine(boundType, type_, dir)
-    Bound(var_, dir, boundCombinedType).asClauses
-
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
-  subtypeDirSeq(oppositeBoundType, type_, dir, clauses)
+  val clauses = subtypeDir(oppositeBoundType, type_, dir)
+  val boundType = var_.bound(dir)
+  val boundCombinedType = combine(boundType, type_, dir)
+  Clauses(Bound(var_, dir, boundCombinedType) :: clauses.elems)
 
 // Rigid type variables.
 

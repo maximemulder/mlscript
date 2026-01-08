@@ -15,13 +15,13 @@ extension (type_ : Type)(using ctx: Context)
       case TUniv(var_, body) =>
         given Context = ctx.extend(declRigidVar(var_))
         body.findEscapedVars()
-      case TConstrained(body, bound) =>
+      case TConstrained(body, constraint) =>
         var escapedVars = body.findEscapedVars()
-        escapedVars ++= bound.findEscapedVars()
+        escapedVars ++= constraint.findEscapedVars()
         escapedVars
-      case TConstraining(body, bound) =>
+      case TConstraining(body, constraint) =>
         var escapedVars = body.findEscapedVars()
-        escapedVars ++= bound.findEscapedVars()
+        escapedVars ++= constraint.findEscapedVars()
         escapedVars
       case _ =>
         type_.accumulate(_.findEscapedVars())
@@ -30,6 +30,11 @@ extension (bound: Bound)(using ctx: Context)
   /** Find escaped variables within a bound. */
   def findEscapedVars(): Set[TypeVar] =
     bound.var_.findEscapedVars() ++ bound.type_.findEscapedVars()
+
+extension (constraint: Constraint)(using ctx: Context)
+  /** Find escaped variables within a constraint. */
+  def findEscapedVars(): Set[TypeVar] =
+    constraint.left.findEscapedVars() ++ constraint.right.findEscapedVars()
 
 extension (var_ : TypeVar)(using ctx: Context)
   /** Find whether a type variable is escaped. */

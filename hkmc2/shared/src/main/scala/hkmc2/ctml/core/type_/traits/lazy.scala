@@ -8,7 +8,7 @@ import hkmc2.ctml.util.Const
 
 /** Applicator that applies another applicator on the components of a type, and then applies a
  *  combinator only of the components of that typed have changed. */
-abstract class TypeLazyDispatcher[B[+_], P](last: TypeCombinator[Const[Type], B, P]) extends TypeApplicator[Const[Type], P], BoundApplicator[B, P]:
+abstract class TypeLazyDispatcher[B[+_], P](last: TypeCombinator[Const[Type], B, P]) extends TypeApplicator[Const[Type], P], ConstraintApplicator[B, P]:
   override def apply(type_ : Type, p: P)(using first: TypeApplicator[Const[Type], P]): Type =
     type_ match
       case TBot =>
@@ -52,15 +52,15 @@ abstract class TypeLazyDispatcher[B[+_], P](last: TypeCombinator[Const[Type], B,
         if newBody == body then
           return type_
         last.univ(var_, newBody, p)
-      case TConstrained(body, bound) =>
+      case TConstrained(body, constraint) =>
         val newBody = first.apply(body, p);
-        val newBound = this.apply(bound, p);
-        if newBody == body && newBound == bound then
+        val newConstraint = this.apply(constraint, p);
+        if newBody == body && newConstraint == constraint then
           return type_
-        last.constrained(newBody, newBound, p)
-      case TConstraining(body, bound) =>
+        last.constrained(newBody, newConstraint, p)
+      case TConstraining(body, constraint) =>
         val newBody = first.apply(body, p);
-        val newBound = this.apply(bound, p);
-        if newBody == body && newBound == bound then
+        val newConstraint = this.apply(constraint, p);
+        if newBody == body && newConstraint == constraint then
           return type_
-        last.constraining(newBody, newBound, p)
+        last.constraining(newBody, newConstraint, p)

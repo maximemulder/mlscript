@@ -37,6 +37,11 @@ extension (bound: Bound)
     else
       bound.type_.containsVar(var_)
 
+extension (constraint: Constraint)
+  /** Check whether a type variable appears in the constraint. */
+  def containsVar(var_ : TypeVar): Boolean =
+    constraint.left.containsVar(var_) || constraint.right.containsVar(var_)
+
 /** Parameters of the "contains type variable" operation. */
 private class ContainsVarParams(val var_ : TypeVar) extends TypeVarParams[ContainsVarParams]:
   override def setVar(var_ : TypeVar) = ContainsVarParams(var_)
@@ -54,16 +59,16 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Contains
         true
       case TUniv(typeVar, _) if typeVar == p.var_ =>
         false
-      case TConstrained(body, bound) =>
-        first.apply(body, p) || bound.containsVar(p.var_)
-      case TConstraining(body, bound) =>
-        first.apply(body, p) || bound.containsVar(p.var_)
+      case TConstrained(body, constraint) =>
+        first.apply(body, p) || constraint.containsVar(p.var_)
+      case TConstraining(body, constraint) =>
+        first.apply(body, p) || constraint.containsVar(p.var_)
       case _ =>
         next.apply(type_, p)
 
 /** Dispatching node of the "contains type variable" operation. */
 private object ContainsVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar4):
-  def apply(bounds: Bound, p: ContainsVarParams): Boolean =
+  def apply(constraint: Constraint, p: ContainsVarParams): Boolean =
     false
 
 /** Monoidal combination node of the "contains type variable" operation. */

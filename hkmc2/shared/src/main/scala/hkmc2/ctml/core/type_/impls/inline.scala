@@ -51,7 +51,11 @@ object TypeInline4 extends TypeLazyDispatcher(Combinator):
     case _ =>
       super.apply(type_, TypeInlineParams(params.var_, params.pol, params.ctx, None))
 
-  override def apply(bound: Bound, params: TypeInlineParams): Bound =
-    Bound(bound.var_, bound.dir, this.apply(bound.type_, params))
+  override def apply(constraint: Constraint, params: TypeInlineParams): Constraint =
+    Constraint(
+      this.apply(constraint.left, params),
+      constraint.dir,
+      this.apply(constraint.right, params),
+    )
 
 private def Combinator = TypeSimplifyCombinator[TypeInlineParams]

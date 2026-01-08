@@ -39,10 +39,10 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
   def univ(var_ : TypeVar, body: Type, params: P): Type =
     TUniv(var_, body)
 
-  def constrained(body: Type, bound: Bound, params: P): Type =
-    val filteredBounds = params.ctx.removeSatisfiedBounds(List(bound))
+  def constrained(body: Type, constraint: Constraint, params: P): Type =
+    val filteredBounds = params.ctx.removeSatisfiedBounds(List(hackConstraintToBound(constraint)))
     makeConstrainedType(body, filteredBounds)
 
-  def constraining(body: Type, bound: Bound, params: P): Type =
-    val filteredBounds = params.ctx.removeSatisfiedBounds(List(bound))
+  def constraining(body: Type, constraint: Constraint, params: P): Type =
+    val filteredBounds = params.ctx.removeSatisfiedBounds(List(hackConstraintToBound(constraint)))
     makeConstrainingType(body, filteredBounds)

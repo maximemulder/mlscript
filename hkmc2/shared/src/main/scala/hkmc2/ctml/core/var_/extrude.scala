@@ -59,19 +59,20 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
       given Context = ctx.extend(declRigidVar(var_))
       val (newBody, bodyOuts) = extrudeType(body)
       (TUniv(var_, newBody), bodyOuts)
-    case TConstrained(body, bound) =>
-      val (newBound, boundOuts) = extrudeBound(bound)
-      val (newBody,  bodyOuts)  = extrudeTypeSeq(body, boundOuts)
+    case TConstrained(body, constraint) =>
+      val (newBound, constraintOuts) = extrudeConstraint(constraint)
+      val (newBody,  bodyOuts)       = extrudeTypeSeq(body, constraintOuts)
       (TConstrained(newBody, newBound), bodyOuts)
-    case TConstraining(body, bound) =>
-      val (newBound, boundOuts) = extrudeBound(bound)
-      val (newBody,  bodyOuts)  = extrudeTypeSeq(body, boundOuts)
+    case TConstraining(body, constraint) =>
+      val (newBound, constraintOuts) = extrudeConstraint(constraint)
+      val (newBody,  bodyOuts)       = extrudeTypeSeq(body, constraintOuts)
       (TConstraining(newBody, newBound), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
-private def extrudeBound(bound: Bound)(using ctx: Context, level: TypeVar, pol: Polarity, cache: ExtrudeCache): (Bound, Clauses) =
-  val (boundType, outs) = extrudeType(bound.type_)
-  (Bound(bound.var_, bound.dir, boundType), outs)
+private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: TypeVar, pol: Polarity, cache: ExtrudeCache): (Constraint, Clauses) =
+  val (leftType,  leftOuts)  = extrudeType(constraint.left)
+  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)
+  (Constraint(leftType, constraint.dir, rightType), rightOuts)
 
 /** Extrude a fresh type variable. */
 private def extrudeFreshVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =

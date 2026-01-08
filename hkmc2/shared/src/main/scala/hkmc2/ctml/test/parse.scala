@@ -228,14 +228,14 @@ def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =
       mlVar.lb match
         case Some(mlBound) =>
           val bound = parseType(mlBound)
-          body = TConstrained(body, Bound(var_, Direction.Super, bound))
+          body = TConstrained(body, Constraint(TVar(var_), Direction.Super, bound))
         case None =>
           ()
 
       mlVar.ub match
         case Some(mlBound) =>
           val bound = parseType(mlBound)
-          body = TConstrained(body, Bound(var_, Direction.Sub, bound))
+          body = TConstrained(body, Constraint(TVar(var_), Direction.Sub, bound))
         case None =>
           ()
 

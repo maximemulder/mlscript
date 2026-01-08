@@ -88,6 +88,20 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Con
   given VarCache = newCache
   subtypeImpl(sub, sup)
 
+// TODO: This is very ugly and needs to be removed.
+def hackConstraintToBound(constraint: Constraint): Bound =
+  constraint.left match
+    case TVar(var_) =>
+      return Bound(var_, constraint.dir, constraint.right)
+    case _ =>
+
+  constraint.right match
+    case TVar(var_) =>
+      return Bound(var_, constraint.dir.invert(), constraint.left)
+    case _ =>
+
+  throw TypeError(Some(s"Unexpected constraint shape: ${constraint}"))
+
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   // Subtyping of constraining types.
@@ -97,17 +111,17 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
       if sup.is[TConstraining] then
         val (supBody, supBounds) = sup.getConstrainingComponents
         val bodyClauses = subtype(sub, supBody)
-        return Clauses(supBounds).concat(bodyClauses)
+        return Clauses(supBounds.map(hackConstraintToBound(_))).concat(bodyClauses)
 
       if sub.is[TConstraining] then
         val (subBody, subBounds) = sub.getConstrainingComponents
         val bodyClauses = subtype(subBody, sup)
-        return Clauses(subBounds).concat(bodyClauses)
+        return Clauses(subBounds.map(hackConstraintToBound(_))).concat(bodyClauses)
     case Mode.Check =>
       if sub.is[TConstraining] || sup.is[TConstraining] then
         val (subBody, subBounds) = sub.getConstrainingComponents
         val (supBody, supBounds) = sup.getConstrainingComponents
-        val boundsClauses = subtypeBounds(subBounds, supBounds)
+        val boundsClauses = subtypeBounds(subBounds.map(hackConstraintToBound(_)), supBounds.map(hackConstraintToBound(_)))
         val bodyClauses = subtype(subBody, supBody)
         return Clauses.empty
 
@@ -285,7 +299,7 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: Mode, cache:
 
 /** Constrain a constrained type to be a subtype or supertype of another type. */
 def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
-  val clauses = subtypeBound(constrained.bound)
+  val clauses = subtypeBound(hackConstraintToBound(constrained.constraint))
   subtypeDirSeq(constrained.body, type_, dir, clauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
@@ -348,6 +362,7 @@ def checkEqual(left: Type, right: Type)(using ctx: Context): Boolean =
     checkSubtype(right, left)
   a && b
 
+// TODO: This should not be a method.
 extension (ctx: Context)
   /** Check if a bound is satisified in the context. */
   def checkBoundSatisfied(bound: Bound): Boolean =
@@ -360,3 +375,14 @@ extension (ctx: Context)
         given Context = ctx
         given VarCache = VarCache()
         checkSubtype(bound.type_, TVar(bound.var_))
+
+/** Check whether a subtyping constraint is satisfied in the context. */
+def checkConstraint(constraint: Constraint)(using ctx: Context): Boolean =
+  val (sub, sup) = constraint.dir match
+    case Direction.Sub =>
+      (constraint.left, constraint.right)
+    case Direction.Super =>
+      (constraint.right, constraint.left)
+
+  given VarCache = VarCache()
+  checkSubtype(sub, sup)

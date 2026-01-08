@@ -37,10 +37,10 @@ case class TApp(val abs: Type, val arg: Type) extends Type
 case class TUniv(val var_ : TypeVar, val body: Type) extends Type
 
 /** A constrained type. */
-case class TConstrained(val body: Type, val bound: Bound) extends Type
+case class TConstrained(val body: Type, val constraint: Constraint) extends Type
 
 /** A constraining type. */
-case class TConstraining(val body: Type, val bound: Bound) extends Type
+case class TConstraining(val body: Type, val constraint: Constraint) extends Type
 
 /** The top type type alias. */
 type TBot = TBot.type
@@ -66,10 +66,12 @@ extension (type_ : Type)
         List(abs, arg)
       case TUniv(_, body) =>
         List(body)
-      case TConstrained(body, bound) =>
-        List(bound.type_, body)
-      case TConstraining(body, bound) =>
-        List(bound.type_, body)
+      case TConstrained(body, constraint) =>
+        // TODO: Should use both left and right.
+        List(constraint.right, body)
+      case TConstraining(body, constraint) =>
+        // TODO: Should use both left and right.
+        List(constraint.right, body)
 
 /** Implementation of the `Tree` trait for `Type`. */
 given Tree[Type] with
@@ -134,7 +136,7 @@ extension (type_ : Type)
       case _ =>
         type_ :: Nil
 
-  /** Get the right-recursive nested union components of the type. */
+  /** Get the right-recursive nested union type operands of the type. */
   def getUnionComponents: List[Type] =
     type_ match
       case TUnion(left, right) =>
@@ -142,7 +144,7 @@ extension (type_ : Type)
       case _ =>
         type_ :: Nil
 
-  /** Get the right-recursive nested intersection components of the type. */
+  /** Get the right-recursive nested intersection type operands of the type. */
   def getInterComponents: List[Type] =
     type_ match
       case TInter(left, right) =>
@@ -150,7 +152,7 @@ extension (type_ : Type)
       case _ =>
         type_ :: Nil
 
-  /** Get the nested universal components of the type. */
+  /** Get the nested universal type variables of the type. */
   def getUnivComponents: (List[TypeVar], Type) =
     type_ match
       case TUniv(var_, body) =>
@@ -159,20 +161,20 @@ extension (type_ : Type)
       case _ =>
         (Nil, type_)
 
-  /** Get the nested constrained components of the type. */
-  def getConstrainedComponents: (Type, List[Bound]) =
+  /** Get the nested constrained type constraints of the type. */
+  def getConstrainedComponents: (Type, List[Constraint]) =
     type_ match
-      case TConstrained(body, bound) =>
-        val (nestedBody, nestedBounds) = body.getConstrainedComponents
-        (nestedBody, bound :: nestedBounds)
+      case TConstrained(body, constraint) =>
+        val (nestedBody, nestedConstraints) = body.getConstrainedComponents
+        (nestedBody, constraint :: nestedConstraints)
       case _ =>
         (type_, Nil)
 
-  /** Get the nested constraining components of the type. */
-  def getConstrainingComponents: (Type, List[Bound]) =
+  /** Get the nested constraining type constraints of the type. */
+  def getConstrainingComponents: (Type, List[Constraint]) =
     type_ match
-      case TConstraining(body, bound) =>
-        val (nestedBody, nestedBounds) = body.getConstrainingComponents
-        (nestedBody, bound :: nestedBounds)
+      case TConstraining(body, constraint) =>
+        val (nestedBody, nestedConstraints) = body.getConstrainingComponents
+        (nestedBody, constraint :: nestedConstraints)
       case _ =>
         (type_, Nil)

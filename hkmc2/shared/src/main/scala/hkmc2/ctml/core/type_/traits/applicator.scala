@@ -7,7 +7,7 @@ trait TypeApplicator[T[+_], P]:
   /** Apply the transformation on a type with the given parameters. */
   def apply(type_ : Type, p: P)(using first: TypeApplicator[T, P] = this): T[Type]
 
-/** Trait that describes a function application on some type variable bounds. */
-trait BoundApplicator[B[+_], P]:
-  /** Apply the transformation on some type variable bounds with the given parameters. */
-  def apply(bound: Bound, p: P): B[Bound]
+/** Trait that describes a function application on some subtyping constraint. */
+trait ConstraintApplicator[B[+_], P]:
+  /** Apply the transformation on a subtyping constraint with the given parameters. */
+  def apply(constraint: Constraint, p: P): B[Constraint]

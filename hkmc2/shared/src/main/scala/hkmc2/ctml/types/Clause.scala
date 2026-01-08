@@ -70,15 +70,19 @@ case class TypeVarDecl(
 /** A type variable bound. */
 case class Bound(
   /** The type variable being bound. */
-  var var_ : TypeVar,
+  val var_ : TypeVar,
   /** The direction in which the type variable is bound.*/
-  var dir: Direction,
+  val dir: Direction,
   /** The type that bounds the type variable. */
-  var type_ : Type,
+  val type_ : Type,
 ) extends Clause:
   /** Get the string representation of the object. */
   override def toString: String =
     this.show
+
+  /** Convert this bound to a constraint. */
+  def toConstraint: Constraint =
+    Constraint(TVar(var_), dir, type_)
 
 /** A type variable kind. */
 enum TypeVarKind:

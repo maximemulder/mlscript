@@ -6,50 +6,40 @@ import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
 
 /** Make a constraining type, simplifying it if possible. */
-def makeConstrainingType(type_ : Type, bounds: List[Bound]): Type =
+def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
   type_ match
     case TUniv(var_, body) =>
       TUniv(
         var_,
-        makeConstrainingType(body, bounds)
+        makeConstrainingType(body, constraints)
       )
     case _ =>
-      bounds match
+      constraints match
         case Nil =>
           type_
-        case bound :: bounds =>
+        case constraint :: constraints =>
           TConstraining(
-            makeConstrainingType(type_, bounds),
-            bound.toConstraint
+            makeConstrainingType(type_, constraints),
+            constraint
           )
 
 /** Make a constrained type, simplifying it if possible. */
-def makeConstrainedType(type_ : Type, bounds: List[Bound]): Type =
+def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
   type_ match
     case TUniv(var_, body) =>
       TUniv(
         var_,
-        makeConstrainedType(body, bounds)
+        makeConstrainedType(body, constraints)
       )
     case _ =>
-      bounds match
+      constraints match
         case Nil =>
           type_
-        case bound :: bounds =>
+        case constraint :: constraints =>
           TConstrained(
-            makeConstrainedType(type_, bounds),
-            bound.toConstraint
+            makeConstrainedType(type_, constraints),
+            constraint
           )
-
-/** Make a constrained type by adding a lower bound to a type. */
-def makeLowerBound(body: Type, var_ : TypeVar, type_ : Type): Type =
-  val bound = Bound(var_, Direction.Super, type_)
-  makeConstrainedType(body, List(bound))
-
-/** Make a constrained type by adding an upper bound to a type. */
-def makeUpperBound(body: Type, var_ : TypeVar, type_ : Type): Type =
-  val bound = Bound(var_, Direction.Sub, type_)
-  makeConstrainedType(body, List(bound))
 
 /** Make a lambda type from its components, simplifying it if possible. */
 def makeLambdaType(param: Type, ret: Type): Type =

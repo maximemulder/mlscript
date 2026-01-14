@@ -192,7 +192,7 @@ def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context
   val bounds = removeImplicitBounds(List(
     Bound(var_, Direction.Super, lowerBound),
     Bound(var_, Direction.Sub, upperBound),
-  ))
+  )).map(_.toConstraint)
 
   (
     TUniv(var_, makeConstrainedType(type_, bounds)),

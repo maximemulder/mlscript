@@ -378,11 +378,5 @@ extension (ctx: Context)
 
 /** Check whether a subtyping constraint is satisfied in the context. */
 def checkConstraint(constraint: Constraint)(using ctx: Context): Boolean =
-  val (sub, sup) = constraint.dir match
-    case Direction.Sub =>
-      (constraint.left, constraint.right)
-    case Direction.Super =>
-      (constraint.right, constraint.left)
-
   given VarCache = VarCache()
-  checkSubtype(sub, sup)
+  checkSubtypeDir(constraint.left, constraint.right, constraint.dir)

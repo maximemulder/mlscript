@@ -60,23 +60,23 @@ extension (ctx: Context)
         val leftType =
           val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
           given Context = leftCtx
-          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts)
+          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts).map(_.toConstraint)
           makeConstrainingType(leftBound, filteredLefts)
         val rightType =
           val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
           given Context = rightCtx
-          val filteredRights = rightCtx.removeSatisfiedBounds(rights)
+          val filteredRights = rightCtx.removeSatisfiedBounds(rights).map(_.toConstraint)
           makeConstrainingType(rightBound, filteredRights)
         hkmc2.ctml.core.combine.combine(leftType, rightType, dir.invert())(using cache = VarCache())
       case MergeMode.Constrained =>
         val leftType =
           val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
           given Context = leftCtx
-          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts)
+          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts).map(_.toConstraint)
           makeConstrainedType(leftBound, filteredLefts)
         val rightType =
           val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
           given Context = rightCtx
-          val filteredRights = rightCtx.removeSatisfiedBounds(rights)
+          val filteredRights = rightCtx.removeSatisfiedBounds(rights).map(_.toConstraint)
           makeConstrainedType(rightBound, filteredRights)
         hkmc2.ctml.core.combine.combine(leftType, rightType, dir.invert())(using cache = VarCache())

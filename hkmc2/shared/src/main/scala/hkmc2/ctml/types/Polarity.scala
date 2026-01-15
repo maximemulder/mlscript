@@ -10,7 +10,7 @@ enum Polarity:
   case Positive
 
   /** Invert a type polarity. */
-  def invert(): Polarity =
+  def invert: Polarity =
     this match
       case Negative => Positive
       case Positive => Negative
@@ -20,6 +20,12 @@ enum Polarity:
     this match
       case Negative => Direction.Sub
       case Positive => Direction.Super
+
+  /** Get the product of this polarity with another polarity. */
+  def product(other: Polarity): Polarity =
+    other match
+      case Negative => this.invert
+      case Positive => this
 
   /** Get the string representation of the object. */
   override def toString: String =

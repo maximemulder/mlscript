@@ -15,7 +15,7 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
       case TLam(param, ret) =>
         val pol = params.pol
         last.lam(
-          first.apply(param, params.setPolarity(pol.invert())),
+          first.apply(param, params.setPolarity(pol.invert)),
           first.apply(ret, params),
           params,
         )
@@ -23,9 +23,4 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
         next.apply(type_, params)
 
   override def apply(constraint: Constraint, params: P): B[Constraint] =
-    val pol = constraint.dir match
-      case Direction.Sub =>
-        params.pol.invert()
-      case Direction.Super =>
-        params.pol
-    next.apply(constraint, params.setPolarity(pol))
+    next.apply(constraint, params)

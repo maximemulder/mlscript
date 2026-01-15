@@ -26,7 +26,7 @@ baz("", "")
 //│ Str
 
 baz(bot, bot)
-//│ ∀α, β. (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ Str})
+//│ ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ Str}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ Str})} ⟹ γ
 
 :e
 baz(1, "")

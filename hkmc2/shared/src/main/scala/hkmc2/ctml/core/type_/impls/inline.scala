@@ -36,26 +36,26 @@ private def TypeInline3 = TypePolarityApplicator[Const[Type], Id, TypeInlinePara
 
 object TypeInline4 extends TypeLazyDispatcher(Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
-  type_ match
-    case TVar(var_) if var_ == params.var_ =>
-      val bound = params.ctx.getVarBound(var_, params.pol.dir)
-      params.boundedVar match
-        case Some(boundedVar) =>
-          bound.removeDirectVar(boundedVar, params.pol)
-        case None =>
-          bound
-    case TUnion(left, right) if params.pol == Polarity.Positive =>
-      super.apply(type_, params)
-    case TInter(left, right) if params.pol == Polarity.Negative =>
-      super.apply(type_, params)
-    case _ =>
-      super.apply(type_, TypeInlineParams(params.var_, params.pol, params.ctx, None))
+    type_ match
+      case TVar(var_) if var_ == params.var_ =>
+        val bound = params.ctx.getVarBound(var_, params.pol.dir)
+        params.boundedVar match
+          case Some(boundedVar) =>
+            bound.removeDirectVar(boundedVar, params.pol)
+          case None =>
+            bound
+      case TUnion(left, right) if params.pol == Polarity.Positive =>
+        super.apply(type_, params)
+      case TInter(left, right) if params.pol == Polarity.Negative =>
+        super.apply(type_, params)
+      case _ =>
+        super.apply(type_, TypeInlineParams(params.var_, params.pol, params.ctx, None))
 
   override def apply(constraint: Constraint, params: TypeInlineParams): Constraint =
     Constraint(
-      this.apply(constraint.left, params),
+      this.apply(constraint.left, params.setPolarity(params.pol.product(constraint.dir.pol))),
       constraint.dir,
-      this.apply(constraint.right, params),
+      this.apply(constraint.right, params.setPolarity(params.pol.product(constraint.dir.pol.invert))),
     )
 
 private def Combinator = TypeSimplifyCombinator[TypeInlineParams]

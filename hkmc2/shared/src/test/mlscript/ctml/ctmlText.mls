@@ -1,0 +1,19 @@
+:ctml
+
+:ctml-cfg constrained
+
+fun baz(a, b) =
+  let c = if a is
+    Int then (b as Int)
+    Str then (b as Str)
+  c
+//│ baz: ∀α, β, γ, δ, ε. {α ≤ ({δ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ε, δ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ
+
+baz(1, 1)
+//│ Int
+
+fun foo(a) =
+  if a is
+    Int then (a as Int)
+    Str then (a as Str)
+//│ foo: ∀α. {α ≥ ({({α ≥ Int} ⟹ Int) ∨ ({α ≥ Str} ⟹ Str) ≤ Int} ⟹ Int) ∧ ({({α ≥ Int} ⟹ Int) ∨ ({α ≥ Str} ⟹ Str) ≤ Str} ⟹ Str)} ⟹ (({α ≥ Int} ⟹ Int) ∨ ({α ≥ Str} ⟹ Str)) → α

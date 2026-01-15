@@ -8,6 +8,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.config.debug
 
 /** Combinator that combines the components of a type into that type while simplifying it if
  *  possible by using the information available in the typing context. */

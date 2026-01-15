@@ -11,7 +11,8 @@ extension (type_ : Type)
       case TConstraining(body, constraint) =>
         Set.concat(
           body.getConstrainedVars(),
-          List(hackConstraintToBound(constraint).var_),
+          constraint.left.getConstrainedVars(),
+          constraint.right.getConstrainedVars(),
         )
       case TUnion(left, right) =>
         Set.concat(

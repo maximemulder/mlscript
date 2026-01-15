@@ -68,7 +68,7 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Contains
 
 /** Dispatching node of the "contains type variable" operation. */
 private object ContainsVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar4):
-  def apply(constraint: Constraint, p: ContainsVarParams): Boolean =
+  override def apply(constraint: Constraint, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], ContainsVarParams]): Boolean =
     false
 
 /** Monoidal combination node of the "contains type variable" operation. */

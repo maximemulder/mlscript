@@ -10,8 +10,8 @@ import hkmc2.ctml.util.*
 
 /** Handle contextual information while applying a transformation on a type. */
 final class TypeContextApplicator[T[+_], P <: ContextParams[P]](
-  next: TypeApplicator[T, P] & ConstraintApplicator[Id, P],
-  last: TypeCombinator[T, Id, P]
+  next: TypeApplicator[T, P] & ConstraintApplicator[T, Const[Constraint], P],
+  last: TypeCombinator[T, Const[Constraint], P]
 ) extends TypeApplicator[T, P]:
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
     type_ match

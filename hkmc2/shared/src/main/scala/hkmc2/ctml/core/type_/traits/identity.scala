@@ -5,7 +5,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
 /** Combinator to combine the components of a type into that type. */
-final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
+final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P], ConstraintCombinator[Id, Id, P]:
   def bot(p: P): TBot =
     TBot
 
@@ -39,5 +39,5 @@ final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P]:
   def constraining(body: Type, constraint: Constraint, p: P): TConstraining =
     TConstraining(body, constraint)
 
-  def bounds(bounds: List[Bound], p: P): List[Bound] =
-    bounds
+  def constraint(left: Type, dir: Direction, right: Type, p: P): Constraint =
+    Constraint(left, dir, right)

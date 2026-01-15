@@ -74,4 +74,4 @@ extension (ctx: Context)
   /** Filter a list of subtyping constraints by removing the bounds that are already satisfied in
    *  the context. */
   def removeSatisfiedConstraints(constraints: List[Constraint]): List[Constraint] =
-    constraints.filter(checkConstraint(_)(using ctx))
+    constraints.filter(!checkConstraint(_)(using ctx))

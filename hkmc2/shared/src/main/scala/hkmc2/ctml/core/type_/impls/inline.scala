@@ -32,9 +32,9 @@ object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](T
 
 private def TypeInline2 = TypeContextApplicator[Const[Type], TypeInlineParams](TypeInline3, Combinator)
 
-private def TypeInline3 = TypePolarityApplicator[Const[Type], Id, TypeInlineParams](TypeInline4, Combinator)
+private def TypeInline3 = TypePolarityApplicator[Const[Type], Const[Constraint], TypeInlineParams](TypeInline4, Combinator)
 
-object TypeInline4 extends TypeLazyDispatcher(Combinator):
+object TypeInline4 extends TypeLazyDispatcher[TypeInlineParams](Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
@@ -50,12 +50,5 @@ object TypeInline4 extends TypeLazyDispatcher(Combinator):
         super.apply(type_, params)
       case _ =>
         super.apply(type_, TypeInlineParams(params.var_, params.pol, params.ctx, None))
-
-  override def apply(constraint: Constraint, params: TypeInlineParams): Constraint =
-    Constraint(
-      this.apply(constraint.left, params.setPolarity(params.pol.product(constraint.dir.pol))),
-      constraint.dir,
-      this.apply(constraint.right, params.setPolarity(params.pol.product(constraint.dir.pol.invert))),
-    )
 
 private def Combinator = TypeSimplifyCombinator[TypeInlineParams]

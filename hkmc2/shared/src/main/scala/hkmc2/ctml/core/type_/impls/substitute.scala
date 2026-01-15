@@ -29,11 +29,6 @@ object TypeSubstitute extends TypeShadowApplicator(
         case _ =>
           super.apply(type_, params)
 
-    override def apply(constraint: Constraint, params: TypeSubstituteParams): Constraint =
-      val newLeft  = this.apply(constraint.left, params)
-      val newRight = this.apply(constraint.right, params)
-      Constraint(newLeft, constraint.dir, newRight)
-
     def substitute(var_ : TypeVar, params: TypeSubstituteParams): TypeVar =
       if var_ == params.var_ then
         params.substitute

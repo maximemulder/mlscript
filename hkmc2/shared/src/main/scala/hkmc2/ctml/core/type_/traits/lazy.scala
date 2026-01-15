@@ -8,7 +8,9 @@ import hkmc2.ctml.util.Const
 
 /** Applicator that applies another applicator on the components of a type, and then applies a
  *  combinator only of the components of that typed have changed. */
-abstract class TypeLazyDispatcher[B[+_], P](last: TypeCombinator[Const[Type], B, P]) extends TypeApplicator[Const[Type], P], ConstraintApplicator[B, P]:
+abstract class TypeLazyDispatcher[P](
+  last: TypeCombinator[Const[Type], Const[Constraint], P] & ConstraintCombinator[Const[Type], Const[Constraint], P],
+) extends TypeApplicator[Const[Type], P], ConstraintApplicator[Const[Type], Const[Constraint], P]:
   override def apply(type_ : Type, p: P)(using first: TypeApplicator[Const[Type], P]): Type =
     type_ match
       case TBot =>
@@ -64,3 +66,11 @@ abstract class TypeLazyDispatcher[B[+_], P](last: TypeCombinator[Const[Type], B,
         if newBody == body && newConstraint == constraint then
           return type_
         last.constraining(newBody, newConstraint, p)
+
+  override def apply(constraint: Constraint, p: P)(using first: TypeApplicator[Const[Type], P]): Constraint =
+    last.constraint(
+      first.apply(constraint.left, p),
+      constraint.dir,
+      first.apply(constraint.right, p),
+      p,
+    )

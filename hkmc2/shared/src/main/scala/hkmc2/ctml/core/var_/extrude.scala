@@ -43,7 +43,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
       (TTuple(newLeft, newRight), rightOuts)
     case TLam(param, ret) =>
       val (newParam, paramOuts) =
-        given Polarity = pol.invert()
+        given Polarity = pol.invert
         extrudeType(param)
       val (newRet, retOuts) = extrudeTypeSeq(ret, paramOuts)
       (TLam(newParam, newRet), retOuts)

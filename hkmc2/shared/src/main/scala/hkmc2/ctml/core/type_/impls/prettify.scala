@@ -150,6 +150,3 @@ object TypePrettifier extends TypeDispatcher[Id, Id, PrettyContext](TypeIdentity
         )
       case _ =>
         super.apply(type_, prettyCtx)
-
-  override def apply(constraint: Constraint, prettyCtx: PrettyContext): Constraint =
-    constraint.prettify(prettyCtx)

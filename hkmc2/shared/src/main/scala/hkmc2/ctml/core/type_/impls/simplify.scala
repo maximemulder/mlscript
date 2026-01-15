@@ -20,8 +20,6 @@ private class TypeSimplifyParams(val ctx: Context) extends ContextParams[TypeSim
 /** Implementation of the type simplification operation. */
 private def Applicator = TypeContextApplicator[Const[Type], TypeSimplifyParams](Dispatcher, Combinator)
 
-private object Dispatcher extends TypeDispatcher[Const[Type], Id, TypeSimplifyParams](Combinator):
-  override def apply(constraint: Constraint, p: TypeSimplifyParams): Constraint =
-    constraint
+private def Dispatcher = TypeDispatcher[Const[Type], Const[Constraint], TypeSimplifyParams](Combinator)
 
 private def Combinator = TypeSimplifyCombinator[TypeSimplifyParams]

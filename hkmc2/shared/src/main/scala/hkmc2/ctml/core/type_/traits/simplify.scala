@@ -12,7 +12,7 @@ import hkmc2.ctml.core.config.debug
 
 /** Combinator that combines the components of a type into that type while simplifying it if
  *  possible by using the information available in the typing context. */
-final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator[Const[Type], Id, P]:
+final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator[Const[Type], Const[Constraint], P], ConstraintCombinator[Const[Type], Const[Constraint], P]:
   def bot(params: P): Type =
     TBot
 
@@ -47,3 +47,6 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
   def constraining(body: Type, constraint: Constraint, params: P): Type =
     val filteredConstraints = params.ctx.removeSatisfiedConstraints(List(constraint))
     makeConstrainingType(body, filteredConstraints)
+
+  def constraint(left: Type, dir: Direction, right: Type, p: P): Constraint =
+    Constraint(left, dir, right)

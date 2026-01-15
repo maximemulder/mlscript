@@ -8,6 +8,6 @@ trait TypeApplicator[T[+_], P]:
   def apply(type_ : Type, p: P)(using first: TypeApplicator[T, P] = this): T[Type]
 
 /** Trait that describes a function application on some subtyping constraint. */
-trait ConstraintApplicator[B[+_], P]:
+trait ConstraintApplicator[T[+_], B[+_], P]:
   /** Apply the transformation on a subtyping constraint with the given parameters. */
-  def apply(constraint: Constraint, p: P): B[Constraint]
+  def apply(constraint: Constraint, p: P)(using first: TypeApplicator[T, P]): B[Constraint]

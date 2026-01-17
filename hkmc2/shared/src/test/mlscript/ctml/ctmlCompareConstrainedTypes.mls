@@ -6,6 +6,18 @@
 ([A] -> A -> A) <= (Int -> Int)
 //│ OK
 
+(Int -> Int) <= ([A extends Int] -> A -> Int)
+//│ OK
+
+([A extends Int] -> A -> Int) <= (Int -> Int)
+//│ OK
+
+(Int -> Int) <= ([A restricts Int] -> Int -> A)
+//│ OK
+
+([A restricts Int] -> Int -> A) <= (Int -> Int)
+//│ OK
+
 :e
 (Int -> Int) <= ([A] -> A -> A)
 //│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ∀A. A → A.
@@ -24,5 +36,3 @@
 //│       α → α ≤ Int → Int
 //│         Int ≤ α
 //│           Int ≤ Str
-
-// ([A extends Int restricts Str] -> A) <= Top

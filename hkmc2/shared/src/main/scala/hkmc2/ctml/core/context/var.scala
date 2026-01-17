@@ -17,6 +17,10 @@ extension (ctx: Context)
         clause
     )
 
+  /** Make some type variables flexible. */
+  def flexify(vars: Iterable[TypeVar]): Context =
+    vars.foldLeft(ctx)((ctx, var_) => ctx.flexify(var_))
+
   /** Get the type of a term variable. */
   def getVarType(name: String): Type =
     ctx.clauses.termVarDecls.find(_.name == name) match

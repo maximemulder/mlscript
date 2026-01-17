@@ -12,6 +12,11 @@ extension (type_ : Type)
   def getVarPolarities(var_ : TypeVar): Polarities =
     GetVarPolarities1(type_, GetVarPolaritiesParams(var_, Polarity.Positive))
 
+extension (constraint: Constraint)
+  /** Get the polarities at which a type variable occurs in the subtyping constraint. */
+  def getVarPolarities(var_ : TypeVar): Polarities =
+    GetVarPolarities3(constraint, GetVarPolaritiesParams(var_, Polarity.Positive))(using GetVarPolarities1)
+
 /** Parameters of the get type variable polarities operation. */
 private class GetVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity) extends PolarityParams[GetVarPolaritiesParams], TypeVarParams[GetVarPolaritiesParams]:
   override def setVar(var_ : TypeVar) = GetVarPolaritiesParams(var_, pol)

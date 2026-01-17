@@ -14,6 +14,6 @@ extension (type_ : Type)
         Set(var_)
       case TUniv(var_, body) =>
         given Context = ctx.extend(declRigidVar(var_))
-        body.getVars()
+        body.getVars() - var_
       case _ =>
         type_.accumulate(_.getVars())

@@ -38,7 +38,7 @@ def cleanContext(ctx: Context): Context =
   ))
 
 /** Decorate the subtype constraining function to print debug information. */
-def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode)(using Context): (Type, Type) => Clauses =
+def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode = Mode.Constrain)(using Context): (Type, Type) => Clauses =
   if mode == Mode.Constrain && !config.debug.constrain then
     return impl
 

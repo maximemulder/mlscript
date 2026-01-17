@@ -17,3 +17,8 @@ extension (type_ : Type)
         body.getVars() - var_
       case _ =>
         type_.accumulate(_.getVars())
+
+extension (constraint: Constraint)
+  /** Get the type variables referenced in a subtyping constraint. */
+  def getVars()(using ctx: Context): Set[TypeVar] =
+    constraint.left.getVars() ++ constraint.right.getVars()

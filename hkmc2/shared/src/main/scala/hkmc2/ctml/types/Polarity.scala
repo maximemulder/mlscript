@@ -37,7 +37,12 @@ case class Polarities(
   val negative: Boolean,
   /** Does the variable occurs at a positive polarity? */
   val positive: Boolean,
-)
+):
+  /** Check whether a polarity appears in the polarities */
+  def contains(pol: Polarity): Boolean =
+    pol match
+      case Polarity.Negative => negative
+      case Polarity.Positive => positive
 
 object Polarities:
   import Polarity.*

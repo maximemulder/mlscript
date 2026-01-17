@@ -89,12 +89,7 @@ foo as ((Int | Str) -> (Int | Str) -> (Int | Str))
 //│                   δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
 //│                     ε → ζ ≤ Str → (Int ∨ Str)
 //│                       Str ≤ ε
-//│                         Str ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ ((Str ⟹ {ζ ≥ Str, δ ≤ Str}) ∧ Int)
-//│                           Str ≤ Int ⟹ {ζ ≥ Int, δ ≤ Int}
-//│                             Str ≤ Int ⟹ {δ ≤ Int}
-//│                               Str ≤ Int
-//│                           Str ≤ (Str ⟹ {ζ ≥ Str, δ ≤ Str}) ∧ Int
-//│                             Str ≤ Int
+//│                         Str ≤ Int
 
 :e
 foo as (Top -> Top -> Bot)
@@ -121,28 +116,18 @@ val int_or_string: Int | Str
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ Str → γ.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
-//│   ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ Str → γ
-//│     ∀β. {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, δ ≤ Str}) ≤ Int}, β ≥ Int} ⟹ δ → β ≤ Str → γ
-//│       {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {ε ≥ Str, δ ≤ Str}) ≤ Int}, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
-//│         {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
-//│           δ → ε ≤ Str → γ
-//│             Str ≤ δ
-//│               Str ≤ Int
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
 
 :e
 foo(1, int_or_string)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ (Int ∨ Str) → γ.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
 //│ Typing error tree:
-//│   ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ (Int ∨ Str) → γ
-//│     ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ Str → γ
-//│       ∀β. {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, δ ≤ Str}) ≤ Int}, β ≥ Int} ⟹ δ → β ≤ Str → γ
-//│         {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {ε ≥ Str, δ ≤ Str}) ≤ Int}, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
-//│           {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
-//│             δ → ε ≤ Str → γ
-//│               Str ≤ δ
-//│                 Str ≤ Int
+//│   Int → Int ≤ (Int ∨ Str) → α
+//│     Int → Int ≤ Str → α
+//│       Str ≤ Int
 
 :e
 baz(true, 1)

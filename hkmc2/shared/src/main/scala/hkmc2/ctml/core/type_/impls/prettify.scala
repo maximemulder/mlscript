@@ -65,11 +65,10 @@ extension (var_ : TypeVar)
 extension (judgement: Judgment)
   def prettify(prettyCtx: PrettyContext): Judgment =
     judgement match
-      case SubtypingJudgment(sub, sup, mode) =>
+      case SubtypingJudgment(sub, sup) =>
         SubtypingJudgment(
           sub.prettify(prettyCtx),
           sup.prettify(prettyCtx),
-          mode,
         )
       case SupertypingJudgment(sup, sub) =>
         SupertypingJudgment(

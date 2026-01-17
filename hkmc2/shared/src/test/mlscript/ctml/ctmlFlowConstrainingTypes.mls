@@ -68,9 +68,11 @@ foo as (Bool -> Bool -> Bool)
 //│                 Bool ≤ δ
 //│                   Bool ≤ (Int ⟹ {ζ ≥ Int, ε ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, ε ≤ Str})
 //│                     Bool ≤ Int ⟹ {ζ ≥ Int, ε ≤ Int}
-//│                       Bool ≤ Int
+//│                       Bool ≤ Int ⟹ {ε ≤ Int}
+//│                         Bool ≤ Int
 //│                     Bool ≤ Str ⟹ {ζ ≥ Str, ε ≤ Str}
-//│                       Bool ≤ Str
+//│                       Bool ≤ Str ⟹ {ε ≤ Str}
+//│                         Bool ≤ Str
 
 :e
 foo as ((Int | Str) -> (Int | Str) -> (Int | Str))
@@ -87,7 +89,12 @@ foo as ((Int | Str) -> (Int | Str) -> (Int | Str))
 //│                   δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
 //│                     ε → ζ ≤ Str → (Int ∨ Str)
 //│                       Str ≤ ε
-//│                         Str ≤ Int
+//│                         Str ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ ((Str ⟹ {ζ ≥ Str, δ ≤ Str}) ∧ Int)
+//│                           Str ≤ Int ⟹ {ζ ≥ Int, δ ≤ Int}
+//│                             Str ≤ Int ⟹ {δ ≤ Int}
+//│                               Str ≤ Int
+//│                           Str ≤ (Str ⟹ {ζ ≥ Str, δ ≤ Str}) ∧ Int
+//│                             Str ≤ Int
 
 :e
 foo as (Top -> Top -> Bot)
@@ -103,27 +110,39 @@ foo as (Top -> Top -> Bot)
 //│                 ⊤ ≤ δ
 //│                   ⊤ ≤ (Int ⟹ {ζ ≥ Int, ε ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, ε ≤ Str})
 //│                     ⊤ ≤ Int ⟹ {ζ ≥ Int, ε ≤ Int}
-//│                       ⊤ ≤ Int
+//│                       ⊤ ≤ Int ⟹ {ε ≤ Int}
+//│                         ⊤ ≤ Int
 //│                     ⊤ ≤ Str ⟹ {ζ ≥ Str, ε ≤ Str}
-//│                       ⊤ ≤ Str
+//│                       ⊤ ≤ Str ⟹ {ε ≤ Str}
+//│                         ⊤ ≤ Str
 
 val int_or_string: Int | Str
 //│ int_or_string: Int ∨ Str
 
 :e
 foo(1, "")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ Str → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│   ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ Str → γ
+//│     ∀β. {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, δ ≤ Str}) ≤ Int}, β ≥ Int} ⟹ δ → β ≤ Str → γ
+//│       {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {ε ≥ Str, δ ≤ Str}) ≤ Int}, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│         {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│           δ → ε ≤ Str → γ
+//│             Str ≤ δ
+//│               Str ≤ Int
 
 :e
 foo(1, int_or_string)
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ (Int ∨ Str) → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ (Int ∨ Str) → α
-//│     Int → Int ≤ Str → α
-//│       Str ≤ Int
+//│   ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ (Int ∨ Str) → γ
+//│     ∀α, β. {α ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, α ≤ Str}) ≤ Int}, β ≥ Int} ⟹ α → β ≤ Str → γ
+//│       ∀β. {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {β ≥ Str, δ ≤ Str}) ≤ Int}, β ≥ Int} ⟹ δ → β ≤ Str → γ
+//│         {δ ≤ Int ⟹ {Int ∨ (Str ⟹ {ε ≥ Str, δ ≤ Str}) ≤ Int}, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│           {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│             δ → ε ≤ Str → γ
+//│               Str ≤ δ
+//│                 Str ≤ Int
 
 :e
 baz(true, 1)

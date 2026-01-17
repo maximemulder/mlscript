@@ -107,34 +107,31 @@ def hackConstraintToBound(constraint: Constraint): Bound =
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Constrain, cache: VarCache): Clauses =
   // Subtyping of constraining types.
 
-  mode match
-    case Mode.Constrain =>
-      sub match
-        case TConstraining(subBody, subConstraint) =>
-          val bodyClauses = subtype(subBody, sup)
-          try
-            return subtypeConstraintSeq(subConstraint, bodyClauses)
-          catch
-            case error: TypeError =>
-              return bodyClauses
-        case _ =>
-      sup match
-        case TConstraining(supBody, supConstraint) =>
-          val bodyClauses = subtype(sub, supBody)
-          try
-            return subtypeConstraintSeq(supConstraint, bodyClauses)
-          catch
-            case error: TypeError =>
-              return bodyClauses
-        case _ =>
-    case Mode.Check =>
-      if sub.is[TConstraining] || sup.is[TConstraining] then
-        // output(s"CHECKING CONSTRAINING TYPES: ${sub} ≤ ${sup}")
-        val (subBody, subConstraints) = sub.getConstrainingComponents
-        val (supBody, supConstraints) = sup.getConstrainingComponents
-        val boundsClauses = subtypeBounds(subConstraints.map(hackConstraintToBound(_)), supConstraints.map(hackConstraintToBound(_)))
-        val bodyClauses = subtype(subBody, supBody)
-        return Clauses.empty
+  if sub.is[TConstraining] && sup.is[TConstraining] then
+    val (subBody, subConstraints) = sub.getConstrainingComponents
+    val (supBody, supConstraints) = sup.getConstrainingComponents
+    val boundsClauses = subtypeBounds(subConstraints.map(hackConstraintToBound(_)), supConstraints.map(hackConstraintToBound(_)))
+    val bodyClauses = subtype(subBody, supBody)
+    return Clauses.empty
+
+  sub match
+    case TConstraining(subBody, subConstraint) =>
+      val bodyClauses = subtype(subBody, sup)
+      try
+        return subtypeConstraintSeq(subConstraint, bodyClauses)
+      catch
+        case error: TypeError =>
+          return bodyClauses
+    case _ =>
+  sup match
+    case TConstraining(supBody, supConstraint) =>
+      val bodyClauses = subtype(sub, supBody)
+      try
+        return subtypeConstraintSeq(supConstraint, bodyClauses)
+      catch
+        case error: TypeError =>
+          return bodyClauses
+    case _ =>
 
   // Subtyping of top and bottom types.
 

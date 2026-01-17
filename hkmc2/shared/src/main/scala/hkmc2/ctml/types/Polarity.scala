@@ -38,7 +38,11 @@ case class Polarities(
   /** Does the variable occurs at a positive polarity? */
   val positive: Boolean,
 ):
-  /** Check whether a polarity appears in the polarities */
+  /** Invert the type polarities. */
+  def invert: Polarities =
+    Polarities(positive, negative)
+
+  /** Check whether a type polarity appears in the type polarities */
   def contains(pol: Polarity): Boolean =
     pol match
       case Polarity.Negative => negative

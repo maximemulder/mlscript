@@ -40,6 +40,7 @@ def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using c
 /** Constrain a type variable bound to be satisfied. */
 def subtypeBound(bound: Bound)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
   given Context = ctx.flexify(bound.var_)
+  // output(s"FLEXIFYING ${bound.var_} WITH POLARITY ${bound.dir.pol}")
   subtypeDir(TVar(bound.var_), bound.type_, bound.dir)
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
@@ -108,20 +109,30 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: Mode = Mode.Cons
 
   mode match
     case Mode.Constrain =>
-      if sup.is[TConstraining] then
-        val (supBody, supBounds) = sup.getConstrainingComponents
-        val bodyClauses = subtype(sub, supBody)
-        return Clauses(supBounds.map(hackConstraintToBound(_))).concat(bodyClauses)
-
-      if sub.is[TConstraining] then
-        val (subBody, subBounds) = sub.getConstrainingComponents
-        val bodyClauses = subtype(subBody, sup)
-        return Clauses(subBounds.map(hackConstraintToBound(_))).concat(bodyClauses)
+      sub match
+        case TConstraining(subBody, subConstraint) =>
+          val bodyClauses = subtype(subBody, sup)
+          try
+            return subtypeConstraintSeq(subConstraint, bodyClauses)
+          catch
+            case error: TypeError =>
+              return bodyClauses
+        case _ =>
+      sup match
+        case TConstraining(supBody, supConstraint) =>
+          val bodyClauses = subtype(sub, supBody)
+          try
+            return subtypeConstraintSeq(supConstraint, bodyClauses)
+          catch
+            case error: TypeError =>
+              return bodyClauses
+        case _ =>
     case Mode.Check =>
       if sub.is[TConstraining] || sup.is[TConstraining] then
-        val (subBody, subBounds) = sub.getConstrainingComponents
-        val (supBody, supBounds) = sup.getConstrainingComponents
-        val boundsClauses = subtypeBounds(subBounds.map(hackConstraintToBound(_)), supBounds.map(hackConstraintToBound(_)))
+        // output(s"CHECKING CONSTRAINING TYPES: ${sub} ≤ ${sup}")
+        val (subBody, subConstraints) = sub.getConstrainingComponents
+        val (supBody, supConstraints) = sup.getConstrainingComponents
+        val boundsClauses = subtypeBounds(subConstraints.map(hackConstraintToBound(_)), supConstraints.map(hackConstraintToBound(_)))
         val bodyClauses = subtype(subBody, supBody)
         return Clauses.empty
 
@@ -380,3 +391,10 @@ extension (ctx: Context)
 def checkConstraint(constraint: Constraint)(using ctx: Context): Boolean =
   given VarCache = VarCache()
   checkSubtypeDir(constraint.left, constraint.right, constraint.dir)
+
+def subtypeConstraint(constraint: Constraint)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
+  subtypeDir(constraint.left, constraint.right, constraint.dir)
+
+def subtypeConstraintSeq(constraint: Constraint, ins: Clauses)(using ctx: Context, mode: Mode, cache: VarCache): Clauses =
+  ctx.seqUnit(subtypeConstraint(constraint), ins)
+

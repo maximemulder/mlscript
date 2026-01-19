@@ -29,20 +29,7 @@ def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, cach
       subtype(right, left)
 
 /** Constrain a type to be a subtype of another type in a context. */
-def subtype(sub1: Type, sup1: Type)(using ctx: Context, cache: SubtypingCache): Clauses =
-  // TODO: This code seems hacky and the implementation is inefficient. Investigate.
-  val sup = sub1 match
-    case TVar(subVar) =>
-      sup1.removeDirectVar(subVar, Direction.Sub.pol)
-    case _ =>
-      sup1
-
-  val sub = sup1 match
-    case TVar(supVar) =>
-      sub1.removeDirectVar(supVar, Direction.Super.pol)
-    case _ =>
-      sub1
-
+def subtype(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Clauses =
   try
     subtypeWithDebug(subtypeCache)(sub, sup)
   catch

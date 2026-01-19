@@ -19,11 +19,10 @@ class TypeInlineParams(
   val var_ : TypeVar,
   val pol: Polarity,
   val ctx: Context,
-  val boundedVar: Option[TypeVar] = None,
 ) extends ContextParams[TypeInlineParams], PolarityParams[TypeInlineParams], TypeVarParams[TypeInlineParams]:
-  override def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx, boundedVar)
-  override def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx, boundedVar)
-  override def setVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx, boundedVar)
+  override def setContext(ctx: Context) = TypeInlineParams(var_, pol, ctx)
+  override def setPolarity(pol: Polarity) = TypeInlineParams(var_, pol, ctx)
+  override def setVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx)
 
 /** Implementation of the type variable inlining operation. */
 object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](TypeInline2):
@@ -38,17 +37,8 @@ object TypeInline4 extends TypeLazyDispatcher[TypeInlineParams](Combinator):
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
-        val bound = params.ctx.getVarBound(var_, params.pol.dir)
-        params.boundedVar match
-          case Some(boundedVar) =>
-            bound.removeDirectVar(boundedVar, params.pol)
-          case None =>
-            bound
-      case TUnion(left, right) if params.pol == Polarity.Positive =>
-        super.apply(type_, params)
-      case TInter(left, right) if params.pol == Polarity.Negative =>
-        super.apply(type_, params)
+        params.ctx.getVarBound(var_, params.pol.dir)
       case _ =>
-        super.apply(type_, TypeInlineParams(params.var_, params.pol, params.ctx, None))
+        super.apply(type_, params)
 
 private def Combinator = TypeSimplifyCombinator[TypeInlineParams]

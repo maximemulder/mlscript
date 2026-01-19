@@ -128,12 +128,12 @@ class Tester(
 
   /** Test subtyping between two types. */
   def testSubtyping(sub: Type, sup: Type): Clauses =
-    given VarCache = VarCache()
+    given SubtypingCache = SubtypingCache()
     subtype(sub, sup)(using this.ctx)
 
   /** Test supertyping between two types. */
   def testSupertyping(sup: Type, sub: Type): Clauses =
-    given VarCache = VarCache()
+    given SubtypingCache = SubtypingCache()
     subtype(sub, sup)(using this.ctx)
 
   /** Test equivalence between two types. */
@@ -141,10 +141,10 @@ class Tester(
     given Context = this.ctx
     try
       val subClauses =
-        given VarCache = VarCache()
+        given SubtypingCache = SubtypingCache()
         subtype(left, right)
       val b =
-        given VarCache = VarCache()
+        given SubtypingCache = SubtypingCache()
         subtypeSeq(right, left, subClauses)
       b
     catch

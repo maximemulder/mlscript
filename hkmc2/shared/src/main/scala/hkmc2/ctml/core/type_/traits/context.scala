@@ -19,10 +19,5 @@ final class TypeContextApplicator[T[+_], P <: ContextParams[P]](
         val ctx = params.ctx.extend(declRigidVar(var_))
         val bodyRes = first.apply(body, params.setContext(ctx))
         last.univ(var_, bodyRes, params)
-      case TConstrained(body, constraint) =>
-        val ctx = params.ctx.extend(hackConstraintToBound(constraint))
-        val bodyRes = first.apply(body, params.setContext(ctx))
-        val constraintRes = next.apply(constraint, params)
-        last.constrained(bodyRes, constraintRes, params)
       case _ =>
         next.apply(type_, params)

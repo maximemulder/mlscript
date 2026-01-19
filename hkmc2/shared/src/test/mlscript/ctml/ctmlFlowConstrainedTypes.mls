@@ -32,6 +32,9 @@ foo(1)
 foo("Hello")
 //│ Str
 
+foo(bot)
+//│ ⊥
+
 foo(int_or_string)
 //│ Str ∨ Int
 
@@ -97,11 +100,18 @@ foo2(1, 2)
 foo2("Hello", "World")
 //│ Str
 
+foo2(bot, bot)
+// TODO: Better type simplification.
+//│ ∀α. {α ≤ ({({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str) ≤ Int} ⟹ Int) ∨ ({({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str) ≤ Str} ⟹ Str)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)
+
 // Errors
 
 :e
 foo2(1, "World")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → Int ≤ Str → β.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│   ∀α. {α ≤ Int} ⟹ α → Int ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → Int ≤ Str → β
+//│       γ → Int ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int

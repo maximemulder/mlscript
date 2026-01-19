@@ -3,7 +3,7 @@ package hkmc2.ctml.core.var_
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.config.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.VarCache
+import hkmc2.ctml.core.SubtypingCache
 
 extension (type_ : Type)
   def removeDirectVar(var_ : TypeVar, pol: Polarity): Type =

@@ -85,7 +85,7 @@ private def extrudeFreshVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
-      val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl), VarCache())
+      val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl), SubtypingCache())
       val (newExtrudedBound, outs) = extrudeTypeSeq(newBound, freshDecl.asClauses)
       (freshType, outs.concat(Bound(freshDecl.var_, pol.dir, newExtrudedBound).asClauses))
 
@@ -100,6 +100,6 @@ private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
-      given VarCache = VarCache()
+      given SubtypingCache = SubtypingCache()
       val outs = subtypeDirSeq(freshType, bound, pol.dir, freshDecl.asClauses)
       (freshType, outs)

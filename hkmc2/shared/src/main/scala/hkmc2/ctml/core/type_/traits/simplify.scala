@@ -29,10 +29,10 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
     makeLambdaType(param, ret)
 
   def union(left: Type, right: Type, params: P): Type =
-    join(left, right)(using params.ctx, VarCache())
+    join(left, right)(using params.ctx, SubtypingCache())
 
   def inter(left: Type, right: Type, params: P): Type =
-    meet(left, right)(using params.ctx, VarCache())
+    meet(left, right)(using params.ctx, SubtypingCache())
 
   def app(abs: Type, arg: Type, params: P): Type =
     TApp(abs, arg)

@@ -7,11 +7,11 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
-def meet(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type =
+def meet(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Type =
   meetWithDebug(meetImpl)(left, right)
 
 /** Implementation of `meet`. */
-def meetImpl(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type =
+def meetImpl(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Type =
   if checkSubtype(right, left) then
     return right
 
@@ -25,7 +25,7 @@ def meetImpl(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type
       TInter(left, right)
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
-def meetMerge(left: Type, right: Type)(using ctx: Context, cache: VarCache): Option[Type] =
+def meetMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Option[Type] =
 
   // Meet union-splittable types.
 
@@ -60,7 +60,7 @@ def meetMerge(left: Type, right: Type)(using ctx: Context, cache: VarCache): Opt
   None
 
 /** Get the meet of two lambdas in a non-intersection shape if there is one. */
-def meetLambdas(left: TLam, right: TLam)(using ctx: Context, cache: VarCache): Option[Type] =
+def meetLambdas(left: TLam, right: TLam)(using ctx: Context, cache: SubtypingCache): Option[Type] =
   if checkEqual(left.param, right.param) then
     var body = meet(left.ret, right.ret)
     return Some(TLam(left.param, body))
@@ -77,5 +77,5 @@ def checkDisjoint(left: Type, right: Type)(using ctx: Context): Boolean =
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */
-  def meetMany()(using ctx: Context, cache: VarCache): Type =
+  def meetMany()(using ctx: Context, cache: SubtypingCache): Type =
     types.foldRight(TTop)(meet)

@@ -132,7 +132,7 @@ def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
   // TODO: Make that cleaner. Be careful, the simplifications of a bound must not rely on the bound
   // itself, as it is circular reasoning and can then lose valuable information.
   val b = outs.mapBounds(
-    b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx, Some(b.var_))))
+    b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))
   )
   .removeTypeVar(var_)
   (
@@ -148,7 +148,7 @@ def ignoreVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): 
 def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
   (
     type_,
-    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx, Some(b.var_))))).removeTypeVar(var_),
+    outs.mapBounds(b => Bound(b.var_, b.dir, TypeInline1(b.type_, TypeInlineParams(var_, b.dir.pol, ctx)))).removeTypeVar(var_),
   )
 
 /** Quantify a type variable in a type. */

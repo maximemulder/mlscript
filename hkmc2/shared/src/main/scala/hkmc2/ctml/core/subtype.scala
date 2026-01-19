@@ -79,20 +79,12 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
   sub match
     case TConstraining(subBody, subConstraint) =>
       val bodyClauses = subtype(subBody, sup)
-      try
-        return subtypeConstraintSeq(subConstraint, bodyClauses)
-      catch
-        case error: TypeError =>
-          return bodyClauses
+      return subtypeConstraintSeq(subConstraint, bodyClauses)
     case _ =>
   sup match
     case TConstraining(supBody, supConstraint) =>
       val bodyClauses = subtype(sub, supBody)
-      try
-        return subtypeConstraintSeq(supConstraint, bodyClauses)
-      catch
-        case error: TypeError =>
-          return bodyClauses
+      return subtypeConstraintSeq(supConstraint, bodyClauses)
     case _ =>
 
   // Subtyping of top and bottom types.
@@ -237,8 +229,12 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
   val clauses = subtypeDir(oppositeBoundType, type_, dir)
   val boundType = var_.bound(dir)
-  val boundCombinedType = combine(boundType, type_, dir)
-  Clauses(Bound(var_, dir, boundCombinedType) :: clauses.elems)
+  if checkSubtypeDir(boundType, type_, dir)(using ctx.extend(clauses)) then
+    // Do not return a new bound if it is already satisfied in the context.
+    clauses
+  else
+    val boundCombinedType = combine(boundType, type_, dir)
+    Clauses(Bound(var_, dir, boundCombinedType) :: clauses.elems)
 
 // Rigid type variables.
 

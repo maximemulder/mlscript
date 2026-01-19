@@ -58,20 +58,6 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache
   given SubtypingCache = cache.add(sub, sup)
   subtypeImpl(sub, sup)
 
-// TODO: This is very ugly and needs to be removed.
-def hackConstraintToBound(constraint: Constraint): Bound =
-  constraint.left match
-    case TVar(var_) =>
-      return Bound(var_, constraint.dir, constraint.right)
-    case _ =>
-
-  constraint.right match
-    case TVar(var_) =>
-      return Bound(var_, constraint.dir.invert(), constraint.left)
-    case _ =>
-
-  throw TypeError(Some(s"Unexpected constraint shape: ${constraint}"))
-
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Clauses =
   // Subtyping of constraining types.
@@ -79,7 +65,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
   if sub.is[TConstraining] && sup.is[TConstraining] then
     val (subBody, subConstraints) = sub.getConstrainingComponents
     val (supBody, supConstraints) = sup.getConstrainingComponents
-    val boundsClauses = subtypeBounds(subConstraints.map(hackConstraintToBound(_)), supConstraints.map(hackConstraintToBound(_)))
+    val subClauses = subConstraints.foldLeft(Clauses.empty)((clauses, constraint) =>
+      ctx.seqUnit(subtypeConstraint(constraint), clauses)
+    )
+    val supClauses = supConstraints.foldLeft(Clauses.empty)((clauses, constraint) =>
+      ctx.seqUnit(subtypeConstraint(constraint), clauses)
+    )
+
+    val boundsClauses = subtypeBounds(subClauses.bounds, supClauses.bounds)
     val bodyClauses = subtype(subBody, supBody)
     return Clauses.empty
 

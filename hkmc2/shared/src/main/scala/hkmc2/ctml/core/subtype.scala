@@ -20,12 +20,6 @@ def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, cache: Su
 def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, cache: SubtypingCache): Clauses =
   ctx.seqUnit(subtypeDir(left, right, dir), ins)
 
-/** Constrain a type variable bound to be satisfied. */
-def subtypeBound(bound: Bound)(using ctx: Context, cache: SubtypingCache): Clauses =
-  given Context = ctx.flexify(bound.var_)
-  // output(s"FLEXIFYING ${bound.var_} WITH POLARITY ${bound.dir.pol}")
-  subtypeDir(TVar(bound.var_), bound.type_, bound.dir)
-
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
 def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, cache: SubtypingCache): Clauses =
   dir match

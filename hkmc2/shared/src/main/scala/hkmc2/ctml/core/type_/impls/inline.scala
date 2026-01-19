@@ -13,6 +13,12 @@ extension (type_ : Type)
   def inline(var_ : TypeVar)(using ctx: Context): Type =
     TypeInline1(type_, TypeInlineParams(var_, Polarity.Positive, ctx))
 
+extension (bound: Bound)
+  /** Replace a type variable by a substitute type in a bound, simplifying the resulting type if
+      possible. */
+  def inline(var_ : TypeVar)(using ctx: Context): Bound =
+    Bound(bound.var_, bound.dir, TypeInline1(bound.type_, TypeInlineParams(var_, bound.dir.pol, ctx)))
+
 /** Parameters of the type variable inlining operation. */
 class TypeInlineParams(
   val var_ : TypeVar,

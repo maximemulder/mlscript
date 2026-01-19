@@ -10,7 +10,7 @@ fun foo(a, b) =
 
 fun bar(a, b) =
   foo(a, b) as Int
-//│ bar: ∀α. {α ≤ Int} ⟹ Int → α → Int
+//│ bar: Int → Int → Int
 
 fun baz(a, b) =
   if a is

@@ -110,37 +110,37 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
   decl
 
 /** Decorate the type variable quantification function to print debug information. */
-def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =
   if !config.debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
     outputContext(s"quantify ${var_} in ${type_}")
-    val (newType, newOuts) = impl(type_, var_, outs)
+    val (newType, newOuts, b) = impl(type_, var_, outs)
     output(s"= ${newType}")
-    (newType, newOuts)
+    (newType, newOuts, b)
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =
   if !config.debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
     outputContext(s"inline ${var_} in ${type_}")
-    val (newType, newOuts) = impl(type_, var_, outs)
+    val (newType, newOuts, b) = impl(type_, var_, outs)
     output(s"= ${newType}")
-    (newType, newOuts)
+    (newType, newOuts, b)
 
 /** Decorate the type variable ignoring function to print debug information. */
-def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =
   if !config.debug.var_ then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
     outputContext(s"ignore ${var_} in ${type_}")
-    val (newType, newOuts) = impl(type_, var_, outs)
+    val (newType, newOuts, b) = impl(type_, var_, outs)
     output(s"= ${newType}")
-    (newType, newOuts)
+    (newType, newOuts, b)
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =

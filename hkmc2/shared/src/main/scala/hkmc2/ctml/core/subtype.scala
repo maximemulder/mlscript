@@ -307,10 +307,9 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, cache: VarCache): 
 
 /** Constrain a constrained type to be a subtype or supertype of another type. */
 def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, cache: VarCache): Clauses =
-  // This is obviously incorrect, will need to think more about it...
-  // It seems that some variables should be flexified in order to support some advanced cases.
-  // Maybe the rest should be rigidified according the subtyping direction?
-  val clauses = subtypeBound(hackConstraintToBound(constrained.constraint))
+  val vars = constrained.constraint.getVars()
+  val newCtx = ctx.flexify(vars)
+  val clauses = subtypeConstraint(constrained.constraint)(using newCtx, cache)
   subtypeDirSeq(constrained.body, type_, dir, clauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */

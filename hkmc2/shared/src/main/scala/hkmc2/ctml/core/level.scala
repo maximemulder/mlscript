@@ -72,9 +72,12 @@ extension (ctx: Context)
     val outs = ctx.removeUnusedBounds(type_, touts, levelVars.toSet)
 
     // Ignore, inline, or add constraints for each type variables of this level.
-    val (newType, newOuts) = levelVars.foldRight((type_, outs))((var_, to) =>
+    val (newType, newOuts, rerun) = levelVars.foldRight((type_, outs, false))((var_, to) =>
       ctx.processLevelVar(to._1, var_, to._2, levelVars.toSet)
     )
+
+    if rerun then
+      return ctx.solveLevel(newType, newOuts)
 
     // Get the type variables of this level that were not ignored or inlined.
     val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
@@ -115,33 +118,35 @@ extension (ctx: Context)
       inlineVar(type_, var_, outs)
 
 /** Quantify a type variable in a type. */
-def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   debugQuantifyVar(quantifyVarImpl)(type_, var_, outs)
 
 /** Implementation of `quantifyVar`. */
-def quantifyVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-    (type_, outs)
+def quantifyVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
+    (type_, outs, false)
 
 /** Inline a type variable in a type. */
-def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   debugInlineVar(inlineVarImpl)(type_, var_, outs)
 
 /** Implementation of `inlineVar`. */
-def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   (
     type_.inline(var_),
     outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
+    true,
   )
 
 /** Ignore a type variable in a type. */
-def ignoreVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def ignoreVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   debugIgnoreVar(ignoreVarImpl)(type_, var_, outs)
 
 /** Implementation of `ignoreVar`. */
-def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   (
     type_,
     outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
+    true,
   )
 
 /** Quantify a type variable in a type. */

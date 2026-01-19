@@ -68,19 +68,6 @@ extension (ctx: Context)
 
   def solveLevel(type_ : Type, touts: Clauses): (Type, Clauses) =
     val levelVars = ctx.getLevelVars(touts)
-    // output(s"LEVEL VARS ${levelVars}")
-
-    // TODO: Use full context or non-context function.
-/*    val typeVars = type_.getVars()(using ctx.extend(outs))
-    // output(s"TYPE VARS ${typeVars}")
-
-    // Get the intersection of variables present in the type and in the level.
-    val processVars = levelVars.filter(typeVars.contains(_))
-    // output(s"COMMON VARS ${processVars}")
-
-    // Get the variables that are present in the level but not in the type.
-    val removeVars = levelVars.filter(!typeVars.contains(_))
-    // output(s"REMOVE VARS ${removeVars}") */
 
     val outs = ctx.removeUnusedBounds(type_, touts, levelVars.toSet)
 
@@ -102,11 +89,7 @@ extension (ctx: Context)
         true
       else
         val polarities = type_.getAllVarPolarities(bound.var_)(using ctx.extend(outs))
-        bound.dir match
-          case Direction.Sub =>
-            polarities.negative
-          case Direction.Super =>
-            polarities.positive
+        polarities.contains(bound.dir.pol)
     )
 
   def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses, levelVars: Set[TypeVar]) =
@@ -116,18 +99,15 @@ extension (ctx: Context)
     if polarities == Polarities(false, false) then
       ignoreVar(type_, var_, outs)
     else if var_.isRecursive then
-      // output(s"RECURSIVE ${var_}")
       quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, true) then
       val lowerBound = fullCtx.getVarLowerBound(var_)
       val upperBound = fullCtx.getVarUpperBound(var_)
-      // output(s"TRUE TRUE ${var_}")
       if checkEqual(lowerBound, upperBound) then
         inlineVar(type_, var_, outs)
       else
         quantifyVar(type_, var_, outs)
     else if fullCtx.isVarConstrained(var_, levelVars) then
-      // output(s"CONSTRAINED ${var_}")
       quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, false) then
       inlineVar(type_, var_, outs)
@@ -140,17 +120,6 @@ def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context)
 
 /** Implementation of `quantifyVar`. */
 def quantifyVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  /* val bounds = removeImplicitBounds(List(
-    Bound(var_, Direction.Super, lowerBound),
-    Bound(var_, Direction.Sub, upperBound),
-  ))
-
-  (
-    makeConstrainedType(type_, bounds),
-    // Only the bounds of the variable are removed from the clauses, the variable declaration will
-    // be removed later when all remaining type variables of this level are quantified.
-    outs.removeTypeVarBounds(var_),
-  ) */
     (type_, outs)
 
 /** Inline a type variable in a type. */
@@ -184,7 +153,6 @@ def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
 
 /** Quantify a type variable in a type. */
 def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  // output(s"QUANTIFY VAR 2 ${var_}")
   // If a polarity is not reachable, remove the bound ???
   val fullCtx = ctx.extend(outs)
   val lowerBound = fullCtx.getVarLowerBound(var_)

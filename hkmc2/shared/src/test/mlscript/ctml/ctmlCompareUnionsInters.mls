@@ -65,15 +65,17 @@ declare type Z
 
 :e
 (A | B) <= A
-//│ ═══[ERROR] Cannot solve judgment B ≤ A.
+//│ ═══[ERROR] Cannot solve judgment A ∨ B ≤ A.
 //│ Typing error tree:
-//│   B ≤ A
+//│   A ∨ B ≤ A
+//│     B ≤ A
 
 :e
 A <= (A & B)
-//│ ═══[ERROR] Cannot solve judgment A ≤ B.
+//│ ═══[ERROR] Cannot solve judgment A ≤ A ∧ B.
 //│ Typing error tree:
-//│   A ≤ B
+//│   A ≤ A ∧ B
+//│     A ≤ B
 
 :e
 ((A -> B) & (C -> D)) <= ((A | C) -> (B & D))

@@ -52,13 +52,10 @@ def subtype(sub1: Type, sup1: Type)(using ctx: Context, cache: SubtypingCache): 
 
 /** Implementation of `constrainSub` with query cache. */
 def subtypeCache(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Clauses =
-  val newCache =
-    if cache.check(sub, sup) then
-      return Clauses.empty
+  if cache.check(sub, sup) then
+    return Clauses.empty
 
-    cache.add(sub, sup)
-
-  given SubtypingCache = newCache
+  given SubtypingCache = cache.add(sub, sup)
   subtypeImpl(sub, sup)
 
 // TODO: This is very ugly and needs to be removed.

@@ -6,11 +6,11 @@ import hkmc2.ctml.core.config.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified join of two types. */
-def join(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type =
+def join(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Type =
   joinWithDebug(joinImpl)(left, right)
 
 /** Implementation of `join`. */
-def joinImpl(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type =
+def joinImpl(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Type =
   if checkSubtype(left, right) then
     return right
 
@@ -21,9 +21,9 @@ def joinImpl(left: Type, right: Type)(using ctx: Context, cache: VarCache): Type
 
 extension (types: List[Type])
   /** Get the simplified join of many types. */
-  def joinMany()(using ctx: Context, cache: VarCache): Type =
+  def joinMany()(using ctx: Context, cache: SubtypingCache): Type =
     types.foldRight(TBot)(join)
 
-  def joinManySeq(ins: Clauses)(using ctx: Context, cache: VarCache): Type =
+  def joinManySeq(ins: Clauses)(using ctx: Context, cache: SubtypingCache): Type =
     given Context = ctx.extend(ins)
     types.foldRight(TBot)(join)

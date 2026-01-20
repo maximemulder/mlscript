@@ -12,6 +12,7 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.combine.getExtremalType
 import hkmc2.ctml.core.type_.impls.getAllVarPolarities.*
 import hkmc2.ctml.core.type_.impls.inline.*
+import hkmc2.ctml.core.type_.impls.simplify.*
 
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
@@ -82,9 +83,11 @@ extension (ctx: Context)
     // Get the type variables of this level that were not ignored or inlined.
     val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
 
-    remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
+    val (newNewType, newNewOuts) = remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
       quantifyVar2(to._1, var_, to._2)(using ctx)
     )
+
+    (newNewType.simplify()(using ctx.extend(newNewOuts)), newNewOuts)
 
   def removeUnusedBounds(type_ : Type, outs: Clauses, levelVars: Set[TypeVar]): Clauses =
     outs.filterBounds(bound =>
@@ -116,6 +119,9 @@ extension (ctx: Context)
       inlineVar(type_, var_, outs)
     else
       inlineVar(type_, var_, outs)
+    // val fullCtx = ctx.extend(outs)
+    // given Context = fullCtx
+    // quantifyVar(type_, var_, outs)
 
 /** Quantify a type variable in a type. */
 def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =

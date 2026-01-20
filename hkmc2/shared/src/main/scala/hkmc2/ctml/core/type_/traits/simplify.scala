@@ -9,6 +9,8 @@ import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.config.debug
+import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
+import hkmc2.ctml.core.type_.impls.inline.*
 
 /** Combinator that combines the components of a type into that type while simplifying it if
  *  possible by using the information available in the typing context. */
@@ -38,6 +40,11 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
     TApp(abs, arg)
 
   def univ(var_ : TypeVar, body: Type, params: P): Type =
+    // body.getVarPolarities(var_) match
+    //   case Polarities(true, true) =>
+    //     TUniv(var_, body)
+    //   case _ =>
+    //     body.inline(var_)(using params.ctx)
     TUniv(var_, body)
 
   def constrained(body: Type, constraint: Constraint, params: P): Type =

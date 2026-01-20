@@ -41,8 +41,7 @@ foo("Hello", "World")
 //│ Str
 
 foo(bot, bot)
-// TODO: Better type simplification
-//│ ∀α. {α ≤ (Int ⟹ {(Int ⟹ {α ≤ Int}) ∨ (Str ⟹ {α ≤ Str}) ≤ Int}) ∨ (Str ⟹ {(Int ⟹ {α ≤ Int}) ∨ (Str ⟹ {α ≤ Str}) ≤ Str})} ⟹ (Int ⟹ {α ≤ Int}) ∧ (Str ⟹ {α ≤ Str})
+//│ ⊥
 
 baz(1, 1)
 //│ ∀α. {α ≥ Int} ⟹ α

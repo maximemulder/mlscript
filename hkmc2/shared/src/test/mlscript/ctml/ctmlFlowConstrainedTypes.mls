@@ -101,17 +101,13 @@ foo2("Hello", "World")
 //│ Str
 
 foo2(bot, bot)
-// TODO: Better type simplification.
-//│ ∀α. {α ≤ ({({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str) ≤ Int} ⟹ Int) ∨ ({({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str) ≤ Str} ⟹ Str)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)
+//│ ⊥
 
 // Errors
 
 :e
 foo2(1, "World")
-//│ ═══[ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → Int ≤ Str → β.
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
-//│   ∀α. {α ≤ Int} ⟹ α → Int ≤ Str → β
-//│     {γ ≤ Int} ⟹ γ → Int ≤ Str → β
-//│       γ → Int ≤ Str → β
-//│         Str ≤ γ
-//│           Str ≤ Int
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int

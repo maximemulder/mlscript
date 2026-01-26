@@ -26,7 +26,7 @@ private object GetAllVarPolarities1 extends TypeShadowApplicator[Const[Polaritie
     Polarities.empty
 
 /** Get polarity node of the "get all type variable polarities" operation. */
-private object GetAllVarPolarities2 extends TypeChainApplicator[Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities3):
+private object GetAllVarPolarities2 extends TypeChainApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities3):
   override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams]): Polarities =
     type_ match
       case TVar(var_) if var_ == params.var_ =>

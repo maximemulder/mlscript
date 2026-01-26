@@ -56,13 +56,13 @@ final class TypeLazyDispatcher[P](
         last.univ(var_, newBody, p)
       case TConstrained(body, constraint) =>
         val newBody = first.apply(body, p);
-        val newConstraint = this.apply(constraint, p);
+        val newConstraint = first.apply(constraint, p);
         if newBody == body && newConstraint == constraint then
           return type_
         last.constrained(newBody, newConstraint, p)
       case TConstraining(body, constraint) =>
         val newBody = first.apply(body, p);
-        val newConstraint = this.apply(constraint, p);
+        val newConstraint = first.apply(constraint, p);
         if newBody == body && newConstraint == constraint then
           return type_
         last.constraining(newBody, newConstraint, p)

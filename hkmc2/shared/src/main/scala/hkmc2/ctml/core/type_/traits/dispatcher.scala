@@ -56,13 +56,13 @@ final class TypeDispatcher[T[+_], B[+_], P](
       case TConstrained(body, constraint) =>
         last.constrained(
           first.apply(body, p),
-          this.apply(constraint, p),
+          first.apply(constraint, p),
           p,
         )
       case TConstraining(body, constraint) =>
         last.constraining(
           first.apply(body, p),
-          this.apply(constraint, p),
+          first.apply(constraint, p),
           p,
         )
 

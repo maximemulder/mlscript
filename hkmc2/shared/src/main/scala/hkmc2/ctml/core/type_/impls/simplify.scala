@@ -6,7 +6,7 @@ import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.traits.TypeDispatcher
+import hkmc2.ctml.core.type_.traits.*
 
 extension (type_ : Type)
   /** Simplify the type based on the information available in a context. */

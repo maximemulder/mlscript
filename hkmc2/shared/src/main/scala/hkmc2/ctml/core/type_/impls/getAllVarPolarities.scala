@@ -21,13 +21,13 @@ private class GetAllVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity, v
   override def setPolarity(pol: Polarity) = GetAllVarPolaritiesParams(var_, pol, ctx, cache)
 
 /** Shadowing node of the "get all type variable polarities" operation. */
-private object GetAllVarPolarities1 extends TypeShadowApplicator[Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities2):
+private object GetAllVarPolarities1 extends TypeShadowApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities2):
   override def univ(univ: TUniv): Const[Polarities][Type] =
     Polarities.empty
 
 /** Get polarity node of the "get all type variable polarities" operation. */
 private object GetAllVarPolarities2 extends TypeChainApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams](GetAllVarPolarities3):
-  override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], GetAllVarPolaritiesParams]): Polarities =
+  override def apply(type_ : Type, params: GetAllVarPolaritiesParams)(using first: TypeApplicator[Const[Polarities], Const[Polarities], GetAllVarPolaritiesParams]): Polarities =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
         Polarities.fromPolarity(params.pol)

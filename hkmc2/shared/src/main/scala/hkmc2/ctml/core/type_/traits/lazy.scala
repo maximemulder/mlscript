@@ -8,10 +8,10 @@ import hkmc2.ctml.util.Const
 
 /** Applicator that applies another applicator on the components of a type, and then applies a
  *  combinator only of the components of that typed have changed. */
-abstract class TypeLazyDispatcher[P](
+final class TypeLazyDispatcher[P](
   last: TypeCombinator[Const[Type], Const[Constraint], P] & ConstraintCombinator[Const[Type], Const[Constraint], P],
-) extends TypeApplicator[Const[Type], P], ConstraintApplicator[Const[Type], Const[Constraint], P]:
-  override def apply(type_ : Type, p: P)(using first: TypeApplicator[Const[Type], P]): Type =
+) extends TypeApplicator[Const[Type], Const[Constraint], P]:
+  override def apply(type_ : Type, p: P)(using first: TypeApplicator[Const[Type], Const[Constraint], P]): Type =
     type_ match
       case TBot =>
         last.bot(p)
@@ -67,7 +67,7 @@ abstract class TypeLazyDispatcher[P](
           return type_
         last.constraining(newBody, newConstraint, p)
 
-  override def apply(constraint: Constraint, p: P)(using first: TypeApplicator[Const[Type], P]): Constraint =
+  override def apply(constraint: Constraint, p: P)(using first: TypeApplicator[Const[Type], Const[Constraint], P]): Constraint =
     last.constraint(
       first.apply(constraint.left, p),
       constraint.dir,

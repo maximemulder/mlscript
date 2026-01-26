@@ -31,16 +31,15 @@ private object GetAllVarPolarities2 extends TypeChainApplicator[Const[Polarities
     type_ match
       case TVar(var_) if var_ == params.var_ =>
         Polarities.fromPolarity(params.pol)
+      case TVar(var_) if params.cache.contains((params.pol, var_)) =>
+        Polarities.empty
       case TVar(var_) =>
-        if params.cache.contains((params.pol, var_)) then
-          return Polarities.empty
-        else
-          params.cache.add((params.pol, var_))
-          params.ctx.varBound(var_, params.pol.dir) match
-            case Some(boundType) =>
-              GetAllVarPolarities1(boundType, params)
-            case None =>
-              Polarities.empty
+        params.cache.add((params.pol, var_))
+        params.ctx.varBound(var_, params.pol.dir) match
+          case Some(boundType) =>
+            first.apply(boundType, params)
+          case None =>
+            Polarities.empty
       case _ =>
         next.apply(type_, params)
 

@@ -52,8 +52,8 @@ private object ContainsVar1 extends TypeShadowApplicator[Const[Boolean], Contain
     false
 
 /** Variable checking node of the "contains type variable" operation. */
-private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], ContainsVarParams](ContainsVar3):
-  def apply(type_ : Type, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], ContainsVarParams]): Boolean =
+private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar3):
+  override def apply(type_ : Type, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], ContainsVarParams]): Boolean =
     type_ match
       case TVar(typeVar) if typeVar == p.var_ =>
         true

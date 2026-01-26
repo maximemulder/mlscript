@@ -41,13 +41,13 @@ foo("Hello", "World")
 //│ Str
 
 foo(bot, bot)
-//│ ⊥
+//│ ∀α, β. {α ≤ (Int ⟹ {β ≤ Int}) ∨ (Str ⟹ {β ≤ Str}), β ≤ (Int ⟹ {α ≤ Int}) ∨ (Str ⟹ {α ≤ Str})} ⟹ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ Str})
 
 baz(1, 1)
 //│ ∀α. {α ≥ Int} ⟹ α
 
 baz(1, "")
-//│ ∀α. {α ≥ Str} ⟹ α
+//│ ∀α, β, γ. {α ≥ Int, β ≥ Str, β ≤ Str, γ ≥ Str} ⟹ γ
 
 baz("", "")
 //│ Str
@@ -175,20 +175,14 @@ foo(1, int_or_string)
 
 :e
 baz(true, 1)
-//│ ═══[ERROR] Cannot solve judgment ∀α. {α ≤ Str} ⟹ α → Str ≤ Int → β.
+//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → α.
 //│ Typing error tree:
-//│   ∀α. {α ≤ Str} ⟹ α → Str ≤ Int → β
-//│     {γ ≤ Str} ⟹ γ → Str ≤ Int → β
-//│       γ → Str ≤ Int → β
-//│         Int ≤ γ
-//│           Int ≤ Str
+//│   Str → Str ≤ Int → α
+//│     Int ≤ Str
 
 :e
 baz(true, true)
-//│ ═══[ERROR] Cannot solve judgment ∀α. {α ≤ Str} ⟹ α → Str ≤ Bool → β.
+//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Bool → α.
 //│ Typing error tree:
-//│   ∀α. {α ≤ Str} ⟹ α → Str ≤ Bool → β
-//│     {γ ≤ Str} ⟹ γ → Str ≤ Bool → β
-//│       γ → Str ≤ Bool → β
-//│         Bool ≤ γ
-//│           Bool ≤ Str
+//│   Str → Str ≤ Bool → α
+//│     Bool ≤ Str

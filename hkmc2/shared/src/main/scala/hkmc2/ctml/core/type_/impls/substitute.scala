@@ -10,7 +10,7 @@ extension (type_ : Type)
   /** Subsitute a type variable by another type variable in the type, without simplifying the
    *  resulting type. */
   def substitute(var_ : TypeVar, substitute: TypeVar): Type =
-    TypeSubstitute(type_, TypeSubstituteParams(var_, substitute))
+    TypeSubstitute1(type_, TypeSubstituteParams(var_, substitute))
 
 /** Parameters of the type substitution operation. */
 class TypeSubstituteParams(
@@ -20,20 +20,18 @@ class TypeSubstituteParams(
   def setVar(var_ : TypeVar) = TypeSubstituteParams(var_, substitute)
 
 /** Implementation of the type substitution operation. */
-object TypeSubstitute extends TypeShadowApplicator(
-  new TypeDispatcher[Id, Id, TypeSubstituteParams](TypeIdentityCombinator[TypeSubstituteParams]):
-    override def apply(type_ : Type, params : TypeSubstituteParams)(using first: TypeApplicator[Id, TypeSubstituteParams]): Type =
-      type_ match
-        case TVar(var_) =>
-          TVar(this.substitute(var_, params))
-        case _ =>
-          super.apply(type_, params)
-
-    def substitute(var_ : TypeVar, params: TypeSubstituteParams): TypeVar =
-      if var_ == params.var_ then
-        params.substitute
-      else
-        var_
-):
+object TypeSubstitute1 extends TypeShadowApplicator(TypeSubstitute2):
   override def univ(univ: TUniv): Type =
     univ
+
+object TypeSubstitute2 extends TypeChainApplicator[Id, Id, TypeSubstituteParams](TypeSubstitute3):
+  override def apply(type_ : Type, params : TypeSubstituteParams)(using first: TypeApplicator[Id, Id, TypeSubstituteParams]): Type =
+    type_ match
+      case TVar(var_) if var_ == params.var_ =>
+        TVar(params.substitute)
+      case _ =>
+        next.apply(type_, params)
+
+private def TypeSubstitute3 = TypeDispatcher[Id, Id, TypeSubstituteParams](Combinator)
+
+private def Combinator = TypeIdentityCombinator[TypeSubstituteParams]

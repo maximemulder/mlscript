@@ -112,6 +112,11 @@ extension (ctx: Context)
       if checkEqual(lowerBound, upperBound) then
         inlineVar(type_, var_, outs)
       else
+        // type_.getAllProperVarPolarities(var_) match
+        //   case Polarities(true, false) | Polarities(false, true) =>
+        //     output(s"SIMPLIFY ${var_}")
+        //   case _ =>
+        //     ()
         quantifyVar(type_, var_, outs)
     else if fullCtx.isVarConstrained(var_, levelVars) then
       quantifyVar(type_, var_, outs)

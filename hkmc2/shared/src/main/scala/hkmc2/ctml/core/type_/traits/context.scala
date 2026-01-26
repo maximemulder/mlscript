@@ -10,10 +10,10 @@ import hkmc2.ctml.util.*
 
 /** Handle contextual information while applying a transformation on a type. */
 final class TypeContextApplicator[T[+_], P <: ContextParams[P]](
-  next: TypeApplicator[T, P] & ConstraintApplicator[T, Const[Constraint], P],
-  last: TypeCombinator[T, Const[Constraint], P]
-) extends TypeApplicator[T, P]:
-  override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, P]): T[Type] =
+  next: TypeApplicator[T, Const[Constraint], P],
+  last: TypeCombinator[T, Const[Constraint], P],
+) extends TypeChainApplicator[T, Const[Constraint], P](next):
+  override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, Const[Constraint], P]): T[Type] =
     type_ match
       case TUniv(var_, body) =>
         val ctx = params.ctx.extend(declRigidVar(var_))

@@ -30,7 +30,7 @@ class TypeInlineParams(
   override def setVar(var_ : TypeVar) = TypeInlineParams(var_, pol, ctx)
 
 /** Implementation of the type variable inlining operation. */
-object TypeInline1 extends TypeShadowApplicator[Const[Type], TypeInlineParams](TypeInline2):
+object TypeInline1 extends TypeShadowApplicator[Const[Type], Const[Constraint], TypeInlineParams](TypeInline2):
   override def univ(univ: TUniv): Type =
     univ
 
@@ -38,12 +38,14 @@ private def TypeInline2 = TypeContextApplicator[Const[Type], TypeInlineParams](T
 
 private def TypeInline3 = TypePolarityApplicator[Const[Type], Const[Constraint], TypeInlineParams](TypeInline4, Combinator)
 
-object TypeInline4 extends TypeLazyDispatcher[TypeInlineParams](Combinator):
-  override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], TypeInlineParams]): Type =
+private object TypeInline4 extends TypeChainApplicator[Const[Type], Const[Constraint], TypeInlineParams](TypeInline5):
+  override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], Const[Constraint], TypeInlineParams]): Type =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
         params.ctx.getVarBound(var_, params.pol.dir)
       case _ =>
-        super.apply(type_, params)
+        next.apply(type_, params)
+
+private def TypeInline5 = TypeLazyDispatcher[TypeInlineParams](Combinator)
 
 private def Combinator = TypeSimplifyCombinator[TypeInlineParams]

@@ -47,13 +47,13 @@ private class ContainsVarParams(val var_ : TypeVar) extends TypeVarParams[Contai
   override def setVar(var_ : TypeVar) = ContainsVarParams(var_)
 
 /** Shadowing node of the "contains type variable" operation. */
-private object ContainsVar1 extends TypeShadowApplicator[Const[Boolean], ContainsVarParams](ContainsVar2):
+private object ContainsVar1 extends TypeShadowApplicator[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar2):
   def univ(univ: TUniv): Boolean =
     false
 
 /** Variable checking node of the "contains type variable" operation. */
 private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar3):
-  override def apply(type_ : Type, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], ContainsVarParams]): Boolean =
+  override def apply(type_ : Type, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], Const[Boolean], ContainsVarParams]): Boolean =
     type_ match
       case TVar(typeVar) if typeVar == p.var_ =>
         true
@@ -66,10 +66,11 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Const[Bo
       case _ =>
         next.apply(type_, p)
 
-/** Dispatching node of the "contains type variable" operation. */
-private object ContainsVar3 extends TypeDispatcher[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar4):
-  override def apply(constraint: Constraint, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], ContainsVarParams]): Boolean =
+  override def apply(constraint: Constraint, p: ContainsVarParams)(using first: TypeApplicator[Const[Boolean], Const[Boolean], ContainsVarParams]): Boolean =
     false
+
+/** Dispatching node of the "contains type variable" operation. */
+private def ContainsVar3 = TypeDispatcher[Const[Boolean], Const[Boolean], ContainsVarParams](ContainsVar4)
 
 /** Monoidal combination node of the "contains type variable" operation. */
 private def ContainsVar4 = TypeMonoidCombinator[Boolean, ContainsVarParams](AnyMonoid)

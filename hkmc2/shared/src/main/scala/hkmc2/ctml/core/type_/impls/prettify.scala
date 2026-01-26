@@ -11,7 +11,7 @@ import hkmc2.ctml.core.type_.traits.*
 extension (type_ : Type)
   /** Prettify a type in a context. */
   def prettify(prettyCtx: PrettyContext): Type =
-    TypePrettifier(type_, prettyCtx)
+    TypePrettifier1(type_, prettyCtx)
 
 extension (clauses: Clauses)
   def prettify(prettyCtx: PrettyContext): Clauses =
@@ -137,15 +137,19 @@ class PrettyContext(vars: MutMap[TypeVar, String] = MutMap()):
       case None =>
         var_
 
-object TypePrettifier extends TypeDispatcher[Id, Id, PrettyContext](TypeIdentityCombinator[PrettyContext]):
-  override def apply(type_ : Type, prettyCtx: PrettyContext)(using first: TypeApplicator[Id, PrettyContext]): Type =
+private object TypePrettifier1 extends TypeChainApplicator[Id, Id, PrettyContext](TypePrettifier2):
+  override def apply(type_ : Type, prettyCtx: PrettyContext)(using first: TypeApplicator[Id, Id, PrettyContext]): Type =
     type_ match
       case TVar(var_) =>
         TVar(var_.prettify(prettyCtx))
       case TUniv(var_, body) =>
         TUniv(
           var_.prettify(prettyCtx),
-          this.apply(body, prettyCtx),
+          first.apply(body, prettyCtx),
         )
       case _ =>
-        super.apply(type_, prettyCtx)
+        next.apply(type_, prettyCtx)
+
+private def TypePrettifier2 = TypeDispatcher[Id, Id, PrettyContext](Combinator)
+
+private def Combinator = TypeIdentityCombinator[PrettyContext]

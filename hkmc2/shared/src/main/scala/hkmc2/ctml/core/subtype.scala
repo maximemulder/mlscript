@@ -10,7 +10,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
-import hkmc2.ctml.core.type_.impls.substitute
+import hkmc2.ctml.core.type_.impls.substitute.substitute
 
 /** Sequentially constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, cache: SubtypingCache): Clauses =

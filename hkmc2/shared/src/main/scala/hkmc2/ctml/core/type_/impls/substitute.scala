@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.type_.impls
+package hkmc2.ctml.core.type_.impls.substitute
 
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.type_.*

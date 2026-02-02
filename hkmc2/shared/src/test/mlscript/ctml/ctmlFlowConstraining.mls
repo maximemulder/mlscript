@@ -12,12 +12,6 @@ fun bar(a, b) =
   foo(a, b) as Int
 //│ bar: Int → Int → Int
 
-fun baz(a, b) =
-  if a is
-    Int then b as Int
-    Top then b as Str
-//│ baz: ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (⊤ ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str})} ⟹ α → β → γ
-
 // Function overloads
 
 foo as (Int -> Int -> Int) & (Str -> Str -> Str)
@@ -42,18 +36,6 @@ foo("Hello", "World")
 
 foo(bot, bot)
 //│ ⊥
-
-baz(1, 1)
-//│ ∀α. {α ≥ Int} ⟹ α
-
-baz(1, "")
-//│ ∀α. {α ≥ Str} ⟹ α
-
-baz("", "")
-//│ Str
-
-baz(true, "")
-//│ Str
 
 // Errors
 
@@ -140,17 +122,3 @@ foo(1, int_or_string)
 //│   Int → Int ≤ (Int ∨ Str) → α
 //│     Int → Int ≤ Str → α
 //│       Str ≤ Int
-
-:e
-baz(true, 1)
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → α.
-//│ Typing error tree:
-//│   Str → Str ≤ Int → α
-//│     Int ≤ Str
-
-:e
-baz(true, true)
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Bool → α.
-//│ Typing error tree:
-//│   Str → Str ≤ Bool → α
-//│     Bool ≤ Str

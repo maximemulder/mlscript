@@ -69,9 +69,3 @@ extension (ctx: Context)
   /** Filter a list of bounds by removing the bounds that are already satisfied in the context. */
   def removeSatisfiedBounds(bounds: List[Bound]): List[Bound] =
     bounds.filter(!ctx.checkBoundSatisfied(_))
-
-extension (ctx: Context)
-  /** Filter a list of subtyping constraints by removing the bounds that are already satisfied in
-   *  the context. */
-  def removeSatisfiedConstraints(constraints: List[Constraint]): List[Constraint] =
-    constraints.filter(!checkConstraint(_)(using ctx))

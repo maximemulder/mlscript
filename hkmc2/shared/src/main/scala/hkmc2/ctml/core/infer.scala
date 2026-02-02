@@ -32,10 +32,9 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
     // Lambda abstraction.
     case lam: ELam =>
       ctx.withFreshVarLevel((paramVar, ctx) =>
-        given Context = ctx
         val paramType = TVar(paramVar)
-        val paramClauses = Clauses(List(TermVarDecl(lam.paramName, paramType)))
-        val (bodyType, bodyClauses) = inferSeq(lam.body, paramClauses)
+        given Context = ctx.extend(TermVarDecl(lam.paramName, paramType))
+        val (bodyType, bodyClauses) = infer(lam.body)
         (TLam(paramType, bodyType), bodyClauses)
       )
 

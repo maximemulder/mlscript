@@ -46,16 +46,14 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
         val (argType, argClauses) = inferSeq(app.arg, lamClauses)
         val retType = TVar(retVar)
         val mockLamType = TLam(argType, retType)
-        given SubtypingCache = SubtypingCache()
-        val consrainClauses = subtypeSeq(lamType, mockLamType, argClauses)
+        val consrainClauses = typingSubtypeSeq(lamType, mockLamType, argClauses)
         (retType, consrainClauses)
       )
 
     // Type ascription.
     case ascr: EAscr =>
       val (inferType, inferClauses) = infer(ascr.expr)
-      given SubtypingCache = SubtypingCache()
-      val constrainClauses = subtypeSeq(inferType, ascr.type_, inferClauses)
+      val constrainClauses = typingSubtypeSeq(inferType, ascr.type_, inferClauses)
       (ascr.type_, constrainClauses)
 
     // Match.
@@ -71,8 +69,7 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
     .map(_.pattern)
     .joinManySeq(scrutineeClauses)(using ctx, SubtypingCache())
   // Constrain the type of the scrutinee to be a subtype of the type of the cases.
-  given SubtypingCache = SubtypingCache()
-  val patternsClauses = subtypeSeq(scrutineeType, patternsType, scrutineeClauses)
+  val patternsClauses = typingSubtypeSeq(scrutineeType, patternsType, scrutineeClauses)
   val patternsCtx = ctx.extend(patternsClauses)
   // Infer each match case.
 
@@ -96,8 +93,12 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, casesType: Type)(using ctx: Context): Clauses =
   val patternClauses =
-    given SubtypingCache = SubtypingCache()
-    subtype(scrutineeType, case_.pattern)
+    typingSubtype(scrutineeType, case_.pattern)
   val (bodyType, bodyClauses) = inferSeq(case_.body, patternClauses)
-  given SubtypingCache = SubtypingCache()
-  subtypeSeq(bodyType, casesType, bodyClauses)
+  typingSubtypeSeq(bodyType, casesType, bodyClauses)
+
+def typingSubtype(sub: Type, sup: Type)(using ctx: Context) =
+  subtype(sub, sup)(using ctx, SubtypingCache())
+
+def typingSubtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context) =
+  subtypeSeq(sub, sup, ins)(using ctx, SubtypingCache())

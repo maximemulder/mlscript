@@ -7,7 +7,7 @@ import hkmc2.ctml.util.*
  */
 case class Context(
   /** The list of clauses itself. */
-  clauses: List[Clause] = Nil,
+  clauses: List[Clause],
 ):
   /** Get the string representation of the object. */
   override def toString(): String =
@@ -16,5 +16,5 @@ case class Context(
 
 object Context:
   /** The empty typing context. */
-  def none =
+  def empty =
     Context(Nil)

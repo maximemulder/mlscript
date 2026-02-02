@@ -1,0 +1,89 @@
+:ctml
+
+:ctml-cfg constrained weird-match
+
+// Function definitions
+
+fun foo(a, b) =
+  if a is
+    Int then b as Int
+    Top then b as Str
+//│ foo: ∀α, β, γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)} ⟹ α → β → γ
+
+// Function overloads
+
+foo as (Int -> Int -> Int) & (Str -> Str -> Str)
+//│ (Int → Int → Int) ∧ (Str → Str → Str)
+
+// Function applications
+
+foo(1, 1)
+//│ Int
+
+foo(1, "World")
+//│ Str
+
+foo("Hello", "World")
+//│ Str
+
+foo(true, "")
+//│ Str
+
+foo(bot, bot)
+//│ ⊥
+
+// Errors
+
+:e
+foo as (Bool -> Bool -> Bool)
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool.
+//│ Typing error tree:
+//│   ∀α, β, γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool
+//│     ∀β, γ. {β ≤ ({γ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)} ⟹ δ → β → γ ≤ Bool → Bool → Bool
+//│       ∀γ. {ε ≤ ({γ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({γ ≥ Str} ⟹ Str), γ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str} ⟹ Str)} ⟹ δ → ε → γ ≤ Bool → Bool → Bool
+//│         {ε ≤ ({ζ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({ζ ≥ Str} ⟹ Str), ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│           {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│             δ → ε → ζ ≤ Bool → Bool → Bool
+//│               ε → ζ ≤ Bool → Bool
+//│                 Bool ≤ ε
+//│                   Bool ≤ ({ζ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({ζ ≥ Str} ⟹ Str)
+//│                     Bool ≤ {ζ ≥ Int, δ ≤ Int} ⟹ Int
+//│                       Bool ≤ {δ ≤ Int} ⟹ Int
+//│                         δ ≤ Int
+//│                           Bool ≤ Int
+//│                     Bool ≤ {ζ ≥ Str} ⟹ Str
+//│                       Bool ≤ Str
+
+:e
+foo(true, 1)
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Int → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ({β ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Int → γ
+//│     ∀β. {δ ≤ ({β ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({δ ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → β ≤ Int → γ
+//│       {δ ≤ ({ε ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str), ε ≥ ({δ ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Int → γ
+//│         {ε ≥ ({δ ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Int → γ
+//│           δ → ε ≤ Int → γ
+//│             Int ≤ δ
+//│               Int ≤ ({ε ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)
+//│                 Int ≤ {ε ≥ Int, Bool ≤ Int} ⟹ Int
+//│                   Int ≤ {Bool ≤ Int} ⟹ Int
+//│                     Bool ≤ Int
+//│                 Int ≤ {ε ≥ Str} ⟹ Str
+//│                   Int ≤ Str
+
+:e
+foo(true, true)
+//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ({β ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ
+//│     ∀β. {δ ≤ ({β ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({δ ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → β ≤ Bool → γ
+//│       {δ ≤ ({ε ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str), ε ≥ ({δ ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│         {ε ≥ ({δ ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│           δ → ε ≤ Bool → γ
+//│             Bool ≤ δ
+//│               Bool ≤ ({ε ≥ Int, Bool ≤ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)
+//│                 Bool ≤ {ε ≥ Int, Bool ≤ Int} ⟹ Int
+//│                   Bool ≤ {Bool ≤ Int} ⟹ Int
+//│                     Bool ≤ Int
+//│                 Bool ≤ {ε ≥ Str} ⟹ Str
+//│                   Bool ≤ Str

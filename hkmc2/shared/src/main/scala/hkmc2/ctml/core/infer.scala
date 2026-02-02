@@ -92,10 +92,20 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
 
 /** Infer the type of a match case. */
 def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, casesType: Type)(using ctx: Context): Clauses =
+  if !config.weirdMatch then
+    checkPattern(case_.pattern)
+
   val patternClauses =
     typingSubtype(scrutineeType, case_.pattern)
   val (bodyType, bodyClauses) = inferSeq(case_.body, patternClauses)
   typingSubtypeSeq(bodyType, casesType, bodyClauses)
+
+def checkPattern(pattern: Type)(using ctx: Context) =
+  pattern match
+    case TVar(var_) if var_.isClass =>
+      ()
+    case _ =>
+      throw TypeError(Some(s"Pattern ${pattern} is not a class."))
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: Context) =
   subtype(sub, sup)(using ctx, SubtypingCache())

@@ -15,6 +15,9 @@ class Config:
   /** The mode used to merge clauses. */
   var mergeMode = MergeMode.Constraining
 
+  /** Whether or not non-class match patterns are authorized. */
+  var weirdMatch = false
+
   /** The current call depth. */
   var currentCallDepth = 0
 

@@ -143,10 +143,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   splitUnion(sup) match
     case Some(supLeft, supRight) =>
-      return ctx.any(
-        subtype(sub, supLeft),
-        subtype(sub, supRight),
-      )
+      return joinMerge(supLeft, supRight) match
+        case Some(sup) =>
+          subtype(sub, sup)
+        case None =>
+          ctx.any(
+            subtype(sub, supLeft),
+            subtype(sub, supRight),
+          )
     case _ =>
 
   splitInter(sup) match

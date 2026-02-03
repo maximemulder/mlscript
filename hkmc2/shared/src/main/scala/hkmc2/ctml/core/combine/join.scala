@@ -19,6 +19,19 @@ def joinImpl(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache)
 
   TUnion(left, right)
 
+def joinMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Option[Type] =
+  left match
+    case TNeg(left) if checkSubtype(left, right) =>
+      return Some(TTop)
+    case _ =>
+
+  right match
+    case TNeg(right) if checkSubtype(left, right) =>
+      return Some(TTop)
+    case _ =>
+
+  None
+
 extension (types: List[Type])
   /** Get the simplified join of many types. */
   def joinMany()(using ctx: Context, cache: SubtypingCache): Type =

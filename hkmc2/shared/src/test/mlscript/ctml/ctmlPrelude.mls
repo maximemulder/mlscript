@@ -12,6 +12,7 @@ class Bot
 class Unit
 class Bool
 class Int
+class Nat extends Int
 class Num
 class Str
 

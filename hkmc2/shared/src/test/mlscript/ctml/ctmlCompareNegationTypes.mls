@@ -1,13 +1,34 @@
 :ctml
 
-class A
-class B
+// Top and bottom types
+
 
 Bot == ~Top
 //│ OK
 
 Top == ~Bot
 //│ OK
+
+// Single class
+
+class A
+
+(~A & A) == Bot
+//│ OK
+
+(A & ~A) == Bot
+//│ OK
+
+(~A | A) == Top
+//│ OK
+
+(A | ~A) == Top
+//│ OK
+
+// Disjoint classes
+
+class A
+class B
 
 A <= ~B
 //│ OK
@@ -18,11 +39,44 @@ A <= ~B
 //│ Typing error tree:
 //│   ¬A ≤ B
 
-:fixme
-(A & ~A) == Bot
-//│ ═══[ERROR] Cannot solve judgment A ∧ ¬A ≡ ⊥.
+// Inherited classes
+
+(~Nat & Int) <= Int
+//│ OK
+
+(~Int & Nat) == Bot
+//│ OK
+
+(~Nat | Int) == Top
+//│ OK
+
+Nat <= (~Int | Nat)
+//│ OK
+
+:e
+Int <= (~Nat & Int)
+//│ ═══[ERROR] Cannot solve judgment Int ≤ ¬Nat ∧ Int.
 //│ Typing error tree:
-//│   A ∧ ¬A ≡ ⊥
-//│     A ∧ ¬A ≤ ⊥
-//│       A ≤ ⊥
-//│       ¬A ≤ ⊥
+//│   Int ≤ ¬Nat ∧ Int
+//│     Int ≤ ¬Nat
+
+:e
+Nat <= (~Nat & Int)
+//│ ═══[ERROR] Cannot solve judgment Nat ≤ ¬Nat ∧ Int.
+//│ Typing error tree:
+//│   Nat ≤ ¬Nat ∧ Int
+//│     Nat ≤ ¬Nat
+
+:e
+(~Int | Nat) <= Nat
+//│ ═══[ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Nat.
+//│ Typing error tree:
+//│   ¬Int ∨ Nat ≤ Nat
+//│     ¬Int ≤ Nat
+
+:e
+(~Int | Nat) <= Int
+//│ ═══[ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Int.
+//│ Typing error tree:
+//│   ¬Int ∨ Nat ≤ Int
+//│     ¬Int ≤ Int

@@ -74,7 +74,7 @@ foo as ((Int | Str) -> (Int | Str) -> (Int | Str))
 //│                   δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
 //│                     ε → ζ ≤ Str → (Int ∨ Str)
 //│                       Str ≤ ε
-//│                         Str ≤ ((Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∧ Int) ∨ ((Str ⟹ {ζ ≥ Str, δ ≤ Str, δ ≤ ¬Int}) ∧ Int)
+//│                         Str ≤ ((Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ Str, δ ≤ ¬Int})) ∧ Int
 //│                           Str ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∧ Int
 //│                             Str ≤ Int ⟹ {ζ ≥ Int, δ ≤ Int}
 //│                               Str ≤ Int ⟹ {δ ≤ Int}

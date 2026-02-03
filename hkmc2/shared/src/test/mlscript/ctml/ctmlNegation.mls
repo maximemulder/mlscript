@@ -1,0 +1,26 @@
+:ctml
+
+1 as ~Bot
+//│ ¬⊥
+
+1 as ~Bool
+//│ ¬Bool
+
+1 as ~(~Int)
+//│ ¬¬Int
+
+1 as ~(~(~(~Int)))
+//│ ¬¬¬¬Int
+
+:e
+1 as ~Int
+//│ ═══[ERROR] Cannot solve judgment Int ≤ ¬Int.
+//│ Typing error tree:
+//│   Int ≤ ¬Int
+
+:e
+1 as ~(~(~Int))
+//│ ═══[ERROR] Cannot solve judgment Int ≤ ¬¬¬Int.
+//│ Typing error tree:
+//│   Int ≤ ¬¬¬Int
+//│     Int ≤ ¬Int

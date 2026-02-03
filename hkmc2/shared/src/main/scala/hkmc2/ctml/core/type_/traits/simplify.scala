@@ -22,7 +22,7 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
     TTop
 
   def neg(body: Type, params: P): Type =
-    TNeg(body)
+    makeNegationType(body)
 
   def var_(var_ : TypeVar): Type =
     TVar(var_)

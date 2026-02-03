@@ -47,6 +47,30 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache
 
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Clauses =
+
+  // Subtyping of negation types.
+
+  (sub, sup) match
+    case (TNeg(sub), TNeg(sup)) =>
+      return subtype(sup, sub)
+    case _ =>
+
+  sub match
+    case TNeg(sub) =>
+      negate(sub) match
+        case Some(sub) =>
+          return subtype(sub, sup)
+        case _ =>
+    case _ =>
+
+  sup match
+    case TNeg(sup) =>
+      negate(sup) match
+        case Some(sup) =>
+          return subtype(sub, sup)
+        case _ =>
+    case _ =>
+
   // Subtyping of constraining types.
 
   if sub.is[TConstraining] && sup.is[TConstraining] then
@@ -172,6 +196,10 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   (sub, sup) match
     case (sub: TVar, sup: TVar) if sub.isClassVar && sup.isClassVar && sub == sup =>
+      return Clauses.empty
+    case (sub: TVar, TNeg(sup)) if sub.isClassVar && sup.isClassVar && sub != sup =>
+      return Clauses.empty
+    case (TNeg(sub), sup: TVar) if sub.isClassVar && sup.isClassVar && sub != sup =>
       return Clauses.empty
     case _ =>
 

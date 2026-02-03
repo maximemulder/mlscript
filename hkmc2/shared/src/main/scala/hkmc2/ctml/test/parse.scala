@@ -151,6 +151,8 @@ def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term):
 /** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =
   mlType match
+    case Term.Neg(mlBody) =>
+      TNeg(parseType(mlBody))
     case Term.Tup(mlElems) =>
       parseTypeTuple(mlElems.init.map(_.subTerms(0)), mlElems.last.subTerms(0))
     case Term.Ref(mlSymbol) =>

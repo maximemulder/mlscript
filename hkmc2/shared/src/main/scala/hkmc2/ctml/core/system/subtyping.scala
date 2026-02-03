@@ -49,7 +49,7 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Clauses =
 
-  // Subtyping of negation types.
+  // Normalize negation types.
 
   (sub, sup) match
     case (TNeg(sub), TNeg(sup)) =>
@@ -70,6 +70,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
         case Some(sup) =>
           return subtype(sub, sup)
         case _ =>
+    case _ =>
+
+  // Subtype negation types
+
+  sup match
+    case TNeg(sup) if areDisjointConstructors(sub, sup) =>
+      return Clauses.empty
     case _ =>
 
   // Subtyping of constraining types.
@@ -197,8 +204,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   (sub, sup) match
     case (sub: TVar, sup: TVar) if sub.isClassVar && sup.isClassVar && sub == sup =>
-      return Clauses.empty
-    case (sub: TVar, TNeg(sup)) if sub.isClassVar && sup.isClassVar && sub != sup =>
       return Clauses.empty
     case _ =>
 

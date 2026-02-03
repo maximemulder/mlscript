@@ -15,6 +15,9 @@ case object TBot extends Type
 /** The top type. */
 case object TTop extends Type
 
+/** The negation type. */
+case class TNeg(val body: Type) extends Type
+
 /** A type variable type. */
 case class TVar(val var_ : TypeVar) extends Type
 
@@ -54,6 +57,8 @@ extension (type_ : Type)
     type_ match
       case TBot | TTop | TVar(_) =>
         Nil
+      case TNeg(body) =>
+        List(body)
       case TTuple(left, right) =>
         List(left, right)
       case TLam(param, ret) =>
@@ -90,6 +95,8 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
       ("⊥", false)
     case _: TTop =>
       ("⊤", false)
+    case TNeg(body) =>
+      (s"¬${showType(body, true)}", false)
     case TVar(var_) =>
       (var_.show, false)
     case TTuple(left, right) =>

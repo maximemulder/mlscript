@@ -11,6 +11,9 @@ trait TypeCombinator[T[_], B[_], P]:
   /** Get a top type combination. */
   def top(p: P): T[TTop]
 
+  /** Get a negation type combination. */
+  def neg(body: T[Type], p: P): T[TNeg]
+
   /** Get a type variable type combination. */
   def var_(var_ : TypeVar): T[TVar]
 

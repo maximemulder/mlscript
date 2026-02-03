@@ -17,6 +17,11 @@ final class TypeLazyDispatcher[P](
         last.bot(p)
       case TTop =>
         last.top(p)
+      case TNeg(body) =>
+        val newBody = first.apply(body, p)
+        if newBody == body then
+          return type_
+        last.neg(newBody, p)
       case TVar(var_) =>
         last.var_(var_)
       case TTuple(left, right) =>

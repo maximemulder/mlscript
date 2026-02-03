@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.combine
 
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.SubtypingCache
+import hkmc2.ctml.core.system.SubtypingCache
 
 /** Get the extremal type of a typing direction. */
 def getExtremalType(dir: Direction): Type =

@@ -1,7 +1,8 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.core.system
 
 import scala.collection.immutable.Set as Set
 
+import hkmc2.ctml.core.{filterVarDir, is}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*

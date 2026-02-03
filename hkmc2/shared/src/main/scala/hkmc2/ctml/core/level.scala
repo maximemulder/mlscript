@@ -5,14 +5,15 @@ import hkmc2.ctml.util.OrderedSet as MutSet
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
-import hkmc2.ctml.types.*
 import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.clauses.*
-import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.combine.getExtremalType
+import hkmc2.ctml.core.system.*
 import hkmc2.ctml.core.type_.impls.getAllVarPolarities.*
 import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.type_.impls.simplify.*
+import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.types.*
 
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve

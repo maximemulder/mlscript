@@ -1,6 +1,7 @@
 package hkmc2.ctml.test
 
 import scala.collection.mutable.Set as MutSet
+import sourcecode.{FileName,Line}
 
 import hkmc2.Diagnostic.Source
 import hkmc2.ErrorReport
@@ -12,8 +13,8 @@ import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.system.*
 import hkmc2.semantics.Term
-import sourcecode.{FileName,Line}
 
 /** Run a CTML test on an input term. */
 def test(

@@ -119,7 +119,7 @@ class Tester(
       case TypeRel.Sub =>
         testSubtyping(left, right)
       case TypeRel.Sup =>
-        testSupertyping(right, left)
+        testSupertyping(left, right)
       case TypeRel.Eq =>
         testTypeEquivalence(left, right)
       case TypeRel.Ne =>

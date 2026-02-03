@@ -1,0 +1,19 @@
+:ctml
+
+class A
+class B
+
+Bot == ~Top
+//│ OK
+
+Top == ~Bot
+//│ OK
+
+A <= ~B
+//│ OK
+
+:e
+~A <= B
+//│ ═══[ERROR] Cannot solve judgment ¬A ≤ B.
+//│ Typing error tree:
+//│   ¬A ≤ B

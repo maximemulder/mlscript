@@ -199,8 +199,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
       return Clauses.empty
     case (sub: TVar, TNeg(sup)) if sub.isClassVar && sup.isClassVar && sub != sup =>
       return Clauses.empty
-    case (TNeg(sub), sup: TVar) if sub.isClassVar && sup.isClassVar && sub != sup =>
-      return Clauses.empty
     case _ =>
 
   // Subtyping of tuple types.

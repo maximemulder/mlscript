@@ -98,7 +98,11 @@ extension (type_ : Type)(using ctx: Context)
 extension (var_ : TypeVar)(using ctx: Context)
   /** Check whether the type variable is a class type variable. */
   def isClass: Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Class
+    ctx.getTypeVarKind(var_) match
+      case TypeVarKind.Class(_) =>
+        true
+      case _ =>
+        false
 
   /** Check whether the type variable is a flexible type variable. */
   def isFlex: Boolean =

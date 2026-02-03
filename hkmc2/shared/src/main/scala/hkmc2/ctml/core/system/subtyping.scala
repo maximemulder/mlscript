@@ -2,7 +2,7 @@ package hkmc2.ctml.core.system
 
 import scala.collection.immutable.Set as Set
 
-import hkmc2.ctml.core.{filterVarDir, is}
+import hkmc2.ctml.core.{filterVarDir, is, isSubClass}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
@@ -203,7 +203,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
   // Subtyping of class type variables.
 
   (sub, sup) match
-    case (sub: TVar, sup: TVar) if sub.isClassVar && sup.isClassVar && sub == sup =>
+    case (TVar(sub), TVar(sup)) if sub.isClass && sup.isClass && sub.isSubClass(sup) =>
       return Clauses.empty
     case _ =>
 

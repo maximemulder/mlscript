@@ -59,3 +59,66 @@ def splitInter(type_ : Type): Option[(Type, Type)] =
           None
     case _ =>
       None
+
+//def combine(left: Type, right: Type, pol: Polarity) =
+//  pol match
+//    case Polarity.Negative =>
+//      TUnion(left, right)
+//    case Polarity.Positive =>
+//      TInter(left, right)
+//
+//extension (type_ : Type)
+//  def split(pol: Polarity): Option[(Type, Type)] =
+//    (pol, type_) match
+//      case (Polarity.Negative, TUnion(left, right)) =>
+//        Some(left, right)
+//      case (Polarity.Positive, TInter(left, right)) =>
+//        Some(left, right)
+//      case _ =>
+//        None
+//
+//  def normalSplit(pol: Polarity): Option[(Type, Type)] =
+//    type_.split(pol) match
+//      case Some(left, right) =>
+//        return Some(left, right)
+//      case _ =>
+//
+//    type_.split(pol.invert) match
+//      case Some(left, right) =>
+//        left.split(pol) match
+//          case Some(innerLeft, innerRight) =>
+//            return Some(
+//              combine(innerLeft,  right, pol.invert),
+//              combine(innerRight, right, pol.invert),
+//            )
+//          case None =>
+//
+//        right.split(pol) match
+//          case Some(innerLeft, innerRight) =>
+//            return Some(
+//              combine(left, innerLeft,  pol.invert),
+//              combine(left, innerRight, pol.invert),
+//            )
+//          case None =>
+//      case None =>
+//
+//    if pol == Polarity.Positive then
+//      type_ match
+//        case TLam(param, ret) =>
+//          param.split(Polarity.Negative) match
+//            case Some(left, right) =>
+//              return Some(
+//                TLam(left,  ret),
+//                TLam(right, ret),
+//              )
+//            case None =>
+//
+//          ret.split(Polarity.Positive) match
+//            case Some(left, right) =>
+//              return Some(
+//                TLam(param, left),
+//                TLam(param, right),
+//              )
+//            case None =>
+//        case _ =>
+//    None

@@ -159,10 +159,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   splitInter(sub) match
     case Some(subLeft, subRight) =>
-      return ctx.any(
-        subtype(subLeft,  sup),
-        subtype(subRight, sup),
-      )
+      return meetMerge(subLeft, subRight) match
+        case Some(sub) =>
+          subtype(sub, sup)
+        case None =>
+          ctx.any(
+            subtype(subLeft,  sup),
+            subtype(subRight, sup),
+          )
     case _ =>
 
   // Subtyping of rigid type variables.

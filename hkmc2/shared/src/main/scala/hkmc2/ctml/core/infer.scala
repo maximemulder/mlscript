@@ -65,41 +65,28 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   // Infer the type and bounds of the scrutinee.
   val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee)
-  // Get the union of the cases.
-  val patternsType = match_.cases
-    .map(_.pattern)
-    .joinManySeq(scrutineeClauses)(using ctx, SubtypingCache())
-  // Constrain the type of the scrutinee to be a subtype of the type of the cases.
-  val patternsClauses = typingSubtypeSeq(scrutineeType, patternsType, scrutineeClauses)
-  val patternsCtx = ctx.extend(patternsClauses)
-  // Infer each match case.
+  if !config.weirdMatch then
+    checkPattern(match_.pattern)
 
-  // Create a new fresh type variable for the type of the match expression.
-  val (casesType, casesClauses) = patternsCtx.withFreshVarLevel((casesVar, casesCtx) =>
-    val casesType = TVar(casesVar)
-    val casesClauses = match_.cases
-      .map(case_ =>
-        given Context = casesCtx
-        inferMatchCase(case_, scrutineeType, casesType)
-      )
-      .fold1Right((caseClauses, casesClauses) =>
-        Clauses(casesCtx.joinBounds(caseClauses, casesClauses))
-      )
+  val scrutineeCtx = ctx.extend(scrutineeClauses)
+  val (casesType, casesClauses) = scrutineeCtx.withFreshVarLevel((matchVar, matchCtx) =>
+    given Context = matchCtx
+    val matchType = TVar(matchVar)
+    val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+    val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+    val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
 
-    (casesType, casesClauses)
+    match_.else_ match
+      case Some(else_) =>
+        val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+        val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+        val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+        (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
+      case None =>
+        (matchType, realBodyClauses)
   )
 
-  (casesType, patternsClauses.concat(casesClauses))
-
-/** Infer the type of a match case. */
-def inferMatchCase(case_ : EMatchCase, scrutineeType: Type, casesType: Type)(using ctx: Context): Clauses =
-  if !config.weirdMatch then
-    checkPattern(case_.pattern)
-
-  val patternClauses =
-    typingSubtype(scrutineeType, case_.pattern)
-  val (bodyType, bodyClauses) = inferSeq(case_.body, patternClauses)
-  typingSubtypeSeq(bodyType, casesType, bodyClauses)
+  (casesType, scrutineeClauses.concat(casesClauses))
 
 def checkPattern(pattern: Type)(using ctx: Context) =
   pattern match

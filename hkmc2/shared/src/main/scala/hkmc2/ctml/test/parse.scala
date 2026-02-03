@@ -357,37 +357,29 @@ def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
 
 /** Convert an MLScript split to a CTML pattern matching expression */
 def parseMatch(mlMatch: SimpleSplit): EMatch =
+  // TODO: This could be prettier.
   mlMatch match
-    case SimpleSplit.Cons(mlCase @ SimpleSplit.Head.Match(mlScrutinee, _, _), mlCases) =>
-      val scrutinee = parseExpr(mlScrutinee)
-      val case_     = parseCase(mlCase)
-      val cases     = parseCases(mlCases)
-      EMatch(scrutinee, case_ :: cases)
+    case SimpleSplit.Cons(mlCase @ SimpleSplit.Head.Let(_, mlScrutinee), mlCases: SimpleSplit.Cons) =>
+      parseCases(mlScrutinee, mlCases)
+    case mlMatch @ SimpleSplit.Cons(SimpleSplit.Head.Match(mlScrutinee, _, _), _) =>
+      parseCases(mlScrutinee, mlMatch)
     case _ =>
       throw new ParseError(Term.Error)
 
-/** Convert an MLScript split to a list of CTML pattern matching cases. */
-def parseCases(mlCases: SimpleSplit): List[EMatchCase] =
-  mlCases match
-    case SimpleSplit.End =>
-      Nil
-    case SimpleSplit.Cons(mlCase : SimpleSplit.Head.Match, mlCases) =>
-      val case_ = parseCase(mlCase)
-      val cases = parseCases(mlCases)
-      case_ :: cases
-    case _ =>
-      throw new ParseError(Term.Error)
-
-/** Convert an MLScript branch to a CTML pattern matching case. */
-def parseCase(mlCase: SimpleSplit.Head.Match): EMatchCase =
-
-  // Match(Ref(a),Constructor(Ref(member:Int),None),Else(Asc(Ref(a),Ref(member:Int))))
-
-  mlCase match
+def parseCases(mlScrutinee: Term, mlMatch: SimpleSplit.Cons): EMatch =
+  mlMatch.branch match
     case SimpleSplit.Head.Match(_, Pattern.Constructor(mlPattern, _), SimpleSplit.Else(mlBody)) =>
+      val scrutinee = parseExpr(mlScrutinee)
       val pattern = parseType(mlPattern)
-      val body    = parseExpr(mlBody)
-      EMatchCase(pattern, body)
+      val then_ = parseExpr(mlBody)
+      val else_ = mlMatch.tail match
+        case mlMatch: SimpleSplit.Cons =>
+          Some(parseCases(mlScrutinee, mlMatch))
+        case SimpleSplit.End =>
+          None
+        case _ =>
+          throw new ParseError(Term.Error)
+      EMatch(scrutinee, pattern, then_, else_)
     case _ =>
       throw new ParseError(Term.Error)
 

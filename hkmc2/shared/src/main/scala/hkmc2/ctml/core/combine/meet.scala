@@ -54,7 +54,7 @@ def meetMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache
 
   // Meet disjoint types.
 
-  if checkDisjoint(left, right) then
+  if areDisjointConstructors(left, right) then
     return Some(TBot)
 
   None
@@ -70,10 +70,6 @@ def meetLambdas(left: TLam, right: TLam)(using ctx: Context, cache: SubtypingCac
     return Some(TLam(param, left.ret))
 
   None
-
-/** Check if two types are disjoint. */
-def checkDisjoint(left: Type, right: Type)(using ctx: Context): Boolean =
-  return left.isClassVar && right.isClassVar && left != right
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */

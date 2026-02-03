@@ -2,6 +2,7 @@ package hkmc2.ctml.core.system
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.isSubClass
 
 /** Get the normalized negation of a type. */
 def negate(type_ : Type): Option[Type] =
@@ -34,7 +35,7 @@ def areDisjointConstructors(left: Type, right: Type)(using ctx: Context): Boolea
       false
     case (TTuple(_, _), TTuple(_, _)) =>
       false
-    case (TVar(_), TVar(_)) if left.isClassVar && right.isClassVar && left == right =>
+    case (TVar(left), TVar(right)) if left.isClass && right.isClass && (left.isSubClass(right) || right.isSubClass(left)) =>
       false
     case _ =>
       isConstructor(left) && isConstructor(right)

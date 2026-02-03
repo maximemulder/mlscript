@@ -87,7 +87,7 @@ case class Bound(
 /** A type variable kind. */
 enum TypeVarKind:
   /** A class, which is disjoint with other classes. */
-  case Class
+  case Class(parent: Option[TypeVar])
   /** A rigid type variable, whose bounds cannot be refined during type checking. */
   case Rigid
   /** A flexible type variable, whose bounds may be refined during type checking. */
@@ -136,6 +136,6 @@ given Show[Bound] with
 given Show[TypeVarKind] with
   override def show(kind: TypeVarKind): String =
     kind match
-      case TypeVarKind.Class => "class"
-      case TypeVarKind.Rigid => "rigid"
-      case TypeVarKind.Flex  => "flex"
+      case TypeVarKind.Class(_) => "class"
+      case TypeVarKind.Rigid    => "rigid"
+      case TypeVarKind.Flex     => "flex"

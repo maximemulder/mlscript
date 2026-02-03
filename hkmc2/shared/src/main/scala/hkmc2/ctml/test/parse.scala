@@ -54,8 +54,8 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
     mlStmt match
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) =>
         return None
-      case ClassDef.Plain(_, _, _, mlSymbol,_, _, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
-        parseClassDecl(mlSymbol)
+      case ClassDef.Plain(_, _, _, mlSymbol,_, mlParent, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
+        parseClassDecl(mlSymbol, mlParent)
       case TypeDef(mlSymbol, _, _, None, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseRigidVarDecl(mlSymbol)
       case TypeDef(mlSymbol, _, _, None, _, mlAnnotations) if isAbstract(mlAnnotations) =>
@@ -89,9 +89,17 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
   )
 
 /** Convert an MLScript class declaration to a CTML class declaration. */
-def parseClassDecl(mlSymbol: BlockMemberSymbol): Stmt =
+def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New]): Stmt =
   val name = mlSymbol.nme
-  StmtTypeDecl(name, TypeVarKind.Class)
+  val parent = mlParent match
+    case Some(Term.New(Term.Ref(mlParentSymbol), _, _)) =>
+      Some(TypeVar(mlParentSymbol.nme))
+    case None =>
+      None
+    case Some(mlParent) =>
+      throw new ParseError(mlParent)
+
+  StmtTypeDecl(name, TypeVarKind.Class(parent))
 
 /** Convert an MLScript type declaration to a CTML rigid type variable declaration. */
 def parseRigidVarDecl(mlSymbol: TypeAliasSymbol): Stmt =

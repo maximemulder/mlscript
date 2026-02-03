@@ -31,14 +31,8 @@ A <= Top
 Bot <= A
 //│ OK
 
-:fixme
 (Int & Str) == Bot
-//│ ═══[ERROR] Cannot solve judgment Int ∧ Str ≡ ⊥.
-//│ Typing error tree:
-//│   Int ∧ Str ≡ ⊥
-//│     Int ∧ Str ≤ ⊥
-//│       Int ≤ ⊥
-//│       Str ≤ ⊥
+//│ OK
 
 :e
 Top <= A

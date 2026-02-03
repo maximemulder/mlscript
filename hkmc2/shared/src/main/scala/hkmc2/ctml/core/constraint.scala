@@ -5,6 +5,10 @@ import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
 
+/** Make a negation type, simplifying it if possible. */
+def makeNegationType(body: Type): Type =
+  normalizeNegation(TNeg(body))
+
 /** Make a constraining type, simplifying it if possible. */
 def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
   type_ match
@@ -41,7 +45,7 @@ def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
             constraint
           )
 
-/** Make a lambda type from its components, simplifying it if possible. */
+/** Make a lambda type, simplifying it if possible. */
 def makeLambdaType(param: Type, ret: Type): Type =
   ret match
     case TUniv(var_, body) =>

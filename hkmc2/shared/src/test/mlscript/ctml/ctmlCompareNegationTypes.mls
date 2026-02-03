@@ -33,6 +33,12 @@ class B
 A <= ~B
 //│ OK
 
+~(A | B) == (~A & ~B)
+//│ OK
+
+~(A & B) == (~A | ~B)
+//│ OK
+
 :e
 ~A <= B
 //│ ═══[ERROR] Cannot solve judgment ¬A ≤ B.

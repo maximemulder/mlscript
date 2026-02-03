@@ -1,9 +1,11 @@
 package hkmc2.ctml.core
 
-import hkmc2.ctml.core.context.*
-import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
+
+import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.system.*
+import hkmc2.ctml.types.*
 
 /** Make a negation type, simplifying it if possible. */
 def makeNegationType(body: Type): Type =

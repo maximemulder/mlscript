@@ -17,3 +17,12 @@ A <= ~B
 //│ ═══[ERROR] Cannot solve judgment ¬A ≤ B.
 //│ Typing error tree:
 //│   ¬A ≤ B
+
+:fixme
+(A & ~A) == Bot
+//│ ═══[ERROR] Cannot solve judgment A ∧ ¬A ≡ ⊥.
+//│ Typing error tree:
+//│   A ∧ ¬A ≡ ⊥
+//│     A ∧ ¬A ≤ ⊥
+//│       A ≤ ⊥
+//│       ¬A ≤ ⊥

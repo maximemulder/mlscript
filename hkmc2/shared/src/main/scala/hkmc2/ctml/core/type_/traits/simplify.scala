@@ -3,14 +3,14 @@ package hkmc2.ctml.core.type_.traits
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.system.*
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.traits.*
-import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
-import hkmc2.ctml.core.config.debug
 import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.inline.*
+import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.types.*
+import hkmc2.ctml.util.*
 
 /** Combinator that combines the components of a type into that type while simplifying it if
  *  possible by using the information available in the typing context. */

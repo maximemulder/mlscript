@@ -27,23 +27,15 @@ def meetImpl(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache)
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
 def meetMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Option[Type] =
 
-  // Meet union-splittable types.
+  left match
+    case TNeg(left) if checkSubtype(right, left) =>
+      return Some(TBot)
+    case _ =>
 
-  splitUnion(left) match
-    case Some(leftLeft, leftRight) =>
-      return Some(join(
-        meet(leftLeft,  right),
-        meet(leftRight, right),
-      ))
-    case None =>
-
-  splitUnion(right) match
-    case Some(rightLeft, rightRight) =>
-      return Some(join(
-        meet(left, rightLeft),
-        meet(left, rightRight),
-      ))
-    case None =>
+  right match
+    case TNeg(right) if checkSubtype(right, left) =>
+      return Some(TBot)
+    case _ =>
 
   // Meet lambda types.
 

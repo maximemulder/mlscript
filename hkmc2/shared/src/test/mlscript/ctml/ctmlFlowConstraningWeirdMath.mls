@@ -44,7 +44,7 @@ foo as (Bool -> Bool -> Bool)
 //│               δ → ε → ζ ≤ Bool → Bool → Bool
 //│                 ε → ζ ≤ Bool → Bool
 //│                   Bool ≤ ε
-//│                     Bool ≤ ((Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∧ Str) ∨ ((Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}) ∧ Str)
+//│                     Bool ≤ ((Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int})) ∧ Str
 //│                       Bool ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∧ Str
 //│                         Bool ≤ Int ⟹ {ζ ≥ Int, δ ≤ Int}
 //│                           Bool ≤ Int ⟹ {δ ≤ Int}

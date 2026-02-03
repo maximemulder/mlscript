@@ -12,6 +12,9 @@ final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P], Constra
   def top(p: P): TTop =
     TTop
 
+  def neg(body: Type, p: P): TNeg =
+    TNeg(body)
+
   def var_(var_ : TypeVar): TVar =
     TVar(var_)
 

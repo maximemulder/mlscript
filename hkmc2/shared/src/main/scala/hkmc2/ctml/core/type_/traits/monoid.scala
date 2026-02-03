@@ -12,6 +12,9 @@ final class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Cons
   def top(p: P): T =
     m.empty
 
+  def neg(body: T, p: P): T =
+    body
+
   def var_(var_ : TypeVar): T =
     m.empty
 

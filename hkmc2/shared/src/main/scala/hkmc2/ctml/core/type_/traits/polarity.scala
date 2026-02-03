@@ -12,10 +12,14 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
 ) extends TypeChainApplicator[T, B, P](next):
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, B, P]): T[Type] =
     type_ match
+      case TNeg(body) =>
+        last.neg(
+          first.apply(body, params.setPolarity(params.pol.invert)),
+          params,
+        )
       case TLam(param, ret) =>
-        val pol = params.pol
         last.lam(
-          first.apply(param, params.setPolarity(pol.invert)),
+          first.apply(param, params.setPolarity(params.pol.invert)),
           first.apply(ret, params),
           params,
         )

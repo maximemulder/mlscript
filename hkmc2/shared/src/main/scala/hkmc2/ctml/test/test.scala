@@ -9,6 +9,7 @@ import hkmc2.Raise
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.config.config
+import hkmc2.ctml.core.inference.infer
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given

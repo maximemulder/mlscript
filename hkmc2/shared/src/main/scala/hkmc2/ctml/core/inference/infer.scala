@@ -1,4 +1,4 @@
-package hkmc2.ctml.core
+package hkmc2.ctml.core.inference
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
@@ -7,6 +7,7 @@ import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.system.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
+import hkmc2.ctml.core.inference.given
 
 def inferSeq(expr: Expr, ins: Clauses)(using ctx: Context): (Type, Clauses) =
   given Context = ctx.extend(ins)

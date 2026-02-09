@@ -45,10 +45,8 @@ def withCheckingMode[T](f: => T): T =
   try
     mode = Mode.Check
     f
-  catch
-    case exception: Exception =>
-      mode = oldMode
-      throw exception
+  finally
+    mode = oldMode
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using Context): (Type, Type) => Clauses =

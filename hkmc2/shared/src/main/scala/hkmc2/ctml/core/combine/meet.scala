@@ -33,7 +33,7 @@ def meetMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache
     case _ =>
 
   right match
-    case TNeg(right) if checkSubtype(right, left) =>
+    case TNeg(right) if checkSubtype(left, right) =>
       return Some(TBot)
     case _ =>
 

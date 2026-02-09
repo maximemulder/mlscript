@@ -65,7 +65,13 @@ A <= ~B
 (~Int & Nat) == Bot
 //│ OK
 
+(Nat & ~Int) == Bot
+//│ OK
+
 (~Nat | Int) == Top
+//│ OK
+
+(Int | ~Nat) == Top
 //│ OK
 
 Nat <= (~Int | Nat)

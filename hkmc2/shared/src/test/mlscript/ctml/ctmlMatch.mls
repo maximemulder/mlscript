@@ -1,0 +1,14 @@
+:ctml
+
+:ctml-cfg constrained
+
+if (1 as Int) is
+  Int then 1
+//│ Int
+
+:e
+if (1 as Int) is
+  Str then 1
+//│ ═══[ERROR] Cannot solve judgment Int ≤ Str.
+//│ Typing error tree:
+//│   Int ≤ Str

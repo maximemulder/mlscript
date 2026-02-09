@@ -60,6 +60,13 @@ def splitInter(type_ : Type): Option[(Type, Type)] =
     case _ =>
       None
 
+//def splitUnion(type_ : Type): Option[(Type, Type)] =
+//  type_.normalSplit(Polarity.Negative)
+//
+///** Split a type in two if it can be decomposed as an intersection. */
+//def splitInter(type_ : Type): Option[(Type, Type)] =
+//  type_.normalSplit(Polarity.Positive)
+//
 //def combine(left: Type, right: Type, pol: Polarity) =
 //  pol match
 //    case Polarity.Negative =>
@@ -78,6 +85,11 @@ def splitInter(type_ : Type): Option[(Type, Type)] =
 //        None
 //
 //  def normalSplit(pol: Polarity): Option[(Type, Type)] =
+//    type_ match
+//      case TNeg(body) =>
+//        return body.normalSplit(pol.invert)
+//      case _ =>
+//
 //    type_.split(pol) match
 //      case Some(left, right) =>
 //        return Some(left, right)

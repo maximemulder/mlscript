@@ -40,11 +40,13 @@ A <= ~B
 //│ OK
 
 :fixme
-~(A & B) == Bot
-//│ ═══[ERROR] Cannot solve judgment ¬(A ∧ B) ≡ ⊥.
+~(A & B) == Top
+//│ ═══[ERROR] Cannot solve judgment ¬(A ∧ B) ≡ ⊤.
 //│ Typing error tree:
-//│   ¬(A ∧ B) ≡ ⊥
-//│     ¬(A ∧ B) ≤ ⊥
+//│   ¬(A ∧ B) ≡ ⊤
+//│     ⊤ ≤ ¬(A ∧ B)
+//│       ⊤ ≤ A
+//│       ⊤ ≤ B
 
 ~(A | B) == (~A & ~B)
 //│ OK

@@ -39,14 +39,8 @@ A <= ~B
 (~A | B) == ~A
 //│ OK
 
-:fixme
-~(A & B) == Top
-//│ ═══[ERROR] Cannot solve judgment ¬(A ∧ B) ≡ ⊤.
-//│ Typing error tree:
-//│   ¬(A ∧ B) ≡ ⊤
-//│     ⊤ ≤ ¬(A ∧ B)
-//│       ⊤ ≤ A
-//│       ⊤ ≤ B
+~(A & B) == (~A | ~B)
+//│ OK
 
 ~(A | B) == (~A & ~B)
 //│ OK

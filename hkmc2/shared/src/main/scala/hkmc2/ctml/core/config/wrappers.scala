@@ -37,8 +37,21 @@ def cleanContext(ctx: Context): Context =
       true
   ))
 
+var mode: Mode = Mode.Constrain
+
+/** Run a function in type checking mode, where constrainings are not displayed. */
+def withCheckingMode[T](f: => T): T =
+  val oldMode = mode
+  try
+    mode = Mode.Check
+    f
+  catch
+    case exception: Exception =>
+      mode = oldMode
+      throw exception
+
 /** Decorate the subtype constraining function to print debug information. */
-def subtypeWithDebug(impl: (Type, Type) => Clauses)(using mode: Mode = Mode.Constrain)(using Context): (Type, Type) => Clauses =
+def subtypeWithDebug(impl: (Type, Type) => Clauses)(using Context): (Type, Type) => Clauses =
   if mode == Mode.Constrain && !config.debug.constrain then
     return impl
 

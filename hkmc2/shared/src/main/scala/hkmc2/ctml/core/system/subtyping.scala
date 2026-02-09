@@ -329,7 +329,7 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, cach
 def checkSubtype(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Boolean =
   given Context = ctx.freeze()
   try
-    subtype(sub, sup)
+    withCheckingMode(subtype(sub, sup))
   catch
     case _: TypeError =>
       return false

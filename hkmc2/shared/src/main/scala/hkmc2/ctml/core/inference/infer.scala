@@ -7,7 +7,6 @@ import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.system.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
-import hkmc2.ctml.core.inference.given
 
 def inferSeq(expr: Expr, ins: Clauses)(using ctx: Context): (Type, Clauses) =
   given Context = ctx.extend(ins)
@@ -66,8 +65,8 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   // Infer the type and bounds of the scrutinee.
   val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee)
-  if !config.weirdMatch then
-    checkPattern(match_.pattern)
+  if !config.weirdMatch && !match_.pattern.isPattern then
+    throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   val scrutineeCtx = ctx.extend(scrutineeClauses)
   val (casesType, casesClauses) = scrutineeCtx.withFreshVarLevel((matchVar, matchCtx) =>
@@ -88,13 +87,6 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   )
 
   (casesType, scrutineeClauses.concat(casesClauses))
-
-def checkPattern(pattern: Type)(using ctx: Context) =
-  pattern match
-    case TVar(var_) if var_.isClass =>
-      ()
-    case _ =>
-      throw TypeError(Some(s"Pattern ${pattern} is not a class."))
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: Context) =
   subtype(sub, sup)(using ctx, SubtypingCache())

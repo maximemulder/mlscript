@@ -26,7 +26,7 @@ def joinMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache
     case _ =>
 
   right match
-    case TNeg(right) if checkSubtype(left, right) =>
+    case TNeg(right) if checkSubtype(right, left) =>
       return Some(TTop)
     case _ =>
 

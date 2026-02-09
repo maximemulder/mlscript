@@ -5,6 +5,8 @@ import hkmc2.ctml.types.*
 /** Split a type in two if it can be decomposed as an union. */
 def splitUnion(type_ : Type): Option[(Type, Type)] =
   type_ match
+    case TNeg(TInter(left, right)) =>
+      Some (TNeg(left), TNeg(right))
     case union: TUnion =>
       Some((union.left, union.right))
     case inter: TInter =>
@@ -27,6 +29,8 @@ def splitUnion(type_ : Type): Option[(Type, Type)] =
 /** Split a type in two if it can be decomposed as an intersection. */
 def splitInter(type_ : Type): Option[(Type, Type)] =
   type_ match
+    case TNeg(TUnion(left, right)) =>
+      Some (TNeg(left), TNeg(right))
     case union: TUnion =>
       (splitInter(union.left), splitInter(union.right)) match
         case (Some(left, right), _) =>

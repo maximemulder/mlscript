@@ -69,10 +69,8 @@ extension (ctx: Context)
 
     types.exists(_.getConstrainedVars().contains(var_))
 
-  def solveLevel(type_ : Type, touts: Clauses): (Type, Clauses) =
-    val levelVars = ctx.getLevelVars(touts)
-
-    val outs = ctx.removeUnusedBounds(type_, touts, levelVars.toSet)
+  def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
+    val levelVars = ctx.getLevelVars(outs)
 
     // Ignore, inline, or add constraints for each type variables of this level.
     val (newType, newOuts, rerun) = levelVars.foldRight((type_, outs, false))((var_, to) =>
@@ -90,15 +88,6 @@ extension (ctx: Context)
     )
 
     (newNewType.simplify()(using ctx.extend(newNewOuts)), newNewOuts)
-
-  def removeUnusedBounds(type_ : Type, outs: Clauses, levelVars: Set[TypeVar]): Clauses =
-    outs.filterBounds(bound =>
-      if !levelVars.contains(bound.var_) then
-        true
-      else
-        val polarities = type_.getAllVarPolarities(bound.var_)(using ctx.extend(outs))
-        polarities.contains(bound.dir.pol)
-    )
 
   def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses, levelVars: Set[TypeVar]) =
     val fullCtx = ctx.extend(outs)

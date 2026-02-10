@@ -9,7 +9,7 @@ import hkmc2.ctml.types.*
 
 /** Make a negation type, simplifying it if possible. */
 def makeNegationType(body: Type): Type =
-  normalizeNegation(TNeg(body))
+  body.negate()
 
 /** Make a constraining type, simplifying it if possible. */
 def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =

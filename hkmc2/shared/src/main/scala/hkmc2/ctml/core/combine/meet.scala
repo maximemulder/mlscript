@@ -28,13 +28,13 @@ def meetImpl(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache)
 def meetMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache): Option[Type] =
 
   left match
-    case TNeg(left) if checkSubtype(right, left) =>
-      return Some(TBot)
+    case TNeg(left) =>
+      return Some(right.subtract(left))
     case _ =>
 
   right match
-    case TNeg(right) if checkSubtype(left, right) =>
-      return Some(TBot)
+    case TNeg(right) =>
+      return Some(left.subtract(right))
     case _ =>
 
   // Meet lambda types.

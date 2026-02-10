@@ -51,14 +51,9 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   // Normalize negation types.
 
-  (sub, sup) match
-    case (TNeg(sub), TNeg(sup)) =>
-      return subtype(sup, sub)
-    case _ =>
-
   sub match
     case TNeg(sub) =>
-      negate(sub) match
+      sub.negateStep() match
         case Some(sub) =>
           return subtype(sub, sup)
         case _ =>
@@ -66,13 +61,18 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   sup match
     case TNeg(sup) =>
-      negate(sup) match
+      sup.negateStep() match
         case Some(sup) =>
           return subtype(sub, sup)
         case _ =>
     case _ =>
 
   // Subtype negation types
+
+  (sub, sup) match
+    case (TNeg(sub), TNeg(sup)) =>
+      return subtype(sup, sub)
+    case _ =>
 
   sup match
     case TNeg(sup) if areDisjointConstructors(sub, sup) =>

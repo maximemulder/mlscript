@@ -12,6 +12,7 @@ import hkmc2.semantics.Statement
 import hkmc2.semantics.Term
 import hkmc2.semantics.Spd
 import hkmc2.syntax.Tree
+import hkmc2.semantics.SimpleSplit.Head
 
 
 /** Convert an MLScript term to a CTML expression. */
@@ -53,8 +54,8 @@ def parseExpr(mlExpr: Term): Expr =
       val then_ = parseExpr(mlThen)
       val else_ = parseExpr(mlElse)
       EApp(EApp(EApp(EVar("_if_"), condition), then_), else_)
-    case Term.IfLike(_, mlMatch) =>
-      parseMatch(mlMatch)
+    case Term.IfLike(_, mlSplit) =>
+      parseSplit(mlSplit)
     case _ =>
       throw new ParseError(mlExpr)
 
@@ -124,33 +125,54 @@ def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
         case _ =>
           parseExpr(mlLambda)
 
-/** Convert an MLScript split to a CTML pattern matching expression */
-def parseMatch(mlMatch: SimpleSplit): EMatch =
-  // TODO: This could be prettier.
-  mlMatch match
-    case SimpleSplit.Cons(mlCase @ SimpleSplit.Head.Let(_, mlScrutinee), mlCases: SimpleSplit.Cons) =>
-      parseCases(mlScrutinee, mlCases)
-    case mlMatch @ SimpleSplit.Cons(SimpleSplit.Head.Match(mlScrutinee, _, _), _) =>
-      parseCases(mlScrutinee, mlMatch)
+/** Convert an MLScript split to a CTML expression */
+def parseSplit(mlSplit: SimpleSplit): Expr =
+  mlSplit match
+    case mlCons: SimpleSplit.Cons =>
+      parseCons(mlCons)
+    case SimpleSplit.Else(mlExpr) =>
+      parseExpr(mlExpr)
+    case SimpleSplit.End =>
+      throw new ParseError(Term.Error)
+
+/** Convert an MLScript cons to a CTML expression */
+def parseCons(mlCons: SimpleSplit.Cons): Expr =
+  mlCons match
+    case SimpleSplit.Cons(mlLet @ SimpleSplit.Head.Let(_, _), mlTail: SimpleSplit.Cons) =>
+      parseLet(mlLet, mlTail)
+    case SimpleSplit.Cons(mlMatch : SimpleSplit.Head.Match, mlTail) =>
+      parseMatch(mlMatch, mlTail)
     case _ =>
       throw new ParseError(Term.Error)
 
-def parseCases(mlScrutinee: Term, mlMatch: SimpleSplit.Cons): EMatch =
-  mlMatch.branch match
-    case SimpleSplit.Head.Match(_, Pattern.Constructor(mlPattern, _), SimpleSplit.Else(mlBody)) =>
-      val scrutinee = parseExpr(mlScrutinee)
-      val pattern = parseType(mlPattern)
-      val then_ = parseExpr(mlBody)
-      val else_ = mlMatch.tail match
-        case mlMatch: SimpleSplit.Cons =>
-          Some(parseCases(mlScrutinee, mlMatch))
-        case SimpleSplit.End =>
-          None
-        case _ =>
-          throw new ParseError(Term.Error)
-      EMatch(scrutinee, pattern, then_, else_)
+/** Convert an MLScript let binding to a CTML expression */
+def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons): Expr =
+  val param = mlLet.binding.nme
+  val body = parseExpr(mlLet.term)
+  val arg = parseCons(mlTail)
+  EApp(ELam(param, body), arg)
+
+/** Convert an MLScript pattern match to a CTML expression */
+def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit): EMatch =
+  val scrutinee = parseExpr(mlMatch.scrutinee)
+  val pattern = parsePattern(mlMatch.pattern)
+  val then_ = parseSplit(mlMatch.consequent)
+  val else_ = mlTail match
+    case mlCons: SimpleSplit.Cons =>
+      Some(parseCons(mlCons))
+    case SimpleSplit.Else(mlElse) =>
+      Some(parseExpr(mlElse))
+    case SimpleSplit.End =>
+      None
+  EMatch(scrutinee, pattern, then_, else_)
+
+/** Convert an MLScript pattern to a CTML pattern */
+def parsePattern(mlPattern: Pattern): Type =
+  mlPattern match
+    case Pattern.Constructor(mlPattern, _) =>
+      parseType(mlPattern)
     case _ =>
-      throw new ParseError(Term.Error)
+      throw ParseError(Term.Error)
 
 /** Get the underlying term of an MLScript element. */
 def getElemTerm(elem: Elem): Term =

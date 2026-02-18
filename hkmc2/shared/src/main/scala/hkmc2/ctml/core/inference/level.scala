@@ -78,7 +78,7 @@ extension (ctx: Context)
       quantifyVar2(to._1, var_, to._2)(using ctx)
     )
 
-    (newNewType.simplify()(using ctx.extend(newNewOuts)), newNewOuts)
+    (newNewType, newNewOuts)
 
   def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses, levelVars: Set[TypeVar]) =
     val fullCtx = ctx.extend(outs)

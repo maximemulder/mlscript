@@ -4,7 +4,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
 
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.system.*
+import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*
 
 /** Make a negation type, simplifying it if possible. */

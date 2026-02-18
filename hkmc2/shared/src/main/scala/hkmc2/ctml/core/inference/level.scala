@@ -9,7 +9,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.getExtremalType
-import hkmc2.ctml.core.system.*
+import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.impls.getAllVarPolarities.*
 import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.type_.impls.simplify.*

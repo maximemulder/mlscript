@@ -69,24 +69,21 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   val scrutineeCtx = ctx.extend(scrutineeClauses)
-  val (casesType, casesClauses) = scrutineeCtx.withFreshVarLevel((tmpVar, tmpCtx) =>
-    tmpCtx.withFreshVarLevel((matchVar, matchCtx) =>
-      given Context = matchCtx
-      val scrutineeRealType = TVar(tmpVar)
-      val matchType = TVar(matchVar)
-      val patternClauses = typingSubtypeSeq(scrutineeType, match_.pattern, Bound(tmpVar, Direction.Sub, scrutineeType).asClauses)
-      val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
-      val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
+  val (casesType, casesClauses) = scrutineeCtx.withFreshVarLevel((matchVar, matchCtx) =>
+    given Context = matchCtx
+    val matchType = TVar(matchVar)
+    val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+    val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+    val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
 
-      match_.else_ match
-        case Some(else_) =>
-          val elsePatternClauses = typingSubtypeSeq(scrutineeRealType, TNeg(match_.pattern), Bound(tmpVar, Direction.Sub, scrutineeType).asClauses)
-          val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
-          val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
-          (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
-        case None =>
-          (matchType, realBodyClauses)
-    )
+    match_.else_ match
+      case Some(else_) =>
+        val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+        val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+        val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+        (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
+      case None =>
+        (matchType, realBodyClauses)
   )
 
   (casesType, scrutineeClauses.concat(casesClauses))

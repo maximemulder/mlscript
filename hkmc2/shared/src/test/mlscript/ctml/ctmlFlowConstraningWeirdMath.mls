@@ -8,7 +8,7 @@ fun foo(a, b) =
   if a is
     Int then b as Int
     Top then b as Str
-//│ foo: ∀α, β, γ. {α ≤ (Int ⟹ {β ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {β ≥ Str}), β ≥ (Int ⟹ {α ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {α ≤ Str}), γ ≤ (Int ⟹ {β ≥ Int, α ≤ Int}) ∨ (⊤ ⟹ {β ≥ Str, α ≤ Str})} ⟹ γ → α → β
+//│ foo: ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})} ⟹ α → β → γ
 
 // Function overloads
 
@@ -18,7 +18,7 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
-//│ ∀α, β. {α ≥ Int, α ≤ Int, β ≥ Int} ⟹ β
+//│ Int
 
 foo("Hello", "World")
 //│ Str
@@ -33,25 +33,26 @@ foo(bot, bot)
 
 :e
 foo as (Bool -> Bool -> Bool)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ (Int ⟹ {β ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {β ≥ Str}), β ≥ (Int ⟹ {α ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {α ≤ Str}), γ ≤ (Int ⟹ {β ≥ Int, α ≤ Int}) ∨ (⊤ ⟹ {β ≥ Str, α ≤ Str})} ⟹ γ → α → β ≤ Bool → Bool → Bool.
+//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})} ⟹ α → β → γ ≤ Bool → Bool → Bool.
 //│ Typing error tree:
-//│   ∀α, β, γ. {α ≤ (Int ⟹ {β ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {β ≥ Str}), β ≥ (Int ⟹ {α ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {α ≤ Str}), γ ≤ (Int ⟹ {β ≥ Int, α ≤ Int}) ∨ (⊤ ⟹ {β ≥ Str, α ≤ Str})} ⟹ γ → α → β ≤ Bool → Bool → Bool
-//│     ∀β, γ. {δ ≤ (Int ⟹ {β ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {β ≥ Str}), β ≥ (Int ⟹ {δ ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {δ ≤ Str}), γ ≤ (Int ⟹ {β ≥ Int, δ ≤ Int}) ∨ (⊤ ⟹ {β ≥ Str, δ ≤ Str})} ⟹ γ → δ → β ≤ Bool → Bool → Bool
-//│       ∀γ. {δ ≤ (Int ⟹ {ε ≥ Int, γ ≤ Int}) ∨ (Str ⟹ {ε ≥ Str}), ε ≥ (Int ⟹ {δ ≤ Int, γ ≤ Int}) ∧ (Str ⟹ {δ ≤ Str}), γ ≤ (Int ⟹ {ε ≥ Int, δ ≤ Int}) ∨ (⊤ ⟹ {ε ≥ Str, δ ≤ Str})} ⟹ γ → δ → ε ≤ Bool → Bool → Bool
-//│         {δ ≤ (Int ⟹ {ε ≥ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≥ Str}), ε ≥ (Int ⟹ {δ ≤ Int, ζ ≤ Int}) ∧ (Str ⟹ {δ ≤ Str}), ζ ≤ (Int ⟹ {ε ≥ Int, δ ≤ Int}) ∨ (⊤ ⟹ {ε ≥ Str, δ ≤ Str})} ⟹ ζ → δ → ε ≤ Bool → Bool → Bool
-//│           {ε ≥ (Int ⟹ {δ ≤ Int, ζ ≤ Int}) ∧ (Str ⟹ {δ ≤ Str}), ζ ≤ (Int ⟹ {ε ≥ Int, δ ≤ Int}) ∨ (⊤ ⟹ {ε ≥ Str, δ ≤ Str})} ⟹ ζ → δ → ε ≤ Bool → Bool → Bool
-//│             {ζ ≤ (Int ⟹ {ε ≥ Int, δ ≤ Int}) ∨ (⊤ ⟹ {ε ≥ Str, δ ≤ Str})} ⟹ ζ → δ → ε ≤ Bool → Bool → Bool
-//│               ζ → δ → ε ≤ Bool → Bool → Bool
-//│                 δ → ε ≤ Bool → Bool
-//│                   Bool ≤ δ
-//│                     Bool ≤ ((Int ⟹ {ε ≥ Int, ζ ≤ Int}) ∨ (Str ⟹ {ε ≥ Str})) ∧ Str
-//│                       Bool ≤ (Int ⟹ {ε ≥ Int, ζ ≤ Int}) ∧ Str
-//│                         Bool ≤ Int ⟹ {ε ≥ Int, ζ ≤ Int}
-//│                           Bool ≤ Int ⟹ {ζ ≤ Int}
+//│   ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})} ⟹ α → β → γ ≤ Bool → Bool → Bool
+//│     ∀β, γ. {δ ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, δ ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {β ≤ Str, δ ≤ ¬Int})} ⟹ δ → β → γ ≤ Bool → Bool → Bool
+//│       ∀γ. {δ ≤ (Int ⟹ {γ ≥ Int, ε ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, ε ≤ Str}), ε ≤ (Int ⟹ {γ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, δ ≤ ¬Int}), γ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → γ ≤ Bool → Bool → Bool
+//│         {δ ≤ (Int ⟹ {ζ ≥ Int, ε ≤ Int}) ∨ (¬Int ⟹ {ζ ≥ Str, ε ≤ Str}), ε ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}), ζ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│           {ε ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}), ζ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│             {ζ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│               δ → ε → ζ ≤ Bool → Bool → Bool
+//│                 ε → ζ ≤ Bool → Bool
+//│                   Bool ≤ ε
+//│                     Bool ≤ ((Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int})) ∧ Str
+//│                       Bool ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∧ Str
+//│                         Bool ≤ Int ⟹ {ζ ≥ Int, δ ≤ Int}
+//│                           Bool ≤ Int ⟹ {δ ≤ Int}
 //│                             Bool ≤ Int
-//│                       Bool ≤ (Str ⟹ {ε ≥ Str}) ∧ Str
-//│                         Bool ≤ Str ⟹ {ε ≥ Str}
-//│                           Bool ≤ Str
+//│                       Bool ≤ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}) ∧ Str
+//│                         Bool ≤ Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}
+//│                           Bool ≤ Str ⟹ {δ ≤ ¬Int}
+//│                             Bool ≤ Str
 
 :e
 foo(true, 1)
@@ -67,7 +68,9 @@ foo(true, true)
 //│   Str → Str ≤ Bool → α
 //│     Bool ≤ Str
 
-// There seems to be a problem with variable being inlined too eagerly.
-:breakme
+:e
 foo(1, "World")
-//│ ∀α, β. {α ≥ Str, α ≤ Str, β ≥ Str} ⟹ β
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int

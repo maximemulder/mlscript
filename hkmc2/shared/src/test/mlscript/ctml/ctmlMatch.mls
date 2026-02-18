@@ -2,13 +2,34 @@
 
 :ctml-cfg constrained
 
-if (1 as Int) is
+
+if 1 is
   Int then 1
 //│ Int
+
+if 1 is
+  Int then 1
+  Str then "Hello"
+//│ Int
+
+if (1 as Int | Str) is
+  Int then 1
+  Str then "Hello"
+//│ Str ∨ Int
 
 :e
 if (1 as Int) is
   Str then 1
-//│ ═══[ERROR] Cannot solve judgment Int ≤ Str.
+//│ ═══[ERROR] Cannot solve judgment Str → Int ≤ Int → α.
 //│ Typing error tree:
-//│   Int ≤ Str
+//│   Str → Int ≤ Int → α
+//│     Int ≤ Str
+
+:e
+if (1 as Int | Str) is
+  Int then 1
+//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ Typing error tree:
+//│   Int → Int ≤ (Int ∨ Str) → α
+//│     Int → Int ≤ Str → α
+//│       Str ≤ Int

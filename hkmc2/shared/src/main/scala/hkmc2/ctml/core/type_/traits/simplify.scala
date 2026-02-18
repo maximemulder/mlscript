@@ -3,7 +3,7 @@ package hkmc2.ctml.core.type_.traits
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.system.*
+import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.inline.*

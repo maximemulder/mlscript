@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.context
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.system.*
+import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.config.config

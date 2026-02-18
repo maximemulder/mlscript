@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.system
+package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.types.*
 

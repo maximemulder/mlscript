@@ -171,6 +171,12 @@ def parsePattern(mlPattern: Pattern): Type =
   mlPattern match
     case Pattern.Constructor(mlPattern, _) =>
       parseType(mlPattern)
+    case Pattern.Negation(mlPattern) =>
+      TNeg(parsePattern(mlPattern))
+    case Pattern.Composition(true, mlLeft, mlRight) =>
+      TUnion(parsePattern(mlLeft), parsePattern(mlRight))
+    case Pattern.Composition(false, mlLeft, mlRight) =>
+      TInter(parsePattern(mlLeft), parsePattern(mlRight))
     case _ =>
       throw ParseError(Term.Error)
 

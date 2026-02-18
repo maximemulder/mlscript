@@ -148,8 +148,8 @@ def parseCons(mlCons: SimpleSplit.Cons): Expr =
 /** Convert an MLScript let binding to a CTML expression */
 def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons): Expr =
   val param = mlLet.binding.nme
-  val body = parseExpr(mlLet.term)
-  val arg = parseCons(mlTail)
+  val arg = parseExpr(mlLet.term)
+  val body = parseCons(mlTail)
   EApp(ELam(param, body), arg)
 
 /** Convert an MLScript pattern match to a CTML expression */

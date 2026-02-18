@@ -60,15 +60,6 @@ extension (ctx: Context)
     // The type variable is not declared in a lower level and neither are its dependent variables.
     !ctx.hasVar(var_) && dependentVars.forall(ctx.isLevelVar(_, outs))
 
-  /** Check whether a type variable is constrained by any of the other variables of the same level. */
-  def isVarConstrained(var_ : TypeVar, levelVars: Set[TypeVar]): Boolean =
-    val types = levelVars.toList.flatMap(levelVar => List(
-      ctx.getVarLowerBound(levelVar),
-      ctx.getVarUpperBound(levelVar),
-    ))
-
-    types.exists(_.getConstrainedVars().contains(var_))
-
   def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
     val levelVars = ctx.getLevelVars(outs)
 
@@ -109,8 +100,6 @@ extension (ctx: Context)
         //   case _ =>
         //     ()
         quantifyVar(type_, var_, outs)
-    else if fullCtx.isVarConstrained(var_, levelVars) then
-      quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, false) then
       inlineVar(type_, var_, outs)
     else

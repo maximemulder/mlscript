@@ -2,7 +2,6 @@
 
 :ctml-cfg constrained
 
-
 if 1 is
   Int then 1
 //│ Int

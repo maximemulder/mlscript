@@ -11,3 +11,33 @@ val zs: Z | S
 
 wf(zs, zs)
 //│ Z ∨ S
+
+type A
+type B
+type C
+type D
+
+(A -> (B & C)) == ((A -> B) & (A -> C))
+//│ OK
+
+((A | B) -> C) == ((A -> C) & (B -> C))
+//│ OK
+
+((A | B) -> (D & C)) <= ((A -> C) & (B -> D))
+//│ OK
+
+:e
+((A -> C) & (B -> D)) <= ((A | B) -> (C & D))
+//│ ═══[ERROR] Cannot solve judgment (A → C) ∧ (B → D) ≤ (A ∨ B) → (C ∧ D).
+//│ Typing error tree:
+//│   (A → C) ∧ (B → D) ≤ (A ∨ B) → (C ∧ D)
+//│     (A → C) ∧ (B → D) ≤ A → (C ∧ D)
+//│       (A → C) ∧ (B → D) ≤ A → D
+//│         A → C ≤ A → D
+//│           C ≤ D
+//│             C ≤ ⊥
+//│               ⊤ ≤ ⊥
+//│         B → D ≤ A → D
+//│           A ≤ B
+//│             A ≤ ⊥
+//│               ⊤ ≤ ⊥

@@ -200,12 +200,12 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   sub match
     case sub: TConstrained =>
-      return subtypeConstrained(sub, sup, Direction.Sub)
+      return subtypeConstrainedSub(sub, sup)
     case _ =>
 
   sup match
     case sup: TConstrained =>
-      return subtypeConstrained(sup, sub, Direction.Super)
+      return subtypeConstrainedSup(sup, sub)
     case _ =>
 
   // Subtyping of class type variables.
@@ -287,12 +287,17 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, cache: SubtypingCa
   val freshBody = sup.body.substitute(sup.var_, freshDecl.var_)
   subtypeSeq(sub, freshBody, freshDecl.asClauses)
 
-/** Constrain a constrained type to be a subtype or supertype of another type. */
-def subtypeConstrained(constrained: TConstrained, type_ : Type, dir: Direction)(using ctx: Context, cache: SubtypingCache): Clauses =
+/** Constrain a constrained type to be a subtype of another type. */
+def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Context, cache: SubtypingCache): Clauses =
+  val clauses = subtypeConstraint(constrained.constraint)
+  subtypeSeq(constrained.body, type_, clauses)
+
+/** Constrain a constrained type to be a supertype of another type. */
+def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, cache: SubtypingCache): Clauses =
   val vars = constrained.constraint.getVars()
   val newCtx = ctx.flexify(vars)
   val clauses = subtypeConstraint(constrained.constraint)(using newCtx, cache)
-  subtypeDirSeq(constrained.body, type_, dir, clauses)
+  subtypeSeq(type_, constrained.body, clauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, cache: SubtypingCache): Clauses =

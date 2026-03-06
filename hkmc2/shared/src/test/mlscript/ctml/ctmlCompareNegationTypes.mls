@@ -51,9 +51,9 @@ A <= ~B
 (~B | (A & B)) == ~B
 //│ OK
 
-:e
+:te
 ~A <= B
-//│ ═══[ERROR] Cannot solve judgment ¬A ≤ B.
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬A ≤ B.
 //│ Typing error tree:
 //│   ¬A ≤ B
 
@@ -77,30 +77,30 @@ A <= ~B
 Nat <= (~Int | Nat)
 //│ OK
 
-:e
+:te
 Int <= (~Nat & Int)
-//│ ═══[ERROR] Cannot solve judgment Int ≤ ¬Nat ∧ Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Nat ∧ Int.
 //│ Typing error tree:
 //│   Int ≤ ¬Nat ∧ Int
 //│     Int ≤ ¬Nat
 
-:e
+:te
 Nat <= (~Nat & Int)
-//│ ═══[ERROR] Cannot solve judgment Nat ≤ ¬Nat ∧ Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment Nat ≤ ¬Nat ∧ Int.
 //│ Typing error tree:
 //│   Nat ≤ ¬Nat ∧ Int
 //│     Nat ≤ ¬Nat
 
-:e
+:te
 (~Int | Nat) <= Nat
-//│ ═══[ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Nat.
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Nat.
 //│ Typing error tree:
 //│   ¬Int ∨ Nat ≤ Nat
 //│     ¬Int ≤ Nat
 
-:e
+:te
 (~Int | Nat) <= Int
-//│ ═══[ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Int.
 //│ Typing error tree:
 //│   ¬Int ∨ Nat ≤ Int
 //│     ¬Int ≤ Int

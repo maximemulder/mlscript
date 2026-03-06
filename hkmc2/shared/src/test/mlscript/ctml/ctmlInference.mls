@@ -28,9 +28,9 @@ foo(a)
 foo(b)
 //│ B
 
-:e
+:te
 foo(c)
-//│ ═══[ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment (A → A) ∧ (B → B) ≤ C → α.
 //│ Typing error tree:
 //│   (A → A) ∧ (B → B) ≤ C → α
 //│     A → A ≤ C → α

@@ -12,8 +12,8 @@ import hkmc2.semantics.Statement
 import hkmc2.semantics.Term
 import hkmc2.semantics.Spd
 import hkmc2.syntax.Tree
+import hkmc2.semantics.IfLikeForm
 import hkmc2.semantics.SimpleSplit.Head
-
 
 /** Convert an MLScript term to a CTML expression. */
 def parseExpr(mlExpr: Term): Expr =
@@ -49,12 +49,12 @@ def parseExpr(mlExpr: Term): Expr =
       val expr  = parseExpr(mlExpr)
       val type_ = parseType(mlType)
       EAscr(expr, type_)
-    case Term.IfLike(_, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, _, SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
+    case Term.IfLike(_, IfLikeForm.ReturningIf, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, _, SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
       val condition = parseExpr(mlCondition)
       val then_ = parseExpr(mlThen)
       val else_ = parseExpr(mlElse)
       EApp(EApp(EApp(EVar("_if_"), condition), then_), else_)
-    case Term.IfLike(_, mlSplit) =>
+    case Term.IfLike(_, IfLikeForm.ReturningIf, mlSplit) =>
       parseSplit(mlSplit)
     case _ =>
       throw new ParseError(mlExpr)

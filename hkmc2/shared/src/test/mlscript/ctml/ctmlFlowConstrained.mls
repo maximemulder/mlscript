@@ -40,9 +40,9 @@ foo(int_or_string)
 
 // Errors
 
-:e
+:te
 foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
 //│ Typing error tree:
 //│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
 //│     ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ Bool → Bool
@@ -57,9 +57,9 @@ foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
 //│                   Bool ≤ {δ ≥ Str} ⟹ Str
 //│                     Bool ≤ Str
 
-:e
+:te
 foo(true)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
 //│ Typing error tree:
 //│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β ≤ Bool → γ
 //│     ∀β. {δ ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, δ ≤ ¬Int} ⟹ Str)} ⟹ δ → β ≤ Bool → γ
@@ -105,9 +105,9 @@ foo2(bot, bot)
 
 // Errors
 
-:e
+:te
 foo2(1, "World")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int

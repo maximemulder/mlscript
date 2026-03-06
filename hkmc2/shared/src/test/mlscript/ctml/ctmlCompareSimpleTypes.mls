@@ -14,9 +14,9 @@ Top == Top
 Bot <= Top
 //│ OK
 
-:e
+:te
 Top <= Bot
-//│ ═══[ERROR] Cannot solve judgment ⊤ ≤ ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ ⊥.
 //│ Typing error tree:
 //│   ⊤ ≤ ⊥
 
@@ -34,21 +34,21 @@ Bot <= A
 (Int & Str) == Bot
 //│ OK
 
-:e
+:te
 Top <= A
-//│ ═══[ERROR] Cannot solve judgment ⊤ ≤ A.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ A.
 //│ Typing error tree:
 //│   ⊤ ≤ A
 
-:e
+:te
 A <= Bot
-//│ ═══[ERROR] Cannot solve judgment A ≤ ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ ⊥.
 //│ Typing error tree:
 //│   A ≤ ⊥
 
-:e
+:te
 A == B
-//│ ═══[ERROR] Cannot solve judgment A ≡ B.
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≡ B.
 //│ Typing error tree:
 //│   A ≡ B
 //│     A ≤ B
@@ -67,30 +67,30 @@ A == B
 (Bot -> A) <= (Bot -> Top)
 //│ OK
 
-:e
+:te
 (A -> Bot) <= (Top -> Bot)
-//│ ═══[ERROR] Cannot solve judgment A → ⊥ ≤ ⊤ → ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment A → ⊥ ≤ ⊤ → ⊥.
 //│ Typing error tree:
 //│   A → ⊥ ≤ ⊤ → ⊥
 //│     ⊤ ≤ A
 
-:e
+:te
 (Top -> A) <= (Top -> Bot)
-//│ ═══[ERROR] Cannot solve judgment ⊤ → A ≤ ⊤ → ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ → A ≤ ⊤ → ⊥.
 //│ Typing error tree:
 //│   ⊤ → A ≤ ⊤ → ⊥
 //│     A ≤ ⊥
 
-:e
+:te
 (Bot -> Top) <= (A -> Top)
-//│ ═══[ERROR] Cannot solve judgment ⊥ → ⊤ ≤ A → ⊤.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊤ ≤ A → ⊤.
 //│ Typing error tree:
 //│   ⊥ → ⊤ ≤ A → ⊤
 //│     A ≤ ⊥
 
-:e
+:te
 (Bot -> Top) <= (Bot -> A)
-//│ ═══[ERROR] Cannot solve judgment ⊥ → ⊤ ≤ ⊥ → A.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊤ ≤ ⊥ → A.
 //│ Typing error tree:
 //│   ⊥ → ⊤ ≤ ⊥ → A
 //│     ⊤ ≤ A

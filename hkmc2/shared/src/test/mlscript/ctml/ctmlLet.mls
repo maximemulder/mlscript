@@ -28,16 +28,16 @@ baz("", "")
 baz(bot, bot)
 //│ ⊥
 
-:e
+:te
 baz(1, "")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int
 
-:e
+:te
 baz(true, false)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {α ≤ (Int ⟹ {δ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {δ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, α ≤ Str, α ≤ ¬Int}), γ ≥ ε, δ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ Str, α ≤ ¬Int}), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ ≤ Bool → ζ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {α ≤ (Int ⟹ {δ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {δ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, α ≤ Str, α ≤ ¬Int}), γ ≥ ε, δ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ Str, α ≤ ¬Int}), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ ≤ Bool → ζ.
 //│ Typing error tree:
 //│   ∀α, β, γ, δ, ε. {α ≤ (Int ⟹ {δ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {δ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, α ≤ Str, α ≤ ¬Int}), γ ≥ ε, δ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ Str, α ≤ ¬Int}), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ ≤ Bool → ζ
 //│     ∀β, γ, δ, ε. {η ≤ (Int ⟹ {δ ≥ Int, β ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {δ ≥ Int, η ≤ Int}) ∨ (Str ⟹ {δ ≥ Str, η ≤ Str, η ≤ ¬Int}), γ ≥ ε, δ ≥ (Int ⟹ {β ≤ Int, η ≤ Int}) ∧ (Str ⟹ {β ≤ Str, η ≤ Str, η ≤ ¬Int}), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ η → β → γ ≤ Bool → ζ
@@ -72,9 +72,9 @@ bop(0, 1)
 bop("0", "1")
 //│ Str
 
-:e
+:te
 bop(0, "1")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int

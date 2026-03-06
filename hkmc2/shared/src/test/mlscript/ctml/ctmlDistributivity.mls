@@ -35,9 +35,9 @@ type D
 ((A -> C) & (B -> D)) <= ((A & B) -> (C & D))
 //│ OK
 
-:e
+:te
 ((A -> C) & (B -> D)) <= ((A | B) -> (C & D))
-//│ ═══[ERROR] Cannot solve judgment (A → C) ∧ (B → D) ≤ (A ∨ B) → (C ∧ D).
+//│ ═══[TYPE ERROR] Cannot solve judgment (A → C) ∧ (B → D) ≤ (A ∨ B) → (C ∧ D).
 //│ Typing error tree:
 //│   (A → C) ∧ (B → D) ≤ (A ∨ B) → (C ∧ D)
 //│     (A → C) ∧ (B → D) ≤ A → (C ∧ D)
@@ -51,9 +51,9 @@ type D
 //│             A ≤ ⊥
 //│               ⊤ ≤ ⊥
 
-:e
+:te
 ((A | B) -> (C | D)) <= ((A -> C) & (B -> D))
-//│ ═══[ERROR] Cannot solve judgment (A ∨ B) → (C ∨ D) ≤ (A → C) ∧ (B → D).
+//│ ═══[TYPE ERROR] Cannot solve judgment (A ∨ B) → (C ∨ D) ≤ (A → C) ∧ (B → D).
 //│ Typing error tree:
 //│   (A ∨ B) → (C ∨ D) ≤ (A → C) ∧ (B → D)
 //│     (A ∨ B) → (C ∨ D) ≤ A → C
@@ -67,9 +67,9 @@ type D
 //│           A ≤ ⊥
 //│             ⊤ ≤ ⊥
 
-:e
+:te
 ((A & B) -> (C | D)) <= ((A -> C) & (B -> D))
-//│ ═══[ERROR] Cannot solve judgment (A ∧ B) → (C ∨ D) ≤ (A → C) ∧ (B → D).
+//│ ═══[TYPE ERROR] Cannot solve judgment (A ∧ B) → (C ∨ D) ≤ (A → C) ∧ (B → D).
 //│ Typing error tree:
 //│   (A ∧ B) → (C ∨ D) ≤ (A → C) ∧ (B → D)
 //│     (A ∧ B) → (C ∨ D) ≤ A → C
@@ -78,9 +78,9 @@ type D
 //│           A ≤ ⊥
 //│             ⊤ ≤ ⊥
 
-:e
+:te
 ((A & B) -> (C & D)) <= ((A -> C) & (B -> D))
-//│ ═══[ERROR] Cannot solve judgment (A ∧ B) → (C ∧ D) ≤ (A → C) ∧ (B → D).
+//│ ═══[TYPE ERROR] Cannot solve judgment (A ∧ B) → (C ∧ D) ≤ (A → C) ∧ (B → D).
 //│ Typing error tree:
 //│   (A ∧ B) → (C ∧ D) ≤ (A → C) ∧ (B → D)
 //│     (A ∧ B) → (C ∧ D) ≤ A → C

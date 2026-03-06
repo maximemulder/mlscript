@@ -14,26 +14,26 @@ C <= A
 C <= B
 //│ OK
 
-:e
+:te
 A <= B
-//│ ═══[ERROR] Cannot solve judgment A ≤ B.
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ B.
 //│ Typing error tree:
 //│   A ≤ B
 
-:e
+:te
 A <= C
-//│ ═══[ERROR] Cannot solve judgment A ≤ C.
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ C.
 //│ Typing error tree:
 //│   A ≤ C
 
-:e
+:te
 D <= B
-//│ ═══[ERROR] Cannot solve judgment D ≤ B.
+//│ ═══[TYPE ERROR] Cannot solve judgment D ≤ B.
 //│ Typing error tree:
 //│   D ≤ B
 
-:e
+:te
 B <= D
-//│ ═══[ERROR] Cannot solve judgment B ≤ D.
+//│ ═══[TYPE ERROR] Cannot solve judgment B ≤ D.
 //│ Typing error tree:
 //│   B ≤ D

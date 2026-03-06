@@ -12,15 +12,15 @@
 1 as ~(~(~(~Int)))
 //│ ¬¬¬¬Int
 
-:e
+:te
 1 as ~Int
-//│ ═══[ERROR] Cannot solve judgment Int ≤ ¬Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Int.
 //│ Typing error tree:
 //│   Int ≤ ¬Int
 
-:e
+:te
 1 as ~(~(~Int))
-//│ ═══[ERROR] Cannot solve judgment Int ≤ ¬¬¬Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬¬¬Int.
 //│ Typing error tree:
 //│   Int ≤ ¬¬¬Int
 //│     Int ≤ ¬Int

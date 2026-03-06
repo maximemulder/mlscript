@@ -63,23 +63,23 @@ declare type Z
 
 // Type errors
 
-:e
+:te
 (A | B) <= A
-//│ ═══[ERROR] Cannot solve judgment A ∨ B ≤ A.
+//│ ═══[TYPE ERROR] Cannot solve judgment A ∨ B ≤ A.
 //│ Typing error tree:
 //│   A ∨ B ≤ A
 //│     B ≤ A
 
-:e
+:te
 A <= (A & B)
-//│ ═══[ERROR] Cannot solve judgment A ≤ A ∧ B.
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ A ∧ B.
 //│ Typing error tree:
 //│   A ≤ A ∧ B
 //│     A ≤ B
 
-:e
+:te
 ((A -> B) & (C -> D)) <= ((A | C) -> (B & D))
-//│ ═══[ERROR] Cannot solve judgment (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D).
+//│ ═══[TYPE ERROR] Cannot solve judgment (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D).
 //│ Typing error tree:
 //│   (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D)
 //│     (A → B) ∧ (C → D) ≤ A → (B ∧ D)
@@ -89,9 +89,9 @@ A <= (A & B)
 //│         C → D ≤ A → D
 //│           A ≤ C
 
-:e
+:te
 ([Int, Str] | [Str, Int]) <= ([A, B] -> [A, B])
-//│ ═══[ERROR] Cannot solve judgment ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩.
 //│ Typing error tree:
 //│   ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩
 //│     ⟨Int, Str⟩ ≤ ∀A, B. ⟨A, B⟩
@@ -114,16 +114,16 @@ baz("Hello", "World")
 baz(bot, bot)
 //│ ⊥
 
-:e
+:te
 baz(1, "World")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int
 
-:e
+:te
 baz(1, top)
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ ⊤ → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ ⊤ → α.
 //│ Typing error tree:
 //│   Int → Int ≤ ⊤ → α
 //│     ⊤ ≤ Int

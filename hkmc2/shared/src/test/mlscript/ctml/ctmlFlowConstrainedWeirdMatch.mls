@@ -31,9 +31,9 @@ foo(bot, bot)
 
 // Errors
 
-:e
+:te
 foo as (Bool -> Bool -> Bool)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ ¬Int), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ ¬Int), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool.
 //│ Typing error tree:
 //│   ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ ¬Int), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool
 //│     ∀β, γ. {δ ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ ¬Int), β ≤ ({γ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, δ ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({β ≤ Str, δ ≤ ¬Int} ⟹ Str)} ⟹ δ → β → γ ≤ Bool → Bool → Bool
@@ -46,23 +46,23 @@ foo as (Bool -> Bool -> Bool)
 //│                   Bool ≤ ε
 //│                     Bool ≤ Str
 
-:e
+:te
 foo(true, 1)
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Int → α.
 //│ Typing error tree:
 //│   Str → Str ≤ Int → α
 //│     Int ≤ Str
 
-:e
+:te
 foo(true, true)
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Bool → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Bool → α.
 //│ Typing error tree:
 //│   Str → Str ≤ Bool → α
 //│     Bool ≤ Str
 
-:e
+:te
 foo(1, "World")
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
 //│   Int → Int ≤ Str → α
 //│     Str ≤ Int

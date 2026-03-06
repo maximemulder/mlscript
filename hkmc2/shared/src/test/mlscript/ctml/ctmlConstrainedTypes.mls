@@ -15,9 +15,9 @@ val idInt: [T extends Int] -> T -> Int = id
 idInt(1)
 //│ Int
 
-:e
+:te
 idInt("Hello")
-//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
 //│ Typing error tree:
 //│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α
 //│     {β ≤ Int} ⟹ β → Int ≤ Str → α
@@ -25,9 +25,9 @@ idInt("Hello")
 //│         Str ≤ β
 //│           Str ≤ Int
 
-:e
+:te
 val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
-//│ ═══[ERROR] Cannot solve judgment ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A.
 //│ Typing error tree:
 //│   ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
 //│     ∀α. α → α ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
@@ -42,9 +42,9 @@ val inc: [T extends Int] -> T -> Int = (x) => x + 1
 inc(1)
 //│ Int
 
-:e
+:te
 inc("Hello")
-//│ ═══[ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
 //│ Typing error tree:
 //│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α
 //│     {β ≤ Int} ⟹ β → Int ≤ Str → α
@@ -52,9 +52,9 @@ inc("Hello")
 //│         Str ≤ β
 //│           Str ≤ Int
 
-:e
+:te
 val incError: [T extends Int] -> T -> Int = (x) => x ++ 1
-//│ ═══[ERROR] Cannot solve judgment Str → Str ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Int → α.
 //│ Typing error tree:
 //│   Str → Str ≤ Int → α
 //│     Int ≤ Str

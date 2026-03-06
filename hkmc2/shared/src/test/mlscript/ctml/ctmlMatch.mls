@@ -16,18 +16,18 @@ if (1 as Int | Str) is
   Str then "Hello"
 //│ Str ∨ Int
 
-:e
+:te
 if (1 as Int) is
   Str then 1
-//│ ═══[ERROR] Cannot solve judgment Str → Int ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Int ≤ Int → α.
 //│ Typing error tree:
 //│   Str → Int ≤ Int → α
 //│     Int ≤ Str
 
-:e
+:te
 if (1 as Int | Str) is
   Int then 1
-//│ ═══[ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
 //│ Typing error tree:
 //│   Int → Int ≤ (Int ∨ Str) → α
 //│     Int → Int ≤ Str → α

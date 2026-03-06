@@ -25,9 +25,9 @@ fun foo(a, b) =
 foo((+), 1)
 //│ Int
 
-:e
+:te
 foo((++), 1)
-//│ ═══[ERROR] Cannot solve judgment ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ.
 //│ Typing error tree:
 //│   ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ
 //│     ∀β. (Int → δ → β) → δ → β ≤ (Str → Str → Str) → γ

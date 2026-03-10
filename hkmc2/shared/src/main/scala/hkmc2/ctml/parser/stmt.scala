@@ -41,9 +41,9 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         parseFlexVarDecl(mlSymbol)
       case TypeDef(mlSymbol, _, _, Some(mlType), _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseTypeVar(mlSymbol, mlType)
-      case TermDefinition(_, mlSymbol, _, _, _, mlType, None, _, _, _, _, _) =>
+      case TermDefinition(_, mlSymbol, _, _, _, mlType, None, _, _, _, _) =>
         parseExprDecl(mlSymbol, mlType)
-      case TermDefinition(_, mlSymbol, _, mlParams, _, mlType, Some(mlExpr), _, _, _, _, _) =>
+      case TermDefinition(_, mlSymbol, _, mlParams, _, mlType, Some(mlExpr), _, _, _, _) =>
         parseExprVar(mlSymbol, mlParams.map(_.allParams).flatten.toList, mlType, mlExpr)
       case Term.App(Term.SynthSel(_, mlIdent), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlIdent.name == "equals" =>
         val left  = parseType(mlLeft)

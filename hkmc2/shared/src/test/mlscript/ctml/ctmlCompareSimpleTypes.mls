@@ -11,40 +11,79 @@ Bot == Bot
 Top == Top
 //│ OK
 
-Bot <= Top
-//│ OK
+Bot :<: Top
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.14: 	Bot :<: Top
+//│ ╙──      	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
 :te
-Top <= Bot
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ ⊥.
-//│ Typing error tree:
-//│   ⊤ ≤ ⊥
+Top :<: Bot
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.25: 	Top :<: Bot
+//│ ╙──      	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 // Rigid type variables.
 
 A == A
 //│ OK
 
-A <= Top
-//│ OK
+A :<: Top
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.41: 	A :<: Top
+//│ ╙──      	  ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
-Bot <= A
-//│ OK
+Bot :<: A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.51: 	Bot :<: A
+//│ ╙──      	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
 (Int & Str) == Bot
 //│ OK
 
 :te
-Top <= A
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ A.
-//│ Typing error tree:
-//│   ⊤ ≤ A
+Top :<: A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.65: 	Top :<: A
+//│ ╙──      	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 :te
-A <= Bot
-//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ ⊥.
-//│ Typing error tree:
-//│   A ≤ ⊥
+A :<: Bot
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.77: 	A :<: Bot
+//│ ╙──      	  ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 :te
 A == B
@@ -55,42 +94,90 @@ A == B
 
 // Lambda types.
 
-(Top -> Bot) <= (A -> Bot)
-//│ OK
+Top -> Bot :<: A -> Bot
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.97: 	Top -> Bot :<: A -> Bot
+//│ ╙──      	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Top),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Bot),None), Fld(‹›,Ref(member:A),None)))),None))),Ref(member:Bot),None),None)
 
-(Top -> Bot) <= (Top -> A)
-//│ OK
+Top -> Bot :<: Top -> A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.107: 	Top -> Bot :<: Top -> A
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Top),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Bot),None), Fld(‹›,Ref(member:Top),None)))),None))),Ref(member:A),None),None)
 
-(A -> Top) <= (Bot -> Top)
-//│ OK
+(A -> Top) :<: Bot -> Top
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.117: 	(A -> Top) :<: Bot -> Top
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,FunTy(Tup(List(Fld(‹›,Ref(member:A),None))),Ref(member:Top),None),None), Fld(‹›,Ref(member:Bot),None)))),None))),Ref(member:Top),None)
 
-(Bot -> A) <= (Bot -> Top)
-//│ OK
+(Bot -> A) :<: Bot -> Top
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.127: 	(Bot -> A) :<: Bot -> Top
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,FunTy(Tup(List(Fld(‹›,Ref(member:Bot),None))),Ref(member:A),None),None), Fld(‹›,Ref(member:Bot),None)))),None))),Ref(member:Top),None)
 
 :te
-(A -> Bot) <= (Top -> Bot)
-//│ ═══[TYPE ERROR] Cannot solve judgment A → ⊥ ≤ ⊤ → ⊥.
-//│ Typing error tree:
-//│   A → ⊥ ≤ ⊤ → ⊥
-//│     ⊤ ≤ A
+(A -> Bot) :<: Top -> Bot
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.138: 	(A -> Bot) :<: Top -> Bot
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,FunTy(Tup(List(Fld(‹›,Ref(member:A),None))),Ref(member:Bot),None),None), Fld(‹›,Ref(member:Top),None)))),None))),Ref(member:Bot),None)
+//│ FAILURE: Unexpected lack of type error
 
 :te
-(Top -> A) <= (Top -> Bot)
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ → A ≤ ⊤ → ⊥.
-//│ Typing error tree:
-//│   ⊤ → A ≤ ⊤ → ⊥
-//│     A ≤ ⊥
+Top -> A :<: Top -> Bot
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.150: 	Top -> A :<: Top -> Bot
+//│ ╙──       	         ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Top),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:A),None), Fld(‹›,Ref(member:Top),None)))),None))),Ref(member:Bot),None),None)
+//│ FAILURE: Unexpected lack of type error
 
 :te
-(Bot -> Top) <= (A -> Top)
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊤ ≤ A → ⊤.
-//│ Typing error tree:
-//│   ⊥ → ⊤ ≤ A → ⊤
-//│     A ≤ ⊥
+Bot -> Top :<: A -> Top
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.162: 	Bot -> Top :<: A -> Top
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Bot),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Top),None), Fld(‹›,Ref(member:A),None)))),None))),Ref(member:Top),None),None)
+//│ FAILURE: Unexpected lack of type error
 
 :te
-(Bot -> Top) <= (Bot -> A)
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊤ ≤ ⊥ → A.
-//│ Typing error tree:
-//│   ⊥ → ⊤ ≤ ⊥ → A
-//│     ⊤ ≤ A
+Bot -> Top :<: Bot -> A
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.174: 	Bot -> Top :<: Bot -> A
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Bot),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Top),None), Fld(‹›,Ref(member:Bot),None)))),None))),Ref(member:A),None),None)
+//│ FAILURE: Unexpected lack of type error

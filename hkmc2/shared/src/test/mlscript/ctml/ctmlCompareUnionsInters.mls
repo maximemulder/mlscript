@@ -5,7 +5,7 @@ class B
 class C
 class D
 
-// Simple unions and intersections.
+// Simple unions and intersections
 
 Top == (Top | A)
 //│ OK
@@ -31,7 +31,7 @@ A <= (A | B)
 (A & B) == (B & A)
 //│ OK
 
-// Unions and intersection with flexible variables.
+// Unions and intersection with flexible variables
 
 ([Y, Z] -> [Y, Z]) <= ([Int, Str] | [Str, Int])
 //│ OK
@@ -42,7 +42,7 @@ declare type Z
 [Y, Z] <= ([Int, Str] | [Str, Int])
 //│ OK
 
-// Unions and intersections distributvity.
+// Unions and intersections distributvity
 
 (A | (B & C)) == ((A | B) & (A | C))
 //│ OK
@@ -50,7 +50,7 @@ declare type Z
 (A & (B | C)) == ((A & B) | (A & C))
 //│ OK
 
-// Lambdas and intersections distributvity.
+// Lambdas and intersections distributvity
 
 ((A -> B) & (A -> C)) == (A -> (B & C))
 //│ OK
@@ -60,6 +60,41 @@ declare type Z
 
 ((A | C) -> (B & D)) <= ((A -> B) & (C -> D))
 //│ OK
+
+// Unions and intersections distributvity across variables
+
+type L = Int | Str
+type R = Int | Str
+//│ L = Int ∨ Str
+//│ R = Int ∨ Str
+
+(Int | Str) <= R
+//│ OK
+
+:fixme
+L <= (Int | Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ Int ∨ Str.
+//│ Typing error tree:
+//│   L ≤ Int ∨ Str
+//│     L ≤ Int
+//│       Int ∨ Str ≤ Int
+//│         Str ≤ Int
+//│     L ≤ Str
+//│       Int ∨ Str ≤ Str
+//│         Int ≤ Str
+
+:fixme
+L <= R
+//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ R.
+//│ Typing error tree:
+//│   L ≤ R
+//│     L ≤ Int ∨ Str
+//│       L ≤ Int
+//│         Int ∨ Str ≤ Int
+//│           Str ≤ Int
+//│       L ≤ Str
+//│         Int ∨ Str ≤ Str
+//│           Int ≤ Str
 
 // Type errors
 

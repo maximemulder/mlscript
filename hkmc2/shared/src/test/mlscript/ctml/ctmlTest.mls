@@ -1,0 +1,758 @@
+:ctml
+
+:ctml-dbg constrain check var
+
+fun g9(x) = if true then x else g9(g9)(x)
+//│ 0 flex
+//│ 1 flex
+//│ 2 flex
+//│ 3 flex
+//│ 4 flex
+//│ 5 flex
+//│ constrain ∀A. Bool → A → A → A ≤ Bool → 5
+//│   6 flex freshen A
+//│   constrain Bool → 6 → 6 → 6 ≤ Bool → 5
+//│     constrain Bool ≤ Bool
+//│     OK ⇝ ∅
+//│     constrain 6 → 6 → 6 ≤ 5
+//│       constrain 6 → 6 → 6 ≤ ⊤
+//│       OK ⇝ ∅
+//│       check 6 → 6 → 6 ≤ ⊥
+//│       FAIL
+//│       check ⊥ ≤ 6 → 6 → 6
+//│       OK ⇝ ∅
+//│     OK ⇝ 5 ≥ 6 → 6 → 6
+//│   OK ⇝ 5 ≥ 6 → 6 → 6
+//│ OK ⇝ 5 ≥ 6 → 6 → 6, 6 flex
+//│ inline 5 in 5
+//│ = 6 → 6 → 6
+//│ check ⊥ ≤ ⊤
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥
+//│ FAIL
+//│ quantify 6 in 6 → 6 → 6
+//│ = 6 → 6 → 6
+//│ constrain ∀6. 6 → 6 → 6 ≤ 2 → 4
+//│   7 flex freshen 6
+//│   constrain 7 → 7 → 7 ≤ 2 → 4
+//│     constrain 2 ≤ 7
+//│       check ⊤ ≤ 7
+//│         check ⊤ ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│       check 7 ≤ ⊤
+//│       OK ⇝ ∅
+//│       check 2 ≤ ⊥
+//│         check ⊤ ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│       check ⊥ ≤ 2
+//│       OK ⇝ ∅
+//│       constrain ⊥ ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ 2 ≤ 7, 7 ≥ 2
+//│     constrain 7 → 7 ≤ 4
+//│       constrain 7 → 7 ≤ ⊤
+//│       OK ⇝ ∅
+//│       check 7 → 7 ≤ ⊥
+//│       FAIL
+//│       check ⊥ ≤ 7 → 7
+//│       OK ⇝ ∅
+//│     OK ⇝ 4 ≥ 7 → 7
+//│   OK ⇝ 4 ≥ 7 → 7, 2 ≤ 7, 7 ≥ 2
+//│ OK ⇝ 4 ≥ 7 → 7, 2 ≤ 7, 7 ≥ 2, 7 flex
+//│ inline 4 in 4
+//│ = 7 → 7
+//│ 8 flex
+//│ 9 flex
+//│ constrain 1 ≤ 1 → 9
+//│   constrain ⊥ ≤ 1 → 9
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ 1 → 9
+//│   FAIL
+//│   check 1 → 9 ≤ ⊤
+//│   OK ⇝ ∅
+//│ OK ⇝ 1 ≤ 1 → 9
+//│ constrain 9 ≤ 2 → 8
+//│   constrain ⊥ ≤ 2 → 8
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ 2 → 8
+//│   FAIL
+//│   check 2 → 8 ≤ ⊤
+//│   OK ⇝ ∅
+//│ OK ⇝ 9 ≤ 2 → 8
+//│ constrain 7 → 7 ≤ 8 → 3
+//│   constrain 8 ≤ 7
+//│     check ⊤ ≤ 7
+//│       check ⊤ ≤ 2
+//│         check ⊤ ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 7 ≤ ⊤
+//│     OK ⇝ ∅
+//│     check 8 ≤ 2
+//│       check ⊤ ≤ 2
+//│         check ⊤ ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 2 ≤ 8
+//│       check 2 ≤ ⊥
+//│         check 7 ≤ ⊥
+//│           check ⊤ ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     constrain 2 ≤ ⊤
+//│     OK ⇝ ∅
+//│   OK ⇝ 8 ≤ 7, 7 ≥ 8 ∨ 2
+//│   constrain 7 ≤ 3
+//│     check ⊤ ≤ 3
+//│       check ⊤ ≤ ⊥
+//│       FAIL
+//│     FAIL
+//│     check 3 ≤ ⊤
+//│     OK ⇝ ∅
+//│     check 7 ≤ ⊥
+//│       check ⊤ ≤ ⊥
+//│       FAIL
+//│     FAIL
+//│     check ⊥ ≤ 7
+//│     OK ⇝ ∅
+//│     constrain ⊥ ≤ ⊤
+//│     OK ⇝ ∅
+//│   OK ⇝ 7 ≤ 3, 3 ≥ 7
+//│ OK ⇝ 7 ≤ 3, 3 ≥ 7, 8 ≤ 7, 7 ≥ 8 ∨ 2
+//│ quantify 1 in 1 → 2 → 3
+//│ = 1 → 2 → 3
+//│ inline 9 in 1 → 2 → 3
+//│ = 1 → 2 → 3
+//│ check 7 ≤ ⊤
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ 7
+//│   check ⊤ ≤ 8
+//│     check ⊤ ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│   check ⊤ ≤ 2
+//│     check ⊤ ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 3 in 1 → 2 → 3
+//│ = 1 → 2 → 3
+//│ check ⊥ ≤ 7
+//│ OK ⇝ ∅
+//│ check 7 ≤ ⊥
+//│   check 3 ≤ ⊥
+//│     check ⊤ ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 8 in 1 → 2 → 3
+//│ = 1 → 2 → 3
+//│ check ⊥ ≤ 7
+//│ OK ⇝ ∅
+//│ check 7 ≤ ⊥
+//│   check 3 ≤ ⊥
+//│     check ⊤ ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 2 in 1 → 2 → 3
+//│ = 1 → 2 → 3
+//│ check 8 ∨ 2 ≤ 3
+//│   check 8 ≤ 3
+//│     check 8 ≤ 8
+//│     OK ⇝ ∅
+//│     check 8 ≤ 2
+//│       check 7 ≤ 2
+//│         check 3 ≤ 2
+//│           check ⊤ ≤ 2
+//│             check ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   OK ⇝ ∅
+//│   check 2 ≤ 3
+//│     check 2 ≤ 8
+//│       check 2 ≤ ⊥
+//│         check 7 ≤ ⊥
+//│           check 3 ≤ ⊥
+//│             check ⊤ ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 2 ≤ 2
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ check 3 ≤ 8 ∨ 2
+//│   check 3 ≤ 8
+//│     check 3 ≤ ⊥
+//│       check ⊤ ≤ ⊥
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 3 ≤ 2
+//│     check ⊤ ≤ 2
+//│       check ⊤ ≤ ⊥
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ quantify 7 in 1 → 2 → 3
+//│ = 1 → 2 → 3
+//│ constrain ∀A. (A → A) → A ≤ (∀1, 3, 8, 2, 7. {1 ≤ 1 → 2 → 8, 3 ≥ 7, 8 ≤ 7, 2 ≤ 7, 7 ≥ 8 ∨ 2, 7 ≤ 3} ⟹ 1 → 2 → 3) → 0
+//│   10 flex freshen A
+//│   constrain (10 → 10) → 10 ≤ (∀1, 3, 8, 2, 7. {1 ≤ 1 → 2 → 8, 3 ≥ 7, 8 ≤ 7, 2 ≤ 7, 7 ≥ 8 ∨ 2, 7 ≤ 3} ⟹ 1 → 2 → 3) → 0
+//│     constrain ∀1, 3, 8, 2, 7. {1 ≤ 1 → 2 → 8, 3 ≥ 7, 8 ≤ 7, 2 ≤ 7, 7 ≥ 8 ∨ 2, 7 ≤ 3} ⟹ 1 → 2 → 3 ≤ 10 → 10
+//│       11 flex freshen 1
+//│       constrain ∀3, 8, 2, 7. {11 ≤ 11 → 2 → 8, 3 ≥ 7, 8 ≤ 7, 2 ≤ 7, 7 ≥ 8 ∨ 2, 7 ≤ 3} ⟹ 11 → 2 → 3 ≤ 10 → 10
+//│         12 flex freshen 3
+//│         constrain ∀8, 2, 7. {11 ≤ 11 → 2 → 8, 12 ≥ 7, 8 ≤ 7, 2 ≤ 7, 7 ≥ 8 ∨ 2, 7 ≤ 12} ⟹ 11 → 2 → 12 ≤ 10 → 10
+//│           13 flex freshen 8
+//│           constrain ∀2, 7. {11 ≤ 11 → 2 → 13, 12 ≥ 7, 13 ≤ 7, 2 ≤ 7, 7 ≥ 13 ∨ 2, 7 ≤ 12} ⟹ 11 → 2 → 12 ≤ 10 → 10
+//│             14 flex freshen 2
+//│             constrain ∀7. {11 ≤ 11 → 14 → 13, 12 ≥ 7, 13 ≤ 7, 14 ≤ 7, 7 ≥ 13 ∨ 14, 7 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│               15 flex freshen 7
+//│               constrain {11 ≤ 11 → 14 → 13, 12 ≥ 15, 13 ≤ 15, 14 ≤ 15, 15 ≥ 13 ∨ 14, 15 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│                 constrain 11 ≤ 11 → 14 → 13
+//│                   constrain ⊥ ≤ 11 → 14 → 13
+//│                   OK ⇝ ∅
+//│                   check ⊤ ≤ 11 → 14 → 13
+//│                   FAIL
+//│                   check 11 → 14 → 13 ≤ ⊤
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 11 ≤ 11 → 14 → 13
+//│                 constrain {12 ≥ 15, 13 ≤ 15, 14 ≤ 15, 15 ≥ 13 ∨ 14, 15 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│                   constrain 15 ≤ 12
+//│                     check ⊤ ≤ 12
+//│                       check ⊤ ≤ ⊥
+//│                       FAIL
+//│                     FAIL
+//│                     check 12 ≤ ⊤
+//│                     OK ⇝ ∅
+//│                     check 15 ≤ ⊥
+//│                       check ⊤ ≤ ⊥
+//│                       FAIL
+//│                     FAIL
+//│                     check ⊥ ≤ 15
+//│                     OK ⇝ ∅
+//│                     constrain ⊥ ≤ ⊤
+//│                     OK ⇝ ∅
+//│                   OK ⇝ 15 ≤ 12, 12 ≥ 15
+//│                   constrain {13 ≤ 15, 14 ≤ 15, 15 ≥ 13 ∨ 14, 15 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│                     constrain 13 ≤ 15
+//│                       check ⊤ ≤ 15
+//│                         check ⊤ ≤ ⊥
+//│                         FAIL
+//│                       FAIL
+//│                       check 15 ≤ ⊤
+//│                       OK ⇝ ∅
+//│                       check 13 ≤ ⊥
+//│                         check ⊤ ≤ ⊥
+//│                         FAIL
+//│                       FAIL
+//│                       check ⊥ ≤ 13
+//│                       OK ⇝ ∅
+//│                       constrain ⊥ ≤ ⊤
+//│                       OK ⇝ ∅
+//│                     OK ⇝ 13 ≤ 15, 15 ≥ 13
+//│                     constrain {14 ≤ 15, 15 ≥ 13 ∨ 14, 15 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│                       constrain 14 ≤ 15
+//│                         check ⊤ ≤ 15
+//│                           check ⊤ ≤ 13
+//│                             check ⊤ ≤ ⊥
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         check 15 ≤ ⊤
+//│                         OK ⇝ ∅
+//│                         check 14 ≤ 13
+//│                           check ⊤ ≤ 13
+//│                             check ⊤ ≤ ⊥
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         check 13 ≤ 14
+//│                           check 13 ≤ ⊥
+//│                             check 15 ≤ ⊥
+//│                               check 12 ≤ ⊥
+//│                                 check ⊤ ≤ ⊥
+//│                                 FAIL
+//│                               FAIL
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         constrain 13 ≤ ⊤
+//│                         OK ⇝ ∅
+//│                       OK ⇝ 14 ≤ 15, 15 ≥ 14 ∨ 13
+//│                       constrain {15 ≥ 13 ∨ 14, 15 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│                         constrain 13 ∨ 14 ≤ 15
+//│                           constrain 13 ∨ 14 ≤ 12
+//│                             constrain 13 ∨ 14 ≤ ⊤
+//│                             OK ⇝ ∅
+//│                             check 13 ∨ 14 ≤ 15
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                           check 13 ∨ 14 ≤ 14 ∨ 13
+//│                             check 13 ≤ 14 ∨ 13
+//│                               check 13 ≤ 14
+//│                                 check 13 ≤ ⊥
+//│                                   check 15 ≤ ⊥
+//│                                     check 12 ≤ ⊥
+//│                                       check ⊤ ≤ ⊥
+//│                                       FAIL
+//│                                     FAIL
+//│                                   FAIL
+//│                                 FAIL
+//│                               FAIL
+//│                               check 13 ≤ 13
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                             check 14 ≤ 14 ∨ 13
+//│                               check 14 ≤ 14
+//│                               OK ⇝ ∅
+//│                               check 14 ≤ 13
+//│                                 check 15 ≤ 13
+//│                                   check 12 ≤ 13
+//│                                     check 12 ≤ ⊥
+//│                                       check ⊤ ≤ ⊥
+//│                                       FAIL
+//│                                     FAIL
+//│                                   FAIL
+//│                                 FAIL
+//│                               FAIL
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                         constrain {15 ≤ 12} ⟹ 11 → 14 → 12 ≤ 10 → 10
+//│                           constrain 15 ≤ 12
+//│                             check 12 ≤ 12
+//│                             OK ⇝ ∅
+//│                             check 15 ≤ 15
+//│                             OK ⇝ ∅
+//│                             constrain 15 ≤ 12
+//│                             OK ⇝ ∅
+//│                           OK ⇝ 15 ≤ 12, 12 ≥ 15
+//│                           constrain 11 → 14 → 12 ≤ 10 → 10
+//│                             constrain 10 ≤ 11
+//│                               check ⊤ ≤ 11
+//│                                 check ⊤ ≤ ⊥
+//│                                 FAIL
+//│                               FAIL
+//│                               check 11 ≤ ⊤
+//│                               OK ⇝ ∅
+//│                               check 10 ≤ ⊥
+//│                                 check ⊤ ≤ ⊥
+//│                                 FAIL
+//│                               FAIL
+//│                               check ⊥ ≤ 10
+//│                               OK ⇝ ∅
+//│                               constrain ⊥ ≤ ⊤
+//│                               OK ⇝ ∅
+//│                             OK ⇝ 10 ≤ 11, 11 ≥ 10
+//│                             constrain 14 → 12 ≤ 10
+//│                               constrain 14 → 12 ≤ 11
+//│                                 constrain 14 → 12 ≤ 11 → 14 → 13
+//│                                   constrain 11 ≤ 14
+//│                                     check 11 → 14 → 13 ≤ 14
+//│                                       check 11 → 14 → 13 ≤ ⊥
+//│                                       FAIL
+//│                                     FAIL
+//│                                     check 14 ≤ 11 → 14 → 13
+//│                                       check 15 ≤ 11 → 14 → 13
+//│                                         check 12 ≤ 11 → 14 → 13
+//│                                           check ⊤ ≤ 11 → 14 → 13
+//│                                           FAIL
+//│                                         FAIL
+//│                                       FAIL
+//│                                     FAIL
+//│                                     check 11 ≤ ⊥
+//│                                       check 11 → 14 → 13 ≤ ⊥
+//│                                       FAIL
+//│                                     FAIL
+//│                                     check ⊥ ≤ 11
+//│                                     OK ⇝ ∅
+//│                                     constrain ⊥ ≤ 11 → 14 → 13
+//│                                     OK ⇝ ∅
+//│                                   OK ⇝ 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11
+//│                                   constrain 12 ≤ 14 → 13
+//│                                     constrain 15 ≤ 14 → 13
+//│                                       constrain 14 ∨ 13 ≤ 14 → 13
+//│                                         constrain 14 ≤ 14 → 13
+//│                                           constrain 11 ≤ 14 → 13
+//│                                             constrain 10 ≤ 14 → 13
+//│                                               constrain ⊥ ≤ 14 → 13
+//│                                               OK ⇝ ∅
+//│                                               check 11 ≤ 14 → 13
+//│                                               OK ⇝ ∅
+//│                                             OK ⇝ ∅
+//│                                             check 14 ∧ (11 → 14 → 13) ≤ 14 → 13
+//│                                               check 14 ≤ 14 → 13
+//│                                               OK ⇝ ∅
+//│                                               check 11 → 14 → 13 ≤ 14 → 13
+//│                                                 check 14 ≤ 11
+//│                                                   check 15 ≤ 11
+//│                                                     check 12 ≤ 11
+//│                                                       check ⊤ ≤ 11
+//│                                                         check ⊤ ≤ 10
+//│                                                           check ⊤ ≤ ⊥
+//│                                                           FAIL
+//│                                                         FAIL
+//│                                                       FAIL
+//│                                                     FAIL
+//│                                                   FAIL
+//│                                                 FAIL
+//│                                               FAIL
+//│                                             OK ⇝ ∅
+//│                                           OK ⇝ ∅
+//│                                           check 15 ≤ 14 → 13
+//│                                           OK ⇝ ∅
+//│                                         OK ⇝ ∅
+//│                                         constrain 13 ≤ 14 → 13
+//│                                           constrain ⊥ ≤ 14 → 13
+//│                                           OK ⇝ ∅
+//│                                           check 15 ≤ 14 → 13
+//│                                           OK ⇝ ∅
+//│                                         OK ⇝ ∅
+//│                                       OK ⇝ ∅
+//│                                       check 12 ≤ 14 → 13
+//│                                       OK ⇝ ∅
+//│                                     OK ⇝ ∅
+//│                                     check ⊤ ≤ 14 → 13
+//│                                     FAIL
+//│                                     check 14 → 13 ≤ ⊤
+//│                                     OK ⇝ ∅
+//│                                   OK ⇝ 12 ≤ 14 → 13
+//│                                 OK ⇝ 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11
+//│                                 check 14 → 12 ≤ 10
+//│                                 OK ⇝ ∅
+//│                               OK ⇝ 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11
+//│                               check 14 → 12 ≤ ⊥
+//│                               FAIL
+//│                               check ⊥ ≤ 14 → 12
+//│                               OK ⇝ ∅
+//│                             OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11
+//│                           OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10
+//│                         OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15
+//│                       OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15
+//│                     OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13
+//│                   OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13
+//│                 OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15
+//│               OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13
+//│             OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex
+//│           OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex, 14 flex
+//│         OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex, 14 flex, 13 flex
+//│       OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex, 14 flex, 13 flex, 12 flex
+//│     OK ⇝ 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex, 14 flex, 13 flex, 12 flex, 11 flex
+//│     constrain 10 ≤ 0
+//│       check 11 ≤ 0
+//│         check 14 ≤ 0
+//│           check 15 ≤ 0
+//│             check 12 ≤ 0
+//│               check 14 → 13 ≤ 0
+//│                 check 14 → 13 ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check 11 → 14 → 13 ≤ 0
+//│           check 11 → 14 → 13 ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check 0 ≤ 11
+//│         check 0 ≤ 10
+//│           check 0 ≤ 14 → 12
+//│             check ⊤ ≤ 14 → 12
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       check 10 ≤ ⊥
+//│         check 14 ≤ ⊥
+//│           check 15 ≤ ⊥
+//│             check 12 ≤ ⊥
+//│               check 14 → 13 ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check 11 → 14 → 13 ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│       check ⊥ ≤ 10
+//│       OK ⇝ ∅
+//│       constrain ⊥ ≤ 11
+//│       OK ⇝ ∅
+//│     OK ⇝ 10 ≤ 0 ∧ 11, 0 ≥ 10
+//│   OK ⇝ 10 ≤ 0 ∧ 11, 0 ≥ 10, 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex, 14 flex, 13 flex, 12 flex, 11 flex
+//│ OK ⇝ 10 ≤ 0 ∧ 11, 0 ≥ 10, 10 ≥ 14 → 12, 12 ≤ 14 → 13, 11 ≤ 14 ∧ (11 → 14 → 13), 14 ≥ 11, 10 ≤ 11, 11 ≥ 10, 15 ≤ 12, 12 ≥ 15, 14 ≤ 15, 15 ≥ 14 ∨ 13, 13 ≤ 15, 15 ≥ 13, 15 ≤ 12, 12 ≥ 15, 11 ≤ 11 → 14 → 13, 15 flex, 14 flex, 13 flex, 12 flex, 11 flex, 10 flex
+//│ inline 0 in 0
+//│ check 11 ≤ ⊤
+//│ OK ⇝ ∅
+//│ = 10
+//│ inline 10 in 10
+//│ = 14 → 12
+//│ quantify 11 in 14 → 12
+//│ = 14 → 12
+//│ check 15 ≤ 14 → 13
+//│   check 12 ≤ 14 → 13
+//│     check 14 → 13 ≤ 14 → 13
+//│       check 14 ≤ 14
+//│       OK ⇝ ∅
+//│       check 13 ≤ 13
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ check 14 → 13 ≤ 15
+//│   check 14 → 13 ≤ 14
+//│     check 14 → 13 ≤ 11
+//│       check 14 → 13 ≤ 14 → 12
+//│         check 14 ≤ 14
+//│         OK ⇝ ∅
+//│         check 13 ≤ 12
+//│           check 13 ≤ 14
+//│             check 13 ≤ 11
+//│               check 15 ≤ 11
+//│                 check 12 ≤ 11
+//│                   check 14 → 13 ≤ 11
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 13 ≤ 13
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 14 → 13 ≤ 13
+//│     check 14 → 13 ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│ OK ⇝ ∅
+//│ inline 12 in 14 → 12
+//│ = 14 → 15
+//│ check 11 ≤ 15
+//│   check 11 ≤ 14
+//│     check 14 ≤ 14
+//│     OK ⇝ ∅
+//│     check 11 → 14 → 13 ≤ 14
+//│       check 11 → 14 → 13 ≤ 11
+//│         check 11 → 14 → 13 ≤ 14 → 15
+//│           check 14 ≤ 11
+//│             check 15 ≤ 11
+//│               check 14 → 13 ≤ 11
+//│                 check 14 → 13 ≤ 14 → 15
+//│                   check 14 ≤ 14
+//│                   OK ⇝ ∅
+//│                   check 13 ≤ 15
+//│                     check 13 ≤ 14
+//│                       check 13 ≤ 11
+//│                         check 15 ≤ 11
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                     check 13 ≤ 13
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 14 → 13 ≤ 15
+//│             check 14 → 13 ≤ 14
+//│               check 14 → 13 ≤ 11
+//│                 check 14 → 13 ≤ 14 → 15
+//│                   check 14 ≤ 14
+//│                   OK ⇝ ∅
+//│                   check 13 ≤ 15
+//│                     check 13 ≤ 14
+//│                       check 13 ≤ 11
+//│                         check 15 ≤ 11
+//│                           check 14 → 13 ≤ 11
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                     check 13 ≤ 13
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│             check 14 → 13 ≤ 13
+//│               check 14 → 13 ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 11 ≤ 13
+//│     check 14 ≤ 13
+//│       check 15 ≤ 13
+//│         check 14 → 13 ≤ 13
+//│           check 14 → 13 ≤ ⊥
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 11 → 14 → 13 ≤ 13
+//│       check 11 → 14 → 13 ≤ ⊥
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ OK ⇝ ∅
+//│ check 15 ≤ 11
+//│   check 14 → 13 ≤ 11
+//│     check 14 → 13 ≤ 14 → 15
+//│       check 14 ≤ 14
+//│       OK ⇝ ∅
+//│       check 13 ≤ 15
+//│         check 13 ≤ 14
+//│           check 13 ≤ 11
+//│             check 15 ≤ 11
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│         check 13 ≤ 13
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ inline 14 in 14 → 15
+//│ check 11 → 11 → 13 ≤ 15
+//│   check 11 → 11 → 13 ≤ 14
+//│     check 11 → 11 → 13 ≤ 11
+//│       check 11 → 11 → 13 ≤ 14 → 15
+//│         check 14 ≤ 11
+//│           check 15 ≤ 11
+//│             check 14 → 13 ≤ 11
+//│               check 14 → 13 ≤ 14 → 15
+//│                 check 14 ≤ 14
+//│                 OK ⇝ ∅
+//│                 check 13 ≤ 15
+//│                   check 13 ≤ 14
+//│                     check 13 ≤ 11
+//│                       check 15 ≤ 11
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                   check 13 ≤ 13
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│         check 11 → 13 ≤ 15
+//│           check 11 → 13 ≤ 14
+//│             check 11 → 13 ≤ 11
+//│               check 11 → 13 ≤ 14 → 15
+//│                 check 14 ≤ 11
+//│                   check 15 ≤ 11
+//│                     check 14 → 13 ≤ 11
+//│                       check 14 → 13 ≤ 14 → 15
+//│                         check 14 ≤ 14
+//│                         OK ⇝ ∅
+//│                         check 13 ≤ 15
+//│                           check 13 ≤ 14
+//│                             check 13 ≤ 11
+//│                               check 15 ≤ 11
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                           check 13 ≤ 13
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 13 ≤ 15
+//│                   check 13 ≤ 14
+//│                     check 13 ≤ 11
+//│                       check 15 ≤ 11
+//│                         check 14 → 13 ≤ 11
+//│                           check 14 → 13 ≤ 14 → 15
+//│                             check 14 ≤ 14
+//│                             OK ⇝ ∅
+//│                             check 13 ≤ 15
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                   check 13 ≤ 13
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 11 → 13 ≤ 13
+//│             check 11 → 13 ≤ ⊥
+//│             FAIL
+//│           FAIL
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 11 → 11 → 13 ≤ 13
+//│     check 11 → 11 → 13 ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│ OK ⇝ ∅
+//│ check 11 ≤ 13
+//│   check 14 ≤ 13
+//│     check 15 ≤ 13
+//│       check 14 → 13 ≤ 13
+//│         check 14 → 13 ≤ ⊥
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 11 → 14 → 13 ≤ 13
+//│     check 11 → 14 → 13 ≤ ⊥
+//│     FAIL
+//│   FAIL
+//│ FAIL
+//│ check 13 ≤ 11
+//│   check 15 ≤ 11
+//│     check 14 → 13 ≤ 11
+//│       check 14 → 13 ≤ 14 → 15
+//│         check 14 ≤ 14
+//│         OK ⇝ ∅
+//│         check 13 ≤ 15
+//│           check 13 ≤ 14
+//│             check 13 ≤ 11
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 13 ≤ 13
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ = 15 → 15
+//│ inline 13 in 15 → 15
+//│ = 15 → 15
+//│ quantify 15 in 15 → 15
+//│ = 15 → 15
+//│ g9: ∀α, β. {α ≥ β → β, α ≤ α → α → β, β ≥ α, β ≤ α → β} ⟹ β → β

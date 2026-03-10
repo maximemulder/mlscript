@@ -88,31 +88,8 @@ type R = (([A <: Int] => Int) | ([A <: Str] => Str))
 (Int | Str) <= R
 //│ OK
 
-:fixme
 L <= (([A <: Int] => Int) | ([A <: Str] => Str))
-//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
-//│ Typing error tree:
-//│   L ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│     L ≤ {A ≤ Int} ⟹ Int
-//│       Int ∨ Str ≤ {A ≤ Int} ⟹ Int
-//│         Str ≤ {A ≤ Int} ⟹ Int
-//│           Str ≤ Int
-//│     L ≤ {A ≤ Str} ⟹ Str
-//│       Int ∨ Str ≤ {A ≤ Str} ⟹ Str
-//│         Int ≤ {A ≤ Str} ⟹ Str
-//│           Int ≤ Str
+//│ OK
 
-:fixme
 L <= R
-//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ R.
-//│ Typing error tree:
-//│   L ≤ R
-//│     L ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│       L ≤ {A ≤ Int} ⟹ Int
-//│         Int ∨ Str ≤ {A ≤ Int} ⟹ Int
-//│           Str ≤ {A ≤ Int} ⟹ Int
-//│             Str ≤ Int
-//│       L ≤ {A ≤ Str} ⟹ Str
-//│         Int ∨ Str ≤ {A ≤ Str} ⟹ Str
-//│           Int ≤ {A ≤ Str} ⟹ Str
-//│             Int ≤ Str
+//│ OK

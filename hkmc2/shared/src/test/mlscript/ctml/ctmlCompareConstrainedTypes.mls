@@ -1,38 +1,118 @@
 :ctml
 
-([A] -> A -> A) == ([A] -> A -> A)
+declare type A
+declare type B
+declare type C
+declare type D
+
+// Simple constrained types
+
+Int <= ([Bot <: Top] => Int)
 //│ OK
 
-([A] -> A -> A) <= (Int -> Int)
+([Bot <: Top] => Int) <= Int
 //│ OK
 
-(Int -> Int) <= ([A extends Int] -> A -> Int)
-//│ OK
-
-([A extends Int] -> A -> Int) <= (Int -> Int)
-//│ OK
-
-(Int -> Int) <= ([A restricts Int] -> Int -> A)
-//│ OK
-
-([A restricts Int] -> Int -> A) <= (Int -> Int)
+([Bot <: Top] => Nat) <= ([Bot <: Top] => Int)
 //│ OK
 
 :te
-(Int -> Int) <= ([A] -> A -> A)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ ∀A. A → A.
+Int <= ([Bot <: Top] => Nat)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ {⊥ ≤ ⊤} ⟹ Nat.
 //│ Typing error tree:
-//│   Int → Int ≤ ∀A. A → A
-//│     Int → Int ≤ α → α
-//│       α ≤ Int
-//│         ⊤ ≤ Int
+//│   Int ≤ {⊥ ≤ ⊤} ⟹ Nat
+//│     Int ≤ Nat
 
 :te
-([A extends Str] -> A -> A) <= (Int -> Int)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. {A ≤ Str} ⟹ A → A ≤ Int → Int.
+([Bot <: Top] => Int) <= Nat
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Int ≤ Nat.
 //│ Typing error tree:
-//│   ∀A. {A ≤ Str} ⟹ A → A ≤ Int → Int
-//│     {α ≤ Str} ⟹ α → α ≤ Int → Int
-//│       α → α ≤ Int → Int
-//│         Int ≤ α
+//│   {⊥ ≤ ⊤} ⟹ Int ≤ Nat
+//│     Int ≤ Nat
+
+:te
+([Top <: Bot] => Int) <= Int
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊤ ≤ ⊥} ⟹ Int ≤ Int.
+//│ Typing error tree:
+//│   {⊤ ≤ ⊥} ⟹ Int ≤ Int
+//│     ⊤ ≤ ⊥
+
+// Constrained types distributvity
+
+Int <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ OK
+
+Str <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ OK
+
+(Int | Str) <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ OK
+
+([A :> Int] => (Int)) <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ OK
+
+:te
+(Bool | Int | Str) <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment (Bool ∨ Int) ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+//│ Typing error tree:
+//│   (Bool ∨ Int) ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     Bool ∨ Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│       Bool ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│         Bool ≤ {A ≤ Int} ⟹ Int
+//│           Bool ≤ Int
+//│         Bool ≤ {A ≤ Str} ⟹ Str
+//│           Bool ≤ Str
+
+:te
+([A :> Int] => (Int | Str)) <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≥ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+//│ Typing error tree:
+//│   {A ≥ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     {A ≥ Int} ⟹ Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│       Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│         Str ≤ {A ≤ Int} ⟹ Int
+//│           Str ≤ Int
+//│     {A ≥ Int} ⟹ Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│       Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│         Int ≤ {A ≤ Str} ⟹ Str
+//│           A ≤ Str
+//│             Int ≤ Str
+
+// Constrained types distributvity across variables
+
+type L = Int | Str
+type R = (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ L = Int ∨ Str
+//│ R = ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+
+(Int | Str) <= R
+//│ OK
+
+:fixme
+L <= (([A <: Int] => Int) | ([A <: Str] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+//│ Typing error tree:
+//│   L ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     L ≤ {A ≤ Int} ⟹ Int
+//│       Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│         Str ≤ {A ≤ Int} ⟹ Int
+//│           Str ≤ Int
+//│     L ≤ {A ≤ Str} ⟹ Str
+//│       Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│         Int ≤ {A ≤ Str} ⟹ Str
 //│           Int ≤ Str
+
+:fixme
+L <= R
+//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ R.
+//│ Typing error tree:
+//│   L ≤ R
+//│     L ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│       L ≤ {A ≤ Int} ⟹ Int
+//│         Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│           Str ≤ {A ≤ Int} ⟹ Int
+//│             Str ≤ Int
+//│       L ≤ {A ≤ Str} ⟹ Str
+//│         Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│           Int ≤ {A ≤ Str} ⟹ Str
+//│             Int ≤ Str

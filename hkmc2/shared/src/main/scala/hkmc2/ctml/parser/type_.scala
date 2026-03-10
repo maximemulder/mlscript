@@ -4,6 +4,8 @@ import hkmc2.ctml.types.*
 import hkmc2.semantics.Elem
 import hkmc2.semantics.Term
 import hkmc2.semantics.QuantVar
+import hkmc2.semantics.SubConstraint
+import hkmc2.semantics.SubDir
 
 /** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term): Type =
@@ -26,6 +28,8 @@ def parseType(mlType: Term): Type =
       parseTypeApp(mlAbs, mlArgs)
     case Term.Forall(mlVars, _, mlBody) =>
       parseTypeUniv(mlVars, mlBody)
+    case Term.Constrained(mlConstraints, mlBody) =>
+      parseTypeConstrained(mlConstraints, mlBody)
     case Term.CompType(mlLeft, mlRight, true) =>
       val left  = parseType(mlLeft)
       val right = parseType(mlRight)
@@ -101,3 +105,28 @@ def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =
       TUniv(var_, body)
     case Nil =>
       parseType(mlBody)
+
+/** Convert an MLScript constrained type to a CTML type. */
+def parseTypeConstrained(mlConstraints: List[SubConstraint], mlBody: Term): Type =
+  mlConstraints match
+    case mlConstraint :: mlConstraints =>
+      val body       = parseTypeConstrained(mlConstraints, mlBody)
+      val constraint = parseTypeConstraint(mlConstraint)
+      TConstrained(body, constraint)
+    case Nil =>
+      parseType(mlBody)
+
+/** Convert an MLScript subtyping constraint to a CTML type constraint. */
+def parseTypeConstraint(mlConstraint: SubConstraint): Constraint =
+  val left  = parseType(mlConstraint.lhs)
+  val right = parseType(mlConstraint.rhs)
+  val dir   = parseTypeDirection(mlConstraint.dir)
+  Constraint(left, dir, right)
+
+/** Convert an MLScript subtyping direction to a CTML subtyping direction. */
+def parseTypeDirection(mlDir: SubDir): Direction =
+  mlDir match
+    case SubDir.Sub =>
+      Direction.Sub
+    case SubDir.Sup =>
+      Direction.Super

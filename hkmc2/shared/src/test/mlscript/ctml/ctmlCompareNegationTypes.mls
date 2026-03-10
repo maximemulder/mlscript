@@ -30,8 +30,15 @@ class A
 class A
 class B
 
-A <= ~B
-//│ OK
+A :<: ~B
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.33: 	A :<: ~B
+//│ ╙──      	  ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
 (~A & B) == B
 //│ OK
@@ -52,15 +59,28 @@ A <= ~B
 //│ OK
 
 :te
-~A <= B
-//│ ═══[TYPE ERROR] Cannot solve judgment ¬A ≤ B.
-//│ Typing error tree:
-//│   ¬A ≤ B
+~A :<: B
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.62: 	~A :<: B
+//│ ╙──      	   ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 // Inherited classes
 
-(~Nat & Int) <= Int
-//│ OK
+~Nat & Int :<: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.75: 	~Nat & Int :<: Int
+//│ ╙──      	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
 (~Int & Nat) == Bot
 //│ OK
@@ -74,33 +94,60 @@ A <= ~B
 (Int | ~Nat) == Top
 //│ OK
 
-Nat <= (~Int | Nat)
-//│ OK
+Nat :<: ~Int | Nat
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.97: 	Nat :<: ~Int | Nat
+//│ ╙──      	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
 
 :te
-Int <= (~Nat & Int)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Nat ∧ Int.
-//│ Typing error tree:
-//│   Int ≤ ¬Nat ∧ Int
-//│     Int ≤ ¬Nat
+Int :<: ~Nat & Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.108: 	Int :<: ~Nat & Int
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 :te
-Nat <= (~Nat & Int)
-//│ ═══[TYPE ERROR] Cannot solve judgment Nat ≤ ¬Nat ∧ Int.
-//│ Typing error tree:
-//│   Nat ≤ ¬Nat ∧ Int
-//│     Nat ≤ ¬Nat
+Nat :<: ~Nat & Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.120: 	Nat :<: ~Nat & Int
+//│ ╙──       	    ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 :te
-(~Int | Nat) <= Nat
-//│ ═══[TYPE ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Nat.
-//│ Typing error tree:
-//│   ¬Int ∨ Nat ≤ Nat
-//│     ¬Int ≤ Nat
+~Int | Nat :<: Nat
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.132: 	~Int | Nat :<: Nat
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error
 
 :te
-(~Int | Nat) <= Int
-//│ ═══[TYPE ERROR] Cannot solve judgment ¬Int ∨ Nat ≤ Int.
-//│ Typing error tree:
-//│   ¬Int ∨ Nat ≤ Int
-//│     ¬Int ≤ Int
+~Int | Nat :<: Int
+//│ FAILURE: Unexpected compilation error
+//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
+//│ ╔══[COMPILATION ERROR] Name not found: :<:
+//│ ║  l.144: 	~Int | Nat :<: Int
+//│ ╙──       	           ^^^
+//│ FAILURE: Unexpected parse error
+//│ FAILURE LOCATION: raise (test.scala:57)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+//│ FAILURE: Unexpected lack of type error

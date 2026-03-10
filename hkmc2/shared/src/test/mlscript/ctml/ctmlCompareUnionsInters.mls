@@ -71,30 +71,11 @@ type R = Int | Str
 (Int | Str) <= R
 //│ OK
 
-:fixme
 L <= (Int | Str)
-//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ Int ∨ Str.
-//│ Typing error tree:
-//│   L ≤ Int ∨ Str
-//│     L ≤ Int
-//│       Int ∨ Str ≤ Int
-//│         Str ≤ Int
-//│     L ≤ Str
-//│       Int ∨ Str ≤ Str
-//│         Int ≤ Str
+//│ OK
 
-:fixme
 L <= R
-//│ ═══[TYPE ERROR] Cannot solve judgment L ≤ R.
-//│ Typing error tree:
-//│   L ≤ R
-//│     L ≤ Int ∨ Str
-//│       L ≤ Int
-//│         Int ∨ Str ≤ Int
-//│           Str ≤ Int
-//│       L ≤ Str
-//│         Int ∨ Str ≤ Str
-//│           Int ≤ Str
+//│ OK
 
 // Type errors
 

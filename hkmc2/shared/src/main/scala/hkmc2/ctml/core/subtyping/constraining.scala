@@ -114,6 +114,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
   if sup.is[TTop] then
     return Clauses.empty
 
+  // Subtype of equal type variables, independently of their kind.
+  
+  (sub, sup) match
+    case (TVar(sub), TVar(sup)) if sub == sup =>
+      return Clauses.empty
+    case _ =>
+
   // Subtyping of flexible type variables.
 
   (sub, sup) match
@@ -133,7 +140,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   // Subtyping of union and intersection types.
 
-  splitUnion(sub) match
+  splitUnion(sub)(using ctx, Direction.Sub, Set.empty) match
     case Some(subLeft, subRight) =>
       return ctx.all(
         subtype(subLeft,  sup),
@@ -141,7 +148,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
       )
     case _ =>
 
-  splitUnion(sup) match
+  splitUnion(sup)(using ctx, Direction.Super, Set.empty) match
     case Some(supLeft, supRight) =>
       return joinMerge(supLeft, supRight) match
         case Some(sup) =>
@@ -153,7 +160,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
           )
     case _ =>
 
-  splitInter(sup) match
+  splitInter(sup)(using ctx, Direction.Super, Set.empty) match
     case Some(supLeft, supRight) =>
       return ctx.all(
         subtype(sub, supLeft),
@@ -161,7 +168,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
       )
     case _ =>
 
-  splitInter(sub) match
+  splitInter(sub)(using ctx, Direction.Sub, Set.empty) match
     case Some(subLeft, subRight) =>
       return meetMerge(subLeft, subRight) match
         case Some(sub) =>

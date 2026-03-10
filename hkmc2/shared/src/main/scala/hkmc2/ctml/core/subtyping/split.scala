@@ -1,10 +1,13 @@
 package hkmc2.ctml.core.subtyping
 
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
 /** Split a type in two if it can be decomposed as an union. */
-def splitUnion(type_ : Type): Option[(Type, Type)] =
+def splitUnion(type_ : Type)(using ctx: Context, dir: Direction, cache: Set[TypeVar]): Option[(Type, Type)] =
   type_ match
+    case TVar(var_) if var_.isRigid && !cache.contains(var_) =>
+      splitUnion(var_.bound(dir))(using ctx, dir, cache + var_)
     case TNeg(TInter(left, right)) =>
       Some (TNeg(left), TNeg(right))
     case union: TUnion =>
@@ -27,8 +30,10 @@ def splitUnion(type_ : Type): Option[(Type, Type)] =
       None
 
 /** Split a type in two if it can be decomposed as an intersection. */
-def splitInter(type_ : Type): Option[(Type, Type)] =
+def splitInter(type_ : Type)(using ctx: Context, dir: Direction, cache: Set[TypeVar]): Option[(Type, Type)] =
   type_ match
+    case TVar(var_) if var_.isRigid && !cache.contains(var_) =>
+      splitInter(var_.bound(dir))(using ctx, dir, cache + var_)
     case TNeg(TUnion(left, right)) =>
       Some (TNeg(left), TNeg(right))
     case union: TUnion =>

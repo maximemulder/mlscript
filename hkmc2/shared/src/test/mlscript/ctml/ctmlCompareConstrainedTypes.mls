@@ -7,296 +7,89 @@ declare type D
 
 // Simple constrained types
 
-Int :<: [Bot :<: Top] => Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.10: 	Int :<: [Bot :<: Top] => Int
-//│ ╙──      	    ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.10: 	Int :<: [Bot :<: Top] => Int
-//│ ╙──      	         ^^^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+Int <:< [Bot <:< Top] => Int
+//│ OK
 
-[Bot :<: Top] => Int :<: Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.25: 	[Bot :<: Top] => Int :<: Int
-//│ ╙──      	 ^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.25: 	[Bot :<: Top] => Int :<: Int
-//│ ╙──      	                     ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Constrained(List(),App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Int),None)))))
+([Bot <:< Top] => Int) <:< Int
+//│ OK
 
-[Bot :<: Top] => Nat :<: [Bot :<: Top] => Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.40: 	[Bot :<: Top] => Nat :<: [Bot :<: Top] => Int
-//│ ╙──      	 ^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.40: 	[Bot :<: Top] => Nat :<: [Bot :<: Top] => Int
-//│ ╙──      	                     ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.40: 	[Bot :<: Top] => Nat :<: [Bot :<: Top] => Int
-//│ ╙──      	                          ^^^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Constrained(List(),App(Error,Tup(List(Fld(‹›,Ref(member:Nat),None), Fld(‹›,Constrained(List(),Ref(member:Int)),None)))))
+([Bot <:< Top] => Nat) <:< ([Bot <:< Top] => Int)
+//│ OK
 
 :te
-Int :<: [Bot :<: Top] => Nat
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.61: 	Int :<: [Bot :<: Top] => Nat
-//│ ╙──      	    ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.61: 	Int :<: [Bot :<: Top] => Nat
-//│ ╙──      	         ^^^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+Int <:< ([Bot <:< Top] => Nat)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ {⊥ ≤ ⊤} ⟹ Nat.
+//│ Typing error tree:
+//│   Int ≤ {⊥ ≤ ⊤} ⟹ Nat
+//│     Int ≤ Nat
 
 :te
-[Bot :<: Top] => Int :<: Nat
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.78: 	[Bot :<: Top] => Int :<: Nat
-//│ ╙──      	 ^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.78: 	[Bot :<: Top] => Int :<: Nat
-//│ ╙──      	                     ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Constrained(List(),App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Nat),None)))))
-//│ FAILURE: Unexpected lack of type error
+([Bot <:< Top] => Int) <:< Nat
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Int ≤ Nat.
+//│ Typing error tree:
+//│   {⊥ ≤ ⊤} ⟹ Int ≤ Nat
+//│     Int ≤ Nat
 
 :te
-[Top :<: Bot] => Int :<: Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.95: 	[Top :<: Bot] => Int :<: Int
-//│ ╙──      	 ^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.95: 	[Top :<: Bot] => Int :<: Int
-//│ ╙──      	                     ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Constrained(List(),App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Int),None)))))
-//│ FAILURE: Unexpected lack of type error
+([Top <:< Bot] => Int) <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊤ ≤ ⊥} ⟹ Int ≤ Int.
+//│ Typing error tree:
+//│   {⊤ ≤ ⊥} ⟹ Int ≤ Int
+//│     ⊤ ≤ ⊥
 
 // Constrained types distributvity
 
-Int :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.113: 	Int :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	    ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.113: 	Int :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	          ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.113: 	Int :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                 ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+Int <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ OK
 
-Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.133: 	Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	    ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.133: 	Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	          ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.133: 	Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                 ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ OK
 
-Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.153: 	Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	          ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.153: 	Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.153: 	Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                       ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+(Int | Str) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ OK
 
-[A :> Int] => (Int) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.173: 	[A :> Int] => (Int) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	 ^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.173: 	[A :> Int] => (Int) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                    ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.173: 	[A :> Int] => (Int) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                          ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.173: 	[A :> Int] => (Int) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                                 ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Constrained(List(),App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,CompType(Constrained(List(),Ref(member:Int)),Constrained(List(),Ref(member:Str)),true),None)))))
+([A >:> Int] => Int) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ OK
 
 :te
-Bool | Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.199: 	Bool | Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                 ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.199: 	Bool | Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                       ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.199: 	Bool | Int | Str :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                              ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+(Bool | Int | Str) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment (Bool ∨ Int) ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+//│ Typing error tree:
+//│   (Bool ∨ Int) ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     Bool ∨ Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│       Bool ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│         Bool ≤ {A ≤ Int} ⟹ Int
+//│           Bool ≤ Int
+//│         Bool ≤ {A ≤ Str} ⟹ Str
+//│           Bool ≤ Str
 
 :te
-[A :> Int] => (Int | Str) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.221: 	[A :> Int] => (Int | Str) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	 ^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.221: 	[A :> Int] => (Int | Str) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                          ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.221: 	[A :> Int] => (Int | Str) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.221: 	[A :> Int] => (Int | Str) :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                                                       ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Constrained(List(),App(Error,Tup(List(Fld(‹›,CompType(Ref(member:Int),Ref(member:Str),true),None), Fld(‹›,CompType(Constrained(List(),Ref(member:Int)),Constrained(List(),Ref(member:Str)),true),None)))))
-//│ FAILURE: Unexpected lack of type error
+([A >:> Int] => (Int | Str)) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≥ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+//│ Typing error tree:
+//│   {A ≥ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     {A ≥ Int} ⟹ Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│       Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│         Str ≤ {A ≤ Int} ⟹ Int
+//│           Str ≤ Int
+//│     {A ≥ Int} ⟹ Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│       Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│         Int ≤ {A ≤ Str} ⟹ Str
+//│           A ≤ Str
+//│             Int ≤ Str
 
 // Constrained types distributvity across variables
 
 type L = Int | Str
-type R = (([A :<: Int] => Int) | ([A :<: Str] => Str))
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.250: 	type R = (([A :<: Int] => Int) | ([A :<: Str] => Str))
-//│ ╙──       	            ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.250: 	type R = (([A :<: Int] => Int) | ([A :<: Str] => Str))
-//│ ╙──       	                                   ^^^^^^^^^
 //│ L = Int ∨ Str
-//│ R = Int ∨ Str
+type R = (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ R = ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
 
-Int | Str :<: R
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.264: 	Int | Str :<: R
-//│ ╙──       	          ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+(Int | Str) <:< R
+//│ OK
 
-L :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.274: 	L :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	  ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.274: 	L :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	        ^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: maybeConstraint (Elaborator.scala:1554)
-//│ ╔══[COMPILATION ERROR] Illegal constraint syntax.
-//│ ║  l.274: 	L :<: ([A :<: Int] => Int) | ([A :<: Str] => Str)
-//│ ╙──       	                               ^^^^^^^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+L <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ OK
 
-L :<: R
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.294: 	L :<: R
-//│ ╙──       	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+L <:< R
+//│ OK

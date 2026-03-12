@@ -5,80 +5,35 @@ class B extends A
 class C extends B
 class D extends A
 
-B :<: A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.8: 	B :<: A
-//│ ╙──     	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+B <:< A
+//│ OK
 
-C :<: A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.18: 	C :<: A
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+C <:< A
+//│ OK
 
-C :<: B
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.28: 	C :<: B
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+C <:< B
+//│ OK
 
 :te
-A :<: B
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.39: 	A :<: B
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+A <:< B
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ B.
+//│ Typing error tree:
+//│   A ≤ B
 
 :te
-A :<: C
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.51: 	A :<: C
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+A <:< C
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ C.
+//│ Typing error tree:
+//│   A ≤ C
 
 :te
-D :<: B
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.63: 	D :<: B
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+D <:< B
+//│ ═══[TYPE ERROR] Cannot solve judgment D ≤ B.
+//│ Typing error tree:
+//│   D ≤ B
 
 :te
-B :<: D
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.75: 	B :<: D
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+B <:< D
+//│ ═══[TYPE ERROR] Cannot solve judgment B ≤ D.
+//│ Typing error tree:
+//│   B ≤ D

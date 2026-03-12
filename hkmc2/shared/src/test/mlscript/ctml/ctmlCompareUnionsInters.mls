@@ -19,25 +19,11 @@ A == (A | A)
 A == (A & A)
 //│ OK
 
-A :<: A | B
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.22: 	A :<: A | B
-//│ ╙──      	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+A <:< (A | B)
+//│ OK
 
-A & B :<: A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.32: 	A & B :<: A
-//│ ╙──      	      ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+(A & B) <:< A
+//│ OK
 
 (A | B) == (B | A)
 //│ OK
@@ -47,28 +33,14 @@ A & B :<: A
 
 // Unions and intersection with flexible variables
 
-[Y, Z] -> [Y, Z] :<: [Int, Str] | [Str, Int]
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.50: 	[Y, Z] -> [Y, Z] :<: [Int, Str] | [Str, Int]
-//│ ╙──      	                 ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Forall(List(QuantVar(Y,None,None), QuantVar(Z,None,None)),None,App(Error,Tup(List(Fld(‹›,Tup(List(Fld(‹›,Ref(Y),None), Fld(‹›,Ref(Z),None))),None), Fld(‹›,CompType(Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Str),None))),Tup(List(Fld(‹›,Ref(member:Str),None), Fld(‹›,Ref(member:Int),None))),true),None)))))
+([Y, Z] -> [Y, Z]) <:< ([Int, Str] | [Str, Int])
+//│ OK
 
 declare type Y
 declare type Z
 
-[Y, Z] :<: [Int, Str] | [Str, Int]
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.63: 	[Y, Z] :<: [Int, Str] | [Str, Int]
-//│ ╙──      	       ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+[Y, Z] <:< ([Int, Str] | [Str, Int])
+//│ OK
 
 // Unions and intersections distributvity
 
@@ -86,15 +58,8 @@ declare type Z
 ((A -> C) & (B -> C)) == ((A | B) -> C)
 //│ OK
 
-(A | C) -> (B & D) :<: (A -> B) & (C -> D)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.89: 	(A | C) -> (B & D) :<: (A -> B) & (C -> D)
-//│ ╙──      	                   ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,CompType(Ref(member:A),Ref(member:C),true),None))),App(Error,Tup(List(Fld(‹›,CompType(Ref(member:B),Ref(member:D),false),None), Fld(‹›,CompType(FunTy(Tup(List(Fld(‹›,Ref(member:A),None))),Ref(member:B),None),FunTy(Tup(List(Fld(‹›,Ref(member:C),None))),Ref(member:D),None),false),None)))),None)
+((A | C) -> (B & D)) <:< ((A -> B) & (C -> D))
+//│ OK
 
 // Unions and intersections distributvity across variables
 
@@ -103,85 +68,53 @@ type R = Int | Str
 //│ L = Int ∨ Str
 //│ R = Int ∨ Str
 
-Int | Str :<: R
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.106: 	Int | Str :<: R
-//│ ╙──       	          ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+(Int | Str) <:< R
+//│ OK
 
-L :<: Int | Str
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.116: 	L :<: Int | Str
-//│ ╙──       	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+L <:< (Int | Str)
+//│ OK
 
-L :<: R
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.126: 	L :<: R
-//│ ╙──       	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
+L <:< R
+//│ OK
 
 // Type errors
 
 :te
-A | B :<: A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.139: 	A | B :<: A
-//│ ╙──       	      ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+(A | B) <:< A
+//│ ═══[TYPE ERROR] Cannot solve judgment A ∨ B ≤ A.
+//│ Typing error tree:
+//│   A ∨ B ≤ A
+//│     B ≤ A
 
 :te
-A :<: A & B
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.151: 	A :<: A & B
-//│ ╙──       	  ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Error
-//│ FAILURE: Unexpected lack of type error
+A <:< (A & B)
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ A ∧ B.
+//│ Typing error tree:
+//│   A ≤ A ∧ B
+//│     A ≤ B
 
 :te
-(A -> B) & (C -> D) :<: (A | C) -> (B & D)
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.163: 	(A -> B) & (C -> D) :<: (A | C) -> (B & D)
-//│ ╙──       	                    ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,CompType(FunTy(Tup(List(Fld(‹›,Ref(member:A),None))),Ref(member:B),None),FunTy(Tup(List(Fld(‹›,Ref(member:C),None))),Ref(member:D),None),false),None), Fld(‹›,CompType(Ref(member:A),Ref(member:C),true),None)))),None))),CompType(Ref(member:B),Ref(member:D),false),None)
-//│ FAILURE: Unexpected lack of type error
+((A -> B) & (C -> D)) <:< ((A | C) -> (B & D))
+//│ ═══[TYPE ERROR] Cannot solve judgment (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D).
+//│ Typing error tree:
+//│   (A → B) ∧ (C → D) ≤ (A ∨ C) → (B ∧ D)
+//│     (A → B) ∧ (C → D) ≤ A → (B ∧ D)
+//│       (A → B) ∧ (C → D) ≤ A → D
+//│         A → B ≤ A → D
+//│           B ≤ D
+//│         C → D ≤ A → D
+//│           A ≤ C
 
 :te
-[Int, Str] | [Str, Int] :<: [A, B] -> [A, B]
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.175: 	[Int, Str] | [Str, Int] :<: [A, B] -> [A, B]
-//│ ╙──       	                        ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,CompType(Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Str),None))),Tup(List(Fld(‹›,Ref(member:Str),None), Fld(‹›,Ref(member:Int),None))),true),None), Fld(‹›,Tup(List(Fld(‹›,Ref(member:A),None), Fld(‹›,Ref(member:B),None))),None)))),None))),Tup(List(Fld(‹›,Ref(member:A),None), Fld(‹›,Ref(member:B),None))),None)
-//│ FAILURE: Unexpected lack of type error
+([Int, Str] | [Str, Int]) <:< ([A, B] -> [A, B])
+//│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩.
+//│ Typing error tree:
+//│   ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩
+//│     ⟨Int, Str⟩ ≤ ∀A, B. ⟨A, B⟩
+//│       ⟨Int, Str⟩ ≤ ∀B. ⟨α, B⟩
+//│         ⟨Int, Str⟩ ≤ ⟨α, β⟩
+//│           Int ≤ α
+//│             Int ≤ ⊥
 
 // Function intersections type inference.
 

@@ -7,6 +7,7 @@ import hkmc2.semantics.BlockMemberSymbol
 import hkmc2.semantics.ClassDef
 import hkmc2.semantics.Fld
 import hkmc2.semantics.Import
+import hkmc2.semantics.ModuleOrObjectDef
 import hkmc2.semantics.Param
 import hkmc2.semantics.Statement
 import hkmc2.semantics.Symbol
@@ -35,6 +36,8 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, mlParent, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol, mlParent)
+      case ModuleOrObjectDef(_, _, mlSymbol,_, _, _, mlParent, _, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
+        parseClassDecl(mlSymbol, mlParent)
       case TypeDef(mlSymbol, _, _, None, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseRigidVarDecl(mlSymbol)
       case TypeDef(mlSymbol, _, _, None, _, mlAnnotations) if isAbstract(mlAnnotations) =>
@@ -53,11 +56,11 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)
         StmtTypeRel(TypeRel.Ne, left, right)
-      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == "<=" =>
+      case Term.App(Term.SynthSel(_, mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.name == "Sub" =>
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)
         StmtTypeRel(TypeRel.Sub, left, right)
-      case Term.App(Term.Ref(mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.nme == ">=" =>
+      case Term.App(Term.SynthSel(_, mlSymbol), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlSymbol.name == "Sup" =>
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)
         StmtTypeRel(TypeRel.Sup, left, right)
@@ -72,6 +75,8 @@ def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New]): Stm
   val name = mlSymbol.nme
   val parent = mlParent match
     case Some(Term.New(Term.Ref(mlParentSymbol), _, _)) =>
+      Some(TypeVar(mlParentSymbol.nme))
+    case Some(Term.New(Term.TyApp(Term.Ref(mlParentSymbol), _), _, _)) =>
       Some(TypeVar(mlParentSymbol.nme))
     case None =>
       None

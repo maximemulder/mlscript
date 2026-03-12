@@ -3,111 +3,36 @@
 ([A] -> A -> A) == ([A] -> A -> A)
 //│ OK
 
-[A] -> A -> A :<: Int -> Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.6: 	[A] -> A -> A :<: Int -> Int
-//│ ╙──     	              ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Forall(List(QuantVar(A,None,None)),None,FunTy(Tup(List(Fld(‹›,Ref(A),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(A),None), Fld(‹›,Ref(member:Int),None)))),None))),Ref(member:Int),None),None))
+([A] -> A -> A) <:< (Int -> Int)
+//│ OK
 
-Int -> Int :<: [A extends Int] -> A -> Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.16: 	Int -> Int :<: [A extends Int] -> A -> Int
-//│ ╙──      	           ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:582)
-//│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'extends' here
-//│ ║  l.16: 	Int -> Int :<: [A extends Int] -> A -> Int
-//│ ╙──      	                ^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: A
-//│ ║  l.16: 	Int -> Int :<: [A extends Int] -> A -> Int
-//│ ╙──      	                                  ^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Int),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Tup(List(Fld(‹›,Error,None))),None)))),None))),FunTy(Tup(List(Fld(‹›,Error,None))),Ref(member:Int),None),None),None)
+(Int -> Int) <:< ([A extends Int] -> A -> Int)
+//│ OK
 
-[A extends Int] -> A -> Int :<: Int -> Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.36: 	[A extends Int] -> A -> Int :<: Int -> Int
-//│ ╙──      	                            ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Forall(List(QuantVar(A,Some(Ref(member:Int)),None)),None,FunTy(Tup(List(Fld(‹›,Ref(A),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Int),None)))),None))),Ref(member:Int),None),None))
+([A extends Int] -> A -> Int) <:< (Int -> Int)
+//│ OK
 
-Int -> Int :<: [A restricts Int] -> Int -> A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.46: 	Int -> Int :<: [A restricts Int] -> Int -> A
-//│ ╙──      	           ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:582)
-//│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'restricts' here
-//│ ║  l.46: 	Int -> Int :<: [A restricts Int] -> Int -> A
-//│ ╙──      	                ^^^^^^^^^^^^^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: A
-//│ ║  l.46: 	Int -> Int :<: [A restricts Int] -> Int -> A
-//│ ╙──      	                                           ^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Int),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Tup(List(Fld(‹›,Error,None))),None)))),None))),FunTy(Tup(List(Fld(‹›,Ref(member:Int),None))),Error,None),None),None)
+(Int -> Int) <:< ([A restricts Int] -> Int -> A)
+//│ OK
 
-[A restricts Int] -> Int -> A :<: Int -> Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.66: 	[A restricts Int] -> Int -> A :<: Int -> Int
-//│ ╙──      	                              ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Forall(List(QuantVar(A,None,Some(Ref(member:Int)))),None,FunTy(Tup(List(Fld(‹›,Ref(member:Int),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(A),None), Fld(‹›,Ref(member:Int),None)))),None))),Ref(member:Int),None),None))
+([A restricts Int] -> Int -> A) <:< (Int -> Int)
+//│ OK
 
 :te
-Int -> Int :<: [A] -> A -> A
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.77: 	Int -> Int :<: [A] -> A -> A
-//│ ╙──      	           ^^^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: A
-//│ ║  l.77: 	Int -> Int :<: [A] -> A -> A
-//│ ╙──      	                ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: A
-//│ ║  l.77: 	Int -> Int :<: [A] -> A -> A
-//│ ╙──      	                      ^
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: A
-//│ ║  l.77: 	Int -> Int :<: [A] -> A -> A
-//│ ╙──      	                           ^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: FunTy(Tup(List(Fld(‹›,Ref(member:Int),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Tup(List(Fld(‹›,Error,None))),None)))),None))),FunTy(Tup(List(Fld(‹›,Error,None))),Error,None),None),None)
-//│ FAILURE: Unexpected lack of type error
+(Int -> Int) <:< ([A] -> A -> A)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ ∀A. A → A.
+//│ Typing error tree:
+//│   Int → Int ≤ ∀A. A → A
+//│     Int → Int ≤ α → α
+//│       α ≤ Int
+//│         ⊤ ≤ Int
 
 :te
-[A extends Str] -> A -> A :<: Int -> Int
-//│ FAILURE: Unexpected compilation error
-//│ FAILURE LOCATION: subterm (Elaborator.scala:515)
-//│ ╔══[COMPILATION ERROR] Name not found: :<:
-//│ ║  l.104: 	[A extends Str] -> A -> A :<: Int -> Int
-//│ ╙──       	                          ^^^
-//│ FAILURE: Unexpected parse error
-//│ FAILURE LOCATION: raise (test.scala:57)
-//│ ═══[PARSE ERROR] Unsupported CTML term: Forall(List(QuantVar(A,Some(Ref(member:Str)),None)),None,FunTy(Tup(List(Fld(‹›,Ref(A),None))),FunTy(Tup(List(Fld(‹›,App(Error,Tup(List(Fld(‹›,Ref(A),None), Fld(‹›,Ref(member:Int),None)))),None))),Ref(member:Int),None),None))
-//│ FAILURE: Unexpected lack of type error
+([A extends Str] -> A -> A) <:< (Int -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. {A ≤ Str} ⟹ A → A ≤ Int → Int.
+//│ Typing error tree:
+//│   ∀A. {A ≤ Str} ⟹ A → A ≤ Int → Int
+//│     {α ≤ Str} ⟹ α → α ≤ Int → Int
+//│       α → α ≤ Int → Int
+//│         Int ≤ α
+//│           Int ≤ Str

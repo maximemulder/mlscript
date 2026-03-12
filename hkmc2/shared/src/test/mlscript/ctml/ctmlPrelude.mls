@@ -34,3 +34,12 @@ val (++): Str -> Str -> Str
 val (==): [A] -> A -> A -> Bool
 val (&&): Bool -> Bool -> Bool
 val (||): Bool -> Bool -> Bool
+
+abstract class (<:<) Sub[A, B] with
+  fun apply(x: A): B
+abstract class (=:=) Eq[A, B] extends Sub[A, B] with
+  fun apply(x: A): B
+object Refl[A] extends Eq[A, A] with
+  fun apply(x: A): A = x
+
+type (>:>) Sup[A, B]

@@ -4,6 +4,7 @@ class A
 class B
 class C
 class D
+class E
 
 // Simple unions and intersections
 
@@ -30,6 +31,28 @@ A <:< (A | B)
 
 (A & B) == (B & A)
 //│ OK
+
+// Unions and intersections with extrmemum types
+
+(A | Bot) <:< A
+//│ OK
+
+A <:< (A & Top)
+//│ OK
+
+:te
+(Bot -> A) <:< (Top -> A)
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → A ≤ ⊤ → A.
+//│ Typing error tree:
+//│   ⊥ → A ≤ ⊤ → A
+//│     ⊤ ≤ ⊥
+
+:te
+(A -> Top) <:< (A -> Bot)
+//│ ═══[TYPE ERROR] Cannot solve judgment A → ⊤ ≤ A → ⊥.
+//│ Typing error tree:
+//│   A → ⊤ ≤ A → ⊥
+//│     ⊤ ≤ ⊥
 
 // Unions and intersection with flexible variables
 
@@ -61,7 +84,7 @@ declare type Z
 ((A | C) -> (B & D)) <:< ((A -> B) & (C -> D))
 //│ OK
 
-// Unions and intersections distributvity across variables
+// Unions and intersections distributivity across variables
 
 type L = Int | Str
 type R = Int | Str
@@ -116,30 +139,21 @@ A <:< (A & B)
 //│           Int ≤ α
 //│             Int ≤ ⊥
 
-// Function intersections type inference.
+// Function distributivity across unions and variables
 
-fun baz: (Int -> Int -> Int) & (Str -> Str -> Str)
-//│ baz: (Int → Int → Int) ∧ (Str → Str → Str)
+type T1 = ((A | B) -> C) | D
+type T2 = ((A -> C) & (B -> C)) | D
+//│ T1 = ((A ∨ B) → C) ∨ D
+//│ T2 = ((A → C) ∧ (B → C)) ∨ D
 
-baz(1, 2)
-//│ Int
+T1 <:< T2
+//│ OK
 
-baz("Hello", "World")
-//│ Str
+// Complex nesting with tuples
+type U1 = ([A, B] | [C, D]) -> E
+type U2 = (([A, B]) -> E) & (([C, D]) -> E)
+//│ U1 = (⟨A, B⟩ ∨ ⟨C, D⟩) → E
+//│ U2 = (⟨A, B⟩ → E) ∧ (⟨C, D⟩ → E)
 
-baz(bot, bot)
-//│ ⊥
-
-:te
-baz(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
-//│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
-
-:te
-baz(1, top)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ ⊤ → α.
-//│ Typing error tree:
-//│   Int → Int ≤ ⊤ → α
-//│     ⊤ ≤ Int
+U1 <:< U2
+//│ OK

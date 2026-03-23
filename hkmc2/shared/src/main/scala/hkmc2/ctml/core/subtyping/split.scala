@@ -64,7 +64,7 @@ extension (type_ : Type)
 
     type_.splitStructure(mode.invert) match
       case Some(left, right) =>
-        left.splitStructure(mode) match
+        left.split(mode) match
           case Some(innerLeft, innerRight) =>
             return Some(
               combine(mode.invert, innerLeft,  right),
@@ -72,7 +72,7 @@ extension (type_ : Type)
             )
           case None =>
 
-        right.splitStructure(mode) match
+        right.split(mode) match
           case Some(innerLeft, innerRight) =>
             return Some(
               combine(mode.invert, left, innerLeft),

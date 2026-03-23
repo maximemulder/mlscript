@@ -41,14 +41,17 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 
     // Lambda application.
     case app: EApp =>
-      ctx.withFreshVarLevel((retVar, ctx) =>
-        given Context = ctx
-        val (lamType, lamClauses) = infer(app.lam)
-        val (argType, argClauses) = inferSeq(app.arg, lamClauses)
-        val retType = TVar(retVar)
-        val mockLamType = TLam(argType, retType)
-        val consrainClauses = typingSubtypeSeq(lamType, mockLamType, argClauses)
-        (retType, consrainClauses)
+      val (lamType, lamClauses) = infer(app.lam)
+      val (argType, argClauses) = inferSeq(app.arg, lamClauses)
+      ctx.seq(
+        summon[Context].withFreshVarLevel((retVar, ctx) =>
+          val retType = TVar(retVar)
+          val mockLamType = TLam(argType, retType)
+          given Context = ctx
+          val consrainClauses = typingSubtype(lamType, mockLamType)
+          (retType, consrainClauses)
+        ),
+        argClauses,
       )
 
     // Type ascription.

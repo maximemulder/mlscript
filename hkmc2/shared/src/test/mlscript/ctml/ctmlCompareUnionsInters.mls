@@ -157,3 +157,22 @@ type U2 = (([A, B]) -> E) & (([C, D]) -> E)
 
 U1 <:< U2
 //│ OK
+
+type T3 = Int & Str
+//│ T3 = Int ∧ Str
+
+(Top -> T3) <:< ((Top -> Int) & (Top -> Str))
+//│ OK
+
+// Fail because type splitting is too greedy.
+:fixme
+((Top -> Int) & (Top -> Str)) <:< (Top -> T3)
+//│ ═══[TYPE ERROR] Cannot solve judgment (⊤ → Int) ∧ (⊤ → Str) ≤ ⊤ → T3.
+//│ Typing error tree:
+//│   (⊤ → Int) ∧ (⊤ → Str) ≤ ⊤ → T3
+//│     ⊤ → Int ≤ ⊤ → T3
+//│       Int ≤ T3
+//│         Int ≤ Str
+//│     ⊤ → Str ≤ ⊤ → T3
+//│       Str ≤ T3
+//│         Str ≤ Int

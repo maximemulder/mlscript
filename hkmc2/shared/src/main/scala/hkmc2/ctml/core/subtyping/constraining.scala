@@ -140,7 +140,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   // Subtyping of union and intersection types.
 
-  sub.splitUnion(Direction.Sub) match
+  sub.splitUnion(Polarity.Negative) match
     case Some(subLeft, subRight) =>
       return ctx.all(
         subtype(subLeft,  sup),
@@ -148,7 +148,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
       )
     case _ =>
 
-  sup.splitUnion(Direction.Super) match
+  sup.splitUnion(Polarity.Positive) match
     case Some(supLeft, supRight) =>
       return joinMerge(supLeft, supRight) match
         case Some(sup) =>
@@ -160,7 +160,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
           )
     case _ =>
 
-  sup.splitInter(Direction.Super) match
+  sup.splitInter(Polarity.Positive) match
     case Some(supLeft, supRight) =>
       return ctx.all(
         subtype(sub, supLeft),
@@ -168,7 +168,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
       )
     case _ =>
 
-  sub.splitInter(Direction.Sub) match
+  sub.splitInter(Polarity.Negative) match
     case Some(subLeft, subRight) =>
       return meetMerge(subLeft, subRight) match
         case Some(sub) =>

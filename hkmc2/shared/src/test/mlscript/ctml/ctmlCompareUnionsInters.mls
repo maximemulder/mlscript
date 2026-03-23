@@ -164,15 +164,17 @@ type T3 = Int & Str
 (Top -> T3) <:< ((Top -> Int) & (Top -> Str))
 //│ OK
 
-// Fail because type splitting is too greedy.
-:fixme
+(Top -> (Int & Str)) <:< (Top -> T3)
+//│ OK
+
+(Top -> T3) <:< (Top -> (Int & Str))
+//│ OK
+
 ((Top -> Int) & (Top -> Str)) <:< (Top -> T3)
-//│ ═══[TYPE ERROR] Cannot solve judgment (⊤ → Int) ∧ (⊤ → Str) ≤ ⊤ → T3.
-//│ Typing error tree:
-//│   (⊤ → Int) ∧ (⊤ → Str) ≤ ⊤ → T3
-//│     ⊤ → Int ≤ ⊤ → T3
-//│       Int ≤ T3
-//│         Int ≤ Str
-//│     ⊤ → Str ≤ ⊤ → T3
-//│       Str ≤ T3
-//│         Str ≤ Int
+//│ OK
+
+(Top -> T3) <:< ((Top -> T3) & (Top -> T3))
+//│ OK
+
+((Top -> T3) & (Top -> T3)) <:< (Top -> T3)
+//│ OK

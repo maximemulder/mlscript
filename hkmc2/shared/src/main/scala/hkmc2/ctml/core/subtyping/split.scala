@@ -29,8 +29,6 @@ def combine(mode: SplitMode, left: Type, right: Type) =
     case SplitMode.Inter =>
       TInter(left, right)
 
-// TODO: This algorithm might be too greedy, in particular, we should not decompose the bounds of
-// type variables eagerly, as doing so without checking subtyping might lose some information.
 extension (type_ : Type)
   /** Split a type in two if it can be decomposed as an union. */
   def splitUnion(pol: Polarity)(using ctx: Context): Option[(Type, Type)] =
@@ -86,7 +84,7 @@ extension (type_ : Type)
     if mode == SplitMode.Inter then
       type_ match
         case TLam(param, ret) =>
-          param.splitStructure(SplitMode.Union) match
+          param.split(SplitMode.Union) match
             case Some(left, right) =>
               return Some(
                 TLam(left,  ret),
@@ -94,7 +92,7 @@ extension (type_ : Type)
               )
             case None =>
 
-          ret.splitStructure(SplitMode.Inter) match
+          ret.split(SplitMode.Inter) match
             case Some(left, right) =>
               return Some(
                 TLam(param, left),

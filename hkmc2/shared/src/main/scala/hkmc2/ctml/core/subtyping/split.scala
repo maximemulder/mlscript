@@ -2,74 +2,91 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.config.debug
+
+/** Type splitting mode. */
+enum SplitMode:
+  case Union
+  case Inter
+
+  /** Get the string representation of the object. */
+  override def toString: String =
+    this match
+      case Union => "union"
+      case Inter => "inter"
+
+  /** Invert the type splitting mode. */
+  def invert: SplitMode =
+    this match
+      case Union => Inter
+      case Inter => Union
 
 /** Combine two types into a union or intersection depending on a type polarity. */
-def combine(left: Type, right: Type, pol: Polarity) =
-  pol match
-    case Polarity.Negative =>
+def combine(mode: SplitMode, left: Type, right: Type) =
+  mode match
+    case SplitMode.Union =>
       TUnion(left, right)
-    case Polarity.Positive =>
+    case SplitMode.Inter =>
       TInter(left, right)
 
 // TODO: This algorithm might be too greedy, in particular, we should not decompose the bounds of
 // type variables eagerly, as doing so without checking subtyping might lose some information.
 extension (type_ : Type)
   /** Split a type in two if it can be decomposed as an union. */
-  def splitUnion(dir: Direction)(using ctx: Context): Option[(Type, Type)] =
-    type_.split(Polarity.Negative)(using ctx, dir, Set())
+  def splitUnion(pol: Polarity)(using ctx: Context): Option[(Type, Type)] =
+    type_.split(SplitMode.Union)(using ctx, pol, Set())
 
   /** Split a type in two if it can be decomposed as an intersection. */
-  def splitInter(dir: Direction)(using ctx: Context): Option[(Type, Type)] =
-    type_.split(Polarity.Positive)(using ctx, dir, Set())
+  def splitInter(pol: Polarity)(using ctx: Context): Option[(Type, Type)] =
+    type_.split(SplitMode.Inter)(using ctx, pol, Set())
 
-extension (type_ : Type)
   /** Split a union or intersection in two depending on a type polarity. */
-  def splitStructure(pol: Polarity)(using ctx: Context, dir: Direction, cache: Set[TypeVar]): Option[(Type, Type)] =
-      (pol, type_) match
-        case (Polarity.Negative, TUnion(left, right)) =>
+  def splitStructure(mode: SplitMode): Option[(Type, Type)] =
+      (mode, type_) match
+        case (SplitMode.Union, TUnion(left, right)) =>
           Some(left, right)
-        case (Polarity.Positive, TInter(left, right)) =>
+        case (SplitMode.Inter, TInter(left, right)) =>
           Some(left, right)
         case _ =>
           None
 
   /** Split a union or intersection like type in two depending on a type polarity. */
-  def split(pol: Polarity)(using ctx: Context, dir: Direction, cache: Set[TypeVar]): Option[(Type, Type)] =
+  def split(mode: SplitMode)(using ctx: Context, pol: Polarity, cache: Set[TypeVar]): Option[(Type, Type)] =
     type_ match
       case TVar(var_) if var_.isRigid && !cache.contains(var_) =>
-        return var_.bound(dir).split(pol)(using ctx, dir, cache + var_)
+        return var_.bound(pol.dir).split(mode)(using ctx, pol, cache + var_)
       case TNeg(body) =>
-        return body.split(pol.invert)
+        return body.split(mode.invert)
       case _ =>
 
-    type_.splitStructure(pol) match
+    type_.splitStructure(mode) match
       case Some(left, right) =>
         return Some(left, right)
       case _ =>
 
-    type_.splitStructure(pol.invert) match
+    type_.splitStructure(mode.invert) match
       case Some(left, right) =>
-        left.splitStructure(pol) match
+        left.splitStructure(mode) match
           case Some(innerLeft, innerRight) =>
             return Some(
-              combine(innerLeft,  right, pol.invert),
-              combine(innerRight, right, pol.invert),
+              combine(mode.invert, innerLeft,  right),
+              combine(mode.invert, innerRight, right),
             )
           case None =>
 
-        right.splitStructure(pol) match
+        right.splitStructure(mode) match
           case Some(innerLeft, innerRight) =>
             return Some(
-              combine(left, innerLeft,  pol.invert),
-              combine(left, innerRight, pol.invert),
+              combine(mode.invert, left, innerLeft),
+              combine(mode.invert, left, innerRight),
             )
           case None =>
       case None =>
 
-    if pol == Polarity.Positive then
+    if mode == SplitMode.Inter then
       type_ match
         case TLam(param, ret) =>
-          param.splitStructure(Polarity.Negative) match
+          param.splitStructure(SplitMode.Union) match
             case Some(left, right) =>
               return Some(
                 TLam(left,  ret),
@@ -77,7 +94,7 @@ extension (type_ : Type)
               )
             case None =>
 
-          ret.splitStructure(Polarity.Positive) match
+          ret.splitStructure(SplitMode.Inter) match
             case Some(left, right) =>
               return Some(
                 TLam(param, left),
@@ -85,4 +102,5 @@ extension (type_ : Type)
               )
             case None =>
         case _ =>
+
     None

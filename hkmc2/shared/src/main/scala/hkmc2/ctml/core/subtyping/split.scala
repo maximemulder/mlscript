@@ -40,13 +40,13 @@ extension (type_ : Type)
 
   /** Split a union or intersection in two depending on a type polarity. */
   def splitStructure(mode: SplitMode): Option[(Type, Type)] =
-      (mode, type_) match
-        case (SplitMode.Union, TUnion(left, right)) =>
-          Some(left, right)
-        case (SplitMode.Inter, TInter(left, right)) =>
-          Some(left, right)
-        case _ =>
-          None
+    (mode, type_) match
+      case (SplitMode.Union, TUnion(left, right)) =>
+        Some(left, right)
+      case (SplitMode.Inter, TInter(left, right)) =>
+        Some(left, right)
+      case _ =>
+        None
 
   /** Split a union or intersection like type in two depending on a type polarity. */
   def split(mode: SplitMode)(using ctx: Context, pol: Polarity, cache: Set[TypeVar]): Option[(Type, Type)] =

@@ -9,9 +9,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 
 def inferSeq(expr: Expr, ins: Clauses)(using ctx: Context): (Type, Clauses) =
-  given Context = ctx.extend(ins)
-  val (type_, outs) = infer(expr)
-  (type_, ins.concat(outs))
+  ctx.seq(infer(expr), ins)
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: Context): (Type, Clauses) =
@@ -71,25 +69,25 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   if !config.weirdMatch && !match_.pattern.isPattern then
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
-  val scrutineeCtx = ctx.extend(scrutineeClauses)
-  val (casesType, casesClauses) = scrutineeCtx.withFreshVarLevel((matchVar, matchCtx) =>
-    given Context = matchCtx
-    val matchType = TVar(matchVar)
-    val patternClauses = typingSubtype(scrutineeType, match_.pattern)
-    val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
-    val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
+  ctx.seq(
+    summon[Context].withFreshVarLevel((matchVar, matchCtx) =>
+      given Context = matchCtx
+      val matchType = TVar(matchVar)
+      val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+      val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+      val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
 
-    match_.else_ match
-      case Some(else_) =>
-        val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
-        val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
-        val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
-        (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
-      case None =>
-        (matchType, realBodyClauses)
+      match_.else_ match
+        case Some(else_) =>
+          val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+          val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+          val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+          (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
+        case None =>
+          (matchType, realBodyClauses)
+    ),
+    scrutineeClauses,
   )
-
-  (casesType, scrutineeClauses.concat(casesClauses))
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: Context) =
   subtype(sub, sup)(using ctx, SubtypingCache())

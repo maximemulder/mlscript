@@ -13,6 +13,20 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 
+/** Constrain a set clauses to hold in the context. */
+def constrainClauses(clauses: Clauses)(using ctx: Context, cache: SubtypingCache): Clauses =
+  clauses.elems.foldLeft(Clauses.empty)((clauses, clause) => ctx.seqUnit(constrainClause(clause), clauses))
+
+/** Constrain a clause to hold in the context. */
+def constrainClause(clause: Clause)(using ctx: Context, cache: SubtypingCache): Clauses =
+  clause match
+    case decl: TermVarDecl =>
+      Clauses.single(decl)
+    case decl: TypeVarDecl =>
+      Clauses.single(decl)
+    case Bound(var_, dir, type_) =>
+      subtypeDir(TVar(var_), type_, dir)
+
 /** Sequentially constrain a type to be a subtype of another type in a context. */
 def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, cache: SubtypingCache): Clauses =
   ctx.seqUnit(subtype(sub, sup), ins)

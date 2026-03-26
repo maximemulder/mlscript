@@ -13,21 +13,11 @@ Int <:< [Bot <:< Top] => Int
 ([Bot <:< Top] => Int) <:< Int
 //│ OK
 
-([Bot <:< Top] => Nat) <:< ([Bot <:< Top] => Int)
-//│ OK
-
 :te
 Int <:< ([Bot <:< Top] => Nat)
 //│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ {⊥ ≤ ⊤} ⟹ Nat.
 //│ Typing error tree:
 //│   Int ≤ {⊥ ≤ ⊤} ⟹ Nat
-//│     Int ≤ Nat
-
-:te
-([Bot <:< Top] => Int) <:< Nat
-//│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Int ≤ Nat.
-//│ Typing error tree:
-//│   {⊥ ≤ ⊤} ⟹ Int ≤ Nat
 //│     Int ≤ Nat
 
 :te
@@ -37,7 +27,65 @@ Int <:< ([Bot <:< Top] => Nat)
 //│   {⊤ ≤ ⊥} ⟹ Int ≤ Int
 //│     ⊤ ≤ ⊥
 
-// Constrained types distributvity
+// Body covariance
+
+([Bot <:< Top] => Nat) <:< ([Bot <:< Top] => Int)
+//│ OK
+
+:te
+([Bot <:< Top] => Int) <:< Nat
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Int ≤ Nat.
+//│ Typing error tree:
+//│   {⊥ ≤ ⊤} ⟹ Int ≤ Nat
+//│     Int ≤ Nat
+
+// Constraint contravariance
+
+([A] -> A -> A) <:< ([A <:< Int] => A -> A)
+//│ OK
+
+:te
+([A <:< Int] => A -> A) <:< ([A] -> A -> A)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A → A ≤ ∀A. A → A.
+//│ Typing error tree:
+//│   {A ≤ Int} ⟹ A → A ≤ ∀A. A → A
+//│     {A ≤ Int} ⟹ A → A ≤ α → α
+//│       A → A ≤ α → α
+//│         α ≤ A
+//│           α ≤ Int
+//│             ⊤ ≤ Int
+
+// Body covariance and constraint contravariance
+
+([A] -> Int -> Int) <:< ([A <:< Int] => A -> A)
+//│ OK
+
+([A <:< Int] => A -> A) <:< ([A] -> Int -> Int)
+//│ OK
+
+:te
+([A <:< Int] => A -> A) <:< ([A] -> Int -> A)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A → A ≤ ∀A. Int → A.
+//│ Typing error tree:
+//│   {A ≤ Int} ⟹ A → A ≤ ∀A. Int → A
+//│     {A ≤ Int} ⟹ A → A ≤ Int → α
+//│       A → A ≤ Int → α
+//│         A ≤ α
+//│           Int ≤ α
+//│             Int ≤ ⊥
+
+:te
+([A <:< Int] => A -> A) <:< ([A] -> A -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A → A ≤ ∀A. A → Int.
+//│ Typing error tree:
+//│   {A ≤ Int} ⟹ A → A ≤ ∀A. A → Int
+//│     {A ≤ Int} ⟹ A → A ≤ α → Int
+//│       A → A ≤ α → Int
+//│         α ≤ A
+//│           α ≤ Int
+//│             ⊤ ≤ Int
+
+// Distributvity
 
 Int <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│ OK
@@ -78,7 +126,7 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│           A ≤ Str
 //│             Int ≤ Str
 
-// Constrained types distributvity across variables
+// Distributvity across variables
 
 type L = Int | Str
 //│ L = Int ∨ Str

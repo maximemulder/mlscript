@@ -33,6 +33,10 @@ object Clauses:
   def empty =
     Clauses(Nil)
 
+  /** A single clause. */
+  def single(clause: Clause) =
+    Clauses(List(clause))
+
 /** A typing clause, which gives a single information about types. */
 sealed trait Clause:
   /** Get the clause as a singleton list of clauses. */

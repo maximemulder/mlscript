@@ -107,7 +107,5 @@ foo2(bot, bot)
 
 :te
 foo2(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
-//│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│ {Str ≤ Int} ⟹ Int
+//│ FAILURE: Unexpected lack of type error

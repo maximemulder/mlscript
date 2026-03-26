@@ -320,8 +320,13 @@ def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Co
 def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, cache: SubtypingCache): Clauses =
   val vars = constrained.constraint.getVars()
   val newCtx = ctx.flexify(vars)
-  val clauses = subtypeConstraint(constrained.constraint)(using newCtx, cache)
-  subtypeSeq(type_, constrained.body, clauses)
+  val clauses = try
+    subtypeConstraint(constrained.constraint)(using newCtx, cache)
+  catch
+    case _: TypeError =>
+      return Clauses.empty
+  val clauses2 = subtype(type_, constrained.body)(using ctx.extend(clauses), cache)
+  constrainClauses(clauses2)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, cache: SubtypingCache): Clauses =

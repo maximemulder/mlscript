@@ -43,26 +43,26 @@ foo as (Bool -> Bool -> Bool)
 //│             {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
 //│               δ → ε → ζ ≤ Bool → Bool → Bool
 //│                 ε → ζ ≤ Bool → Bool
-//│                   Bool ≤ ε
-//│                     Bool ≤ Str
+//│                   ζ ≤ Bool
+//│                     ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ Bool
+//│                       {ε ≤ Int, δ ≤ Int} ⟹ Int ≤ Bool
+//│                         ε ≤ Int
+//│                           Bool ≤ Int
+//│                       {ε ≤ Str, δ ≤ ¬Int} ⟹ Str ≤ Bool
+//│                         ε ≤ Str
+//│                           Bool ≤ Str
 
 :te
 foo(true, 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Int → α.
-//│ Typing error tree:
-//│   Str → Str ≤ Int → α
-//│     Int ≤ Str
+//│ {Int ≤ Str} ⟹ Str
+//│ FAILURE: Unexpected lack of type error
 
 :te
 foo(true, true)
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Bool → α.
-//│ Typing error tree:
-//│   Str → Str ≤ Bool → α
-//│     Bool ≤ Str
+//│ {Bool ≤ Str} ⟹ Str
+//│ FAILURE: Unexpected lack of type error
 
 :te
 foo(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
-//│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│ {Str ≤ Int} ⟹ Int
+//│ FAILURE: Unexpected lack of type error

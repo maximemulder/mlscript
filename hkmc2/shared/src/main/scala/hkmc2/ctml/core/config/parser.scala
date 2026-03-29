@@ -25,6 +25,8 @@ def applyDebugArguments(arguments: List[String]): Unit =
           config.debug.meet = true
         case "var" =>
           config.debug.var_ = true
+        case "output" =>
+          config.debug.output = true
         case "depth" =>
           buffer.popFront match
             case Some(depth) =>

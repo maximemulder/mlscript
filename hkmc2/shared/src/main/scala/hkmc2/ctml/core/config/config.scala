@@ -59,6 +59,9 @@ class Debug:
   /** Show type variable calls debug flag. */
   var var_ = false
 
+  /** Show output clauses debug flag. */
+  var output = false
+
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None
 

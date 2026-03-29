@@ -106,13 +106,17 @@ class Tester(
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
-    val (type_, bounds) = infer(expr)(using this.ctx)
+    val (type_, outs) = infer(expr)(using this.ctx)
     this.output(s"${name}: ${type_.prettify(prettyCtx)}")
+    if config.debug.output then
+      this.outputClauses(outs)
     this.ctx = this.ctx.extend(TermVarDecl(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
     val (type_, outs) = infer(expr)(using this.ctx)
+    if config.debug.output then
+      this.outputClauses(outs)
     this.outputType(type_)
 
   /** Test the relation between two types. */
@@ -127,6 +131,8 @@ class Tester(
       case TypeRel.Ne =>
         testTypeIncomparability(left, right)
 
+    if config.debug.output then
+      this.outputClauses(outs)
     this.output("OK")
 
   /** Test subtyping between two types. */

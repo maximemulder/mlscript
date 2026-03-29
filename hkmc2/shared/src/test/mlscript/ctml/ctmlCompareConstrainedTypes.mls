@@ -1,9 +1,9 @@
 :ctml
 
-declare type A
-declare type B
-declare type C
-declare type D
+type A
+type B
+type C
+type D
 
 // Simple constrained types
 
@@ -11,6 +11,9 @@ Int <:< [Bot <:< Top] => Int
 //│ OK
 
 ([Bot <:< Top] => Int) <:< Int
+//│ OK
+
+([Bot <:< Top] => Nat) <:< ([Bot <:< Top] => Int)
 //│ OK
 
 :te
@@ -21,71 +24,20 @@ Int <:< ([Bot <:< Top] => Nat)
 //│     Int ≤ Nat
 
 :te
-([Top <:< Bot] => Int) <:< Int
-//│ ═══[TYPE ERROR] Cannot solve judgment {⊤ ≤ ⊥} ⟹ Int ≤ Int.
-//│ Typing error tree:
-//│   {⊤ ≤ ⊥} ⟹ Int ≤ Int
-//│     ⊤ ≤ ⊥
-
-// Body covariance
-
-([Bot <:< Top] => Nat) <:< ([Bot <:< Top] => Int)
-//│ OK
-
-:te
 ([Bot <:< Top] => Int) <:< Nat
 //│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Int ≤ Nat.
 //│ Typing error tree:
 //│   {⊥ ≤ ⊤} ⟹ Int ≤ Nat
 //│     Int ≤ Nat
 
-// Constraint contravariance
-
-([A] -> A -> A) <:< ([A <:< Int] => A -> A)
-//│ OK
-
 :te
-([A <:< Int] => A -> A) <:< ([A] -> A -> A)
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A → A ≤ ∀A. A → A.
+([Top <:< Bot] => Int) <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊤ ≤ ⊥} ⟹ Int ≤ Int.
 //│ Typing error tree:
-//│   {A ≤ Int} ⟹ A → A ≤ ∀A. A → A
-//│     {A ≤ Int} ⟹ A → A ≤ α → α
-//│       A → A ≤ α → α
-//│         α ≤ A
-//│           α ≤ Int
-//│             ⊤ ≤ Int
+//│   {⊤ ≤ ⊥} ⟹ Int ≤ Int
+//│     ⊤ ≤ ⊥
 
-// Body covariance and constraint contravariance
-
-([A] -> Int -> Int) <:< ([A <:< Int] => A -> A)
-//│ OK
-
-([A <:< Int] => A -> A) <:< ([A] -> Int -> Int)
-//│ OK
-
-:te
-([A <:< Int] => A -> A) <:< ([A] -> Int -> A)
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A → A ≤ ∀A. Int → A.
-//│ Typing error tree:
-//│   {A ≤ Int} ⟹ A → A ≤ ∀A. Int → A
-//│     {A ≤ Int} ⟹ A → A ≤ Int → α
-//│       A → A ≤ Int → α
-//│         A ≤ α
-//│           Int ≤ α
-//│             Int ≤ ⊥
-
-:te
-([A <:< Int] => A -> A) <:< ([A] -> A -> Int)
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A → A ≤ ∀A. A → Int.
-//│ Typing error tree:
-//│   {A ≤ Int} ⟹ A → A ≤ ∀A. A → Int
-//│     {A ≤ Int} ⟹ A → A ≤ α → Int
-//│       A → A ≤ α → Int
-//│         α ≤ A
-//│           α ≤ Int
-//│             ⊤ ≤ Int
-
-// Distributvity
+// Constrained types distributvity
 
 Int <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│ OK
@@ -96,8 +48,18 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 (Int | Str) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│ OK
 
-([A >:> Int] => Int) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
-//│ OK
+([A <:< Int] => Int) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+//│ Typing error tree:
+//│   {A ≤ Int} ⟹ Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     {A ≤ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int
+//│       A ≤ Int
+//│         ⊤ ≤ Int
+//│     {A ≤ Int} ⟹ Int ≤ {A ≤ Str} ⟹ Str
+//│       A ≤ Int
+//│         ⊤ ≤ Int
 
 :te
 (Bool | Int | Str) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
@@ -112,19 +74,36 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│           Bool ≤ Str
 
 :te
-([A >:> Int] => (Int | Str)) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≥ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
+([A <:< Int] => (Int | Str)) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
 //│ Typing error tree:
-//│   {A ≥ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│     {A ≥ Int} ⟹ Int ∨ Str ≤ {A ≤ Int} ⟹ Int
-//│       Int ∨ Str ≤ {A ≤ Int} ⟹ Int
-//│         Str ≤ {A ≤ Int} ⟹ Int
-//│           Str ≤ Int
-//│     {A ≥ Int} ⟹ Int ∨ Str ≤ {A ≤ Str} ⟹ Str
-//│       Int ∨ Str ≤ {A ≤ Str} ⟹ Str
-//│         Int ≤ {A ≤ Str} ⟹ Str
-//│           A ≤ Str
-//│             Int ≤ Str
+//│   {A ≤ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│     {A ≤ Int} ⟹ Int ∨ Str ≤ {A ≤ Int} ⟹ Int
+//│       A ≤ Int
+//│         ⊤ ≤ Int
+//│     {A ≤ Int} ⟹ Int ∨ Str ≤ {A ≤ Str} ⟹ Str
+//│       A ≤ Int
+//│         ⊤ ≤ Int
+
+// Opposite bounds
+
+([A <:< Int] => Int) <:< ([A >:> Int] => Int)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ≤ {A ≥ Int} ⟹ Int.
+//│ Typing error tree:
+//│   {A ≤ Int} ⟹ Int ≤ {A ≥ Int} ⟹ Int
+//│     A ≤ Int
+//│       ⊤ ≤ Int
+
+([A >:> Int] => Int) <:< ([A <:< Int] => Int)
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≥ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int.
+//│ Typing error tree:
+//│   {A ≥ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int
+//│     Int ≤ A
+//│       Int ≤ ⊥
 
 // Distributvity across variables
 

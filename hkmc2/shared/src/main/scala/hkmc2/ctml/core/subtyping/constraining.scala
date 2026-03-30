@@ -219,14 +219,17 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache)
 
   // Subtyping of constrained types.
 
-  sub match
-    case sub: TConstrained =>
-      return subtypeConstrainedSub(sub, sup)
-    case _ =>
+  // The right constrained type comes first so that the left constraint (which must be solvable)
+  // may be solved using the assumptions of the right constraint (which may not be solvable).
 
   sup match
     case sup: TConstrained =>
       return subtypeConstrainedSup(sup, sub)
+    case _ =>
+
+  sub match
+    case sub: TConstrained =>
+      return subtypeConstrainedSub(sub, sup)
     case _ =>
 
   // Subtyping of class type variables.

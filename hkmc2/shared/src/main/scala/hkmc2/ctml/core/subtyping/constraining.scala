@@ -323,8 +323,13 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Co
   val clauses = try
     subtypeConstraint(constrained.constraint)(using newCtx, cache)
   catch
-    case _: TypeError =>
-      return Clauses.empty
+    case error: TypeError =>
+      if config.absurdConstred then
+        // This line is likely too permissive, as the subtype constraining function does not ensure
+        // by itself that two types can never be subtype.
+        return Clauses.empty
+      else
+        throw error
   val clauses2 = subtype(type_, constrained.body)(using ctx.extend(clauses), cache)
   constrainClauses(clauses2)
 

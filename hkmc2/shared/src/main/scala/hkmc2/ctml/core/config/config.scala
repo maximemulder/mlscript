@@ -15,8 +15,11 @@ class Config:
   /** The mode used to merge clauses. */
   var mergeMode = MergeMode.Constraining
 
-  /** Whether or not non-class match patterns are authorized. */
-  var weirdMatch = false
+  /** Whether or not absurd constrained types are authorized in subtyping. */
+  var absurdConstred = false
+
+  /** Whether or not arbitrary (non-class) patterns are authorized. */
+  var arbitraryPatterns = false
 
   /** The current call depth. */
   var currentCallDepth = 0

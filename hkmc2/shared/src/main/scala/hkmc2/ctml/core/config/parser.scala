@@ -50,8 +50,10 @@ def applyConfigArguments(arguments: List[String]): Unit =
           config.mergeMode = MergeMode.Constraining
         case "constrained" =>
           config.mergeMode = MergeMode.Constrained
-        case "weird-match" =>
-          config.weirdMatch = true
+        case "constrained-absurd" =>
+          config.absurdConstred = true
+        case "arbitrary-patterns" =>
+          config.arbitraryPatterns = true
         case argument =>
           throw Exception(s"unknown argument '${argument}'")
   catch

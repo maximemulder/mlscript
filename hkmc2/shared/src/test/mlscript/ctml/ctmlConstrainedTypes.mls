@@ -10,20 +10,25 @@ id("Hello")
 //│ Str
 
 val idInt: [T extends Int] -> T -> Int = id
-//│ idInt: ∀T. {T ≤ Int} ⟹ T → Int
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int.
+//│ Typing error tree:
+//│   ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int
+//│     ∀α. α → α ≤ {β ≤ Int} ⟹ β → Int
+//│       γ → γ ≤ {β ≤ Int} ⟹ β → Int
+//│         β ≤ γ
+//│           β ≤ Int
+//│             ⊤ ≤ Int
 
 idInt(1)
-//│ Int
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Variable 'idInt' not found in the context.
 
 :te
 idInt("Hello")
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α.
-//│ Typing error tree:
-//│   ∀T. {T ≤ Int} ⟹ T → Int ≤ Str → α
-//│     {β ≤ Int} ⟹ β → Int ≤ Str → α
-//│       β → Int ≤ Str → α
-//│         Str ≤ β
-//│           Str ≤ Int
+//│ ═══[TYPE ERROR] Variable 'idInt' not found in the context.
 
 :te
 val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id

@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg constrained
+:ctml-cfg constrained constrained-absurd
 
 // Unique parameter
 

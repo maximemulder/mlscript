@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg constrained weird-match
+:ctml-cfg constrained constrained-absurd arbitrary-patterns
 
 // Function definitions
 

@@ -66,7 +66,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   // Infer the type and bounds of the scrutinee.
   val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee)
-  if !config.weirdMatch && !match_.pattern.isPattern then
+  if !config.arbitraryPatterns && !match_.pattern.isPattern then
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   ctx.seq(

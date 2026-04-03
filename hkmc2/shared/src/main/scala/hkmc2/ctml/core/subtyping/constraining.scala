@@ -320,18 +320,18 @@ def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Co
 def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, cache: SubtypingCache): Clauses =
   val vars = constrained.constraint.getVars()
   val newCtx = ctx.flexify(vars)
-  val clauses = try
+  val constraintClauses = try
     subtypeConstraint(constrained.constraint)(using newCtx, cache)
   catch
     case error: TypeError =>
-      if config.absurdConstred then
+      if config.subtypeAbsurdConstreds then
         // This line is likely too permissive, as the subtype constraining function does not ensure
         // by itself that two types can never be subtype.
         return Clauses.empty
       else
         throw error
-  val clauses2 = subtype(type_, constrained.body)(using ctx.extend(clauses), cache)
-  constrainClauses(clauses2)
+  val bodyClauses = subtype(type_, constrained.body)(using ctx.extend(constraintClauses), cache)
+  constrainClauses(bodyClauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, cache: SubtypingCache): Clauses =

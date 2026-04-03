@@ -1,5 +1,7 @@
 :ctml
 
+:ctml-cfg merge-constring
+
 // Function definitions
 
 fun foo(a, b) =

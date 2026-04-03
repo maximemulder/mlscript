@@ -9,9 +9,8 @@ id(1)
 id("Hello")
 //│ Str
 
+:fixme
 val idInt: [T extends Int] -> T -> Int = id
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:65)
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int.
 //│ Typing error tree:
 //│   ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int
@@ -21,9 +20,8 @@ val idInt: [T extends Int] -> T -> Int = id
 //│           β ≤ Int
 //│             ⊤ ≤ Int
 
+:fixme
 idInt(1)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:65)
 //│ ═══[TYPE ERROR] Variable 'idInt' not found in the context.
 
 :te

@@ -2,23 +2,26 @@ package hkmc2.ctml.core.config
 
 /** The mode used to merge clauses. */
 enum MergeMode:
-  /** Merge using constraining types. */
-  case Constraining
   /** Merge using constrained types. */
   case Constrained
+  /** Merge using constraining types. */
+  case Constraining
 
 /** Debugging information. */
 class Config:
   /** The global debug print function. */
   var output: String => Unit = (message) => print(message)
 
-  /** The mode used to merge clauses. */
-  var mergeMode = MergeMode.Constraining
+  /** Whether to use constrained types or constraing types to merge disjunctive clauses. */
+  var mergeMode = MergeMode.Constrained
 
-  /** Whether or not absurd constrained types are authorized in subtyping. */
-  var absurdConstred = false
+  /** Whether to allow absurd constrained types in subtyping or not. */
+  var subtypeAbsurdConstreds = false
 
-  /** Whether or not arbitrary (non-class) patterns are authorized. */
+  /** Whether to check for absurd constrained types during type inference or not. */
+  var checkUnsolvableConstreds = false
+
+  /** Whether to allow arbitrary (non-class) patterns or not. */
   var arbitraryPatterns = false
 
   /** The current call depth. */

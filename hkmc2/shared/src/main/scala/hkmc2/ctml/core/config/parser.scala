@@ -46,12 +46,14 @@ def applyConfigArguments(arguments: List[String]): Unit =
       buffer.remove(0) match
         case "" =>
           ()
-        case "constraining" =>
-          config.mergeMode = MergeMode.Constraining
-        case "constrained" =>
+        case "merge-constred" =>
           config.mergeMode = MergeMode.Constrained
-        case "constrained-absurd" =>
-          config.absurdConstred = true
+        case "merge-constring" =>
+          config.mergeMode = MergeMode.Constraining
+        case "subtype-absurd-constred" =>
+          config.subtypeAbsurdConstreds = true
+        case "unsolvable" =>
+          config.checkUnsolvableConstreds = true
         case "arbitrary-patterns" =>
           config.arbitraryPatterns = true
         case argument =>

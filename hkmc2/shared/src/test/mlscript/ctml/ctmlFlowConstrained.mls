@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg constrained constrained-absurd
+:ctml-cfg subtype-absurd-constred check-unsolvable-constred
 
 // Unique parameter
 
@@ -107,5 +107,6 @@ foo2(bot, bot)
 
 :te
 foo2(1, "World")
-//│ {Str ≤ Int} ⟹ Int
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int

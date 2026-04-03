@@ -4,6 +4,7 @@ import hkmc2.ctml.util.OrderedSet as MutSet
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.config.*
+import hkmc2.ctml.core.config.config
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
@@ -73,6 +74,9 @@ extension (ctx: Context)
 
     // Get the type variables of this level that were not ignored or inlined.
     val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
+
+    if config.checkUnsolvableConstreds then
+      checkUnsolvableConstreds(newType, newOuts)(using ctx)
 
     val (newNewType, newNewOuts) = remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
       quantifyVar2(to._1, var_, to._2)(using ctx)
@@ -155,3 +159,10 @@ def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context
     TUniv(var_, makeConstrainedType(type_, bounds)),
     outs.removeTypeVar(var_),
   )
+
+/** Check whether a type contains outer unsolvable constrained types. */
+def checkUnsolvableConstreds(type_ : Type, outs: Clauses)(using ctx: Context) =
+  val (_, constraints) = type_.getConstrainedComponents
+  var clauses = outs
+  for constraint <- constraints do
+    clauses = subtypeConstraintSeq(constraint, clauses)(using ctx, SubtypingCache())

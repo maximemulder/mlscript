@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg arbitrary-patterns
+:ctml-cfg merge-constring arbitrary-patterns
 
 // Function definitions
 

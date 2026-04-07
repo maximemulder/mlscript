@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg subtype-absurd-constred check-unsolvable-constred
+:ctml-cfg subtype-absurd-constred error-absurd-constred
 
 // Unique parameter
 

@@ -1,0 +1,109 @@
+:ctml
+
+:ctml-dbg constrain check infer var meet join
+
+fun double(f, x) =
+  f(f(x))
+//│ infer ELam(f,ELam(x,EApp(EVar(f),EApp(EVar(f),EVar(x)))))
+//│   0 flex
+//│   infer ELam(x,EApp(EVar(f),EApp(EVar(f),EVar(x))))
+//│     1 flex
+//│     infer EApp(EVar(f),EApp(EVar(f),EVar(x)))
+//│       infer EVar(f)
+//│       OK 0 ⇝ ∅
+//│       infer EApp(EVar(f),EVar(x))
+//│         infer EVar(f)
+//│         OK 0 ⇝ ∅
+//│         infer EVar(x)
+//│         OK 1 ⇝ ∅
+//│         2 flex
+//│         constrain 0 ≤ 1 → 2
+//│           constrain ⊥ ≤ 1 → 2
+//│           OK ⇝ ∅
+//│           check ⊤ ≤ 1 → 2
+//│           FAIL
+//│           meet ⊤ and 1 → 2
+//│             check 1 → 2 ≤ ⊤
+//│             OK ⇝ ∅
+//│           = 1 → 2
+//│         OK ⇝ 0 ≤ 1 → 2
+//│       OK 2 ⇝ 0 ≤ 1 → 2, 2 flex
+//│       3 flex
+//│       constrain 0 ≤ 2 → 3
+//│         constrain ⊥ ≤ 2 → 3
+//│         OK ⇝ ∅
+//│         check 1 → 2 ≤ 2 → 3
+//│           check 2 ≤ 1
+//│             check ⊤ ≤ 1
+//│               check ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         meet 1 → 2 and 2 → 3
+//│           check 2 → 3 ≤ 1 → 2
+//│             check 1 ≤ 2
+//│               check 1 ≤ ⊥
+//│                 check ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           check 1 → 2 ≤ 2 → 3
+//│             check 2 ≤ 1
+//│               check ⊤ ≤ 1
+//│                 check ⊤ ≤ ⊥
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           check 1 ≤ 2
+//│             check 1 ≤ ⊥
+//│               check ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           check 2 ≤ 1
+//│             check ⊤ ≤ 1
+//│               check ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           check 2 ≤ 3
+//│             check 2 ≤ ⊥
+//│               check ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│           check 3 ≤ 2
+//│             check ⊤ ≤ 2
+//│               check ⊤ ≤ ⊥
+//│               FAIL
+//│             FAIL
+//│           FAIL
+//│         = (1 → 2) ∧ (2 → 3)
+//│       OK ⇝ 0 ≤ (1 → 2) ∧ (2 → 3)
+//│     OK 3 ⇝ 0 ≤ (1 → 2) ∧ (2 → 3), 3 flex, 0 ≤ 1 → 2, 2 flex
+//│   OK 1 → 3 ⇝ 0 ≤ (1 → 2) ∧ (2 → 3), 3 flex, 0 ≤ 1 → 2, 2 flex, 1 flex
+//│   inline 0 in 0 → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 1 in ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 2 in ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 3 in ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│ OK ∀1, 2, 3. ((1 → 2) ∧ (2 → 3)) → 1 → 3 ⇝ ∅
+//│ double: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ

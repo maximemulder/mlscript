@@ -102,5 +102,6 @@ private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
       given SubtypingCache = SubtypingCache()
+      given ConstraintMode = ConstraintMode.Solve
       val outs = subtypeDirSeq(freshType, bound, pol.dir, freshDecl.asClauses)
       (freshType, outs)

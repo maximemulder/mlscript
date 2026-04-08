@@ -74,4 +74,4 @@ def removeImplicitBounds(bounds: List[Bound]): List[Bound] =
 extension (ctx: Context)
   /** Filter a list of bounds by removing the bounds that are already satisfied in the context. */
   def removeSatisfiedBounds(bounds: List[Bound]): List[Bound] =
-    bounds.filter(!ctx.checkBoundSatisfied(_))
+    bounds.filter(!checkBound(_)(using ctx))

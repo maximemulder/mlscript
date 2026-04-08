@@ -137,24 +137,20 @@ class Tester(
 
   /** Test subtyping between two types. */
   def testSubtyping(sub: Type, sup: Type): Clauses =
-    given SubtypingCache = SubtypingCache()
-    subtype(sub, sup)(using this.ctx)
+    subtype(sub, sup)(using this.ctx, ConstraintMode.Solve, SubtypingCache())
 
   /** Test supertyping between two types. */
   def testSupertyping(sup: Type, sub: Type): Clauses =
-    given SubtypingCache = SubtypingCache()
-    subtype(sub, sup)(using this.ctx)
+    subtype(sub, sup)(using this.ctx, ConstraintMode.Solve, SubtypingCache())
 
   /** Test equivalence between two types. */
   def testTypeEquivalence(left: Type, right: Type): Clauses =
-    given Context = this.ctx
     try
       val subClauses =
-        given SubtypingCache = SubtypingCache()
-        subtype(left, right)
+        subtype(left, right)(using this.ctx, ConstraintMode.Solve, SubtypingCache())
       val b =
         given SubtypingCache = SubtypingCache()
-        subtypeSeq(right, left, subClauses)
+        subtypeSeq(right, left, subClauses)(using this.ctx, ConstraintMode.Solve, SubtypingCache())
       b
     catch
       case error: TypeError =>

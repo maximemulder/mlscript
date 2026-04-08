@@ -90,7 +90,7 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
   )
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: Context) =
-  subtype(sub, sup)(using ctx, SubtypingCache())
+  subtype(sub, sup)(using ctx, ConstraintMode.Solve, SubtypingCache())
 
 def typingSubtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context) =
-  subtypeSeq(sub, sup, ins)(using ctx, SubtypingCache())
+  subtypeSeq(sub, sup, ins)(using ctx, ConstraintMode.Solve, SubtypingCache())

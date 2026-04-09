@@ -23,7 +23,7 @@ class Config:
   var mergeMode = MergeMode.Constrained
 
   /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
-  var assumptionMode = AssumptionMode.Flexify
+  var assumptionMode = AssumptionMode.Reconstruct
 
   /** Whether to allow absurd constrained types in subtyping or not. */
   var subtypeAbsurdConstreds = false

@@ -30,14 +30,8 @@ idInt("Hello")
 
 :te
 val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A.
-//│ Typing error tree:
-//│   ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
-//│     ∀α. α → α ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
-//│       γ → γ ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
-//│         γ → γ ≤ {β ≥ Str} ⟹ β → β
-//│           Str ≤ β
-//│             Str ≤ Int
+//│ idConflictingBounds: ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
+//│ FAILURE: Unexpected lack of type error
 
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
 //│ inc: ∀T. {T ≤ Int} ⟹ T → Int

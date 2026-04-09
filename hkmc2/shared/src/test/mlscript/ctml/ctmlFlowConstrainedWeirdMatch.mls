@@ -43,13 +43,13 @@ foo as (Bool -> Bool -> Bool)
 //│             {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
 //│               δ → ε → ζ ≤ Bool → Bool → Bool
 //│                 ε → ζ ≤ Bool → Bool
-//│                   ζ ≤ Bool
-//│                     ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ Bool
-//│                       {ε ≤ Int, δ ≤ Int} ⟹ Int ≤ Bool
-//│                         ε ≤ Int
+//│                   Bool ≤ ε
+//│                     Bool ≤ ({ζ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({ζ ≥ Str, δ ≤ ¬Int} ⟹ Str)
+//│                       Bool ≤ {ζ ≥ Int, δ ≤ Int} ⟹ Int
+//│                         Bool ≤ {δ ≤ Int} ⟹ Int
 //│                           Bool ≤ Int
-//│                       {ε ≤ Str, δ ≤ ¬Int} ⟹ Str ≤ Bool
-//│                         ε ≤ Str
+//│                       Bool ≤ {ζ ≥ Str, δ ≤ ¬Int} ⟹ Str
+//│                         Bool ≤ {δ ≤ ¬Int} ⟹ Str
 //│                           Bool ≤ Str
 
 :te

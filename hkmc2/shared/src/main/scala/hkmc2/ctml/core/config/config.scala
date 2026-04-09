@@ -7,6 +7,13 @@ enum MergeMode:
   /** Merge using constraining types. */
   case Constraining
 
+/** The mode used to make subtyping assumption. */
+enum AssumptionMode:
+  /** Flexify the context type variable. */
+  case Flexify
+  /** Use subtyping reconstruction. */
+  case Reconstruct
+
 /** Debugging information. */
 class Config:
   /** The global debug print function. */
@@ -14,6 +21,9 @@ class Config:
 
   /** Whether to use constrained types or constraing types to merge disjunctive clauses. */
   var mergeMode = MergeMode.Constrained
+
+  /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
+  var assumptionMode = AssumptionMode.Flexify
 
   /** Whether to allow absurd constrained types in subtyping or not. */
   var subtypeAbsurdConstreds = false

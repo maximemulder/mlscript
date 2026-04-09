@@ -318,10 +318,14 @@ def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Co
 
 /** Constrain a constrained type to be a supertype of another type. */
 def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  val vars = constrained.constraint.getVars()
-  val newCtx = ctx.flexify(vars)
   val constraintClauses = try
-    subtypeConstraint(constrained.constraint)(using newCtx, mode, cache)
+    config.assumptionMode match
+      case AssumptionMode.Flexify =>
+        val vars = constrained.constraint.getVars()
+        val flexCtx = ctx.flexify(vars)
+        subtypeConstraint(constrained.constraint)(using flexCtx, mode, cache)
+      case AssumptionMode.Reconstruct =>
+        subtypeConstraint(constrained.constraint)(using ctx, ConstraintMode.Reconstruct, cache)
   catch
     case error: TypeError =>
       if config.subtypeAbsurdConstreds then

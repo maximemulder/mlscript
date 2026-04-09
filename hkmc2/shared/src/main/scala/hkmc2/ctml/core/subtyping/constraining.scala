@@ -137,20 +137,39 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
 
   // Subtyping of flexible type variables.
 
-  (sub, sup) match
-    case (TVar(sub), TVar(sup)) if sub.isFlex && sup.isFlex =>
-      return subtypeFlexVars(sub, sup)
-    case _ =>
+  if mode == ConstraintMode.Solve then
+    (sub, sup) match
+      case (TVar(sub), TVar(sup)) if (sub.isFlex && sup.isFlex) =>
+        return subtypeFlexVars(sub, sup)
+      case _ =>
 
-  sub match
-    case TVar(sub) if sub.isFlex =>
-      return subtypeFlexVar(sub, sup, Direction.Sub)
-    case _ =>
+    sub match
+      case TVar(sub) if sub.isFlex =>
+        return subtypeFlexVar(sub, sup, Direction.Sub)
+      case _ =>
 
-  sup match
-    case TVar(sup) if sup.isFlex =>
-      return subtypeFlexVar(sup, sub, Direction.Super)
-    case _ =>
+    sup match
+      case TVar(sup) if sup.isFlex =>
+        return subtypeFlexVar(sup, sub, Direction.Super)
+      case _ =>
+
+  // Subtyping of variables in reconstruction mode.
+
+  if mode == ConstraintMode.Reconstruct then
+    (sub, sup) match
+      case (TVar(sub), TVar(sup)) if (!sub.isClass && !sup.isClass) =>
+        return subtypeReconstructVars(sub, sup)
+      case _ =>
+
+    sub match
+      case TVar(sub) if !sub.isClass =>
+        return subtypeReconstructVar(sub, sup, Direction.Sub)
+      case _ =>
+
+    sup match
+      case TVar(sup) if !sup.isClass =>
+        return subtypeReconstructVar(sup, sub, Direction.Super)
+      case _ =>
 
   // Subtyping of union and intersection types.
 
@@ -261,6 +280,28 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
     case _ =>
 
   throw TypeError()
+
+// Reconstruction type variables.
+
+def subtypeReconstructVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+  ctx.compareVarLevels(sub, sup) match
+    // If both variables are equal then they are subtype.
+    case Order.Equal =>
+      Clauses.empty
+    case _ =>
+      val subUpperBound = meet(TVar(sup), sub.upperBound)
+      val supLowerBound = join(TVar(sub), sup.lowerBound)
+      Clauses(List(Bound(sub, Direction.Sub, subUpperBound), Bound(sup, Direction.Super, supLowerBound)))
+
+def subtypeReconstructVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+  val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
+  val boundType = var_.bound(dir)
+  if checkSubtypeDir(boundType, type_, dir) then
+    // Do not return a new bound if it is already satisfied in the context.
+    Clauses.empty
+  else
+    val boundCombinedType = combine(boundType, type_, dir)
+    Clauses(Bound(var_, dir, boundCombinedType) :: Nil)
 
 // Flexible type variables.
 

@@ -321,9 +321,7 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Co
   val constraintClauses = try
     config.assumptionMode match
       case AssumptionMode.Flexify =>
-        val vars = constrained.constraint.getVars()
-        val flexCtx = ctx.flexify(vars)
-        subtypeConstraint(constrained.constraint)(using flexCtx, mode, cache)
+        subtypeConstraint(constrained.constraint)(using ctx.flexify(), mode, cache)
       case AssumptionMode.Reconstruct =>
         subtypeConstraint(constrained.constraint)(using ctx, ConstraintMode.Reconstruct, cache)
   catch

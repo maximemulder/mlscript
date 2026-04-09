@@ -8,18 +8,14 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.config.*
 
 extension (ctx: Context)
-  /** Make a type variable flexible. */
-  def flexify(var_ : TypeVar): Context =
+  /** Make all the type variables in the context flexible. */
+  def flexify(): Context =
     ctx.mapClauses(_ match
-      case TypeVarDecl(ctxvar, TypeVarKind.Rigid, original) if ctxvar == var_ =>
+      case TypeVarDecl(var_, TypeVarKind.Rigid, original) =>
         TypeVarDecl(var_, TypeVarKind.Flex, original)
       case clause =>
         clause
     )
-
-  /** Make some type variables flexible. */
-  def flexify(vars: Iterable[TypeVar]): Context =
-    vars.foldLeft(ctx)((ctx, var_) => ctx.flexify(var_))
 
   /** Get the type of a term variable. */
   def getVarType(name: String): Type =

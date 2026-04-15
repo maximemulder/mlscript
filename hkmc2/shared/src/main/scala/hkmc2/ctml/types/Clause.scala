@@ -28,6 +28,10 @@ case class Clauses(
   override def toString: String =
     this.show
 
+  /** Concatenate other clauses at the end of these clauses. */
+  def concat(others: Clauses): Clauses =
+    Clauses(others.elems ::: this.elems)
+
 object Clauses:
   /** The empty set of clauses. */
   def empty =

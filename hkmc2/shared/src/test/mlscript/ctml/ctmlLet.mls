@@ -6,7 +6,7 @@ fun foo(a) =
   let b = a
   let c = b
   c
-//│ foo: ∀α, β, γ, δ, ε. {α ≥ β, β ≥ γ, β ≤ α, γ ≥ ε, γ ≤ β, δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ δ → α
+//│ foo: ∀α, β, γ, δ, ε. {α ≥ β, β ≥ γ, β ≤ α, γ ≥ δ, γ ≤ β, δ ≥ ε, δ ≤ γ, ε ≤ δ} ⟹ ε → α
 
 fun bar(a) =
   let b = 1
@@ -19,16 +19,20 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ, δ, ε. {α ≤ ({δ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ε, δ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ
+//│ baz: ∀α, β, γ, δ, ε. {α ≥ β, β ≥ γ, β ≤ α, γ ≥ {ε ≤ Int, δ ≤ Int} ⟹ Int, γ ≤ β, δ ≤ {ε ≤ ¬Int, ε ≤ Str, ζ ≥ Str, γ ≥ Str} ⟹ Str, ε ≤ {ε ≤ Str, δ ≤ Str, ζ ≥ Str, γ ≥ Str} ⟹ ¬Int} ⟹ ε → δ → α
 
 baz(1, 1)
 //│ Int
 
 baz("", "")
-//│ Str
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int
 
 baz(bot, bot)
-//│ ⊥
+//│ Int
 
 :te
 baz(1, "")
@@ -38,40 +42,24 @@ baz(1, "")
 
 :te
 baz(true, false)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {α ≤ ({δ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ε, δ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ ≤ Bool → ζ.
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Int.
 //│ Typing error tree:
-//│   ∀α, β, γ, δ, ε. {α ≤ ({δ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ε, δ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ ≤ Bool → ζ
-//│     ∀β, γ, δ, ε. {η ≤ ({δ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({δ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), γ ≥ ε, δ ≥ ({β ≤ Int, η ≤ Int} ⟹ Int) ∧ ({β ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ η → β → γ ≤ Bool → ζ
-//│       ∀γ, δ, ε. {η ≤ ({δ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, θ ≤ Str} ⟹ Str), θ ≤ ({δ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), γ ≥ ε, δ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ η → θ → γ ≤ Bool → ζ
-//│         ∀δ, ε. {η ≤ ({δ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, θ ≤ Str} ⟹ Str), θ ≤ ({δ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), ι ≥ ε, δ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│           ∀ε. {η ≤ ({κ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, θ ≤ Str} ⟹ Str), θ ≤ ({κ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), ι ≥ ε, κ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), κ ≤ ε, ε ≥ κ, ε ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│             {η ≤ ({κ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, θ ≤ Str} ⟹ Str), θ ≤ ({κ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), ι ≥ λ, κ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), κ ≤ λ, λ ≥ κ, λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│               {θ ≤ ({κ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), ι ≥ λ, κ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), κ ≤ λ, λ ≥ κ, λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│                 {ι ≥ λ, κ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), κ ≤ λ, λ ≥ κ, λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│                   {κ ≥ ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ Str, η ≤ ¬Int} ⟹ Str), κ ≤ λ, λ ≥ κ, λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│                     {κ ≤ λ, λ ≥ κ, λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│                       {λ ≥ κ, λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│                         {λ ≤ ι} ⟹ η → θ → ι ≤ Bool → ζ
-//│                           η → θ → ι ≤ Bool → ζ
-//│                             Bool ≤ η
-//│                               Bool ≤ ({κ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, θ ≤ Str} ⟹ Str)
-//│                                 Bool ≤ {κ ≥ Int, θ ≤ Int} ⟹ Int
-//│                                   Bool ≤ {θ ≤ Int} ⟹ Int
-//│                                     Bool ≤ Int
-//│                                 Bool ≤ {κ ≥ Str, θ ≤ Str} ⟹ Str
-//│                                   Bool ≤ {θ ≤ Str} ⟹ Str
-//│                                     Bool ≤ Str
+//│   Bool ≤ Int
 
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ. {α ≤ β, β ≥ α, β ≤ ({ι ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({ι ≥ Str, δ ≤ Str} ⟹ Str), γ ≤ δ, δ ≥ γ, δ ≤ ({ι ≥ Int, β ≤ Int} ⟹ Int) ∨ ({ι ≥ Str, β ≤ Str, β ≤ ¬Int} ⟹ Str), ε ≥ ζ, ζ ≥ η, ζ ≤ ε, η ≥ θ, η ≤ ζ, θ ≥ κ, θ ≤ η, ι ≥ ({δ ≤ Int, β ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, β ≤ Str, β ≤ ¬Int} ⟹ Str), ι ≤ κ, κ ≥ ι, κ ≤ θ} ⟹ α → γ → ε
+//│ bop: ∀α, β. {α ≥ β, β ≤ α} ⟹ β → (∀γ, δ. {γ ≥ δ, δ ≤ γ} ⟹ δ → ({α ≤ Int, γ ≤ Int} ⟹ Int))
 
 bop(0, 1)
 //│ Int
 
 bop("0", "1")
-//│ Str
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int
 
 :te
 bop(0, "1")

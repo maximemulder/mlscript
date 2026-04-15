@@ -65,8 +65,8 @@ val z = (f, x) => x
 val s = (n, f, x) => f(n(f, x))
 val n3 = s(s(s(z)))
 //│ z: ∀α. ⊤ → α → α
-//│ s: ∀β, γ, δ, ε. {β ≤ δ → ε} ⟹ (β → γ → δ) → β → γ → ε
-//│ n3: ∀ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο. {η ≥ θ, θ ≤ η, ι ≥ κ, κ ≤ ι, λ ≥ μ, μ ≥ ν, μ ≤ λ, ν ≥ ο, ν ≤ μ, ξ ≤ ο, ο ≥ ξ, ο ≤ ν} ⟹ ((η → ζ) ∧ (ι → θ) ∧ (λ → κ)) → ξ → ζ
+//│ s: ∀β, γ, δ, ε. {β ≤ ε → γ} ⟹ (β → δ → ε) → β → δ → γ
+//│ n3: ∀ζ. (⊥ → ζ) → ⊤ → ζ
 
 // Terms
 
@@ -82,15 +82,15 @@ val a2 = choose(id)
 // OK
 
 val a3 = choose(nil, ids)
-//│ a3: List[∀A. A → A]
+//│ a3: ∀A. List[A]
 // OK
 
 fun a4(x) = x(x)
-//│ a4: ∀α, β. {α ≤ α → β} ⟹ α → β
+//│ a4: ∀α. (β → α) → α
 // OK
 
 val a5 = id(auto)
-//│ a5: ∀A. (∀A. A → A) → A → A
+//│ a5: (∀A. A → A) → (∀A. A → A)
 // OK
 
 val a6 = id(auto2)
@@ -98,11 +98,11 @@ val a6 = id(auto2)
 // OK
 
 val a7 = choose(id, auto)
-//│ a7: ∀A. (∀A. A → A) → A → A
+//│ a7: ∀A. A → A
 // OK
 
 val a8 = choose(id, auto2)
-//│ a8: ∀B. (∀A. A → A) → B → B
+//│ a8: ∀A. A → A
 // OK
 
 val a9 = f(choose(id), ids)
@@ -122,7 +122,7 @@ val a12 = id(poly((p) => p))
 // OK
 
 fun b1(f) = (f(1), f(true))
-//│ b1: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
+//│ b1: ∀α. (Int → α) → ⟨α, ⊥⟩
 // OK
 
 fun b2(xs) = poly(head(xs))
@@ -239,11 +239,11 @@ val f9 =
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀α. (∀A. A → A) → α → α
+//│ f10: ∀A. A → A
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β, γ, δ. {α ≤ β, β ≥ α ∨ δ, γ ≤ δ, δ ≥ γ, δ ≤ β} ⟹ Int → ((∀ε. ⊤ → ε → ε) ∨ ((β → α) → γ → α))
+//│ toChurch: ∀α. Int → ⊤ → α → α
 // OK
 
 val g1a = z as ChurchInt
@@ -251,7 +251,7 @@ val g1a = z as ChurchInt
 // OK
 
 val g2 = s
-//│ g2: ∀α, β, γ, δ. {α ≤ γ → δ} ⟹ (α → β → γ) → α → β → δ
+//│ g2: ∀α, β, γ, δ. {α ≤ δ → β} ⟹ (α → γ → δ) → α → γ → β
 // OK
 
 // val g2a = s as ((ChurchInt) -> ChurchInt)
@@ -266,15 +266,15 @@ val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
 // OK
 
 val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
-//│ g5: Int
+//│ g5: ⊥
 // OK
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ. {α ≥ β, β ≤ α, γ ≥ δ, δ ≥ ε, δ ≤ γ, ε ≥ κ, ε ≤ δ, ζ ≥ η, ζ ≤ κ, η ≥ ι, η ≤ ζ, θ ≤ ι, ι ≥ θ, ι ≤ η, κ ≥ ζ ∨ λ, κ ≤ ε, λ ≥ μ, λ ≤ κ, μ ≥ ξ, μ ≤ λ, ν ≥ ξ, ξ ≤ μ ∧ ν} ⟹ ((α → ξ) ∧ (γ → β)) → θ → ν
+//│ g7: ⊤ → ⊤ → ⊥
 // MAYBE
 
 val g8 = toChurch
-//│ g8: ∀α, β, γ, δ. {α ≤ β, β ≥ α ∨ δ, γ ≤ δ, δ ≥ γ, δ ≤ β} ⟹ Int → ((∀ε. ⊤ → ε → ε) ∨ ((β → α) → γ → α))
+//│ g8: ∀α. Int → ⊤ → α → α
 // OK
 
 val g8a = toChurch as ((Int) -> ChurchInt)
@@ -282,11 +282,32 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 // OK
 
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β. {α ≥ β → β, α ≤ α → α → β, β ≥ α, β ≤ α → β} ⟹ β → β
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Type variable '409' not found in the context.
+//│ Typing error tree:
+//│   ∀A. (A → A) → A ≤ (∀α, β, γ. {α ≥ γ, β ≤ γ, γ ≥ β, γ ≤ α} ⟹ (δ → β → γ) → β → α) → ε
+//│     (ζ → ζ) → ζ ≤ (∀α, β, γ. {α ≥ γ, β ≤ γ, γ ≥ β, γ ≤ α} ⟹ (δ → β → γ) → β → α) → ε
+//│       ∀α, β, γ. {α ≥ γ, β ≤ γ, γ ≥ β, γ ≤ α} ⟹ (δ → β → γ) → β → α ≤ ζ → ζ
+//│         ∀β, γ. {η ≥ γ, β ≤ γ, γ ≥ β, γ ≤ η} ⟹ (δ → β → γ) → β → η ≤ ζ → ζ
+//│           ∀γ. {η ≥ γ, θ ≤ γ, γ ≥ θ, γ ≤ η} ⟹ (δ → θ → γ) → θ → η ≤ ζ → ζ
+//│             {η ≥ ι, θ ≤ ι, ι ≥ θ, ι ≤ η} ⟹ (δ → θ → ι) → θ → η ≤ ζ → ζ
+//│               {θ ≤ ι, ι ≥ θ, ι ≤ η} ⟹ (δ → θ → ι) → θ → η ≤ ζ → ζ
+//│                 {ι ≥ θ, ι ≤ η} ⟹ (δ → θ → ι) → θ → η ≤ ζ → ζ
+//│                   {ι ≤ η} ⟹ (δ → θ → ι) → θ → η ≤ ζ → ζ
+//│                     (δ → θ → ι) → θ → η ≤ ζ → ζ
+//│                       θ → η ≤ ζ
+//│                         θ → η ≤ δ → θ → ι
 // MAYBE
 
 val g10 = ((x) => x(x))((x) => x(x))
-//│ g10: ⊥
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Type variable '423' not found in the context.
+//│ Typing error tree:
+//│   ∀α. (β → α) → α ≤ (∀γ. (δ → γ) → γ) → ε
+//│     (β → ζ) → ζ ≤ (∀γ. (δ → γ) → γ) → ε
+//│       ∀γ. (δ → γ) → γ ≤ β → ζ
 // OK
 
 val g11 = auto(auto2(id))
@@ -297,11 +318,22 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀α. {α ≥ ∀A, B. A → B → A, α ≤ α → ⊤} ⟹ ⊤ → α
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:65)
+//│ ═══[TYPE ERROR] Type variable '469' not found in the context.
+//│ Typing error tree:
+//│   ∀α, β. {α ≥ β, β ≤ α} ⟹ ((∀A, B. A → B → A) → β) → α ≤ (∀γ. (δ → γ) → γ) → ε
+//│     ∀β. {ζ ≥ β, β ≤ ζ} ⟹ ((∀A, B. A → B → A) → β) → ζ ≤ (∀γ. (δ → γ) → γ) → ε
+//│       {ζ ≥ η, η ≤ ζ} ⟹ ((∀A, B. A → B → A) → η) → ζ ≤ (∀γ. (δ → γ) → γ) → ε
+//│         {η ≤ ζ} ⟹ ((∀A, B. A → B → A) → η) → ζ ≤ (∀γ. (δ → γ) → γ) → ε
+//│           ((∀A, B. A → B → A) → η) → ζ ≤ (∀γ. (δ → γ) → γ) → ε
+//│             ∀γ. (δ → γ) → γ ≤ (∀A, B. A → B → A) → η
+//│               (δ → θ) → θ ≤ (∀A, B. A → B → A) → η
+//│                 ∀A, B. A → B → A ≤ δ → θ
 // OK
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
-//│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩
+//│ g13: ⟨⟨Int, ⊥⟩, ⊥⟩
 // OK
 
 val g14 = ((f) =>

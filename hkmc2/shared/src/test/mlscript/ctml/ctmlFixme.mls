@@ -3,14 +3,53 @@
 fun id(x) = x
 //│ id: ∀α. α → α
 
+:ctml-dbg var constrain
+
 val idInt: [T extends Int] -> T -> Int = id
+//│ constrain ∀0. 0 → 0 ≤ ∀T. {T ≤ Int} ⟹ T → Int
+//│   1 rigid freshen T
+//│   constrain ∀0. 0 → 0 ≤ {1 ≤ Int} ⟹ 1 → Int
+//│     constrain 1 ≤ Int
+//│     OK ⇝ 1 ≤ Int
+//│     constrain ∀0. 0 → 0 ≤ 1 → Int
+//│       2 flex freshen 0
+//│       constrain 2 → 2 ≤ 1 → Int
+//│         constrain 1 ≤ 2
+//│           constrain 1 ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 2 ≥ 1
+//│         SEQ ∅ AND 2 ≥ 1
+//│         constrain 2 ≤ Int
+//│           constrain 1 ≤ Int
+//│             constrain Int ≤ Int
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ 2 ≤ Int
+//│         SEQ 2 ≥ 1 AND 2 ≤ Int
+//│       OK ⇝ 2 ≥ 1, 2 ≤ Int
+//│       SEQ 2 flex AND 2 ≥ 1, 2 ≤ Int
+//│       UNIV SUB CLAUSES 2 flex, 2 ≥ 1, 2 ≤ Int
+//│     OK ⇝ 2 flex, 2 ≥ 1, 2 ≤ Int
+//│     SEQ ∅ AND 2 flex
+//│     constrain 1 ≤ 2
+//│       constrain 1 ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ 2 ≥ 1
+//│     SEQ 2 flex AND 2 ≥ 1
+//│     constrain 2 ≤ Int
+//│       constrain 1 ≤ Int
+//│         constrain ⊤ ≤ Int
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ FAIL
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: raise (test.scala:65)
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int.
 //│ Typing error tree:
 //│   ∀α. α → α ≤ ∀T. {T ≤ Int} ⟹ T → Int
 //│     ∀α. α → α ≤ {β ≤ Int} ⟹ β → Int
-//│       γ → γ ≤ {β ≤ Int} ⟹ β → Int
-//│         β ≤ γ
-//│           β ≤ Int
-//│             ⊤ ≤ Int
+//│       γ ≤ Int
+//│         β ≤ Int
+//│           ⊤ ≤ Int

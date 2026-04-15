@@ -3,6 +3,7 @@ package hkmc2.ctml.core.context
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
+import hkmc2.ctml.core.config.debug
 
 // Methods used to evaluate conjunctions and disjunctions within a typing context.
 
@@ -46,6 +47,7 @@ extension (ctx: Context)
   def seq[T](f: Context ?=> (T, Clauses), ins: Clauses): (T, Clauses) =
     given Context = ctx.extend(ins)
     val (result, outs) = f
+    debug(s"SEQ ${ins} AND ${outs}")
     (result, ins.concat(outs))
 
   /** Sequentially evaluate a function in a typing context. */

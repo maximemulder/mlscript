@@ -10,7 +10,7 @@ val zs: Z | S
 //│ zs: Z ∨ S
 
 wf(zs, zs)
-//│ Z ∨ S
+//│ Z
 
 type A
 type B

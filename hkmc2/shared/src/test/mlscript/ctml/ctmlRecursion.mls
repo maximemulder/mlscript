@@ -11,7 +11,7 @@ fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α. {α ≥ Int} ⟹ (α ∧ Int) → α
+//│ zero: ∀α, β. {α ≥ Int, α ≤ β, β ≥ α} ⟹ α → β
 
 val infinite = infinite + 1
 //│ infinite: Int

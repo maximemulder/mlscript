@@ -224,18 +224,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
       return subtype(sub, sup.var_.lowerBound)
     case (_, _) =>
 
-  // Subtyping of universal types.
-
-  sup match
-    case sup: TUniv =>
-      return subtypeUnivSup(sub, sup)
-    case _ =>
-
-  sub match
-    case sub: TUniv =>
-      return subtypeUnivSub(sub, sup)
-    case _ =>
-
   // Subtyping of constrained types.
 
   // The right constrained type comes first so that the left constraint (which must be solvable)
@@ -249,6 +237,18 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
   sub match
     case sub: TConstrained =>
       return subtypeConstrainedSub(sub, sup)
+    case _ =>
+
+  // Subtyping of universal types.
+
+  sup match
+    case sup: TUniv =>
+      return subtypeUnivSup(sub, sup)
+    case _ =>
+
+  sub match
+    case sub: TUniv =>
+      return subtypeUnivSub(sub, sup)
     case _ =>
 
   // Subtyping of class type variables.
@@ -344,7 +344,9 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
   val freshDecl = declFreshFlexVar(Some(sub.var_))
   val freshBody = sub.body.substitute(sub.var_, freshDecl.var_)
-  subtypeSeq(freshBody, sup, freshDecl.asClauses)
+  val a = subtypeSeq(freshBody, sup, freshDecl.asClauses)
+  debug(f"UNIV SUB CLAUSES ${a}")
+  a
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =

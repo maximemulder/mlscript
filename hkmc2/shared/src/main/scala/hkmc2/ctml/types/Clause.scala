@@ -30,7 +30,7 @@ case class Clauses(
 
   /** Concatenate other clauses at the end of these clauses. */
   def concat(others: Clauses): Clauses =
-    Clauses(others.elems ::: this.elems)
+    Clauses(this.elems ::: others.elems)
 
 object Clauses:
   /** The empty set of clauses. */

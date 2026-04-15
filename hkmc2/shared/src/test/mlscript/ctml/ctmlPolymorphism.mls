@@ -13,10 +13,10 @@ fun apply(f, x) =
 
 fun double(f, x) =
   f(f(x))
-//│ double: ∀α. (α → ⊤) → α → ⊥
+//│ double: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ
 
 double(id, 1)
-//│ ⊥
+//│ Int
 
 fun foo(a, b) =
   a(1, b)

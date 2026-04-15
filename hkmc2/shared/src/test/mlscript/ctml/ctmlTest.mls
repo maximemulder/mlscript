@@ -89,75 +89,25 @@ fun double(f, x) =
 //│       SEQ 2 flex, 0 ≤ 1 → 2 AND 3 flex, 0 ≤ (1 → 2) ∧ (2 → 3)
 //│     OK 3 ⇝ 2 flex, 0 ≤ 1 → 2, 3 flex, 0 ≤ (1 → 2) ∧ (2 → 3)
 //│   OK 1 → 3 ⇝ 1 flex, 2 flex, 0 ≤ 1 → 2, 3 flex, 0 ≤ (1 → 2) ∧ (2 → 3)
-//│   inline 3 in 0 → 1 → 3
-//│   meet 1 → 2 and 2 → ⊤
-//│     check 2 → ⊤ ≤ 1 → 2
-//│       check 1 ≤ 2
-//│         check ⊤ ≤ 2
-//│           check ⊤ ≤ ⊥
-//│           FAIL
-//│         FAIL
-//│       FAIL
-//│     FAIL
-//│     check 1 → 2 ≤ 2 → ⊤
-//│       check 2 ≤ 1
-//│         check 2 ≤ ⊥
-//│           check ⊤ ≤ ⊥
-//│           FAIL
-//│         FAIL
-//│       FAIL
-//│     FAIL
-//│     check 1 ≤ 2
-//│       check ⊤ ≤ 2
-//│         check ⊤ ≤ ⊥
-//│         FAIL
-//│       FAIL
-//│     FAIL
-//│     check 2 ≤ 1
-//│       check 2 ≤ ⊥
-//│         check ⊤ ≤ ⊥
-//│         FAIL
-//│       FAIL
-//│     FAIL
-//│     check 2 ≤ ⊤
-//│     OK ⇝ ∅
-//│     check ⊤ ≤ 2
-//│       check ⊤ ≤ ⊥
-//│       FAIL
-//│     FAIL
-//│   = (1 → 2) ∧ (2 → ⊤)
-//│   = 0 → 1 → ⊥
-//│   inline 0 in 0 → 1 → ⊥
-//│   = (1 → 2) → 1 → ⊥
+//│   inline 0 in 0 → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
 //│   check ⊥ ≤ ⊤
 //│   OK ⇝ ∅
 //│   check ⊤ ≤ ⊥
 //│   FAIL
-//│   quantify 1 in (1 → 2) → 1 → ⊥
-//│   = (1 → 2) → 1 → ⊥
-//│   inline 2 in (1 → 2) → 1 → ⊥
-//│   meet 1 → ⊤ and ⊥ → ⊤
-//│     check ⊥ → ⊤ ≤ 1 → ⊤
-//│       check 1 ≤ ⊥
-//│         check ⊤ ≤ ⊥
-//│         FAIL
-//│       FAIL
-//│     FAIL
-//│     check 1 → ⊤ ≤ ⊥ → ⊤
-//│       check ⊥ ≤ 1
-//│       OK ⇝ ∅
-//│       SEQ ∅ AND ∅
-//│       check ⊤ ≤ ⊤
-//│       OK ⇝ ∅
-//│       SEQ ∅ AND ∅
-//│     OK ⇝ ∅
-//│   = 1 → ⊤
-//│   = (1 → ⊤) → 1 → ⊥
+//│   quantify 1 in ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
 //│   check ⊥ ≤ ⊤
 //│   OK ⇝ ∅
 //│   check ⊤ ≤ ⊥
 //│   FAIL
-//│   quantify 1 in (1 → ⊤) → 1 → ⊥
-//│   = (1 → ⊤) → 1 → ⊥
-//│ OK ∀1. (1 → ⊤) → 1 → ⊥ ⇝ 0 ≤ 1 → ⊤, 0 ≤ 1 → ⊤
-//│ double: ∀α. (α → ⊤) → α → ⊥
+//│   quantify 2 in ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 3 in ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│   = ((1 → 2) ∧ (2 → 3)) → 1 → 3
+//│ OK ∀1, 2, 3. ((1 → 2) ∧ (2 → 3)) → 1 → 3 ⇝ 0 ≤ 1 → 2, 0 ≤ (1 → 2) ∧ (2 → 3)
+//│ double: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ

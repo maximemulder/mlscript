@@ -37,7 +37,7 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
-//│ Int ∧ (Str ⟹ {Int ≤ ¬Int, Int ≤ Str, α ≥ Str})
+//│ Int
 
 foo("Hello", "World")
 //│ FAILURE: Unexpected type error
@@ -148,17 +148,7 @@ foo(true, true)
 
 :te
 foo(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ (Int ⟹ {β ≥ Int}) ∨ (Str ⟹ {Int ≤ ¬Int, γ ≥ Str, β ≥ Str}), β ≥ (Int ⟹ {α ≤ Int}) ∧ (Str ⟹ {Int ≤ ¬Int, α ≤ Str, γ ≥ Str})} ⟹ α → β ≤ Str → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
 //│ Typing error tree:
-//│   ∀α, β. {α ≤ (Int ⟹ {β ≥ Int}) ∨ (Str ⟹ {Int ≤ ¬Int, γ ≥ Str, β ≥ Str}), β ≥ (Int ⟹ {α ≤ Int}) ∧ (Str ⟹ {Int ≤ ¬Int, α ≤ Str, γ ≥ Str})} ⟹ α → β ≤ Str → δ
-//│     ∀β. {ε ≤ (Int ⟹ {β ≥ Int}) ∨ (Str ⟹ {Int ≤ ¬Int, γ ≥ Str, β ≥ Str}), β ≥ (Int ⟹ {ε ≤ Int}) ∧ (Str ⟹ {Int ≤ ¬Int, ε ≤ Str, γ ≥ Str})} ⟹ ε → β ≤ Str → δ
-//│       {ε ≤ (Int ⟹ {ζ ≥ Int}) ∨ (Str ⟹ {Int ≤ ¬Int, γ ≥ Str, ζ ≥ Str}), ζ ≥ (Int ⟹ {ε ≤ Int}) ∧ (Str ⟹ {Int ≤ ¬Int, ε ≤ Str, γ ≥ Str})} ⟹ ε → ζ ≤ Str → δ
-//│         {ζ ≥ (Int ⟹ {ε ≤ Int}) ∧ (Str ⟹ {Int ≤ ¬Int, ε ≤ Str, γ ≥ Str})} ⟹ ε → ζ ≤ Str → δ
-//│           ε → ζ ≤ Str → δ
-//│             Str ≤ ε
-//│               Str ≤ (Int ⟹ {ζ ≥ Int}) ∨ (Str ⟹ {Int ≤ ¬Int, γ ≥ Str, ζ ≥ Str})
-//│                 Str ≤ Int ⟹ {ζ ≥ Int}
-//│                   Str ≤ Int
-//│                 Str ≤ Str ⟹ {Int ≤ ¬Int, γ ≥ Str, ζ ≥ Str}
-//│                   Str ≤ Str ⟹ {γ ≥ Str, ζ ≥ Str}
-//│                     Str ≤ γ
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int

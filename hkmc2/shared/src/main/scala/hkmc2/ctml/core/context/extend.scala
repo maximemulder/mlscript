@@ -10,9 +10,8 @@ extension (ctx: Context)
   /** Extend the context with one or several clauses. */
   def extend(clauses: AsClauses*): Context =
     clauses
-      .reverse
       .flatMap(_.asClauses)
-      .foldRight(ctx)((clause, ctx) => ctx.extendOne(clause))
+      .foldLeft(ctx)((ctx, clause) => ctx.extendOne(clause))
 
   /** Append a clause at the end of the clauses. */
   def extendOne(clause: Clause): Context =

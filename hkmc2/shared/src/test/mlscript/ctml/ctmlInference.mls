@@ -39,7 +39,7 @@ foo(c)
 //│       C ≤ B
 
 foo(d)
-//│ A
+//│ A ∨ B
 
 foo(e)
 //│ ⊥

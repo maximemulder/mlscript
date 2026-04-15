@@ -373,8 +373,8 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Co
         return Clauses.empty
       else
         throw error
-  val bodyClauses = subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode, cache)
-  constrainClauses(bodyClauses)
+
+  subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode, cache)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =

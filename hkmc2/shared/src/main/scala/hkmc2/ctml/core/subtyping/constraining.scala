@@ -15,7 +15,7 @@ import hkmc2.ctml.core.type_.impls.substitute.substitute
 
 /** Constrain a set clauses to hold in the context. */
 def constrainClauses(clauses: Clauses)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  clauses.elems.foldLeft(Clauses.empty)((clauses, clause) => ctx.seqUnit(constrainClause(clause), clauses))
+  clauses.elems.foldRight(Clauses.empty)((clause, clauses) => ctx.seqUnit(constrainClause(clause), clauses))
 
 /** Constrain a clause to hold in the context. */
 def constrainClause(clause: Clause)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
@@ -224,18 +224,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
       return subtype(sub, sup.var_.lowerBound)
     case (_, _) =>
 
-  // Subtyping of universal types.
-
-  sup match
-    case sup: TUniv =>
-      return subtypeUnivSup(sub, sup)
-    case _ =>
-
-  sub match
-    case sub: TUniv =>
-      return subtypeUnivSub(sub, sup)
-    case _ =>
-
   // Subtyping of constrained types.
 
   // The right constrained type comes first so that the left constraint (which must be solvable)
@@ -249,6 +237,18 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
   sub match
     case sub: TConstrained =>
       return subtypeConstrainedSub(sub, sup)
+    case _ =>
+
+  // Subtyping of universal types.
+
+  sup match
+    case sup: TUniv =>
+      return subtypeUnivSup(sub, sup)
+    case _ =>
+
+  sub match
+    case sub: TUniv =>
+      return subtypeUnivSub(sub, sup)
     case _ =>
 
   // Subtyping of class type variables.

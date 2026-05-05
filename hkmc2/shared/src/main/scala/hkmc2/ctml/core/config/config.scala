@@ -25,6 +25,9 @@ class Config:
   /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
   var assumptionMode = AssumptionMode.Reconstruct
 
+  /** Whether to check constraint coherence during subtyping reconstruction. */
+  var reconstructCoherence = false
+
   /** Whether to allow absurd constrained types in subtyping or not. */
   var subtypeAbsurdConstreds = false
 

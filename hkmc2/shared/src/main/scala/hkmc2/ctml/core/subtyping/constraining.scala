@@ -279,7 +279,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
       return subtypeApp(sub, sup)
     case _ =>
 
-  throw TypeError()
+  mode match
+    // Accept any subtyping constraint in incoherent reconstruction mode.
+    case ConstraintMode.Reconstruct if !config.reconstructCoherence =>
+      Clauses.empty
+    // Raise an error in constraint solving or coherent reconstruction mode.
+    case _ =>
+      throw TypeError()
 
 // Reconstruction type variables.
 
@@ -294,6 +300,9 @@ def subtypeReconstructVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode:
       Clauses(List(Bound(sub, Direction.Sub, subUpperBound), Bound(sup, Direction.Super, supLowerBound)))
 
 def subtypeReconstructVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+  if var_.isFlex then
+    return Clauses.empty
+
   val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
   val boundType = var_.bound(dir)
   if checkSubtypeDir(boundType, type_, dir) then
@@ -318,15 +327,15 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Constr
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  val oppositeBoundType = ctx.getVarBound(var_, dir.invert())
-  val clauses = subtypeDir(oppositeBoundType, type_, dir)
-  val boundType = var_.bound(dir)
-  if checkSubtypeDir(boundType, type_, dir)(using ctx.extend(clauses)) then
+  val varBound = var_.bound(dir)
+  val varOppositeBound = var_.bound(dir.invert())
+  val clauses = subtypeDir(varOppositeBound, type_, dir)
+  if checkSubtypeDir(varBound, type_, dir)(using ctx.extend(clauses)) then
     // Do not return a new bound if it is already satisfied in the context.
     clauses
   else
-    val boundCombinedType = combine(boundType, type_, dir)
-    Clauses(Bound(var_, dir, boundCombinedType) :: clauses.elems)
+    val varNewBound = combine(varBound, type_, dir)
+    Clauses(Bound(var_, dir, varNewBound) :: clauses.elems)
 
 // Rigid type variables.
 

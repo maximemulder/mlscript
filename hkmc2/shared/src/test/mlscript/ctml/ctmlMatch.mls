@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg subtype-absurd-constred
+:ctml-cfg subtype-absurd-constred reconstruct-coherence
 
 if 1 is
   Int then 1

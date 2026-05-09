@@ -57,7 +57,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
       val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
       (TInter(newLeft, newRight), rightOuts)
     case TUniv(var_, body) =>
-      given Context = ctx.extend(declRigidVar(var_))
+      given Context = ctx.extend(declVar(var_, TypeVarKind.Rigid))
       val (newBody, bodyOuts) = extrudeType(body)
       (TUniv(var_, newBody), bodyOuts)
     case TConstrained(body, constraint) =>
@@ -82,7 +82,7 @@ private def extrudeFreshVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       (type_, Clauses.empty)
     case None =>
       // TODO: Declare the variable at the right level.
-      val freshDecl = declFreshFlexVar()
+      val freshDecl = declFreshVar(TypeVarKind.Flex)
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
@@ -97,7 +97,7 @@ private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       (type_, Clauses.empty)
     case None =>
       // TODO: Declare the variable at the right level.
-      val freshDecl = declFreshFlexVar()
+      val freshDecl = declFreshVar(TypeVarKind.Flex)
       val freshType = TVar(freshDecl.var_)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)

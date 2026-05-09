@@ -29,9 +29,7 @@ extension (ctx: Context)
     val (type_ , typeOuts) = f(freshDecl.var_, freshCtx)
 
     // Count the fresh type variable as belonging to this level.
-    val outs =
-      given Context = freshCtx
-      freshDecl.asClauses.concat(typeOuts)
+    val outs = Clauses.single(freshDecl).concat(typeOuts)
 
     // Solve the level.
     ctx.solveLevel(type_, outs)

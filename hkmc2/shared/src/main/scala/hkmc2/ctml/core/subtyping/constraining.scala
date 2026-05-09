@@ -9,6 +9,7 @@ import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.config.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.inference.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.impls.substitute.substitute
@@ -351,15 +352,19 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  val freshDecl = declFreshFlexVar(Some(sub.var_))
-  val freshBody = sub.body.substitute(sub.var_, freshDecl.var_)
-  subtypeSeq(freshBody, sup, freshDecl.asClauses)
+  ctx.withSubtypingLevel(TypeVarKind.Flex, sub.var_, (var_, ctx) =>
+    given Context = ctx
+    val body = sub.body.substitute(sub.var_, var_)
+    subtype(body, sup)
+  )
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  val freshDecl = declFreshRigidVar(Some(sup.var_))
-  val freshBody = sup.body.substitute(sup.var_, freshDecl.var_)
-  subtypeSeq(sub, freshBody, freshDecl.asClauses)
+  ctx.withSubtypingLevel(TypeVarKind.Rigid, sup.var_, (var_, ctx) =>
+    given Context = ctx
+    val body = sup.body.substitute(sup.var_, var_)
+    subtype(sub, body)
+  )
 
 /** Constrain a constrained type to be a subtype of another type. */
 def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =

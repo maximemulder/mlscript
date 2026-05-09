@@ -18,21 +18,35 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
 extension (ctx: Context)
-  /** Evaluate a type inference function in a new level with a new fresh type variable and solve
-   *  that level. */
-  def withFreshVarLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
-    // Create a new fresh type variable, make it a type, and add it to the context.
-    val freshDecl = declFreshFlexVar()
+  /** Evaluate a function in a new level with a new fresh type variable and solve that level. */
+  def withFreshVarLevel[T](
+    kind: TypeVarKind,
+    original: Option[TypeVar],
+    inner: (TypeVar, Context) => (T, Clauses),
+    outer: (T, Clauses) => (T, Clauses),
+  ): (T, Clauses) =
+    // Create a new fresh type variable and add it to the context.
+    val freshDecl = declFreshVar(kind, original)
     val freshCtx = ctx.extend(freshDecl)
 
-    // Evaluate the type inference function with the fresh type variable.
-    val (type_ , typeOuts) = f(freshDecl.var_, freshCtx)
+    // Evaluate the inner function with the type variable in the context.
+    val (res, innerOuts) = inner(freshDecl.var_, freshCtx)
 
-    // Count the fresh type variable as belonging to this level.
-    val outs = Clauses.single(freshDecl).concat(typeOuts)
+    // Move the type variable to the output clauses.
+    val outs = Clauses.single(freshDecl).concat(innerOuts)
 
-    // Solve the level.
-    ctx.solveLevel(type_, outs)
+    // Evaluate the outer function with the type variable in the output clauses.
+    outer(res, outs)
+
+  /** Evaluate a subtyping function in a new level with a new fresh type variable and solve that
+   *  level. */
+  def withSubtypingLevel(kind: TypeVarKind, original: TypeVar, f: (TypeVar, Context) => Clauses): Clauses =
+    withFreshVarLevel(kind, Some(original), (a, b) => ((), f(a, b)), (_, b) => ((), b))._2
+
+  /** Evaluate a type inference function in a new level with a new fresh type variable and solve
+   *  that level. */
+  def withInferenceLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
+    withFreshVarLevel(TypeVarKind.Flex, None, f, ctx.solveLevel)
 
   /** Get the type variables of this level. */
   def getLevelVars(outs: Clauses): List[TypeVar] =

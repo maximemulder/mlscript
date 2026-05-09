@@ -13,7 +13,7 @@ extension (type_ : Type)
       case TVar(var_) if !var_.isClass =>
         Set(var_)
       case TUniv(var_, body) =>
-        given Context = ctx.extend(declRigidVar(var_))
+        given Context = ctx.extend(declVar(var_, TypeVarKind.Rigid))
         body.getVars() - var_
       case _ =>
         type_.accumulate(_.getVars())

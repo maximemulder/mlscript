@@ -13,7 +13,7 @@ extension (type_ : Type)(using ctx: Context)
       case TVar(var_) =>
         var_.findEscapedVars()
       case TUniv(var_, body) =>
-        given Context = ctx.extend(declRigidVar(var_))
+        given Context = ctx.extend(declVar(var_, TypeVarKind.Rigid))
         body.findEscapedVars()
       case TConstrained(body, constraint) =>
         var escapedVars = body.findEscapedVars()

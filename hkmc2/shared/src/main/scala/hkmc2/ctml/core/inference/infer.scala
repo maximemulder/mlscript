@@ -30,7 +30,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 
     // Lambda abstraction.
     case lam: ELam =>
-      ctx.withFreshVarLevel((paramVar, ctx) =>
+      ctx.withInferenceLevel((paramVar, ctx) =>
         val paramType = TVar(paramVar)
         given Context = ctx.extend(TermVarDecl(lam.paramName, paramType))
         val (bodyType, bodyClauses) = infer(lam.body)
@@ -42,7 +42,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
       val (lamType, lamClauses) = infer(app.lam)
       val (argType, argClauses) = inferSeq(app.arg, lamClauses)
       ctx.seq(
-        summon[Context].withFreshVarLevel((retVar, ctx) =>
+        summon[Context].withInferenceLevel((retVar, ctx) =>
           val retType = TVar(retVar)
           val mockLamType = TLam(argType, retType)
           given Context = ctx
@@ -70,7 +70,7 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   ctx.seq(
-    summon[Context].withFreshVarLevel((matchVar, matchCtx) =>
+    summon[Context].withInferenceLevel((matchVar, matchCtx) =>
       given Context = matchCtx
       val matchType = TVar(matchVar)
       val patternClauses = typingSubtype(scrutineeType, match_.pattern)

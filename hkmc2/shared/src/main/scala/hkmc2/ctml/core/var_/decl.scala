@@ -24,20 +24,11 @@ def newFreshVarName(): String =
 def newFreshVar(): TypeVar =
   TypeVar(newFreshVarName())
 
-/** Get a new fresh rigid type variable declaration. */
-def declFreshRigidVar(original: Option[TypeVar] = None): TypeVarDecl =
+/** Get a new fresh type variable declaration. */
+def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None): TypeVarDecl =
   val var_ = newFreshVar()
-  declRigidVar(var_, original)
+  declVar(var_, kind, original)
 
-/** Get a new fresh flexible type variable declaration. */
-def declFreshFlexVar(original: Option[TypeVar] = None): TypeVarDecl =
-  val var_ = newFreshVar()
-  declFlexVar(var_, original)
-
-/** Get a new rigid type variable declaration. */
-def declRigidVar(var_ : TypeVar, original: Option[TypeVar] = None): TypeVarDecl =
-  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Rigid, original))
-
-/** Get a new flexible type variable declaration. */
-def declFlexVar(var_ : TypeVar, original: Option[TypeVar] = None): TypeVarDecl =
-  debugTypeVar(TypeVarDecl(var_, TypeVarKind.Flex, original))
+/** Get a new type variable declaration. */
+def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None): TypeVarDecl =
+  debugTypeVar(TypeVarDecl(var_, kind, original))

@@ -2,7 +2,7 @@ package hkmc2.ctml.core.type_.impls.getAllVarPolarities
 
 import hkmc2.ctml.util.OrderedSet as MutSet
 
-import hkmc2.ctml.core.config.*
+import hkmc2.ctml.config.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*

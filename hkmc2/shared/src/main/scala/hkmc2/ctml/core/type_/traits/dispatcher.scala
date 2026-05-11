@@ -1,8 +1,8 @@
 package hkmc2.ctml.core.type_.traits
 
-import hkmc2.ctml.types.*
-import hkmc2.ctml.core.config.*
+import hkmc2.ctml.config.*
 import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.types.*
 import hkmc2.syntax.Keyword.`override`
 
 /** Applicator that recursively applies a combinator on the components of a type. */

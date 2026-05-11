@@ -22,7 +22,11 @@ case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):
 
   /** Add two types to the subtyping cache. */
   def add(sub: Type, sup: Type): SubtypingCache =
-    if config.debug.cacheAdd then
-      output(s"CACHE ADD ${sub} ${sup}")
+    (sub, sup) match
+      case (TVar(_), _) | (_, TVar(_)) =>
+        if config.debug.cacheAdd then
+          output(s"CACHE ADD ${sub} ${sup}")
 
-    SubtypingCache(this.pairs + ((sub, sup)))
+        SubtypingCache(this.pairs + ((sub, sup)))
+      case _ =>
+        this

@@ -1,6 +1,6 @@
 package hkmc2.ctml.core.combine
 
-import hkmc2.ctml.core.config.*
+import hkmc2.ctml.config.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*

@@ -11,8 +11,15 @@ case class Context(
 ):
   /** Get the string representation of the object. */
   override def toString(): String =
-    // TODO
     this.clauses.map(_.show).mkString(", ")
+
+  /** Map over the clauses of the context as a single iterator. */
+  def map(f: Iterator[Clause] => Iterator[Clause]): Context =
+    Context(f(this.clauses.iterator).toList)
+
+  /** Map over the clauses of the context. */
+  def mapClauses(f: Clause => Clause): Context =
+    this.map(_.map(f))
 
 object Context:
   /** The empty typing context. */

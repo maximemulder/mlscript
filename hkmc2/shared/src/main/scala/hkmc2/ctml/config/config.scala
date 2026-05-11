@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.config
+package hkmc2.ctml.config
 
 /** The mode used to merge clauses. */
 enum MergeMode:

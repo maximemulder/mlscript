@@ -2,9 +2,8 @@ package hkmc2.ctml.core.inference
 
 import hkmc2.ctml.util.OrderedSet as MutSet
 
+import hkmc2.ctml.config.*
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.config.*
-import hkmc2.ctml.core.config.config
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*

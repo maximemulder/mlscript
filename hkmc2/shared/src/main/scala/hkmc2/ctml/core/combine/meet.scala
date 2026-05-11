@@ -29,12 +29,12 @@ def meetMerge(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache
 
   left match
     case TNeg(left) =>
-      return Some(right.subtract(left))
+      return right.subtractStep(left)
     case _ =>
 
   right match
     case TNeg(right) =>
-      return Some(left.subtract(right))
+      return left.subtractStep(right)
     case _ =>
 
   // Meet lambda types.

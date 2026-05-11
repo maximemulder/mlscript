@@ -54,7 +54,12 @@ extension (type_ : Type)
       case TVar(var_) if var_.isRigid && !cache.contains(var_) =>
         return var_.bound(pol.dir).split(mode)(using ctx, pol, cache + var_)
       case TNeg(body) =>
-        return body.split(mode.invert)
+        // Push negations into the split.
+        return body.split(mode.invert) match
+          case Some(left, right) =>
+            Some(TNeg(left), TNeg(right))
+          case None =>
+            None
       case _ =>
 
     type_.splitStructure(mode) match

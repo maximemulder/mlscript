@@ -27,6 +27,14 @@ def applyDebugArguments(arguments: List[String]): Unit =
           config.debug.var_ = true
         case "output" =>
           config.debug.output = true
+        case "cache.add" =>
+          config.debug.cacheAdd = true
+        case "cache.check" =>
+          config.debug.cacheCheck = true
+        case "cache.hit" =>
+          config.debug.cacheHit = true
+        case "cache.miss" =>
+          config.debug.cacheMiss = true
         case "depth" =>
           buffer.popFront match
             case Some(depth) =>

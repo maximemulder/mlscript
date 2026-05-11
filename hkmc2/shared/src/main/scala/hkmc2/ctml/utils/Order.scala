@@ -1,4 +1,4 @@
-package hkmc2.ctml.util
+package hkmc2.ctml.utils
 
 /** The result of an order comparison. */
 enum Order:

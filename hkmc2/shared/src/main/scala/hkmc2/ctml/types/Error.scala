@@ -3,7 +3,7 @@ package hkmc2.ctml.types
 
 import scala.collection.mutable.ListBuffer
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 import hkmc2.semantics.Statement
 
 

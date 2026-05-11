@@ -1,7 +1,7 @@
 package hkmc2.ctml.types
 
-import hkmc2.ctml.util.*
-import hkmc2.ctml.util.given
+import hkmc2.ctml.utils.*
+import hkmc2.ctml.utils.given
 
 /** A type. */
 sealed trait Type:

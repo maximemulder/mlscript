@@ -1,6 +1,6 @@
 package hkmc2.ctml.types
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** A type variable. */
 case class TypeVar(val name: String):

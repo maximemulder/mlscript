@@ -15,7 +15,7 @@ import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.parser.parseStmts
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 import hkmc2.semantics.Term
 
 /** Run a CTML test on an input term. */

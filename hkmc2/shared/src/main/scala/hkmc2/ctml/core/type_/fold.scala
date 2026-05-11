@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 extension (type_ : Type)
   /** Apply a fold on the direct components of a type. */

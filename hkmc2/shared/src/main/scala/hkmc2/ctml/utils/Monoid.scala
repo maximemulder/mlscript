@@ -1,4 +1,4 @@
-package hkmc2.ctml.util
+package hkmc2.ctml.utils
 
 /** The monoid trait. */
 trait Monoid[T](using s: Semigroup[T]):

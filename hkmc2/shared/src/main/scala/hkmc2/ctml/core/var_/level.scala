@@ -7,8 +7,8 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
-import hkmc2.ctml.util.given
+import hkmc2.ctml.utils.*
+import hkmc2.ctml.utils.given
 
 extension (ctx: Context)
   /** Compare the level of two type variables within a context. */

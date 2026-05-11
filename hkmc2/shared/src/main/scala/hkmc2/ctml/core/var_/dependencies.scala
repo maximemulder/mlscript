@@ -1,12 +1,12 @@
 package hkmc2.ctml.core.var_
 
-import hkmc2.ctml.util.OrderedSet as MutSet
 import scala.collection.mutable.ListBuffer
 
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
+import hkmc2.ctml.utils.OrderedSet as MutSet
 
 /** A type variable and its dependency graph, that is, the other type variables on which it
  *  depends.

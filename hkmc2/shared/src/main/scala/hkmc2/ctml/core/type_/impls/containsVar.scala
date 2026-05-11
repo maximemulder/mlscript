@@ -5,8 +5,8 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
-import hkmc2.ctml.util.given
+import hkmc2.ctml.utils.*
+import hkmc2.ctml.utils.given
 
 extension (type_ : Type)
   /** Check whether a type variable appears in the type. */

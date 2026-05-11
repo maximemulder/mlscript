@@ -1,13 +1,13 @@
 package hkmc2.ctml.core.type_.impls.getAllVarPolarities
 
-import hkmc2.ctml.util.OrderedSet as MutSet
+import hkmc2.ctml.utils.OrderedSet as MutSet
 
 import hkmc2.ctml.config.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
-import hkmc2.ctml.util.given
+import hkmc2.ctml.utils.*
+import hkmc2.ctml.utils.given
 import hkmc2.ctml.core.clauses.varBound
 
 extension (type_ : Type)

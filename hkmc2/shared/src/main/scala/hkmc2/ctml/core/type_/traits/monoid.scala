@@ -2,7 +2,7 @@ package hkmc2.ctml.core.type_.traits
 
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** Combinator to combine the components of a type into a monoidal value. */
 final class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Const[T], Const[T], P], ConstraintCombinator[Const[T], Const[T], P]:

@@ -4,7 +4,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.given
+import hkmc2.ctml.utils.given
 
 extension (type_ : Type)(using ctx: Context)
   /** Find escaped variables within a type. */

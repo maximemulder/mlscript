@@ -4,7 +4,7 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 extension (type_ : Type)
   /** Subsitute a type variable by another type variable in the type, without simplifying the

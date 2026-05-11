@@ -2,7 +2,7 @@ package hkmc2.ctml.config
 
 import scala.collection.mutable.ListBuffer
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 def applyDebugArguments(arguments: List[String]): Unit =
   try

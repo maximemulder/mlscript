@@ -6,7 +6,7 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 def inferSeq(expr: Expr, ins: Clauses)(using ctx: Context): (Type, Clauses) =
   ctx.seq(infer(expr), ins)

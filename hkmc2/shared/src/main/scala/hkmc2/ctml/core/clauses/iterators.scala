@@ -2,7 +2,7 @@ package hkmc2.ctml.core.clauses
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 // Iteration methods for clauses.
 

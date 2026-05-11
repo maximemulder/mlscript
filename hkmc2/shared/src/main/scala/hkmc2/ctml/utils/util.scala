@@ -1,4 +1,4 @@
-package hkmc2.ctml.util
+package hkmc2.ctml.utils
 
 import java.io.{PrintWriter, StringWriter}
 import scala.util.boundary, boundary.break

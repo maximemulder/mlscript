@@ -1,6 +1,6 @@
 package hkmc2.ctml.types
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** A typing context, which is made of an ordered list of clauses and is usualy taken as an input
  *  by various typing functions.

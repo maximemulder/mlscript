@@ -8,11 +8,11 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.inference.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
-import hkmc2.ctml.core.type_.impls.substitute.substitute
+import hkmc2.ctml.utils.*
 
 /** Constrain a set clauses to hold in the context. */
 def constrainClauses(clauses: Clauses)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =

@@ -1,4 +1,4 @@
-package hkmc2.ctml.util
+package hkmc2.ctml.utils
 
 /** The functor trait */
 trait Functor[F[_]]:

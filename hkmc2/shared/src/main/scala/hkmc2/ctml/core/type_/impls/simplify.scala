@@ -2,11 +2,10 @@ package hkmc2.ctml.core.type_.impls.simplify
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.type_.traits.*
-import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.types.*
+import hkmc2.ctml.utils.*
 
 extension (type_ : Type)
   /** Simplify the type based on the information available in a context. */

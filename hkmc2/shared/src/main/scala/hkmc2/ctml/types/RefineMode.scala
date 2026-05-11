@@ -1,6 +1,6 @@
 package hkmc2.ctml.types
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** The subtyping refinement mode. */
 enum RefineMode:

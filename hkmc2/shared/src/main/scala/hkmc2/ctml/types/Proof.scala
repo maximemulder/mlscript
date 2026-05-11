@@ -1,6 +1,6 @@
 package hkmc2.ctml.types
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** A proof tree. */
 case class ProofTree(val judgment: Judgment, val premises: List[ProofTree]):

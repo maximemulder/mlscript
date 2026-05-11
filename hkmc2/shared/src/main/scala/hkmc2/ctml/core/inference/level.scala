@@ -1,7 +1,5 @@
 package hkmc2.ctml.core.inference
 
-import hkmc2.ctml.util.OrderedSet as MutSet
-
 import hkmc2.ctml.config.*
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
@@ -15,6 +13,7 @@ import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.type_.impls.simplify.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.utils.OrderedSet as MutSet
 
 extension (ctx: Context)
   /** Evaluate a function in a new level with a new fresh type variable and solve that level. */

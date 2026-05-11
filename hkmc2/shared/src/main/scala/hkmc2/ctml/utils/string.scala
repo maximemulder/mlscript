@@ -1,4 +1,4 @@
-package hkmc2.ctml.util
+package hkmc2.ctml.utils
 
 extension (string: String)
   /** Indent a string by the given amount of levels. */

@@ -1,11 +1,11 @@
 package hkmc2.ctml.core.type_.impls.inline
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.core.context.getVarBound
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
-import hkmc2.ctml.core.context.getVarBound
+import hkmc2.ctml.types.*
+import hkmc2.ctml.utils.*
 
 extension (type_ : Type)
   /** Replace a type variable by a substitute type in a type, simplifying the resulting type if

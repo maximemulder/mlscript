@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.type_.traits
 
-import hkmc2.ctml.util.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.utils.*
 
 /** Trait that describes the combination of some possibly transformed type components. */
 trait TypeCombinator[T[_], B[_], P]:

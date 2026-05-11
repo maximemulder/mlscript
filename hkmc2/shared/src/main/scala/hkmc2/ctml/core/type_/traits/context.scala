@@ -6,7 +6,7 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** Handle contextual information while applying a transformation on a type. */
 final class TypeContextApplicator[T[+_], P <: ContextParams[P]](

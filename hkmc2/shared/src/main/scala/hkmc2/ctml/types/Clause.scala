@@ -1,6 +1,6 @@
 package hkmc2.ctml.types
 
-import hkmc2.ctml.util.*
+import hkmc2.ctml.utils.*
 
 /** Type alias for clauses-like objects. */
 type AsClauses = Context | Clauses | List[Clause] | Clause

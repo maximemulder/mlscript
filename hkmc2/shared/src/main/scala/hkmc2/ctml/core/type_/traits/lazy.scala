@@ -1,10 +1,10 @@
 package hkmc2.ctml.core.type_.traits
 
-import hkmc2.ctml.types.*
-import hkmc2.ctml.core.config.*
+import hkmc2.ctml.config.*
 import hkmc2.ctml.core.type_.traits.*
-import hkmc2.syntax.Keyword.`override`
+import hkmc2.ctml.types.*
 import hkmc2.ctml.util.Const
+import hkmc2.syntax.Keyword.`override`
 
 /** Applicator that applies another applicator on the components of a type, and then applies a
  *  combinator only of the components of that typed have changed. */

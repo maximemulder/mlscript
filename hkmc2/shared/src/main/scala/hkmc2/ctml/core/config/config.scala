@@ -81,6 +81,18 @@ class Debug:
   /** Show output clauses debug flag. */
   var output = false
 
+  /** Show subtyping cache add debug flag. */
+  var cacheAdd = false
+
+  /** Show subtyping cache check debug flag. */
+  var cacheCheck = false
+
+  /** Show subtyping cache hit debug flag. */
+  var cacheHit = false
+
+  /** Show subtyping cache miss debug flag. */
+  var cacheMiss = false
+
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None
 

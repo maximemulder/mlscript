@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.subtyping
 
+import hkmc2.ctml.config.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.config.*
 
 /** Cache used to store, detect, and solve recursive subtyping queries. */
 case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):

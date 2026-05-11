@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.config
+package hkmc2.ctml.config
 
 import scala.collection.mutable.ListBuffer
 

@@ -2,11 +2,11 @@ package hkmc2.ctml.core.type_.impls
 
 import scala.collection.mutable.HashMap as MutMap
 
-import hkmc2.ctml.types.*
-import hkmc2.ctml.util.*
+import hkmc2.ctml.config.output
 import hkmc2.ctml.core.clauses.*
-import hkmc2.ctml.core.config.output
 import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.util.*
+import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Prettify a type in a context. */

@@ -1,8 +1,8 @@
 package hkmc2.ctml.core.subtyping
 
+import hkmc2.ctml.config.debug
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.config.debug
 
 /** Type splitting mode. */
 enum SplitMode:

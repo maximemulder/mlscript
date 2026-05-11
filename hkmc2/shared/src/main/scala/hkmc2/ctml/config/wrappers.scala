@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.config
+package hkmc2.ctml.config
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*

@@ -30,7 +30,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
   type_ match
     case TVar(var_) if ctx.compareVarLevels(var_, level) == Order.Greater =>
       ctx.getTypeVarKind(var_) match
-        case TypeVarKind.Class =>
+        case TypeVarKind.Class(_) =>
           (type_, Clauses.empty)
         case TypeVarKind.Rigid =>
           extrudeRigidVar(var_)

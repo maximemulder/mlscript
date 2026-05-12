@@ -375,7 +375,7 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSubtype(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Boolean =
   try
-    withCheckingMode(subtype(sub, sup)(using ctx.freeze(), ConstraintMode.Solve, cache))
+    withCheckingMode(subtype(sub, sup)(using ctx.rigidify(), ConstraintMode.Solve, cache))
   catch
     case _: TypeError =>
       return false

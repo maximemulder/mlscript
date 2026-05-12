@@ -62,6 +62,17 @@ case class TermVarDecl(
   override def toString: String =
     this.show
 
+/** A class declaration. */
+case class ClassDecl(
+  /** The name of the class. */
+  name: String,
+  /** The parent of the class. */
+  parent: Option[String],
+) extends Clause:
+  /** Get the string representation of the object. */
+  override def toString: String =
+    this.show
+
 /** A type variable declaration. */
 case class TypeVarDecl(
   /** The type variable. */
@@ -96,8 +107,6 @@ case class Bound(
 
 /** A type variable kind. */
 enum TypeVarKind:
-  /** A class, which is disjoint with other classes. */
-  case Class(parent: Option[TypeVar])
   /** A rigid type variable, whose bounds cannot be refined during type checking. */
   case Rigid
   /** A flexible type variable, whose bounds may be refined during type checking. */
@@ -132,6 +141,11 @@ given Show[TermVarDecl] with
   override def show(var_ : TermVarDecl): String =
     s"${var_.name}: ${var_.type_}"
 
+/** Implementation of the `Show` trait for `ClassDecl`. */
+given Show[ClassDecl] with
+  override def show(class_ : ClassDecl): String =
+    s"class ${class_.name} ${class_.parent}"
+
 /** Implementation of the `Show` trait for `TypeVarDecl`. */
 given Show[TypeVarDecl] with
   override def show(var_ : TypeVarDecl): String =
@@ -146,6 +160,5 @@ given Show[Bound] with
 given Show[TypeVarKind] with
   override def show(kind: TypeVarKind): String =
     kind match
-      case TypeVarKind.Class(_) => "class"
-      case TypeVarKind.Rigid    => "rigid"
-      case TypeVarKind.Flex     => "flex"
+      case TypeVarKind.Rigid => "rigid"
+      case TypeVarKind.Flex  => "flex"

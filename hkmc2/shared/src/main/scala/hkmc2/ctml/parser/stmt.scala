@@ -75,15 +75,15 @@ def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New]): Stm
   val name = mlSymbol.nme
   val parent = mlParent match
     case Some(Term.New(Term.Ref(mlParentSymbol), _, _)) =>
-      Some(TypeVar(mlParentSymbol.nme))
+      Some(mlParentSymbol.nme)
     case Some(Term.New(Term.TyApp(Term.Ref(mlParentSymbol), _), _, _)) =>
-      Some(TypeVar(mlParentSymbol.nme))
+      Some(mlParentSymbol.nme)
     case None =>
       None
     case Some(mlParent) =>
       throw new ParseError(mlParent)
 
-  StmtTypeDecl(name, TypeVarKind.Class(parent))
+  StmtClassDecl(name, parent)
 
 /** Convert an MLScript type declaration to a CTML rigid type variable declaration. */
 def parseRigidVarDecl(mlSymbol: TypeAliasSymbol): Stmt =

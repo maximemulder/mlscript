@@ -10,7 +10,7 @@ extension (type_ : Type)
   /** Get the type variables referenced in a type. */
   def getVars()(using ctx: Context): Set[TypeVar] =
     type_ match
-      case TVar(var_) if !var_.isClass =>
+      case TVar(var_) =>
         Set(var_)
       case TUniv(var_, body) =>
         given Context = ctx.declVar(var_, TypeVarKind.Rigid)

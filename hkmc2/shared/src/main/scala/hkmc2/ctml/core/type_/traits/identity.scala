@@ -18,6 +18,9 @@ final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P], Constra
   def var_(var_ : TypeVar): TVar =
     TVar(var_)
 
+  def class_(name: String): TClass =
+    TClass(name)
+
   def tuple(left: Type, right: Type, p: P): TTuple =
     TTuple(left, right)
 

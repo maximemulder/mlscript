@@ -23,6 +23,6 @@ extension (ctx: Context)
   /** Get the maximum level of all type variables in the context. */
   def getMaxLevel(): Int =
     ctx.typeVarDecls
-      .flatMap((decl) => decl.level)
+      .map((decl) => decl.level)
       .maxOption
       .getOrElse(0)

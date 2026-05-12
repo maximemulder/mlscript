@@ -8,7 +8,7 @@ extension (type_ : Type)
   /** Check if this type is a constructor type. */
   def isConstructor(using ctx: Context): Boolean =
     type_ match
-      case TVar(_) if type_.isClassVar =>
+      case TClass(_) =>
         true
       case TTuple(_, _) =>
         true
@@ -24,7 +24,7 @@ def areDisjointConstructors(left: Type, right: Type)(using ctx: Context): Boolea
       false
     case (TTuple(_, _), TTuple(_, _)) =>
       false
-    case (TVar(left), TVar(right)) if left.isClass && right.isClass && (left.isSubClass(right) || right.isSubClass(left)) =>
+    case (TClass(left), TClass(right)) if TClass(right).isSubClass(TClass(left)) =>
       false
     case _ =>
       left.isConstructor && right.isConstructor

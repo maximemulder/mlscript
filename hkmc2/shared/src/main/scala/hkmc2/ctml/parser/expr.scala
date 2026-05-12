@@ -16,7 +16,7 @@ import hkmc2.semantics.IfLikeForm
 import hkmc2.semantics.SimpleSplit.Head
 
 /** Convert an MLScript term to a CTML expression. */
-def parseExpr(mlExpr: Term): Expr =
+def parseExpr(mlExpr: Term)(using Scope): Expr =
   mlExpr match
     // Parse blocks.
     case Term.Blk(mlLefts, mlRight) =>
@@ -60,7 +60,7 @@ def parseExpr(mlExpr: Term): Expr =
       throw new ParseError(mlExpr)
 
 /** Parse a block, which can either be a variable binding or a tuple. */
-def parseBlock(mlLefts: List[Statement], mlRight: Term): Expr =
+def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
   mlLefts match
     case Nil =>
       parseExpr(mlRight)
@@ -82,7 +82,7 @@ def parseBlock(mlLefts: List[Statement], mlRight: Term): Expr =
           throw new ParseError(mlLeft)
 
 /** Convert an MLScript lambda abstraction to a CTML expression. */
-def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
+def parseLambda(mlParams: List[Param], mlBody: Term)(using Scope): Expr =
   mlParams match
     case Nil =>
       throw new ParseError(mlBody)
@@ -92,7 +92,7 @@ def parseLambda(mlParams: List[Param], mlBody: Term): Expr =
       ELam(paramName, body)
 
 /** Convert an MLScript lambda abstraction to a CTML lambda abstraction body. */
-def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
+def parseLambdaBody(mlParams: List[Param], mlBody: Term)(using Scope): Expr =
   mlParams match
     case Nil =>
       parseExpr(mlBody)
@@ -102,7 +102,7 @@ def parseLambdaBody(mlParams: List[Param], mlBody: Term): Expr =
       ELam(paramName, body)
 
 /** Convert an MLScript lambda application to a CTML expresssion. */
-def parseApp(mlLambda: Term, mlArgs: Term): Expr =
+def parseApp(mlLambda: Term, mlArgs: Term)(using Scope): Expr =
   mlArgs match
     case Term.Tup(mlArgs :+ Fld(_, mlArg, _)) =>
       val lambda = parseAppLambda(mlLambda, mlArgs)
@@ -112,7 +112,7 @@ def parseApp(mlLambda: Term, mlArgs: Term): Expr =
       throw new ParseError(mlLambda)
 
 /** Convert an MLScript lambda application to a CTML lambda application lambda. */
-def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
+def parseAppLambda(mlLambda: Term, mlArgs: List[Elem])(using Scope): Expr =
   mlArgs match
     case mlArgs :+ Fld(_, mlArg, _) =>
       val lambda = parseAppLambda(mlLambda, mlArgs)
@@ -126,7 +126,7 @@ def parseAppLambda(mlLambda: Term, mlArgs: List[Elem]): Expr =
           parseExpr(mlLambda)
 
 /** Convert an MLScript split to a CTML expression */
-def parseSplit(mlSplit: SimpleSplit): Expr =
+def parseSplit(mlSplit: SimpleSplit)(using Scope): Expr =
   mlSplit match
     case mlCons: SimpleSplit.Cons =>
       parseCons(mlCons)
@@ -136,7 +136,7 @@ def parseSplit(mlSplit: SimpleSplit): Expr =
       throw new ParseError(Term.Error)
 
 /** Convert an MLScript cons to a CTML expression */
-def parseCons(mlCons: SimpleSplit.Cons): Expr =
+def parseCons(mlCons: SimpleSplit.Cons)(using Scope): Expr =
   mlCons match
     case SimpleSplit.Cons(mlLet @ SimpleSplit.Head.Let(_, _), mlTail: SimpleSplit.Cons) =>
       parseLet(mlLet, mlTail)
@@ -146,14 +146,14 @@ def parseCons(mlCons: SimpleSplit.Cons): Expr =
       throw new ParseError(Term.Error)
 
 /** Convert an MLScript let binding to a CTML expression */
-def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons): Expr =
+def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope): Expr =
   val param = mlLet.binding.nme
   val arg = parseExpr(mlLet.term)
   val body = parseCons(mlTail)
   EApp(ELam(param, body), arg)
 
 /** Convert an MLScript pattern match to a CTML expression */
-def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit): EMatch =
+def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope): EMatch =
   val scrutinee = parseExpr(mlMatch.scrutinee)
   val pattern = parsePattern(mlMatch.pattern)
   val then_ = parseSplit(mlMatch.consequent)
@@ -167,7 +167,7 @@ def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit): EMatch =
   EMatch(scrutinee, pattern, then_, else_)
 
 /** Convert an MLScript pattern to a CTML pattern */
-def parsePattern(mlPattern: Pattern): Type =
+def parsePattern(mlPattern: Pattern)(using Scope): Type =
   mlPattern match
     case Pattern.Constructor(mlPattern, _) =>
       parseType(mlPattern)

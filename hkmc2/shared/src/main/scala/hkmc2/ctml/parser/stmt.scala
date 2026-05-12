@@ -17,19 +17,32 @@ import hkmc2.semantics.TypeAliasSymbol
 import hkmc2.semantics.TypeDef
 import hkmc2.syntax.Keyword
 import hkmc2.syntax.Tree
+import hkmc2.ctml.config.output
 
 /** Convert an MLScript block to CTML statements. */
-def parseStmts(mlStmts: Term): List[Stmt] =
+def parseTermStmts(mlStmts: Term)(using Scope): List[Stmt] =
   mlStmts match
     case Term.Blk(mlStmts, mlStmt) =>
-      val stmts = mlStmts.flatMap(parseStmt)
-      val stmt  = parseStmt(mlStmt)
-      stmts ++ stmt
+      parseStmts(mlStmts :+ mlStmt)
     case _ =>
       parseStmt(mlStmts).toList
 
 /** Convert an MLScript statement to a CTML statement. */
-def parseStmt(mlStmt: Statement): Option[Stmt] =
+def parseStmts(mlStmts: List[Statement])(using scope: Scope): List[Stmt] =
+  mlStmts match
+    case mlStmt :: mlStmts =>
+      val stmt = parseStmt(mlStmt)
+      val newScope = stmt match
+        case Some(stmt) =>
+          updateScope(stmt, scope)
+        case None =>
+          scope
+      stmt.toList ++ parseStmts(mlStmts)(using newScope)
+    case Nil =>
+      Nil
+
+/** Convert an MLScript statement to a CTML statement. */
+def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
   Some(
     mlStmt match
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) =>
@@ -71,7 +84,7 @@ def parseStmt(mlStmt: Statement): Option[Stmt] =
   )
 
 /** Convert an MLScript class declaration to a CTML class declaration. */
-def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New]): Stmt =
+def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New])(using Scope): Stmt =
   val name = mlSymbol.nme
   val parent = mlParent match
     case Some(Term.New(Term.Ref(mlParentSymbol), _, _)) =>
@@ -86,23 +99,23 @@ def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New]): Stm
   StmtClassDecl(name, parent)
 
 /** Convert an MLScript type declaration to a CTML rigid type variable declaration. */
-def parseRigidVarDecl(mlSymbol: TypeAliasSymbol): Stmt =
+def parseRigidVarDecl(mlSymbol: TypeAliasSymbol)(using Scope): Stmt =
   val name = mlSymbol.nme
   StmtTypeDecl(name, TypeVarKind.Rigid)
 
 /** Convert an MLScript type declaration to a CTML flexible type variable declaration. */
-def parseFlexVarDecl(mlSymbol: TypeAliasSymbol): Stmt =
+def parseFlexVarDecl(mlSymbol: TypeAliasSymbol)(using Scope): Stmt =
   val name = mlSymbol.nme
   StmtTypeDecl(name, TypeVarKind.Flex)
 
 /** Convert an MLScript type alias to a CTML type variable assignment. */
-def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term): Stmt =
+def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term)(using Scope): Stmt =
   val name  = mlSymbol.nme
   val type_ = parseType(mlType)
   StmtTypeVar(name, type_)
 
 /** Convert an MLScript term declaration to a CTML expression variable declaration. */
-def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
+def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term])(using Scope): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType match
     case Some(mlType) =>
@@ -113,7 +126,7 @@ def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term]): Stmt =
   StmtExprDecl(name, type_)
 
 /** Convert an MLScript term declaration to a CTML expression variable assignment. */
-def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Stmt =
+def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Option[Term], mlExpr: Term)(using Scope): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType.map(parseType(_))
   var expr = parseExprVarBody(mlParams, mlType, mlExpr)
@@ -125,7 +138,7 @@ def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Opt
   StmtExprVar(name, expr)
 
 /** Convert an MLScript term declaration to a CTML expression body. */
-def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term): Expr =
+def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term)(using Scope): Expr =
   mlParams match
     case Nil =>
       val type_ = mlType.map(parseType(_))
@@ -139,6 +152,28 @@ def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term):
       val paramName = mlParam.sym.nme
       val body = parseExprVarBody(mlParams, mlType, mlExpr)
       ELam(paramName, body)
+
+/** Update the parser scope with on a statement. */
+def updateScope(stmt: Stmt, scope: Scope) =
+  getStmtDecl(stmt) match
+    case Some((name, DeclKind.Class)) =>
+      scope.withClass(name)
+    case Some((name, DeclKind.Type)) =>
+      scope.withType(name)
+    case None =>
+      scope
+
+/** Get a class or type variable declaration from a statement, if it is one. */
+def getStmtDecl(stmt: Stmt): Option[(String, DeclKind)] =
+  stmt match
+    case StmtClassDecl(name, _) =>
+      Some((name, DeclKind.Class))
+    case StmtTypeDecl(name, _) =>
+      Some((name, DeclKind.Type))
+    case StmtTypeVar(name, _) =>
+      Some((name, DeclKind.Type))
+    case _ =>
+      None
 
 /** Check whether a list of annotations has a `declare` keyword, which is used to differentiate
  *  flexible and rigid type variable declarations.

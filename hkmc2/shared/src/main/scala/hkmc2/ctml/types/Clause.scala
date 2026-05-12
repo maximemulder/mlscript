@@ -82,7 +82,7 @@ case class TypeVarDecl(
   /** The original type variable if the variable is fresh. */
   original: Option[TypeVar],
   /** The level of the type variable. */
-  level: Option[Int],
+  level: Int,
 ) extends Clause:
   /** Get the string representation of the object. */
   override def toString: String =
@@ -129,10 +129,12 @@ given Show[Clauses] with
 given Show[Clause] with
   override def show(clause: Clause): String =
     clause match
-      case var_ : TermVarDecl =>
-        var_.show
-      case var_ : TypeVarDecl =>
-        var_.show
+      case decl: TermVarDecl =>
+        decl.show
+      case decl: ClassDecl =>
+        decl.show
+      case decl: TypeVarDecl =>
+        decl.show
       case bound: Bound =>
         bound.show
 

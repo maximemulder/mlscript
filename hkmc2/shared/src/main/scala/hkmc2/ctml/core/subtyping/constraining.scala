@@ -23,6 +23,8 @@ def constrainClause(clause: Clause)(using ctx: Context, mode: ConstraintMode, ca
   clause match
     case decl: TermVarDecl =>
       Clauses.single(decl)
+    case decl: ClassDecl =>
+      Clauses.single(decl)
     case decl: TypeVarDecl =>
       Clauses.single(decl)
     case Bound(var_, dir, type_) =>
@@ -231,7 +233,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
   // Subtyping of class type variables.
 
   (sub, sup) match
-    case (TVar(sub), TVar(sup)) if sub.isClass && sup.isClass && sub.isSubClass(sup) =>
+    case (TClass(sub), TClass(sup)) if TClass(sub).isSubClass(TClass(sup)) =>
       return Clauses.empty
     case _ =>
 

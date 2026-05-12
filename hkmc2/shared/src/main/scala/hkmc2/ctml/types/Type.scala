@@ -21,6 +21,9 @@ case class TNeg(val body: Type) extends Type
 /** A type variable type. */
 case class TVar(val var_ : TypeVar) extends Type
 
+/** A class type. */
+case class TClass(val class_ : String) extends Type
+
 /** A tuple typle. */
 case class TTuple(val left: Type, val right: Type) extends Type
 
@@ -55,7 +58,7 @@ extension (type_ : Type)
   /** Get the components of a type. */
   def components: List[Type] =
     type_ match
-      case TBot | TTop | TVar(_) =>
+      case TBot | TTop | TVar(_) | TClass(_) =>
         Nil
       case TNeg(body) =>
         List(body)
@@ -99,6 +102,8 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
       (s"¬${showType(body, true)}", false)
     case TVar(var_) =>
       (var_.show, false)
+    case TClass(name) =>
+      (name, false)
     case TTuple(left, right) =>
       (s"⟨${showType(left)}, ${showType(right)}⟩", false)
     case lambda: TLam =>

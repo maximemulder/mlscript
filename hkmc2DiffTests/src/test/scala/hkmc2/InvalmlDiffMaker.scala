@@ -47,6 +47,8 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
     hkmc2.ctml.config.applyDebugArguments(line.split(" ").toList)
   )
 
+  /** The CTML parsing scope. */
+  var ctmlScope = hkmc2.ctml.parser.Scope.root
   /** The CTML typing context. */
   var ctmlCtx = hkmc2.ctml.types.Context.empty
 
@@ -76,4 +78,6 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       printer.print(sty)
 
     if ctmlCommand.isSet then
-      this.ctmlCtx = hkmc2.ctml.test.test(term, this.ctmlCtx, inImport, output.apply, raise)
+      val (scope, ctx) = hkmc2.ctml.test.test(term, this.ctmlScope, this.ctmlCtx, inImport, output.apply, raise)
+      this.ctmlCtx = ctx
+      this.ctmlScope = scope

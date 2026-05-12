@@ -27,6 +27,9 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
   def var_(var_ : TypeVar): Type =
     TVar(var_)
 
+  def class_(name: String): TClass =
+    TClass(name)
+
   def tuple(left: Type, right: Type, p: P): TTuple =
     TTuple(left, right)
 

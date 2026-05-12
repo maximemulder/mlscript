@@ -17,6 +17,8 @@ final class TypeDispatcher[T[+_], B[+_], P](
         last.top(p)
       case TVar(var_) =>
         last.var_(var_)
+      case TClass(name) =>
+        last.class_(name)
       case TNeg(body) =>
         last.neg(
           first.apply(body, p),

@@ -24,6 +24,8 @@ final class TypeLazyDispatcher[P](
         last.neg(newBody, p)
       case TVar(var_) =>
         last.var_(var_)
+      case TClass(name) =>
+        last.class_(name)
       case TTuple(left, right) =>
         val newLeft  = first.apply(left, p);
         val newRight = first.apply(right, p);

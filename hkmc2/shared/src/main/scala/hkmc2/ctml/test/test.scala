@@ -13,7 +13,7 @@ import hkmc2.ctml.core.inference.infer
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.core.var_.*
-import hkmc2.ctml.parser.parseStmts
+import hkmc2.ctml.parser.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given
 import hkmc2.ctml.utils.*
@@ -22,11 +22,12 @@ import hkmc2.semantics.Term
 /** Run a CTML test on an input term. */
 def test(
   term: Term,
+  scope: Scope,
   ctx: Context,
   import_ : Boolean,
   outputter: (String) => Unit,
   raiser: Raise,
-): Context =
+): (Scope, Context) =
   // Do not output results in import files (such as the CTML prelude).
   val output = if !import_
     then (message)   => outputter(message)
@@ -35,11 +36,12 @@ def test(
   val raise = (ln: Line, fn: FileName) ?=> (source: Source, message: String) =>
     raiser(ErrorReport(List((message, None)), source = source))
 
-  val tester = Tester(ctx, output, raise)
+  val tester = Tester(scope, ctx, output, raise)
   tester.test(term)
-  tester.ctx
+  (tester.scope, tester.ctx)
 
 class Tester(
+  var scope: Scope,
   var ctx: Context,
   output: (String) => Unit,
   raise: (Line, FileName) ?=> (Source, String) => Unit,
@@ -52,11 +54,14 @@ class Tester(
 
     // Try to parse the input term.
     val stmts = try
-      parseStmts(term)
+      parseTermStmts(term)(using scope)
     catch
       case error: ParseError =>
         raise(Source.Parsing, error.getMessage())
         return
+
+    for stmt <- stmts do
+      scope = updateScope(stmt, scope)
 
     try
       for stmt <- stmts do
@@ -100,7 +105,7 @@ class Tester(
     this.output(s"${name} = ${type_.prettify(prettyCtx)}")
     val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(
-      TypeVarDecl(var_, TypeVarKind.Rigid, None, None),
+      TypeVarDecl(var_, TypeVarKind.Rigid, None, 0),
       Bound(var_, Direction.Sub,   type_),
       Bound(var_, Direction.Super, type_),
     )

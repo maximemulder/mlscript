@@ -37,4 +37,4 @@ extension (ctx: Context)
   /** Add a new type variable declaration to the context. */
   def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None): Context =
     val level = ctx.getMaxLevel() + 1
-    ctx.extend(debugTypeVar(TypeVarDecl(var_, kind, original, Some(level))))
+    ctx.extend(debugTypeVar(TypeVarDecl(var_, kind, original, level)))

@@ -26,7 +26,7 @@ extension (ctx: Context)
 
   /** Get the level of a type variable in the context. */
   def getTypeVarLevel(var_ : TypeVar): Int =
-    ctx.getTypeVarDecl(var_).level.get
+    ctx.getTypeVarDecl(var_).level
 
   /** Get all the bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =
@@ -62,14 +62,6 @@ extension (ctx: Context)
     ctx.getVarBound(var_, Direction.Sub)
 
 extension (type_ : Type)(using ctx: Context)
-  /** Check whether the type is a class type variable. */
-  def isClassVar: Boolean =
-    type_ match
-      case TVar(var_) =>
-        var_.isClass
-      case _ =>
-        false
-
   /** Check whether the type is a flexible type variable. */
   def isFlexVar: Boolean =
     type_ match
@@ -94,14 +86,6 @@ extension (var_ : TypeVar)(using ctx: Context)
   /** Get the level of the type variable in the context. */
   def level: Int =
     ctx.getTypeVarLevel(var_)
-
-  /** Check whether the type variable is a class type variable. */
-  def isClass: Boolean =
-    var_.kind match
-      case TypeVarKind.Class(_) =>
-        true
-      case _ =>
-        false
 
   /** Check whether the type variable is a flexible type variable. */
   def isFlex: Boolean =

@@ -7,7 +7,7 @@ extension (type_ : Type)
   /** Check whether this type is an acceptable pattern or not. */
   def isPattern(using ctx: Context): Boolean =
     type_ match
-      case TVar(var_) if var_.isClass =>
+      case TClass(var_) =>
         true
       case TNeg(body) =>
         body.isPattern

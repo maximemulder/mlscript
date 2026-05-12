@@ -6,9 +6,10 @@ import hkmc2.semantics.Term
 import hkmc2.semantics.QuantVar
 import hkmc2.semantics.SubConstraint
 import hkmc2.semantics.SubDir
+import hkmc2.ctml.config.output
 
 /** Convert an MLScript term to a CTML type. */
-def parseType(mlType: Term): Type =
+def parseType(mlType: Term)(using scope: Scope): Type =
   mlType match
     case Term.Neg(mlBody) =>
       TNeg(parseType(mlBody))
@@ -21,7 +22,14 @@ def parseType(mlType: Term): Type =
         case "Bot" =>
           TBot
         case name =>
-          TVar(TypeVar(name))
+          scope.get(name) match
+            case Some(DeclKind.Class) =>
+              TClass(name)
+            case Some(DeclKind.Type) =>
+              TVar(TypeVar(name))
+            case None =>
+              // output(scope.toString)
+              throw ParseError(mlType)
     case Term.FunTy(mlParams, mlRet, _) =>
       parseTypeLambda(mlParams, mlRet)
     case Term.TyApp(mlAbs, mlArgs) =>
@@ -42,7 +50,7 @@ def parseType(mlType: Term): Type =
       throw ParseError(mlType)
 
 /** Convert an MLScript block to a CTML tuple type. */
-def parseTypeTuple(mlLefts: List[Term], mlRight: Term): Type =
+def parseTypeTuple(mlLefts: List[Term], mlRight: Term)(using Scope): Type =
   mlLefts match
     case Nil =>
       parseType(mlRight)
@@ -52,7 +60,7 @@ def parseTypeTuple(mlLefts: List[Term], mlRight: Term): Type =
       TTuple(left, right)
 
 /** Convert an MLScript function type to a CTML type. */
-def parseTypeLambda(mlParams: Term, mlRet: Term): Type =
+def parseTypeLambda(mlParams: Term, mlRet: Term)(using Scope): Type =
   mlParams match
     case Term.Tup(mlParams) =>
       parseTypeLambdaParams(mlParams, mlRet)
@@ -62,7 +70,7 @@ def parseTypeLambda(mlParams: Term, mlRet: Term): Type =
       TLam(param, ret)
 
 /** Convert an MLScript multi-parameter function type to a CTML type. */
-def parseTypeLambdaParams(mlParams: List[Elem], mlRet: Term): Type =
+def parseTypeLambdaParams(mlParams: List[Elem], mlRet: Term)(using Scope): Type =
   mlParams match
     case mlParam :: mlParams =>
       val param = parseType(getElemTerm(mlParam))
@@ -72,7 +80,7 @@ def parseTypeLambdaParams(mlParams: List[Elem], mlRet: Term): Type =
       parseType(mlRet)
 
 /** Convert an MLScript type application to a CTML type. */
-def parseTypeApp(mlAbs: Term, mlArgs: List[Term]): Type =
+def parseTypeApp(mlAbs: Term, mlArgs: List[Term])(using Scope): Type =
   mlArgs match
     case mlArgs :+ mlArg =>
       val abs = parseTypeApp(mlAbs, mlArgs)
@@ -82,22 +90,23 @@ def parseTypeApp(mlAbs: Term, mlArgs: List[Term]): Type =
       parseType(mlAbs)
 
 /** Convert an MLScript universal type to a CTML type. */
-def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =
+def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term)(using scope: Scope): Type =
   mlVars match
     case mlVar :: mlVars =>
-      var body = parseTypeUniv(mlVars, mlBody)
       val var_ = TypeVar(mlVar.sym.name)
+      val newScope = scope.withType(mlVar.sym.name)
+      var body = parseTypeUniv(mlVars, mlBody)(using newScope)
 
       mlVar.lb match
         case Some(mlBound) =>
-          val bound = parseType(mlBound)
+          val bound = parseType(mlBound)(using newScope)
           body = TConstrained(body, Constraint(TVar(var_), Direction.Super, bound))
         case None =>
           ()
 
       mlVar.ub match
         case Some(mlBound) =>
-          val bound = parseType(mlBound)
+          val bound = parseType(mlBound)(using newScope)
           body = TConstrained(body, Constraint(TVar(var_), Direction.Sub, bound))
         case None =>
           ()
@@ -107,7 +116,7 @@ def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term): Type =
       parseType(mlBody)
 
 /** Convert an MLScript constrained type to a CTML type. */
-def parseTypeConstrained(mlConstraints: List[SubConstraint], mlBody: Term): Type =
+def parseTypeConstrained(mlConstraints: List[SubConstraint], mlBody: Term)(using Scope): Type =
   mlConstraints match
     case mlConstraint :: mlConstraints =>
       val body       = parseTypeConstrained(mlConstraints, mlBody)
@@ -117,7 +126,7 @@ def parseTypeConstrained(mlConstraints: List[SubConstraint], mlBody: Term): Type
       parseType(mlBody)
 
 /** Convert an MLScript subtyping constraint to a CTML type constraint. */
-def parseTypeConstraint(mlConstraint: SubConstraint): Constraint =
+def parseTypeConstraint(mlConstraint: SubConstraint)(using Scope): Constraint =
   val left  = parseType(mlConstraint.lhs)
   val right = parseType(mlConstraint.rhs)
   val dir   = parseTypeDirection(mlConstraint.dir)

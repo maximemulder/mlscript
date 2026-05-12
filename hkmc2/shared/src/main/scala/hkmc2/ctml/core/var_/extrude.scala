@@ -57,7 +57,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: TypeVar, pol: P
       val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
       (TInter(newLeft, newRight), rightOuts)
     case TUniv(var_, body) =>
-      given Context = ctx.extend(declVar(var_, TypeVarKind.Rigid))
+      given Context = ctx.declVar(var_, TypeVarKind.Rigid)
       val (newBody, bodyOuts) = extrudeType(body)
       (TUniv(var_, newBody), bodyOuts)
     case TConstrained(body, constraint) =>
@@ -82,13 +82,13 @@ private def extrudeFreshVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       (type_, Clauses.empty)
     case None =>
       // TODO: Declare the variable at the right level.
-      val freshDecl = declFreshVar(TypeVarKind.Flex)
-      val freshType = TVar(freshDecl.var_)
+      val (freshVar, freshCtx) = ctx.declFreshVar(TypeVarKind.Flex)
+      val freshType = TVar(freshVar)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
-      val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl), SubtypingCache())
-      val (newExtrudedBound, outs) = extrudeTypeSeq(newBound, freshDecl.asClauses)
-      (freshType, outs.concat(Bound(freshDecl.var_, pol.dir, newExtrudedBound).asClauses))
+      val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using freshCtx, SubtypingCache())
+      val (newExtrudedBound, outs) = extrudeType(newBound)
+      (freshType, outs.concat(Bound(freshVar, pol.dir, newExtrudedBound).asClauses))
 
 /** Extrude a rigid type variable. */
 private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
@@ -97,11 +97,11 @@ private def extrudeRigidVar(var_ : TypeVar)(using ctx: Context, level: TypeVar, 
       (type_, Clauses.empty)
     case None =>
       // TODO: Declare the variable at the right level.
-      val freshDecl = declFreshVar(TypeVarKind.Flex)
-      val freshType = TVar(freshDecl.var_)
+      val (freshVar, freshCtx) = ctx.declFreshVar(TypeVarKind.Flex)
+      val freshType = TVar(freshVar)
       cache.addOne((var_, pol), freshType)
       val bound = ctx.getVarBound(var_, pol.dir)
       given SubtypingCache = SubtypingCache()
       given ConstraintMode = ConstraintMode.Solve
-      val outs = subtypeDirSeq(freshType, bound, pol.dir, freshDecl.asClauses)
+      val outs = subtypeDir(freshType, bound, pol.dir)
       (freshType, outs)

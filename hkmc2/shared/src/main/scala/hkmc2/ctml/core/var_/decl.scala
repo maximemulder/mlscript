@@ -24,11 +24,17 @@ def newFreshVarName(): String =
 def newFreshVar(): TypeVar =
   TypeVar(newFreshVarName())
 
-/** Get a new fresh type variable declaration. */
-def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None): TypeVarDecl =
-  val var_ = newFreshVar()
-  declVar(var_, kind, original)
+extension (ctx: Context)
+  /** Add a new class declaration to the context. */
+  def declClass(var_ : TypeVar, parent: Option[TypeVar]): Context =
+    ctx.extend(debugTypeVar(TypeVarDecl(var_, TypeVarKind.Class(parent), None, None)))
 
-/** Get a new type variable declaration. */
-def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None): TypeVarDecl =
-  debugTypeVar(TypeVarDecl(var_, kind, original))
+  /** Add a new fresh type variable declaration to the context. */
+  def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None): (TypeVar, Context) =
+    val var_ = newFreshVar()
+    (var_, ctx.declVar(var_, kind, original))
+
+  /** Add a new type variable declaration to the context. */
+  def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None): Context =
+    val level = ctx.getMaxLevel() + 1
+    ctx.extend(debugTypeVar(TypeVarDecl(var_, kind, original, Some(level))))

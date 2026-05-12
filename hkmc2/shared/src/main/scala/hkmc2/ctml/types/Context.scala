@@ -21,6 +21,15 @@ case class Context(
   def mapClauses(f: Clause => Clause): Context =
     this.map(_.map(f))
 
+  /** Iterate over the type variable declarations. */
+  def typeVarDecls: Iterator[TypeVarDecl] =
+    this.clauses.iterator.flatMap(_ match
+      case decl: TypeVarDecl =>
+        Some(decl)
+      case _ =>
+        None
+    )
+
 object Context:
   /** The empty typing context. */
   def empty =

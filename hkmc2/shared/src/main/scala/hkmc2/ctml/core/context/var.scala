@@ -16,13 +16,17 @@ extension (ctx: Context)
       case None =>
         throw new TypeError(Some(s"Variable '${name}' not found in the context."))
 
-  /** Get the declaration of a type variable. */
+  /** Get the declaration of a type variable in the context. */
   def getTypeVarDecl(var_ : TypeVar): TypeVarDecl =
     ctx.clauses.typeVarDecls.find(_.var_ == var_).get
 
-  /** Get the kind of a type variable. */
+  /** Get the kind of a type variable in the context. */
   def getTypeVarKind(var_ : TypeVar): TypeVarKind =
     ctx.getTypeVarDecl(var_).kind
+
+  /** Get the level of a type variable in the context. */
+  def getTypeVarLevel(var_ : TypeVar): Int =
+    ctx.getTypeVarDecl(var_).level.get
 
   /** Get all the bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =
@@ -83,9 +87,17 @@ extension (type_ : Type)(using ctx: Context)
         false
 
 extension (var_ : TypeVar)(using ctx: Context)
+  /** Get the kind of the type variable in the context. */
+  def kind: TypeVarKind =
+    ctx.getTypeVarKind(var_)
+
+  /** Get the level of the type variable in the context. */
+  def level: Int =
+    ctx.getTypeVarLevel(var_)
+
   /** Check whether the type variable is a class type variable. */
   def isClass: Boolean =
-    ctx.getTypeVarKind(var_) match
+    var_.kind match
       case TypeVarKind.Class(_) =>
         true
       case _ =>
@@ -93,11 +105,11 @@ extension (var_ : TypeVar)(using ctx: Context)
 
   /** Check whether the type variable is a flexible type variable. */
   def isFlex: Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Flex
+    var_.kind == TypeVarKind.Flex
 
   /** Check whether the type variable is a rigid type variable. */
   def isRigid: Boolean =
-    ctx.getTypeVarKind(var_) == TypeVarKind.Rigid
+    var_.kind == TypeVarKind.Rigid
 
   /** Check whether the type variable is recursive. */
   def isRecursive: Boolean =

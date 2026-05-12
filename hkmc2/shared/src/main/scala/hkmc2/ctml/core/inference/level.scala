@@ -24,11 +24,17 @@ extension (ctx: Context)
     outer: (T, Clauses) => (T, Clauses),
   ): (T, Clauses) =
     // Create a new fresh type variable and add it to the context.
-    val freshDecl = declFreshVar(kind, original)
-    val freshCtx = ctx.extend(freshDecl)
+    val (freshVar, freshCtx) = ctx.declFreshVar(kind, original)
 
     // Evaluate the inner function with the type variable in the context.
-    val (res, innerOuts) = inner(freshDecl.var_, freshCtx)
+    val (res, innerOuts) = inner(freshVar, freshCtx)
+
+    val freshDecl = freshCtx.clauses.find(_ match
+      case TypeVarDecl(var_, _, _, _) =>
+        true
+      case _ =>
+        false
+    ).get
 
     // Move the type variable to the output clauses.
     val outs = Clauses.single(freshDecl).concat(innerOuts)

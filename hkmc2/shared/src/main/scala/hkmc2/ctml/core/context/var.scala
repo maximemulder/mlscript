@@ -11,8 +11,8 @@ extension (ctx: Context)
   /** Make all the type variables in the context flexible. */
   def flexify(): Context =
     ctx.mapClauses(_ match
-      case TypeVarDecl(var_, TypeVarKind.Rigid, original) =>
-        TypeVarDecl(var_, TypeVarKind.Flex, original)
+      case TypeVarDecl(var_, TypeVarKind.Rigid, original, level) =>
+        TypeVarDecl(var_, TypeVarKind.Flex, original, level)
       case clause =>
         clause
     )

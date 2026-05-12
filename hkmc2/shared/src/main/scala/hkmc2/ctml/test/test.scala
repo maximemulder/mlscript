@@ -6,12 +6,13 @@ import sourcecode.{FileName,Line}
 import hkmc2.Diagnostic.Source
 import hkmc2.ErrorReport
 import hkmc2.Raise
+import hkmc2.ctml.config.config
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.config.config
 import hkmc2.ctml.core.inference.infer
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.impls.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.parser.parseStmts
 import hkmc2.ctml.types.*
 import hkmc2.ctml.types.given
@@ -87,14 +88,18 @@ class Tester(
   /** Add a type variable to the context. */
   def testTypeDecl(name: String, kind: TypeVarKind) =
     val var_ = TypeVar(name)
-    this.ctx = this.ctx.extend(TypeVarDecl(var_, kind, None))
+    kind match
+      case TypeVarKind.Class(parent) =>
+        this.ctx = this.ctx.declClass(var_, parent)
+      case _ =>
+        this.ctx = this.ctx.declVar(var_, kind, None)
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_.prettify(prettyCtx)}")
     val var_ = TypeVar(name)
     this.ctx = this.ctx.extend(
-      TypeVarDecl(var_, TypeVarKind.Rigid, None),
+      TypeVarDecl(var_, TypeVarKind.Rigid, None, None),
       Bound(var_, Direction.Sub,   type_),
       Bound(var_, Direction.Super, type_),
     )

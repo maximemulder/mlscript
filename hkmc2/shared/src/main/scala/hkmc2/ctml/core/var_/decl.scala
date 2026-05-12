@@ -26,8 +26,8 @@ def newFreshVar(): TypeVar =
 
 extension (ctx: Context)
   /** Add a new class declaration to the context. */
-  def declClass(var_ : TypeVar, parent: Option[TypeVar]): Context =
-    ctx.extend(debugTypeVar(TypeVarDecl(var_, TypeVarKind.Class(parent), None, None)))
+  def declClass(name : String, parent: Option[String]): Context =
+    ctx.extend(ClassDecl(name, parent))
 
   /** Add a new fresh type variable declaration to the context. */
   def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None): (TypeVar, Context) =

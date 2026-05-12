@@ -16,13 +16,13 @@ extension (ctx: Context)
       case None =>
         throw new TypeError(Some(s"Variable '${name}' not found in the context."))
 
-  /** Get a kind of a type variable. */
+  /** Get the declaration of a type variable. */
+  def getTypeVarDecl(var_ : TypeVar): TypeVarDecl =
+    ctx.clauses.typeVarDecls.find(_.var_ == var_).get
+
+  /** Get the kind of a type variable. */
   def getTypeVarKind(var_ : TypeVar): TypeVarKind =
-    ctx.clauses.typeVarDecls.find(_.var_ == var_) match
-      case Some(var_) =>
-        var_.kind
-      case None =>
-        throw new TypeError(Some(s"Type variable '${var_}' not found in the context."))
+    ctx.getTypeVarDecl(var_).kind
 
   /** Get all the bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =

@@ -17,14 +17,8 @@ extension (ctx: Context)
     // Evaluate the inner function with the type variable in the context.
     val (res, innerOuts) = inner(freshVar, freshCtx)
 
-    val freshDecl = freshCtx.clauses.find(_ match
-      case TypeVarDecl(var_, _, _, _) =>
-        true
-      case _ =>
-        false
-    ).get
-
     // Move the type variable to the output clauses.
+    val freshDecl = freshCtx.getTypeVarDecl(freshVar)
     val outs = Clauses.single(freshDecl).concat(innerOuts)
 
     // Evaluate the outer function with the type variable in the output clauses.

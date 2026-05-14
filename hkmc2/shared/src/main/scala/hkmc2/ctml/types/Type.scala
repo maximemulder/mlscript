@@ -22,7 +22,7 @@ case class TNeg(val body: Type) extends Type
 case class TVar(val var_ : TypeVar) extends Type
 
 /** A class type. */
-case class TClass(val class_ : String) extends Type
+case class TClass(val var_ : ClassVar) extends Type
 
 /** A tuple typle. */
 case class TTuple(val left: Type, val right: Type) extends Type
@@ -102,8 +102,8 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
       (s"¬${showType(body, true)}", false)
     case TVar(var_) =>
       (var_.show, false)
-    case TClass(name) =>
-      (name, false)
+    case TClass(var_) =>
+      (var_.show, false)
     case TTuple(left, right) =>
       (s"⟨${showType(left)}, ${showType(right)}⟩", false)
     case lambda: TLam =>

@@ -18,7 +18,7 @@ final class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Cons
   def var_(var_ : TypeVar): T =
     m.empty
 
-  def class_(name: String): T =
+  def class_(var_ : ClassVar): T =
     m.empty
 
   def tuple(left: T, right: T, p: P): T =

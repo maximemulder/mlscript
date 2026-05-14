@@ -8,6 +8,10 @@ import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 
 extension (ctx: Context)
+  /** Get the class definition of a class variable. */
+  def getClassDef(var_ : ClassVar): ClassDecl =
+    ctx.clauses.classDefs.find(_.name == var_.name).get
+
   /** Get the type of a term variable. */
   def getVarType(name: String): Type =
     ctx.clauses.termVarDecls.find(_.name == name) match

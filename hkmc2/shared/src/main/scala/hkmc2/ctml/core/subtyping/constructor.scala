@@ -24,7 +24,7 @@ def areDisjointConstructors(left: Type, right: Type)(using ctx: Context): Boolea
       false
     case (TTuple(_, _), TTuple(_, _)) =>
       false
-    case (TClass(left), TClass(right)) if TClass(right).isSubClass(TClass(left)) =>
+    case (TClass(left), TClass(right)) if right.isSubClass(left) =>
       false
     case _ =>
       left.isConstructor && right.isConstructor

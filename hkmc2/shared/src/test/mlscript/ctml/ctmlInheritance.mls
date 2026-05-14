@@ -6,25 +6,13 @@ class C extends B
 class D extends A
 
 B <:< A
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment B ≤ A.
-//│ Typing error tree:
-//│   B ≤ A
+//│ OK
 
 C <:< A
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment C ≤ A.
-//│ Typing error tree:
-//│   C ≤ A
+//│ OK
 
 C <:< B
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment C ≤ B.
-//│ Typing error tree:
-//│   C ≤ B
+//│ OK
 
 :te
 A <:< B

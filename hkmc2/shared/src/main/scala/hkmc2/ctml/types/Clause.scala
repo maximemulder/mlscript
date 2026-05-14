@@ -67,7 +67,7 @@ case class ClassDecl(
   /** The name of the class. */
   name: String,
   /** The parent of the class. */
-  parent: Option[String],
+  parent: Option[ClassVar],
 ) extends Clause:
   /** Get the string representation of the object. */
   override def toString: String =

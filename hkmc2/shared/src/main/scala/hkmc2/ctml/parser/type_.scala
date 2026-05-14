@@ -6,7 +6,6 @@ import hkmc2.semantics.Term
 import hkmc2.semantics.QuantVar
 import hkmc2.semantics.SubConstraint
 import hkmc2.semantics.SubDir
-import hkmc2.ctml.config.output
 
 /** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term)(using scope: Scope): Type =
@@ -24,11 +23,10 @@ def parseType(mlType: Term)(using scope: Scope): Type =
         case name =>
           scope.get(name) match
             case Some(DeclKind.Class) =>
-              TClass(name)
+              TClass(ClassVar(name))
             case Some(DeclKind.Type) =>
               TVar(TypeVar(name))
             case None =>
-              // output(scope.toString)
               throw ParseError(mlType)
     case Term.FunTy(mlParams, mlRet, _) =>
       parseTypeLambda(mlParams, mlRet)

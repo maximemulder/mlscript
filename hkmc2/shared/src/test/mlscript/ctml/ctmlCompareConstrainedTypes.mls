@@ -14,13 +14,7 @@ Int <:< [Bot <:< Top] => Int
 //│ OK
 
 ([Bot <:< Top] => Nat) <:< ([Bot <:< Top] => Int)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Nat ≤ {⊥ ≤ ⊤} ⟹ Int.
-//│ Typing error tree:
-//│   {⊥ ≤ ⊤} ⟹ Nat ≤ {⊥ ≤ ⊤} ⟹ Int
-//│     {⊥ ≤ ⊤} ⟹ Nat ≤ Int
-//│       Nat ≤ Int
+//│ OK
 
 :te
 Int <:< ([Bot <:< Top] => Nat)

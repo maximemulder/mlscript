@@ -3,19 +3,15 @@ package hkmc2.ctml.core
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
-extension (class_ : TClass)
+extension (class_ : ClassVar)
   /** Check whether this class is a sub-class of another class. A class is considered sub-class of
    *  itself. */
-  def isSubClass(other: TClass)(using ctx: Context): Boolean =
+  def isSubClass(other: ClassVar)(using ctx: Context): Boolean =
     if class_ == other then
       return true
 
-    // TODO: Handle this.
-    return false
-    //ctx.getTypeVarKind(class_) match
-    //  case TypeVarKind.Class(Some(parent)) =>
-    //    parent.isSubClass(other)
-    //  case TypeVarKind.Class(None) =>
-    //    false
-    //  case _ =>
-    //    throw TypeError(Some(s"Type variable '${class_}' is not a class."))
+    ctx.getClassDef(class_).parent match
+      case Some(parent) =>
+        parent.isSubClass(other)
+      case None =>
+        false

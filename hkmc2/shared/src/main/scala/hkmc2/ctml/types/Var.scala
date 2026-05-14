@@ -8,7 +8,18 @@ case class TypeVar(val name: String):
   override def toString: String =
     this.show
 
+/** A class variable. */
+case class ClassVar(val name: String):
+  /** Get the string representation of the object. */
+  override def toString: String =
+    this.show
+
 /** Implementation of the `Show` trait for `TypeVar`. */
 given Show[TypeVar] with
   override def show(var_ : TypeVar): String =
+    var_.name
+
+/** Implementation of the `Show` trait for `ClassVar`. */
+given Show[ClassVar] with
+  override def show(var_ : ClassVar): String =
     var_.name

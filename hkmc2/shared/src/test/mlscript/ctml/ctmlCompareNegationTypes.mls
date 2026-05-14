@@ -63,50 +63,26 @@ A <:< ~B
 //│ OK
 
 (~Int & Nat) == Bot
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment ¬Int ∧ Nat ≡ ⊥.
-//│ Typing error tree:
-//│   ¬Int ∧ Nat ≡ ⊥
-//│     ¬Int ∧ Nat ≤ ⊥
-//│       Nat ≤ ⊥
+//│ OK
 
 (Nat & ~Int) == Bot
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment Nat ∧ ¬Int ≡ ⊥.
-//│ Typing error tree:
-//│   Nat ∧ ¬Int ≡ ⊥
-//│     Nat ∧ ¬Int ≤ ⊥
-//│       Nat ≤ ⊥
+//│ OK
 
 (~Nat | Int) == Top
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment ¬Nat ∨ Int ≡ ⊤.
-//│ Typing error tree:
-//│   ¬Nat ∨ Int ≡ ⊤
-//│     ⊤ ≤ ¬Nat ∨ Int
-//│       ⊤ ≤ ¬Nat
-//│       ⊤ ≤ Int
+//│ OK
 
 (Int | ~Nat) == Top
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int ∨ ¬Nat ≡ ⊤.
-//│ Typing error tree:
-//│   Int ∨ ¬Nat ≡ ⊤
-//│     ⊤ ≤ Int ∨ ¬Nat
-//│       ⊤ ≤ Int
-//│       ⊤ ≤ ¬Nat
+//│ OK
 
 Nat <:< (~Int | Nat)
 //│ OK
 
 :te
 Int <:< (~Nat & Int)
-//│ OK
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Nat ∧ Int.
+//│ Typing error tree:
+//│   Int ≤ ¬Nat ∧ Int
+//│     Int ≤ ¬Nat
 
 :te
 Nat <:< (~Nat & Int)

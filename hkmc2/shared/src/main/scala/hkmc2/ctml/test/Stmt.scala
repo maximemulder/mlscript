@@ -6,7 +6,7 @@ import hkmc2.ctml.types.*
 sealed trait Stmt
 
 /** A class declaration. */
-case class StmtClassDecl(name: String, parent: Option[String]) extends Stmt
+case class StmtClassDecl(name: String, parent: Option[ClassVar]) extends Stmt
 
 /** A type variable declaration. */
 case class StmtTypeDecl(name: String, kind: TypeVarKind) extends Stmt

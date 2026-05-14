@@ -11,6 +11,10 @@ extension (clauses: AsClauses)
   def iterator: Iterator[Clause] =
     clauses.asClauses.iterator
 
+  /** Get the class definitions in the clauses. */
+  def classDefs: List[ClassDecl] =
+    clauses.iterator.classDefs.toList
+
   /** Get the term variable declarations in the clauses. */
   def termVarDecls: List[TermVarDecl] =
     clauses.iterator.termVars.toList
@@ -97,6 +101,15 @@ extension (clauses: Clauses)
     ).toList)
 
 extension (clauses: Iterator[Clause])
+  /** Iterate over the classes defined in the clauses. */
+  def classDefs: Iterator[ClassDecl] =
+    clauses.flatMap(_ match
+      case def_ : ClassDecl =>
+        Some(def_)
+      case _ =>
+        None
+    )
+
   /** Iterate over the term variables defined in the clauses. */
   def termVars: Iterator[TermVarDecl] =
     clauses.flatMap(_ match

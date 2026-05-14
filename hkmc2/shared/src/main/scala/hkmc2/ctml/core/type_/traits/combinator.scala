@@ -18,7 +18,7 @@ trait TypeCombinator[T[_], B[_], P]:
   def var_(var_ : TypeVar): T[TVar]
 
   /** Get a class type combination. */
-  def class_(name : String): T[TClass]
+  def class_(name : ClassVar): T[TClass]
 
   /** Get a tuple type combination. */
   def tuple(left: T[Type], right: T[Type], p: P): T[TTuple]

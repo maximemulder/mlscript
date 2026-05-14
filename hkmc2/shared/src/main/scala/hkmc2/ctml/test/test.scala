@@ -93,7 +93,7 @@ class Tester(
         this.testTypeRel(rel, left, right)
 
   /** Add a class to the context. */
-  def testClassDecl(name: String, parent: Option[String]) =
+  def testClassDecl(name: String, parent: Option[ClassVar]) =
     this.ctx = this.ctx.declClass(name, parent)
 
   /** Add a type variable to the context. */

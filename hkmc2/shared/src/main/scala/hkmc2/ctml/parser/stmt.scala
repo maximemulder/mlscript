@@ -88,9 +88,9 @@ def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New])(usin
   val name = mlSymbol.nme
   val parent = mlParent match
     case Some(Term.New(Term.Ref(mlParentSymbol), _, _)) =>
-      Some(mlParentSymbol.nme)
+      Some(ClassVar(mlParentSymbol.nme))
     case Some(Term.New(Term.TyApp(Term.Ref(mlParentSymbol), _), _, _)) =>
-      Some(mlParentSymbol.nme)
+      Some(ClassVar(mlParentSymbol.nme))
     case None =>
       None
     case Some(mlParent) =>

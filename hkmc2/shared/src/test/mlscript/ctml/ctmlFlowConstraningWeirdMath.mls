@@ -18,13 +18,13 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
-//│ ⊥
+//│ Int
 
 foo("Hello", "World")
-//│ ⊥
+//│ Str
 
 foo(true, "")
-//│ ⊥
+//│ Str
 
 foo(bot, bot)
 //│ ⊥

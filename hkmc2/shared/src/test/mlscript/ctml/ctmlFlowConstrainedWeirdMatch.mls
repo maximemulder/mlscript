@@ -18,13 +18,13 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
-//│ Int
+//│ ⊥
 
 foo("Hello", "World")
-//│ Str
+//│ ⊥
 
 foo(true, "")
-//│ Str
+//│ ⊥
 
 foo(bot, bot)
 //│ ⊥
@@ -54,18 +54,15 @@ foo as (Bool -> Bool -> Bool)
 
 :te
 foo(true, 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
-//│ Typing error tree:
-//│   Int ≤ Str
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error
 
 :te
 foo(true, true)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
-//│ Typing error tree:
-//│   Bool ≤ Str
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error
 
 :te
 foo(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
-//│ Typing error tree:
-//│   Str ≤ Int
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error

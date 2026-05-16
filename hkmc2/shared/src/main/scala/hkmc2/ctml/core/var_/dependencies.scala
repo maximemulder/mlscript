@@ -15,6 +15,9 @@ class VarDependencies(val var_ : TypeVar, val dependencies: Set[VarDependencies]
   override def toString: String =
     this.show
 
+  def toSet: Set[TypeVar] =
+    Set(var_) ++ dependencies.map(_.toSet).flatten
+
 /** Implementation of the `Tree` trait for `VarDependencies`. */
 given Tree[VarDependencies] with
   override def children(value: VarDependencies) =

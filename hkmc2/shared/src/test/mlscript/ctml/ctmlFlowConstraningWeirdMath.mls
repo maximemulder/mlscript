@@ -18,13 +18,13 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
-//│ Int
+//│ ⊥
 
 foo("Hello", "World")
-//│ Str
+//│ ⊥
 
 foo(true, "")
-//│ Str
+//│ ⊥
 
 foo(bot, bot)
 //│ ⊥
@@ -56,21 +56,36 @@ foo as (Bool -> Bool -> Bool)
 
 :te
 foo(true, 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Str, β ≥ Str} ⟹ α → β ≤ Int → γ.
 //│ Typing error tree:
-//│   Str → Str ≤ Int → α
-//│     Int ≤ Str
+//│   ∀α, β. {α ≤ Str, β ≥ Str} ⟹ α → β ≤ Int → γ
+//│     ∀β. {δ ≤ Str, β ≥ Str} ⟹ δ → β ≤ Int → γ
+//│       {δ ≤ Str, ε ≥ Str} ⟹ δ → ε ≤ Int → γ
+//│         {ε ≥ Str} ⟹ δ → ε ≤ Int → γ
+//│           δ → ε ≤ Int → γ
+//│             Int ≤ δ
+//│               Int ≤ Str
 
 :te
 foo(true, true)
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ Bool → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Str, β ≥ Str} ⟹ α → β ≤ Bool → γ.
 //│ Typing error tree:
-//│   Str → Str ≤ Bool → α
-//│     Bool ≤ Str
+//│   ∀α, β. {α ≤ Str, β ≥ Str} ⟹ α → β ≤ Bool → γ
+//│     ∀β. {δ ≤ Str, β ≥ Str} ⟹ δ → β ≤ Bool → γ
+//│       {δ ≤ Str, ε ≥ Str} ⟹ δ → ε ≤ Bool → γ
+//│         {ε ≥ Str} ⟹ δ → ε ≤ Bool → γ
+//│           δ → ε ≤ Bool → γ
+//│             Bool ≤ δ
+//│               Bool ≤ Str
 
 :te
 foo(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ Str → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│   ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ Str → γ
+//│     ∀β. {δ ≤ Int, β ≥ Int} ⟹ δ → β ≤ Str → γ
+//│       {δ ≤ Int, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│         {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│           δ → ε ≤ Str → γ
+//│             Str ≤ δ
+//│               Str ≤ Int

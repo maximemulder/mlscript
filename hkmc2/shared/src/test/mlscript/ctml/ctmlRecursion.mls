@@ -5,20 +5,20 @@ fun fibonacci(n) =
     n
   else
     fibonacci(n - 2) + fibonacci(n - 1)
-//│ fibonacci: Int → Int
+//│ fibonacci: ⊥
 
 fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α. {α ≥ Int} ⟹ (α ∧ Int) → α
+//│ zero: ⊥
 
 val infinite = infinite + 1
-//│ infinite: Int
+//│ infinite: ⊥
 
 fun recursive(x) =
   recursive(x)
-//│ recursive: ⊤ → ⊥
+//│ recursive: ⊥
 
 val never = never
 //│ never: ⊥

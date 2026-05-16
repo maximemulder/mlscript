@@ -4,10 +4,10 @@ fun id(x) = x
 //│ id: ∀α. α → α
 
 id(1)
-//│ ⊥
+//│ Int
 
 id("Hello")
-//│ ⊥
+//│ Str
 
 val idInt: [T extends Int] -> T -> Int = id
 //│ idInt: ∀T. {T ≤ Int} ⟹ T → Int

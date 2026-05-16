@@ -52,15 +52,24 @@ fun test(f) =
 
 :fixme
 fst(test(id)) + 1
-//│ Int
-//│ FAILURE: Unexpected lack of error to fix
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ (Int ∨ Bool) → α.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ (Int ∨ Bool) → α
+//│     Int → Int → Int ≤ Bool → α
+//│       Bool ≤ Int
 
 :fixme
 not'(snd(test(id)))
-//│ Bool
-//│ FAILURE: Unexpected lack of error to fix
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (Int ∨ Bool) → α.
+//│ Typing error tree:
+//│   Bool → Bool ≤ (Int ∨ Bool) → α
+//│     Bool → Bool ≤ Int → α
+//│       Int ≤ Bool
 
 :te
 not'(fst(test(id)))
-//│ Bool
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (Int ∨ Bool) → α.
+//│ Typing error tree:
+//│   Bool → Bool ≤ (Int ∨ Bool) → α
+//│     Bool → Bool ≤ Int → α
+//│       Int ≤ Bool

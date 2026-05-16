@@ -14,7 +14,7 @@ fun foo(a) =
 
 fun bar(a) =
   foo(a) as Int
-//│ bar: ⊤ → Int
+//│ bar: Int → Int
 
 // Function overloads
 
@@ -27,16 +27,16 @@ val int_or_string: Int | Str
 //│ int_or_string: Int ∨ Str
 
 foo(1)
-//│ ⊥
+//│ Int
 
 foo("Hello")
-//│ ⊥
+//│ Str
 
 foo(bot)
 //│ ⊥
 
 foo(int_or_string)
-//│ ⊥
+//│ Int ∨ Str
 
 // Errors
 
@@ -85,7 +85,7 @@ fun foo2(a, b) =
 
 fun bar2(a, b) =
   foo2(a, b) as Int
-//│ bar2: ⊤ → ⊤ → Int
+//│ bar2: Int → Int → Int
 
 // Function overloads
 
@@ -95,10 +95,10 @@ foo2 as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo2(1, 2)
-//│ ⊥
+//│ Int
 
 foo2("Hello", "World")
-//│ ⊥
+//│ Str
 
 foo2(bot, bot)
 //│ ⊥
@@ -107,5 +107,5 @@ foo2(bot, bot)
 
 :te
 foo2(1, "World")
-//│ ⊥
+//│ {Str ≤ Int} ⟹ Int
 //│ FAILURE: Unexpected lack of type error

@@ -18,13 +18,13 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
-//│ ⊥
+//│ Int
 
 foo("Hello", "World")
-//│ ⊥
+//│ Str
 
 foo(true, "")
-//│ ⊥
+//│ Str
 
 foo(bot, bot)
 //│ ⊥
@@ -54,15 +54,15 @@ foo as (Bool -> Bool -> Bool)
 
 :te
 foo(true, 1)
-//│ ⊥
+//│ {Int ≤ Str} ⟹ Str
 //│ FAILURE: Unexpected lack of type error
 
 :te
 foo(true, true)
-//│ ⊥
+//│ {Bool ≤ Str} ⟹ Str
 //│ FAILURE: Unexpected lack of type error
 
 :te
 foo(1, "World")
-//│ ⊥
+//│ {Str ≤ Int} ⟹ Int
 //│ FAILURE: Unexpected lack of type error

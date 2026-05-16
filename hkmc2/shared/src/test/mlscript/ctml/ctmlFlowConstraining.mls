@@ -12,7 +12,7 @@ fun foo(a, b) =
 
 fun bar(a, b) =
   foo(a, b) as Int
-//│ bar: ⊤ → ⊤ → Int
+//│ bar: Int → Int → Int
 
 // Function overloads
 
@@ -31,10 +31,10 @@ foo as (Bot -> Bot -> Top)
 // Function applications
 
 foo(1, 1)
-//│ ⊥
+//│ Int
 
 foo("Hello", "World")
-//│ ⊥
+//│ Str
 
 foo(bot, bot)
 //│ ⊥

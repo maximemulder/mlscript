@@ -5,7 +5,7 @@ fun id(x) =
 //│ id: ∀α. α → α
 
 id(1)
-//│ ⊥
+//│ Int
 
 fun apply(f, x) =
   f(x)
@@ -16,7 +16,7 @@ fun double(f, x) =
 //│ double: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ
 
 double(id, 1)
-//│ ⊥
+//│ Int
 
 fun foo(a, b) =
   a(1, b)

@@ -31,7 +31,7 @@ def outputContext(message: String)(using ctx: Context) =
 /** Clean the context by removing definitions from the prelude. */
 def cleanContext(ctx: Context): Context =
   ctx.map(_.takeWhile(_ match
-    case TermVarDecl("||", _) =>
+    case TypeVarDecl(TypeVar("Sup"), _, _, _) =>
       false
     case _ =>
       true

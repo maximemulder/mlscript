@@ -1,0 +1,49 @@
+:ctml
+
+:ctml-dbg infer constrain var context
+
+val id(x) = x
+//│ infer ELam(x,EVar(x)) in 
+//│   0 flex level 2
+//│   infer EVar(x) in x: 0, 0 flex
+//│   OK 0 ⇝ ∅
+//│   quantify 0 in 0 → 0 in 0 flex
+//│   = 0 → 0
+//│   RECURSE 0 QUANTIFY true
+//│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2
+//│   NONE
+//│ OK ∀0. 0 → 0 ⇝ ∅
+//│ id: ∀α. α → α
+
+val b = id(id)
+//│ infer EApp(EVar(id),EVar(id)) in id: ∀0. 0 → 0
+//│   infer EVar(id) in id: ∀0. 0 → 0
+//│   OK ∀0. 0 → 0 ⇝ ∅
+//│   infer EVar(id) in id: ∀0. 0 → 0
+//│   OK ∀0. 0 → 0 ⇝ ∅
+//│   1 flex level 2
+//│   constrain ∀0. 0 → 0 ≤ (∀0. 0 → 0) → 1 in 1 flex, id: ∀0. 0 → 0
+//│     2 flex freshen 0 level 3
+//│     constrain 2 → 2 ≤ (∀0. 0 → 0) → 1 in 2 flex, 1 flex, id: ∀0. 0 → 0
+//│       constrain ∀0. 0 → 0 ≤ 2 in 2 flex, 1 flex, id: ∀0. 0 → 0
+//│         constrain ∀0. 0 → 0 ≤ ⊤ in 2 flex, 1 flex, id: ∀0. 0 → 0
+//│         OK ⇝ ∅
+//│         3 flex freshen 0 level 4
+//│       OK ⇝ 2 ≥ ∀0. 0 → 0
+//│       constrain 2 ≤ 1 in 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
+//│         constrain ⊥ ≤ ⊤ in 2 ≤ 1, 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
+//│         OK ⇝ ∅
+//│       OK ⇝ 2 ≤ 1
+//│     OK ⇝ 2 ≤ 1, 2 ≥ ∀0. 0 → 0
+//│   OK ⇝ 2 ≤ 1, 2 ≥ ∀0. 0 → 0, 2 flex
+//│   ignore 2 in 1 in 2 ≤ 1, 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
+//│   0 rigid level 4
+//│   = 1
+//│   RECURSE 2 QUANTIFY false
+//│   inline 1 in 1 in 1 flex, id: ∀0. 0 → 0
+//│   = ⊥
+//│   RECURSE 1 QUANTIFY false
+//│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2
+//│   NONE
+//│ OK ⊥ ⇝ ∅
+//│ b: ⊥

@@ -3,11 +3,11 @@
 :ctml-dbg infer constrain var context
 
 val id(x) = x
-//│ infer ELam(x,EVar(x)) in Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│ infer ELam(x,EVar(x)) in 
 //│   0 flex level 2
-//│   infer EVar(x) in x: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   infer EVar(x) in x: 0, 0 flex
 //│   OK 0 ⇝ ∅
-//│   quantify 0 in 0 → 0 in 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   quantify 0 in 0 → 0 in 0 flex
 //│   = 0 → 0
 //│   RECURSE 0 QUANTIFY true
 //│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2
@@ -18,61 +18,61 @@ val id(x) = x
 val foo(f) =
     let g = (x) => f(x)
     (g(0), g(true))
-//│ infer ELam(f,EApp(ELam(g,ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool)))),ELam(x,EApp(EVar(f),EVar(x))))) in id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│ infer ELam(f,EApp(ELam(g,ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool)))),ELam(x,EApp(EVar(f),EVar(x))))) in id: ∀0. 0 → 0
 //│   1 flex level 2
-//│   infer EApp(ELam(g,ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool)))),ELam(x,EApp(EVar(f),EVar(x)))) in f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│     infer ELam(g,ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool)))) in f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   infer EApp(ELam(g,ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool)))),ELam(x,EApp(EVar(f),EVar(x)))) in f: 1, 1 flex, id: ∀0. 0 → 0
+//│     infer ELam(g,ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool)))) in f: 1, 1 flex, id: ∀0. 0 → 0
 //│       2 flex level 3
-//│       infer ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool))) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│         infer EApp(EVar(g),EVar(int)) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│           infer EVar(g) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       infer ETuple(EApp(EVar(g),EVar(int)),EApp(EVar(g),EVar(bool))) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│         infer EApp(EVar(g),EVar(int)) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│           infer EVar(g) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│           OK 2 ⇝ ∅
-//│           infer EVar(int) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           infer EVar(int) in g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│           OK Int ⇝ ∅
 //│           3 flex level 4
-//│           constrain 2 ≤ Int → 3 in 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│             constrain ⊥ ≤ Int → 3 in 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           constrain 2 ≤ Int → 3 in 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│             constrain ⊥ ≤ Int → 3 in 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│             OK ⇝ ∅
 //│           OK ⇝ 2 ≤ Int → 3
 //│           VAR DEPENDENCY IS AT LOWER LEVEL
 //│           NONE
 //│         OK 3 ⇝ 2 ≤ Int → 3, 3 flex
-//│         infer EApp(EVar(g),EVar(bool)) in 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│           infer EVar(g) in 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│         infer EApp(EVar(g),EVar(bool)) in 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│           infer EVar(g) in 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│           OK 2 ⇝ ∅
-//│           infer EVar(bool) in 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           infer EVar(bool) in 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│           OK Bool ⇝ ∅
 //│           4 flex level 5
-//│           constrain 2 ≤ Bool → 4 in 4 flex, 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│             constrain ⊥ ≤ Bool → 4 in 4 flex, 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           constrain 2 ≤ Bool → 4 in 4 flex, 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│             constrain ⊥ ≤ Bool → 4 in 4 flex, 2 ≤ Int → 3, 3 flex, g: 2, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│             OK ⇝ ∅
 //│           OK ⇝ 2 ≤ (Int → 3) ∧ (Bool → 4)
 //│           VAR DEPENDENCY IS AT LOWER LEVEL
 //│           NONE
 //│         OK 4 ⇝ 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex
 //│       OK ⟨3, 4⟩ ⇝ 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex
-//│       quantify 4 in 2 → ⟨3, 4⟩ in 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       quantify 4 in 2 → ⟨3, 4⟩ in 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│       = 2 → ⟨3, 4⟩
 //│       RECURSE 4 QUANTIFY true
-//│       quantify 3 in 2 → ⟨3, 4⟩ in 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       quantify 3 in 2 → ⟨3, 4⟩ in 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│       = 2 → ⟨3, 4⟩
 //│       RECURSE 3 QUANTIFY true
-//│       inline 2 in 2 → ⟨3, 4⟩ in 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       inline 2 in 2 → ⟨3, 4⟩ in 2 ≤ (Int → 3) ∧ (Bool → 4), 4 flex, 2 ≤ Int → 3, 3 flex, 2 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│       = ((Int → 3) ∧ (Bool → 4)) → ⟨3, 4⟩
 //│       RECURSE 2 QUANTIFY false
 //│       VAR 1 (level 2) IS AT LOWER LEVEL THAN 3
 //│       NONE
 //│     OK ∀3, 4. ((Int → 3) ∧ (Bool → 4)) → ⟨3, 4⟩ ⇝ ∅
-//│     infer ELam(x,EApp(EVar(f),EVar(x))) in f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│     infer ELam(x,EApp(EVar(f),EVar(x))) in f: 1, 1 flex, id: ∀0. 0 → 0
 //│       5 flex level 3
-//│       infer EApp(EVar(f),EVar(x)) in x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│         infer EVar(f) in x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       infer EApp(EVar(f),EVar(x)) in x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│         infer EVar(f) in x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│         OK 1 ⇝ ∅
-//│         infer EVar(x) in x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│         infer EVar(x) in x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│         OK 5 ⇝ ∅
 //│         6 flex level 4
-//│         constrain 1 ≤ 5 → 6 in 6 flex, x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│           constrain ⊥ ≤ 5 → 6 in 6 flex, x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│         constrain 1 ≤ 5 → 6 in 6 flex, x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│           constrain ⊥ ≤ 5 → 6 in 6 flex, x: 5, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│           OK ⇝ ∅
 //│         OK ⇝ 1 ≤ 5 → 6
 //│         VAR DEPENDENCY IS AT LOWER LEVEL
@@ -82,59 +82,59 @@ val foo(f) =
 //│       NONE
 //│     OK 5 → 6 ⇝ 1 ≤ 5 → 6, 6 flex, 5 flex
 //│     7 flex level 5
-//│     constrain ∀3, 4. ((Int → 3) ∧ (Bool → 4)) → ⟨3, 4⟩ ≤ (5 → 6) → 7 in 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│     constrain ∀3, 4. ((Int → 3) ∧ (Bool → 4)) → ⟨3, 4⟩ ≤ (5 → 6) → 7 in 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│       8 flex freshen 3 level 6
-//│       constrain ∀4. ((Int → 8) ∧ (Bool → 4)) → ⟨8, 4⟩ ≤ (5 → 6) → 7 in 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       constrain ∀4. ((Int → 8) ∧ (Bool → 4)) → ⟨8, 4⟩ ≤ (5 → 6) → 7 in 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│         9 flex freshen 4 level 7
-//│         constrain ((Int → 8) ∧ (Bool → 9)) → ⟨8, 9⟩ ≤ (5 → 6) → 7 in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│           constrain 5 → 6 ≤ (Int → 8) ∧ (Bool → 9) in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│             constrain 5 → 6 ≤ Int → 8 in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│               constrain Int ≤ 5 in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│                 constrain Int ≤ ⊤ in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│         constrain ((Int → 8) ∧ (Bool → 9)) → ⟨8, 9⟩ ≤ (5 → 6) → 7 in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│           constrain 5 → 6 ≤ (Int → 8) ∧ (Bool → 9) in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│             constrain 5 → 6 ≤ Int → 8 in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│               constrain Int ≤ 5 in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│                 constrain Int ≤ ⊤ in 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│                 OK ⇝ ∅
 //│               OK ⇝ 5 ≥ Int
-//│               constrain 6 ≤ 8 in 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│                 constrain ⊥ ≤ ⊤ in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│               constrain 6 ≤ 8 in 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│                 constrain ⊥ ≤ ⊤ in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│                 OK ⇝ ∅
 //│               OK ⇝ 8 ≥ 6
 //│             OK ⇝ 8 ≥ 6, 5 ≥ Int
-//│             constrain 5 → 6 ≤ Bool → 9 in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│               constrain Bool ≤ 5 in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│                 constrain Bool ≤ ⊤ in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│             constrain 5 → 6 ≤ Bool → 9 in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│               constrain Bool ≤ 5 in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│                 constrain Bool ≤ ⊤ in 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│                 OK ⇝ ∅
 //│               OK ⇝ 5 ≥ Int ∨ Bool
-//│               constrain 6 ≤ 9 in 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│                 constrain ⊥ ≤ ⊤ in 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│               constrain 6 ≤ 9 in 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│                 constrain ⊥ ≤ ⊤ in 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│                 OK ⇝ ∅
 //│               OK ⇝ 9 ≥ 6
 //│             OK ⇝ 9 ≥ 6, 5 ≥ Int ∨ Bool
 //│           OK ⇝ 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int
-//│           constrain ⟨8, 9⟩ ≤ 7 in 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│             constrain ⟨8, 9⟩ ≤ ⊤ in 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           constrain ⟨8, 9⟩ ≤ 7 in 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
+//│             constrain ⟨8, 9⟩ ≤ ⊤ in 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│             OK ⇝ ∅
 //│           OK ⇝ 7 ≥ ⟨8, 9⟩
 //│         OK ⇝ 7 ≥ ⟨8, 9⟩, 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int
 //│       OK ⇝ 7 ≥ ⟨8, 9⟩, 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex
 //│     OK ⇝ 7 ≥ ⟨8, 9⟩, 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex
-//│     inline 9 in 7 in 7 ≥ ⟨8, 9⟩, 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│     inline 9 in 7 in 7 ≥ ⟨8, 9⟩, 9 ≥ 6, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 9 flex, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│     = 7
 //│     RECURSE 9 QUANTIFY false
-//│     inline 8 in 7 in 7 ≥ ⟨8, 6⟩, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│     inline 8 in 7 in 7 ≥ ⟨8, 6⟩, 5 ≥ Int ∨ Bool, 8 ≥ 6, 5 ≥ Int, 8 flex, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│     = 7
 //│     RECURSE 8 QUANTIFY false
-//│     inline 7 in 7 in 7 ≥ ⟨6, 6⟩, 5 ≥ Int ∨ Bool, 5 ≥ Int, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│     inline 7 in 7 in 7 ≥ ⟨6, 6⟩, 5 ≥ Int ∨ Bool, 5 ≥ Int, 7 flex, 1 ≤ 5 → 6, 6 flex, 5 flex, f: 1, 1 flex, id: ∀0. 0 → 0
 //│     = ⟨6, 6⟩
 //│     RECURSE 7 QUANTIFY false
 //│     VAR 6 (level 4) IS AT LOWER LEVEL THAN 5
 //│     NONE
 //│   OK ⟨6, 6⟩ ⇝ 5 ≥ Int ∨ Bool, 5 ≥ Int, 1 ≤ 5 → 6, 6 flex, 5 flex
-//│   quantify 6 in 1 → ⟨6, 6⟩ in 5 ≥ Int ∨ Bool, 5 ≥ Int, 1 ≤ 5 → 6, 6 flex, 5 flex, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   quantify 6 in 1 → ⟨6, 6⟩ in 5 ≥ Int ∨ Bool, 5 ≥ Int, 1 ≤ 5 → 6, 6 flex, 5 flex, 1 flex, id: ∀0. 0 → 0
 //│   = 1 → ⟨6, 6⟩
 //│   RECURSE 6 QUANTIFY true
-//│   inline 5 in 1 → ⟨6, 6⟩ in 5 ≥ Int ∨ Bool, 5 ≥ Int, 1 ≤ 5 → 6, 6 flex, 5 flex, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   inline 5 in 1 → ⟨6, 6⟩ in 5 ≥ Int ∨ Bool, 5 ≥ Int, 1 ≤ 5 → 6, 6 flex, 5 flex, 1 flex, id: ∀0. 0 → 0
 //│   = 1 → ⟨6, 6⟩
 //│   RECURSE 5 QUANTIFY false
-//│   inline 1 in 1 → ⟨6, 6⟩ in 1 ≤ (Int ∨ Bool) → 6, 6 flex, 1 flex, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   inline 1 in 1 → ⟨6, 6⟩ in 1 ≤ (Int ∨ Bool) → 6, 6 flex, 1 flex, id: ∀0. 0 → 0
 //│   = ((Int ∨ Bool) → 6) → ⟨6, 6⟩
 //│   RECURSE 1 QUANTIFY false
 //│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2
@@ -143,59 +143,59 @@ val foo(f) =
 //│ foo: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
 
 foo(id)
-//│ infer EApp(EVar(foo),EVar(id)) in foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│   infer EVar(foo) in foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│ infer EApp(EVar(foo),EVar(id)) in foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│   infer EVar(foo) in foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│   OK ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩ ⇝ ∅
-//│   infer EVar(id) in foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   infer EVar(id) in foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│   OK ∀0. 0 → 0 ⇝ ∅
 //│   10 flex level 2
-//│   constrain ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩ ≤ (∀0. 0 → 0) → 10 in 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   constrain ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩ ≤ (∀0. 0 → 0) → 10 in 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│     11 flex freshen 6 level 3
-//│     constrain ((Int ∨ Bool) → 11) → ⟨11, 11⟩ ≤ (∀0. 0 → 0) → 10 in 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│       constrain ∀0. 0 → 0 ≤ (Int ∨ Bool) → 11 in 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│         constrain ∀0. 0 → 0 ≤ Int → 11 in 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│     constrain ((Int ∨ Bool) → 11) → ⟨11, 11⟩ ≤ (∀0. 0 → 0) → 10 in 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│       constrain ∀0. 0 → 0 ≤ (Int ∨ Bool) → 11 in 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│         constrain ∀0. 0 → 0 ≤ Int → 11 in 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│           12 flex freshen 0 level 4
-//│           constrain 12 → 12 ≤ Int → 11 in 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│             constrain Int ≤ 12 in 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│               constrain Int ≤ ⊤ in 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           constrain 12 → 12 ≤ Int → 11 in 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│             constrain Int ≤ 12 in 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│               constrain Int ≤ ⊤ in 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│               OK ⇝ ∅
 //│             OK ⇝ 12 ≥ Int
-//│             constrain 12 ≤ 11 in 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│               constrain ⊥ ≤ ⊤ in 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│             constrain 12 ≤ 11 in 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│               constrain ⊥ ≤ ⊤ in 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│               OK ⇝ ∅
 //│             OK ⇝ 12 ≤ 11
 //│           OK ⇝ 12 ≤ 11, 12 ≥ Int
 //│         OK ⇝ 12 ≤ 11, 12 ≥ Int, 12 flex
-//│         constrain ∀0. 0 → 0 ≤ Bool → 11 in 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│         constrain ∀0. 0 → 0 ≤ Bool → 11 in 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│           13 flex freshen 0 level 5
-//│           constrain 13 → 13 ≤ Bool → 11 in 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│             constrain Bool ≤ 13 in 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│               constrain Bool ≤ ⊤ in 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│           constrain 13 → 13 ≤ Bool → 11 in 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│             constrain Bool ≤ 13 in 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│               constrain Bool ≤ ⊤ in 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│               OK ⇝ ∅
 //│             OK ⇝ 13 ≥ Bool
-//│             constrain 13 ≤ 11 in 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│               constrain ⊥ ≤ ⊤ in 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│             constrain 13 ≤ 11 in 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│               constrain ⊥ ≤ ⊤ in 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│               OK ⇝ ∅
 //│             OK ⇝ 13 ≤ 11
 //│           OK ⇝ 13 ≤ 11, 13 ≥ Bool
 //│         OK ⇝ 13 ≤ 11, 13 ≥ Bool, 13 flex
 //│       OK ⇝ 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex
-//│       constrain ⟨11, 11⟩ ≤ 10 in 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
-//│         constrain ⟨11, 11⟩ ≤ ⊤ in 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│       constrain ⟨11, 11⟩ ≤ 10 in 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
+//│         constrain ⟨11, 11⟩ ≤ ⊤ in 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│         OK ⇝ ∅
 //│       OK ⇝ 10 ≥ ⟨11, 11⟩
 //│     OK ⇝ 10 ≥ ⟨11, 11⟩, 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex
 //│   OK ⇝ 10 ≥ ⟨11, 11⟩, 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex
-//│   ignore 13 in 10 in 10 ≥ ⟨11, 11⟩, 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   ignore 13 in 10 in 10 ≥ ⟨11, 11⟩, 13 ≤ 11, 13 ≥ Bool, 13 flex, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│   = 10
 //│   RECURSE 13 QUANTIFY false
-//│   ignore 12 in 10 in 10 ≥ ⟨11, 11⟩, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   ignore 12 in 10 in 10 ≥ ⟨11, 11⟩, 12 ≤ 11, 12 ≥ Int, 12 flex, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│   = 10
 //│   RECURSE 12 QUANTIFY false
-//│   inline 11 in 10 in 10 ≥ ⟨11, 11⟩, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   inline 11 in 10 in 10 ≥ ⟨11, 11⟩, 11 flex, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│   = 10
 //│   RECURSE 11 QUANTIFY false
-//│   inline 10 in 10 in 10 ≥ ⟨⊥, ⊥⟩, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None
+//│   inline 10 in 10 in 10 ≥ ⟨⊥, ⊥⟩, 10 flex, foo: ∀6. ((Int ∨ Bool) → 6) → ⟨6, 6⟩, id: ∀0. 0 → 0
 //│   = ⟨⊥, ⊥⟩
 //│   RECURSE 10 QUANTIFY false
 //│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2

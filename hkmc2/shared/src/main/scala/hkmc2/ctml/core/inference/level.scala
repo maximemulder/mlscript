@@ -16,65 +16,66 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.OrderedSet as MutSet
 
 extension (ctx: Context)
-  /** Evaluate a subtyping function in a new level with a new fresh type variable and solve that
-   *  level. */
-  def withSubtypingLevel(kind: TypeVarKind, original: TypeVar, f: (TypeVar, Context) => Clauses): Clauses =
-    ctx.withFreshVarLevel(kind, Some(original), (a, b) => ((), f(a, b)), (_, b) => ((), b))._2
-
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
   def withInferenceLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
-    ctx.withFreshVarLevel(TypeVarKind.Flex, None, f, ctx.solveLevel)
+    ctx.withFreshVarLevel(TypeVarKind.Flex, None, f, (a, b, c) => ctx.solveLevel2(a, b, c))
 
-  /** Get the type variables of this level. */
-  def getLevelVars(outs: Clauses): List[TypeVar] =
-    // Get the variable dependency graph of each type variable declared at this level.
-    val dependencies = outs.typeVars.map(_.getDependencies()(using ctx.extend(outs)))
+  def solveLevel2(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
+    ctx.extend(outs).getVarToSolve(level, outs, quantifyVars) match
+      case Some(var_) =>
+        var quantifyVarsMut = quantifyVars
+        val (type2, outs2, quantify) = ctx.processLevelVar(type_, var_, outs)
+        if quantify then
+          quantifyVarsMut = var_ :: quantifyVarsMut
 
-    // Sort the variables such that each variable appears before its dependent variables.
-    val vars = dependencies.getSortedVars()
+        debug(s"RECURSE ${var_} QUANTIFY ${quantify}")
+        solveLevel2(level, type2, outs2, quantifyVarsMut)
+      case None =>
+        debug("NONE")
+        quantifyVars.foldRight((type_, outs))((var_, to) =>
+          quantifyVar2(to._1, var_, to._2)(using ctx)
+        )
 
-    // Return the variables that are not declared at lower levels.
-    vars.filter(ctx.isLevelVar(_, outs))
+  /** Get the type variables declared at this level or at a higher levels. */
+  def getVarToSolve(level: Int, outs: Clauses, quantifyVars: List[TypeVar]): Option[TypeVar] =
+    // Get the variable declared at the highest level.
+    ctx.getHighestLevelVar(quantifyVars) match
+      case Some(var_) =>
+        // If this variable is at a lower level, stop.
+        if ctx.getTypeVarLevel(var_) < level then
+          debug(s"VAR ${var_} (level ${ctx.getTypeVarLevel(var_)}) IS AT LOWER LEVEL THAN ${level}")
+          return None
 
-  /** Check whether a type variable is a variable of this level, that is, if it not depended on by
-   *  a variable of a lower level.
-   */
-  def isLevelVar(var_ : TypeVar, outs: Clauses)(using cache: MutSet[TypeVar] = MutSet()): Boolean =
-    // Get the list of type variables that directly depend on the type variable.
-    var dependentVars = outs.getDependentVars(var_)
+        // Get the dependencies of that variable.
+        // val dependencies = var_.getDependencies()(using ctx.extend(outs)).toSet
+        val dependencies = outs.getDependentVars(var_)
 
-    // Update the type variables and cache.
-    dependentVars = dependentVars.filter(!cache.contains(_))
-    cache.addAll(dependentVars)
+        // If any dependency is at a lower level, stop.
+        if dependencies.iterator.exists(ctx.getTypeVarLevel(_) < level) then
+          debug("VAR DEPENDENCY IS AT LOWER LEVEL")
+          return None
 
-    // The type variable is not declared in a lower level and neither are its dependent variables.
-    !ctx.hasVar(var_) && dependentVars.forall(ctx.isLevelVar(_, outs))
+        Some(var_)
+      case _ =>
+        None
 
-  def solveLevel(type_ : Type, outs: Clauses): (Type, Clauses) =
-    val levelVars = ctx.getLevelVars(outs)
+  def getHighestLevelVar(quantifyVars: List[TypeVar]): Option[TypeVar] =
+    val level = ctx.clauses.typeVarDecls
+      .filter((decl) => !quantifyVars.exists(_ == decl.var_))
+      .map(_.level)
+      .maxOption
 
-    // Ignore, inline, or add constraints for each type variables of this level.
-    val (newType, newOuts, rerun) = levelVars.foldRight((type_, outs, false))((var_, to) =>
-      ctx.processLevelVar(to._1, var_, to._2, levelVars.toSet)
-    )
+    level match
+      case Some(level) =>
+        Some(ctx.clauses.typeVarDecls
+          .find(_.level == level)
+          .get
+          .var_)
+      case None =>
+        None
 
-    if rerun then
-      return ctx.solveLevel(newType, newOuts)
-
-    // Get the type variables of this level that were not ignored or inlined.
-    val remainingVars = levelVars.filter(hkmc2.ctml.core.clauses.hasVar(newOuts)(_))
-
-    if config.checkUnsolvableConstreds then
-      checkUnsolvableConstreds(newType, newOuts)(using ctx)
-
-    val (newNewType, newNewOuts) = remainingVars.reverse.foldRight((newType, newOuts))((var_, to) =>
-      quantifyVar2(to._1, var_, to._2)(using ctx)
-    )
-
-    (newNewType, newNewOuts)
-
-  def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses, levelVars: Set[TypeVar]) =
+  def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses) =
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
     val polarities = type_.getAllVarPolarities(var_)
@@ -88,19 +89,11 @@ extension (ctx: Context)
       if checkEqual(lowerBound, upperBound) then
         inlineVar(type_, var_, outs)
       else
-        // type_.getAllProperVarPolarities(var_) match
-        //   case Polarities(true, false) | Polarities(false, true) =>
-        //     output(s"SIMPLIFY ${var_}")
-        //   case _ =>
-        //     ()
         quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, false) then
       inlineVar(type_, var_, outs)
     else
       inlineVar(type_, var_, outs)
-    // val fullCtx = ctx.extend(outs)
-    // given Context = fullCtx
-    // quantifyVar(type_, var_, outs)
 
 /** Quantify a type variable in a type. */
 def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
@@ -108,7 +101,7 @@ def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context)
 
 /** Implementation of `quantifyVar`. */
 def quantifyVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
-    (type_, outs, false)
+    (type_, outs, true)
 
 /** Inline a type variable in a type. */
 def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
@@ -119,7 +112,7 @@ def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
   (
     type_.inline(var_),
     outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
-    true,
+    false,
   )
 
 /** Ignore a type variable in a type. */
@@ -131,7 +124,7 @@ def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
   (
     type_,
     outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
-    true,
+    false,
   )
 
 /** Quantify a type variable in a type. */

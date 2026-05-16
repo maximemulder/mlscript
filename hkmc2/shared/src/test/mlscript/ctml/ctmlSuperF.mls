@@ -65,8 +65,73 @@ val z = (f, x) => x
 val s = (n, f, x) => f(n(f, x))
 val n3 = s(s(s(z)))
 //│ z: ∀α. ⊤ → α → α
-//│ s: ∀β, γ, δ, ε. {β ≤ δ → ε} ⟹ (β → γ → δ) → β → γ → ε
-//│ n3: ∀ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο. {η ≥ θ, θ ≤ η, ι ≥ κ, κ ≤ ι, λ ≥ μ, μ ≥ ν, μ ≤ λ, ν ≥ ο, ν ≤ μ, ξ ≤ ο, ο ≥ ξ, ο ≤ ν} ⟹ ((η → ζ) ∧ (ι → θ) ∧ (λ → κ)) → ξ → ζ
+//│ java.util.NoSuchElementException: None.get
+//│ 	at scala.None$.get(Option.scala:627)
+//│ 	at scala.None$.get(Option.scala:626)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:25)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarKind(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.kind(var.scala:88)
+//│ 	at hkmc2.ctml.core.context.var$package$.isRigid(var.scala:100)
+//│ 	at hkmc2.ctml.core.subtyping.split$package$.split(split.scala:54)
+//│ 	at hkmc2.ctml.core.subtyping.split$package$.split(split.scala:100)
+//│ 	at hkmc2.ctml.core.subtyping.split$package$.splitInter(split.scala:39)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:183)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkSubtype$$anonfun$1(constraining.scala:382)
+//│ 	at hkmc2.ctml.config.wrappers$package$.withCheckingMode(wrappers.scala:47)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkSubtype(constraining.scala:382)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkEqual(constraining.scala:403)
+//│ 	at hkmc2.ctml.core.inference.level$package$.processLevelVar(level.scala:159)
+//│ 	at hkmc2.ctml.core.inference.level$package$.solveLevel2(level.scala:51)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel$$anonfun$1(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel$$anonfun$adapted$1(level.scala:22)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:25)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:33)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExprVar(test.scala:120)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:89)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.util.NoSuchElementException: None.get
+//│ 	at: scala.None$.get(Option.scala:627)
+//│ 	at: scala.None$.get(Option.scala:626)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:25)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarKind(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.kind(var.scala:88)
+//│ 	at: hkmc2.ctml.core.context.var$package$.isRigid(var.scala:100)
+//│ 	at: hkmc2.ctml.core.subtyping.split$package$.split(split.scala:54)
+//│ 	at: hkmc2.ctml.core.subtyping.split$package$.split(split.scala:100)
+//│ 	at: hkmc2.ctml.core.subtyping.split$package$.splitInter(split.scala:39)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:183)
 
 // Terms
 
@@ -82,7 +147,7 @@ val a2 = choose(id)
 // OK
 
 val a3 = choose(nil, ids)
-//│ a3: List[∀A. A → A]
+//│ a3: ⊥
 // OK
 
 fun a4(x) = x(x)
@@ -90,23 +155,23 @@ fun a4(x) = x(x)
 // OK
 
 val a5 = id(auto)
-//│ a5: ∀A. (∀A. A → A) → A → A
+//│ a5: ⊥
 // OK
 
 val a6 = id(auto2)
-//│ a6: ∀B. (∀A. A → A) → B → B
+//│ a6: ⊥
 // OK
 
 val a7 = choose(id, auto)
-//│ a7: ∀A. (∀A. A → A) → A → A
+//│ a7: ⊥
 // OK
 
 val a8 = choose(id, auto2)
-//│ a8: ∀B. (∀A. A → A) → B → B
+//│ a8: ⊥
 // OK
 
 val a9 = f(choose(id), ids)
-//│ a9: ∀A. A → A
+//│ a9: ⊥
 // OK
 
 val a10 = poly(id)
@@ -118,7 +183,7 @@ val a11 = poly((p) => p)
 // OK
 
 val a12 = id(poly((p) => p))
-//│ a12: ⟨Int, Bool⟩
+//│ a12: ⊥
 // OK
 
 fun b1(f) = (f(1), f(true))
@@ -141,7 +206,7 @@ val c2 = tail(ids)
 // OK
 
 val c3 = head(ids)
-//│ c3: ∀A. A → A
+//│ c3: ⊥
 // OK
 
 val c4 = single(id)
@@ -161,7 +226,7 @@ val c7 = append(single(inc), single(id))
 // OK
 
 val c8 = g(single(id), ids)
-//│ c8: ∀A. A → A
+//│ c8: ⊥
 // OK
 
 val c9 = map(poly, single(id))
@@ -177,19 +242,19 @@ val d1 = app(poly, id)
 // OK
 
 val d2 = revapp(id, poly)
-//│ d2: ⟨Int, Bool⟩
+//│ d2: ⊥
 // OK
 
 val d3 = runST(argST)
-//│ d3: Int
+//│ d3: ⊥
 // OK
 
 val d4 = app(runST, argST)
-//│ d4: Int
+//│ d4: ⊥
 // OK
 
 val d5 = revapp(argST, runST)
-//│ d5: Int
+//│ d5: ⊥
 // OK
 
 declare fun k: [A] -> (A,  List[A]) -> A
@@ -205,11 +270,11 @@ declare fun r: ([A] -> (A) -> [B] -> (B) -> B) -> Int
 //│ r: (∀A. A → (∀B. B → B)) → Int
 
 val e1 = k(h, l)
-//│ e1: ∀A. Int → A → A
+//│ e1: ⊥
 // OK
 
 val e2 = (k((x) => h(x)))(l)
-//│ e2: ∀A. Int → A → A
+//│ e2: ⊥
 // OK
 
 val e3 = r((x, y) => y)
@@ -225,64 +290,82 @@ val f6 = cons(head(ids), ids)
 // OK
 
 val f7 = head(ids, 3)
-//│ f7: Int
+//│ f7: ⊥
 // OK
 
 val f8 = choose(head(ids))
-//│ f8: ∀α. {α ≥ ∀A. A → A} ⟹ α → α
+//│ f8: ∀α. α → α
 // OK
 
 val f9 =
   let f = revapp(id)
   f(poly)
-//│ f9: ⟨Int, Bool⟩
+//│ f9: ⊥
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀α. (∀A. A → A) → α → α
+//│ f10: ⊥
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β, γ, δ. {α ≤ β, β ≥ α ∨ δ, γ ≤ δ, δ ≥ γ, δ ≤ β} ⟹ Int → ((∀ε. ⊤ → ε → ε) ∨ ((β → α) → γ → α))
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'z' not found in the context.
 // OK
 
 val g1a = z as ChurchInt
-//│ g1a: ChurchInt
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'z' not found in the context.
 // OK
 
 val g2 = s
-//│ g2: ∀α, β, γ, δ. {α ≤ γ → δ} ⟹ (α → β → γ) → α → β → δ
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 's' not found in the context.
 // OK
 
 // val g2a = s as ((ChurchInt) -> ChurchInt)
 // OK
 
 val g3a = n3 as ChurchInt
-//│ g3a: ChurchInt
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'n3' not found in the context.
 // OK
 
 val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
-//│ g4a: Unit → ChurchInt
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'n3' not found in the context.
 // OK
 
 val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
-//│ g5: Int
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'n3' not found in the context.
 // OK
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ. {α ≥ β, β ≤ α, γ ≥ δ, δ ≥ ε, δ ≤ γ, ε ≥ κ, ε ≤ δ, ζ ≥ η, ζ ≤ κ, η ≥ ι, η ≤ ζ, θ ≤ ι, ι ≥ θ, ι ≤ η, κ ≥ ζ ∨ λ, κ ≤ ε, λ ≥ μ, λ ≤ κ, μ ≥ ξ, μ ≤ λ, ν ≥ ξ, ξ ≤ μ ∧ ν} ⟹ ((α → ξ) ∧ (γ → β)) → θ → ν
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 's' not found in the context.
 // MAYBE
 
 val g8 = toChurch
-//│ g8: ∀α, β, γ, δ. {α ≤ β, β ≥ α ∨ δ, γ ≤ δ, δ ≥ γ, δ ≤ β} ⟹ Int → ((∀ε. ⊤ → ε → ε) ∨ ((β → α) → γ → α))
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'toChurch' not found in the context.
 // OK
 
 val g8a = toChurch as ((Int) -> ChurchInt)
-//│ g8a: Int → ChurchInt
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Variable 'toChurch' not found in the context.
 // OK
 
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β. {α ≥ β → β, α ≤ α → α → β, β ≥ α, β ≤ α → β} ⟹ β → β
+//│ g9: ⊥
 // MAYBE
 
 val g10 = ((x) => x(x))((x) => x(x))
@@ -297,11 +380,11 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀α. {α ≥ ∀A, B. A → B → A, α ≤ α → ⊤} ⟹ ⊤ → α
+//│ g12: ⊥
 // OK
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
-//│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩
+//│ g13: ⟨⟨⊥, ⊥⟩, ⟨List[Int], List[Bool]⟩⟩
 // OK
 
 val g14 = ((f) =>

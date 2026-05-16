@@ -6,7 +6,7 @@ fun foo(a) =
   let b = a
   let c = b
   c
-//│ foo: ∀α, β, γ, δ, ε. {α ≥ β, β ≥ γ, β ≤ α, γ ≥ ε, γ ≤ β, δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ δ → α
+//│ foo: ⊤ → ⊥
 
 fun bar(a) =
   let b = 1
@@ -19,42 +19,39 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ, δ, ε. {α ≤ ({δ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ε, δ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), δ ≤ ε, ε ≥ δ, ε ≤ γ} ⟹ α → β → γ
+//│ baz: ∀α, β. {α ≤ ({β ≤ Int} ⟹ Int) ∨ ({β ≤ Str} ⟹ Str), β ≤ ({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β → ⊥
 
 baz(1, 1)
-//│ Int
+//│ ⊥
 
 baz("", "")
-//│ Str
+//│ ⊥
 
 baz(bot, bot)
 //│ ⊥
 
 :te
 baz(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
-//│ Typing error tree:
-//│   Str ≤ Int
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error
 
 :te
 baz(true, false)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
-//│ Typing error tree:
-//│   Bool ≤ Str
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error
 
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ. {α ≤ β, β ≥ α, β ≤ ({ι ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({ι ≥ Str, δ ≤ Str} ⟹ Str), γ ≤ δ, δ ≥ γ, δ ≤ ({ι ≥ Int, β ≤ Int} ⟹ Int) ∨ ({ι ≥ Str, β ≤ Str, β ≤ ¬Int} ⟹ Str), ε ≥ ζ, ζ ≥ η, ζ ≤ ε, η ≥ θ, η ≤ ζ, θ ≥ κ, θ ≤ η, ι ≥ ({δ ≤ Int, β ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, β ≤ Str, β ≤ ¬Int} ⟹ Str), ι ≤ κ, κ ≥ ι, κ ≤ θ} ⟹ α → γ → ε
+//│ bop: ∀α. α → (({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str, α ≤ ¬Int} ⟹ Str)) → ⊥
 
 bop(0, 1)
-//│ Int
+//│ ⊥
 
 bop("0", "1")
-//│ Str
+//│ ⊥
 
 :te
 bop(0, "1")
-//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
-//│ Typing error tree:
-//│   Str ≤ Int
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error

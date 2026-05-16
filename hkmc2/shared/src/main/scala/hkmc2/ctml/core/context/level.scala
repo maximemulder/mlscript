@@ -9,7 +9,7 @@ extension (ctx: Context)
     kind: TypeVarKind,
     original: Option[TypeVar],
     inner: (TypeVar, Context) => (T, Clauses),
-    outer: (T, Clauses) => (T, Clauses),
+    outer: (Int, T, Clauses) => (T, Clauses),
   ): (T, Clauses) =
     // Create a new fresh type variable and add it to the context.
     val (freshVar, freshCtx) = ctx.declFreshVar(kind, original)
@@ -22,4 +22,4 @@ extension (ctx: Context)
     val outs = Clauses.single(freshDecl).concat(innerOuts)
 
     // Evaluate the outer function with the type variable in the output clauses.
-    outer(res, outs)
+    outer(freshDecl.level, res, outs)

@@ -12,7 +12,7 @@ fun foo(a, b) =
 
 fun bar(a, b) =
   foo(a, b) as Int
-//│ bar: Int → Int → Int
+//│ bar: ⊤ → ⊤ → Int
 
 // Function overloads
 
@@ -31,10 +31,10 @@ foo as (Bot -> Bot -> Top)
 // Function applications
 
 foo(1, 1)
-//│ Int
+//│ ⊥
 
 foo("Hello", "World")
-//│ Str
+//│ ⊥
 
 foo(bot, bot)
 //│ ⊥
@@ -113,15 +113,25 @@ val int_or_string: Int | Str
 
 :te
 foo(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ Str → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│   ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ Str → γ
+//│     ∀β. {δ ≤ Int, β ≥ Int} ⟹ δ → β ≤ Str → γ
+//│       {δ ≤ Int, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│         {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│           δ → ε ≤ Str → γ
+//│             Str ≤ δ
+//│               Str ≤ Int
 
 :te
 foo(1, int_or_string)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ (Int ∨ Str) → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ (Int ∨ Str) → α
-//│     Int → Int ≤ Str → α
-//│       Str ≤ Int
+//│   ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ (Int ∨ Str) → γ
+//│     ∀α, β. {α ≤ Int, β ≥ Int} ⟹ α → β ≤ Str → γ
+//│       ∀β. {δ ≤ Int, β ≥ Int} ⟹ δ → β ≤ Str → γ
+//│         {δ ≤ Int, ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│           {ε ≥ Int} ⟹ δ → ε ≤ Str → γ
+//│             δ → ε ≤ Str → γ
+//│               Str ≤ δ
+//│                 Str ≤ Int

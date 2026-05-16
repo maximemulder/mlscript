@@ -29,47 +29,38 @@ fun test(f) =
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α, β, γ. {α ≥ γ, β ≥ γ, γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
+//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
 
 :fixme
 fun test(f) =
   let r(x, g) = (g(x), f(x))
   (r(0, inc), r(true, not'))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η.
 //│ Typing error tree:
-//│   ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
-//│     ∀β. ((Int → (Int → Int) → η) ∧ (Bool → (Bool → Bool) → β)) → ⟨η, β⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
-//│       ((Int → (Int → Int) → η) ∧ (Bool → (Bool → Bool) → θ)) → ⟨η, θ⟩ ≤ (γ → (∀δ. (γ → δ) → ⟨δ, ε⟩)) → ζ
-//│         γ → (∀δ. (γ → δ) → ⟨δ, ε⟩) ≤ (Int → (Int → Int) → η) ∧ (Bool → (Bool → Bool) → θ)
-//│           γ → (∀δ. (γ → δ) → ⟨δ, ε⟩) ≤ Bool → (Bool → Bool) → θ
+//│   ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η
+//│     ∀β. ((Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → β)) → ⟨θ, β⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η
+//│       ((Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → ι)) → ⟨θ, ι⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η
+//│         γ → δ → ⟨ε, ζ⟩ ≤ (Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → ι)
+//│           γ → δ → ⟨ε, ζ⟩ ≤ Bool → (Bool → Bool) → ι
 //│             Bool ≤ γ
 //│               Bool ≤ Int
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α, β, γ. {α ≥ γ, β ≥ γ, γ ≤ α ∧ β} ⟹ ((Int ∨ Bool) → γ) → ⟨β, α⟩
+//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
 
 :fixme
 fst(test(id)) + 1
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ (Bool ∨ Int) → α.
-//│ Typing error tree:
-//│   Int → Int → Int ≤ (Bool ∨ Int) → α
-//│     Int → Int → Int ≤ Bool → α
-//│       Bool ≤ Int
+//│ Int
+//│ FAILURE: Unexpected lack of error to fix
 
 :fixme
 not'(snd(test(id)))
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (Bool ∨ Int) → α.
-//│ Typing error tree:
-//│   Bool → Bool ≤ (Bool ∨ Int) → α
-//│     Bool → Bool ≤ Int → α
-//│       Int ≤ Bool
+//│ Bool
+//│ FAILURE: Unexpected lack of error to fix
 
 :te
 not'(fst(test(id)))
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (Bool ∨ Int) → α.
-//│ Typing error tree:
-//│   Bool → Bool ≤ (Bool ∨ Int) → α
-//│     Bool → Bool ≤ Int → α
-//│       Int ≤ Bool
+//│ Bool
+//│ FAILURE: Unexpected lack of type error

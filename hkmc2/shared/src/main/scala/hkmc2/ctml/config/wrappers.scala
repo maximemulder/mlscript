@@ -116,7 +116,7 @@ def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
       s" freshen ${original}"
     case None =>
       ""
-  }")
+  } level ${decl.level}")
 
   decl
 

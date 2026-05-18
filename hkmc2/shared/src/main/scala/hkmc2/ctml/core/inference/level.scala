@@ -19,61 +19,22 @@ extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
   def withInferenceLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
-    ctx.withFreshVarLevel(TypeVarKind.Flex, None, f, (a, b, c) => ctx.solveLevel2(a, b, c))
+    ctx.withFreshVarLevel(TypeVarKind.Flex, None, f, (a, b, c) => ctx.solveLevel(a, b, c))
 
-  def solveLevel2(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
-    ctx.extend(outs).getVarToSolve(level, outs, quantifyVars) match
-      case Some(var_) =>
-        var quantifyVarsMut = quantifyVars
-        val (type2, outs2, quantify) = ctx.processLevelVar(type_, var_, outs)
-        if quantify then
-          quantifyVarsMut = var_ :: quantifyVarsMut
+  def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
+    val levelVars = ctx.extend(outs).getLevelVars(level)
+    var quantifyVarsMut = List[TypeVar]()
+    val (type2, outs2) = levelVars.foldLeft((type_, outs))((x, var_) =>
+      val (type2, outs2, quantify) = ctx.processLevelVar(x._1, var_, x._2)
+      if quantify then
+        quantifyVarsMut = var_ :: quantifyVarsMut
 
-        debug(s"RECURSE ${var_} QUANTIFY ${quantify}")
-        solveLevel2(level, type2, outs2, quantifyVarsMut)
-      case None =>
-        debug("NONE")
-        quantifyVars.foldRight((type_, outs))((var_, to) =>
-          quantifyVar2(to._1, var_, to._2)(using ctx)
-        )
+      (type2, outs2)
+    )
 
-  /** Get the type variables declared at this level or at a higher levels. */
-  def getVarToSolve(level: Int, outs: Clauses, quantifyVars: List[TypeVar]): Option[TypeVar] =
-    // Get the variable declared at the highest level.
-    ctx.getHighestLevelVar(quantifyVars) match
-      case Some(var_) =>
-        // If this variable is at a lower level, stop.
-        if ctx.getTypeVarLevel(var_) < level then
-          debug(s"VAR ${var_} (level ${ctx.getTypeVarLevel(var_)}) IS AT LOWER LEVEL THAN ${level}")
-          return None
-
-        // Get the dependencies of that variable.
-        // val dependencies = var_.getDependencies()(using ctx.extend(outs)).toSet
-        val dependencies = outs.getDependentVars(var_)
-
-        // If any dependency is at a lower level, stop.
-        if dependencies.iterator.exists(ctx.getTypeVarLevel(_) < level) then
-          debug("VAR DEPENDENCY IS AT LOWER LEVEL")
-          return None
-
-        Some(var_)
-      case _ =>
-        None
-
-  def getHighestLevelVar(quantifyVars: List[TypeVar]): Option[TypeVar] =
-    val level = ctx.clauses.typeVarDecls
-      .filter((decl) => !quantifyVars.exists(_ == decl.var_))
-      .map(_.level)
-      .maxOption
-
-    level match
-      case Some(level) =>
-        Some(ctx.clauses.typeVarDecls
-          .find(_.level == level)
-          .get
-          .var_)
-      case None =>
-        None
+    quantifyVarsMut.foldRight((type2, outs2))((var_, to) =>
+      quantifyVar2(to._1, var_, to._2)(using ctx)
+    )
 
   def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses) =
     val fullCtx = ctx.extend(outs)

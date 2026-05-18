@@ -32,13 +32,15 @@ baz(bot, bot)
 
 :te
 baz(1, "")
-//│ {Str ≤ Int} ⟹ Int
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int
 
 :te
 baz(true, false)
-//│ {Bool ≤ Str, Bool ≤ Str} ⟹ Str
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
+//│ Typing error tree:
+//│   Bool ≤ Str
 
 fun bop(a, b) =
   let x = baz(a, b)
@@ -53,5 +55,6 @@ bop("0", "1")
 
 :te
 bop(0, "1")
-//│ {Str ≤ Int} ⟹ Int
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int

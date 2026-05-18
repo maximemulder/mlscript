@@ -24,15 +24,18 @@ extension (ctx: Context)
   def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
     val levelVars = ctx.extend(outs).getLevelVars(level)
     var quantifyVarsMut = List[TypeVar]()
-    val (type2, outs2) = levelVars.foldLeft((type_, outs))((x, var_) =>
-      val (type2, outs2, quantify) = ctx.processLevelVar(x._1, var_, x._2)
+    val (newType, newOuts) = levelVars.foldLeft((type_, outs))((x, var_) =>
+      val (newType, newOuts, quantify) = ctx.processLevelVar(x._1, var_, x._2)
       if quantify then
         quantifyVarsMut = var_ :: quantifyVarsMut
 
-      (type2, outs2)
+      (newType, newOuts)
     )
 
-    quantifyVarsMut.foldRight((type2, outs2))((var_, to) =>
+    if config.checkUnsolvableConstreds then
+      checkUnsolvableConstreds(newType, newOuts)(using ctx)
+
+    quantifyVarsMut.foldRight((newType, newOuts))((var_, to) =>
       quantifyVar2(to._1, var_, to._2)(using ctx)
     )
 

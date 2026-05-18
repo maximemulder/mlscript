@@ -22,6 +22,8 @@ extension (clause: Clause)
     clause match
       case decl: TermVarDecl =>
         decl.prettify(prettyCtx)
+      case decl: ClassDecl =>
+        decl
       case decl: TypeVarDecl =>
         decl.prettify(prettyCtx)
       case bound: Bound =>

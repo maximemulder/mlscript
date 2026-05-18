@@ -2,48 +2,450 @@
 
 :ctml-dbg infer constrain var context
 
-val id(x) = x
-//│ infer ELam(x,EVar(x)) in 
-//│   0 flex level 2
-//│   infer EVar(x) in x: 0, 0 flex
-//│   OK 0 ⇝ ∅
-//│   quantify 0 in 0 → 0 in 0 flex
-//│   = 0 → 0
-//│ OK ∀0. 0 → 0 ⇝ ∅
-//│ id: ∀α. α → α
-
-val b = id(id)
-//│ infer EApp(EVar(id),EVar(id)) in id: ∀0. 0 → 0
-//│   infer EVar(id) in id: ∀0. 0 → 0
-//│   OK ∀0. 0 → 0 ⇝ ∅
-//│   infer EVar(id) in id: ∀0. 0 → 0
-//│   OK ∀0. 0 → 0 ⇝ ∅
-//│   1 flex level 2
-//│   constrain ∀0. 0 → 0 ≤ (∀0. 0 → 0) → 1 in 1 flex, id: ∀0. 0 → 0
-//│     2 flex freshen 0 level 3
-//│     constrain 2 → 2 ≤ (∀0. 0 → 0) → 1 in 2 flex, 1 flex, id: ∀0. 0 → 0
-//│       constrain ∀0. 0 → 0 ≤ 2 in 2 flex, 1 flex, id: ∀0. 0 → 0
-//│         constrain ∀0. 0 → 0 ≤ ⊤ in 2 flex, 1 flex, id: ∀0. 0 → 0
-//│         OK ⇝ ∅
-//│         3 flex freshen 0 level 4
-//│       OK ⇝ 2 ≥ ∀0. 0 → 0
-//│       constrain 2 ≤ 1 in 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
-//│         constrain ∀0. 0 → 0 ≤ 1 in 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
-//│           constrain ∀0. 0 → 0 ≤ ⊤ in 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
+fun zero(i) =
+  if i == 0
+    then i
+    else zero(i - 1)
+//│ infer EApp(EVar(fix),ELam(zero,ELam(i,EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int))))))) in 
+//│   infer EVar(fix) in 
+//│   OK ∀A. (A → A) → A ⇝ ∅
+//│   infer ELam(zero,ELam(i,EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int)))))) in 
+//│     0 flex level 2
+//│     infer ELam(i,EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int))))) in zero: 0, 0 flex
+//│       1 flex level 3
+//│       infer EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int)))) in i: 1, 1 flex, zero: 0, 0 flex
+//│         infer EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)) in i: 1, 1 flex, zero: 0, 0 flex
+//│           infer EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))) in i: 1, 1 flex, zero: 0, 0 flex
+//│             infer EVar(_if_) in i: 1, 1 flex, zero: 0, 0 flex
+//│             OK ∀A. Bool → A → A → A ⇝ ∅
+//│             infer EApp(EApp(EVar(==),EVar(i)),EVar(int)) in i: 1, 1 flex, zero: 0, 0 flex
+//│               infer EApp(EVar(==),EVar(i)) in i: 1, 1 flex, zero: 0, 0 flex
+//│                 infer EVar(==) in i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ∀A. A → A → Bool ⇝ ∅
+//│                 infer EVar(i) in i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK 1 ⇝ ∅
+//│                 2 flex level 4
+//│                 constrain ∀A. A → A → Bool ≤ 1 → 2 in 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   IS RIGID 1
+//│                   IS RIGID 2
+//│                   3 flex freshen A level 5
+//│                   constrain 3 → 3 → Bool ≤ 1 → 2 in 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                     IS RIGID 1
+//│                     IS RIGID 2
+//│                     IS RIGID 3
+//│                     IS RIGID 3
+//│                     constrain 1 ≤ 3 in 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                       constrain 1 ≤ ⊤ in 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                       OK ⇝ ∅
+//│                       IS RIGID 1
+//│                       IS RIGID 1
+//│                       IS RIGID 1
+//│                       constrain ⊥ ≤ ⊤ in 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                       OK ⇝ ∅
+//│                     OK ⇝ 3 ≥ 1
+//│                     constrain 3 → Bool ≤ 2 in 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                       constrain 3 → Bool ≤ ⊤ in 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                       OK ⇝ ∅
+//│                       IS RIGID 3
+//│                     OK ⇝ 2 ≥ 3 → Bool
+//│                   OK ⇝ 2 ≥ 3 → Bool, 3 ≥ 1
+//│                 OK ⇝ 2 ≥ 3 → Bool, 3 ≥ 1, 3 flex
+//│                 RECURSE 3 WITH 2 = Set()
+//│                 3 IS DEPENDED ON BY Set(2) IN 2 ≥ 3 → Bool, 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│                 2 IS DEPENDED ON BY Set() IN 2 ≥ 3 → Bool, 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│                 RECURSE 3 WITH 2 = Set()
+//│                 RECURSE 1 WITH 3 = Set(2)
+//│                 1 IS DEPENDED ON BY Set(3, 2) IN 2 ≥ 3 → Bool, 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│                 LEVLE VARS List(3, 2)
+//│                 inline 3 in 2 in 2 ≥ 3 → Bool, 3 ≥ 1, 3 flex, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 REMOVE 3 (INLINE)
+//│                 = 2
+//│                 inline 2 in 2 in 2 ≥ ⊤ → Bool, 2 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 REMOVE 2 (INLINE)
+//│                 = ⊤ → Bool
+//│               OK ⊤ → Bool ⇝ ∅
+//│               infer EVar(int) in i: 1, 1 flex, zero: 0, 0 flex
+//│               OK Int ⇝ ∅
+//│               4 flex level 4
+//│               constrain ⊤ → Bool ≤ Int → 4 in 4 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 IS RIGID 4
+//│                 constrain Int ≤ ⊤ in 4 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│                 constrain Bool ≤ 4 in 4 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   constrain Bool ≤ ⊤ in 4 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 4 ≥ Bool
+//│               OK ⇝ 4 ≥ Bool
+//│               4 IS DEPENDED ON BY Set() IN 4 ≥ Bool, 4 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│               1 IS DEPENDED ON BY Set() IN 4 ≥ Bool, 4 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│               LEVLE VARS List(4)
+//│               inline 4 in 4 in 4 ≥ Bool, 4 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│               REMOVE 4 (INLINE)
+//│               = Bool
+//│             OK Bool ⇝ ∅
+//│             5 flex level 4
+//│             constrain ∀A. Bool → A → A → A ≤ Bool → 5 in 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│               IS RIGID 5
+//│               6 flex freshen A level 5
+//│               constrain Bool → 6 → 6 → 6 ≤ Bool → 5 in 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 IS RIGID 5
+//│                 IS RIGID 6
+//│                 IS RIGID 6
+//│                 IS RIGID 6
+//│                 constrain Bool ≤ Bool in 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│                 constrain 6 → 6 → 6 ≤ 5 in 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   constrain 6 → 6 → 6 ≤ ⊤ in 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   OK ⇝ ∅
+//│                   IS RIGID 6
+//│                   IS RIGID 6
+//│                   IS RIGID 6
+//│                 OK ⇝ 5 ≥ 6 → 6 → 6
+//│               OK ⇝ 5 ≥ 6 → 6 → 6
+//│             OK ⇝ 5 ≥ 6 → 6 → 6, 6 flex
+//│             RECURSE 6 WITH 5 = Set()
+//│             6 IS DEPENDED ON BY Set(5) IN 5 ≥ 6 → 6 → 6, 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│             5 IS DEPENDED ON BY Set() IN 5 ≥ 6 → 6 → 6, 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│             1 IS DEPENDED ON BY Set() IN 5 ≥ 6 → 6 → 6, 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│             LEVLE VARS List(6, 5)
+//│             quantify 6 in 5 in 5 ≥ 6 → 6 → 6, 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│             = 5
+//│             inline 5 in 5 in 5 ≥ 6 → 6 → 6, 6 flex, 5 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│             REMOVE 5 (INLINE)
+//│             = 6 → 6 → 6
+//│           OK ∀6. 6 → 6 → 6 ⇝ ∅
+//│           infer EVar(i) in i: 1, 1 flex, zero: 0, 0 flex
+//│           OK 1 ⇝ ∅
+//│           7 flex level 4
+//│           constrain ∀6. 6 → 6 → 6 ≤ 1 → 7 in 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│             IS RIGID 1
+//│             IS RIGID 7
+//│             8 flex freshen 6 level 5
+//│             constrain 8 → 8 → 8 ≤ 1 → 7 in 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│               IS RIGID 1
+//│               IS RIGID 7
+//│               IS RIGID 8
+//│               IS RIGID 8
+//│               IS RIGID 8
+//│               constrain 1 ≤ 8 in 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 constrain 1 ≤ ⊤ in 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 constrain ⊥ ≤ ⊤ in 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│               OK ⇝ 8 ≥ 1
+//│               constrain 8 → 8 ≤ 7 in 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 constrain 8 → 8 ≤ ⊤ in 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│                 IS RIGID 8
+//│                 IS RIGID 8
+//│               OK ⇝ 7 ≥ 8 → 8
+//│             OK ⇝ 7 ≥ 8 → 8, 8 ≥ 1
+//│           OK ⇝ 7 ≥ 8 → 8, 8 ≥ 1, 8 flex
+//│           RECURSE 8 WITH 7 = Set()
+//│           8 IS DEPENDED ON BY Set(7) IN 7 ≥ 8 → 8, 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│           7 IS DEPENDED ON BY Set() IN 7 ≥ 8 → 8, 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│           RECURSE 8 WITH 7 = Set()
+//│           RECURSE 1 WITH 8 = Set(7)
+//│           1 IS DEPENDED ON BY Set(8, 7) IN 7 ≥ 8 → 8, 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│           LEVLE VARS List(8, 7)
+//│           IS RIGID 1
+//│           IS RIGID 1
+//│           IS RIGID 1
+//│           quantify 8 in 7 in 7 ≥ 8 → 8, 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│           = 7
+//│           inline 7 in 7 in 7 ≥ 8 → 8, 8 ≥ 1, 8 flex, 7 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│           REMOVE 7 (INLINE)
+//│           = 8 → 8
+//│         OK ∀8. {8 ≥ 1} ⟹ 8 → 8 ⇝ ∅
+//│         infer EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int))) in i: 1, 1 flex, zero: 0, 0 flex
+//│           infer EVar(zero) in i: 1, 1 flex, zero: 0, 0 flex
+//│           OK 0 ⇝ ∅
+//│           infer EApp(EApp(EVar(-),EVar(i)),EVar(int)) in i: 1, 1 flex, zero: 0, 0 flex
+//│             infer EApp(EVar(-),EVar(i)) in i: 1, 1 flex, zero: 0, 0 flex
+//│               infer EVar(-) in i: 1, 1 flex, zero: 0, 0 flex
+//│               OK Int → Int → Int ⇝ ∅
+//│               infer EVar(i) in i: 1, 1 flex, zero: 0, 0 flex
+//│               OK 1 ⇝ ∅
+//│               9 flex level 4
+//│               constrain Int → Int → Int ≤ 1 → 9 in 9 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                 IS RIGID 1
+//│                 IS RIGID 9
+//│                 constrain 1 ≤ Int in 9 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   constrain ⊥ ≤ Int in 9 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 1 ≤ Int
+//│                 constrain Int → Int ≤ 9 in 1 ≤ Int, 9 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   constrain Int → Int ≤ ⊤ in 1 ≤ Int, 9 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 9 ≥ Int → Int
+//│               OK ⇝ 9 ≥ Int → Int, 1 ≤ Int
+//│               9 IS DEPENDED ON BY Set() IN 9 ≥ Int → Int, 1 ≤ Int, 9 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│               1 IS DEPENDED ON BY Set() IN 9 ≥ Int → Int, 1 ≤ Int, 9 flex, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│               LEVLE VARS List(9)
+//│               inline 9 in 9 in 9 ≥ Int → Int, 1 ≤ Int, 9 flex, i: 1, 1 flex, zero: 0, 0 flex
+//│               REMOVE 9 (INLINE)
+//│               = Int → Int
+//│             OK Int → Int ⇝ 1 ≤ Int
+//│             infer EVar(int) in 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│             OK Int ⇝ ∅
+//│             10 flex level 4
+//│             constrain Int → Int ≤ Int → 10 in 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│               IS RIGID 10
+//│               constrain Int ≤ Int in 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│               OK ⇝ ∅
+//│               constrain Int ≤ 10 in 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 constrain Int ≤ ⊤ in 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│               OK ⇝ 10 ≥ Int
+//│             OK ⇝ 10 ≥ Int
+//│             10 IS DEPENDED ON BY Set() IN 10 ≥ Int, 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│             1 IS DEPENDED ON BY Set() IN 10 ≥ Int, 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│             LEVLE VARS List(10)
+//│             inline 10 in 10 in 10 ≥ Int, 10 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│             REMOVE 10 (INLINE)
+//│             = Int
+//│           OK Int ⇝ 1 ≤ Int
+//│           11 flex level 4
+//│           constrain 0 ≤ Int → 11 in 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│             constrain ⊥ ≤ Int → 11 in 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│             OK ⇝ ∅
+//│             IS RIGID 11
+//│           OK ⇝ 0 ≤ Int → 11
+//│           RECURSE 11 WITH 0 = Set()
+//│           11 IS DEPENDED ON BY Set(0) IN 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│           LEVLE VARS List()
+//│         OK 11 ⇝ 0 ≤ Int → 11, 11 flex, 1 ≤ Int
+//│         12 flex level 5
+//│         constrain ∀8. {8 ≥ 1} ⟹ 8 → 8 ≤ 11 → 12 in 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│           IS RIGID 11
+//│           IS RIGID 12
+//│           13 flex freshen 8 level 6
+//│           constrain {13 ≥ 1} ⟹ 13 → 13 ≤ 11 → 12 in 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│             IS RIGID 11
+//│             IS RIGID 12
+//│             constrain 1 ≤ 13 in 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│               constrain 1 ≤ ⊤ in 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│               OK ⇝ ∅
+//│               IS RIGID 1
+//│               IS RIGID 1
+//│               IS RIGID 1
+//│               constrain ⊥ ≤ Int in 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│               OK ⇝ ∅
+//│             OK ⇝ 13 ≥ 1
+//│             constrain 13 → 13 ≤ 11 → 12 in 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│               IS RIGID 11
+//│               IS RIGID 12
+//│               IS RIGID 13
+//│               IS RIGID 13
+//│               constrain 11 ≤ 13 in 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 constrain 11 ≤ ⊤ in 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│                 IS RIGID 11
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 11
+//│                 IS RIGID 11
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 11
+//│                 IS RIGID 11
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 11
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 IS RIGID 1
+//│                 constrain 1 ≤ ⊤ in 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│               OK ⇝ 13 ≥ 11 ∨ 1
+//│               constrain 13 ≤ 12 in 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 constrain 11 ∨ 1 ≤ 12 in 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                   constrain 11 ∨ 1 ≤ ⊤ in 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                   OK ⇝ ∅
+//│                   IS RIGID 11
+//│                   IS RIGID 11
+//│                   IS RIGID 11
+//│                 OK ⇝ 12 ≥ 11 ∨ 1
+//│                 IS RIGID 12
+//│                 IS RIGID 12
+//│                 IS RIGID 12
+//│                 constrain ⊥ ≤ ⊤ in 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│                 OK ⇝ ∅
+//│               OK ⇝ 13 ≤ 12, 12 ≥ 11 ∨ 1
+//│             OK ⇝ 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1
+//│           OK ⇝ 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1
+//│         OK ⇝ 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex
+//│         13 IS DEPENDED ON BY Set() IN 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│         RECURSE 12 WITH 13 = Set()
+//│         12 IS DEPENDED ON BY Set(13) IN 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│         RECURSE 11 WITH 0 = Set()
+//│         RECURSE 11 WITH 13 = Set()
+//│         RECURSE 12 WITH 13 = Set()
+//│         RECURSE 11 WITH 12 = Set(13)
+//│         11 IS DEPENDED ON BY Set(0, 13, 12) IN 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│         LEVLE VARS List(13, 12)
+//│         ignore 13 in 12 in 13 ≤ 12, 12 ≥ 11 ∨ 1, 13 ≥ 11 ∨ 1, 13 ≥ 1, 13 flex, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│         REMOVE 13 (IGNORE)
+//│         = 12
+//│         inline 12 in 12 in 12 ≥ 11 ∨ 1, 12 flex, 0 ≤ Int → 11, 11 flex, 1 ≤ Int, i: 1, 1 flex, zero: 0, 0 flex
+//│         REMOVE 12 (INLINE)
+//│         = 11 ∨ 1
+//│       OK 11 ∨ 1 ⇝ 0 ≤ Int → 11, 11 flex, 1 ≤ Int
+//│       RECURSE 11 WITH 0 = Set()
+//│       11 IS DEPENDED ON BY Set(0) IN 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, zero: 0, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│       LEVLE VARS List()
+//│     OK 1 → (11 ∨ 1) ⇝ 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex
+//│     RECURSE 11 WITH 0 = Set()
+//│     11 IS DEPENDED ON BY Set(0) IN 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│     1 IS DEPENDED ON BY Set() IN 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│     0 IS DEPENDED ON BY Set() IN 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│     Sup IS DEPENDED ON BY Set() IN 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│     LEVLE VARS List(11, 1, 0)
+//│     quantify 11 in 0 → 1 → (11 ∨ 1) in 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex
+//│     = 0 → 1 → (11 ∨ 1)
+//│     quantify 1 in 0 → 1 → (11 ∨ 1) in 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex
+//│     = 0 → 1 → (11 ∨ 1)
+//│     inline 0 in 0 → 1 → (11 ∨ 1) in 0 ≤ Int → 11, 11 flex, 1 ≤ Int, 1 flex, 0 flex
+//│     REMOVE 0 (INLINE)
+//│     = (Int → 11) → 1 → (11 ∨ 1)
+//│   OK ∀1, 11. {1 ≤ Int} ⟹ (Int → 11) → 1 → (11 ∨ 1) ⇝ ∅
+//│   14 flex level 2
+//│   constrain ∀A. (A → A) → A ≤ (∀1, 11. {1 ≤ Int} ⟹ (Int → 11) → 1 → (11 ∨ 1)) → 14 in 14 flex
+//│     IS RIGID 14
+//│     15 flex freshen A level 3
+//│     constrain (15 → 15) → 15 ≤ (∀1, 11. {1 ≤ Int} ⟹ (Int → 11) → 1 → (11 ∨ 1)) → 14 in 15 flex, 14 flex
+//│       IS RIGID 14
+//│       IS RIGID 15
+//│       constrain ∀1, 11. {1 ≤ Int} ⟹ (Int → 11) → 1 → (11 ∨ 1) ≤ 15 → 15 in 15 flex, 14 flex
+//│         IS RIGID 15
+//│         IS RIGID 15
+//│         16 flex freshen 1 level 4
+//│         constrain ∀11. {16 ≤ Int} ⟹ (Int → 11) → 16 → (11 ∨ 16) ≤ 15 → 15 in 16 flex, 15 flex, 14 flex
+//│           IS RIGID 15
+//│           IS RIGID 15
+//│           17 flex freshen 11 level 5
+//│           constrain {16 ≤ Int} ⟹ (Int → 17) → 16 → (17 ∨ 16) ≤ 15 → 15 in 17 flex, 16 flex, 15 flex, 14 flex
+//│             IS RIGID 15
+//│             IS RIGID 15
+//│             constrain 16 ≤ Int in 17 flex, 16 flex, 15 flex, 14 flex
+//│               constrain ⊥ ≤ Int in 17 flex, 16 flex, 15 flex, 14 flex
+//│               OK ⇝ ∅
+//│             OK ⇝ 16 ≤ Int
+//│             constrain (Int → 17) → 16 → (17 ∨ 16) ≤ 15 → 15 in 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│               IS RIGID 15
+//│               IS RIGID 15
+//│               IS RIGID 16
+//│               IS RIGID 17
+//│               IS RIGID 16
+//│               constrain 15 ≤ Int → 17 in 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                 constrain ⊥ ≤ Int → 17 in 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                 OK ⇝ ∅
+//│                 IS RIGID 17
+//│               OK ⇝ 15 ≤ Int → 17
+//│               constrain 16 → (17 ∨ 16) ≤ 15 in 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                 constrain 16 → (17 ∨ 16) ≤ Int → 17 in 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                   IS RIGID 17
+//│                   IS RIGID 16
+//│                   IS RIGID 17
+//│                   IS RIGID 16
+//│                   constrain Int ≤ 16 in 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                     constrain Int ≤ Int in 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                     OK ⇝ ∅
+//│                   OK ⇝ 16 ≥ Int
+//│                   constrain 17 ∨ 16 ≤ 17 in 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                     constrain 17 ∨ 16 ≤ ⊤ in 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│                     OK ⇝ ∅
+//│                     IS RIGID 17
+//│                     IS RIGID 17
+//│                     IS RIGID 17
+//│                   OK ⇝ 17 ≥ 17 ∨ 16
+//│                 OK ⇝ 17 ≥ 17 ∨ 16, 16 ≥ Int
+//│                 IS RIGID 16
+//│                 IS RIGID 17
+//│                 IS RIGID 16
+//│               OK ⇝ 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int
+//│             OK ⇝ 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17
+//│           OK ⇝ 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int
+//│         OK ⇝ 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex
+//│       OK ⇝ 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex
+//│       constrain 15 ≤ 14 in 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│         constrain 16 → (17 ∨ 16) ≤ 14 in 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│           constrain 16 → (17 ∨ 16) ≤ ⊤ in 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
 //│           OK ⇝ ∅
-//│           4 flex freshen 0 level 4
-//│         OK ⇝ 1 ≥ ∀0. 0 → 0
-//│         constrain ⊥ ≤ ⊤ in 2 ≤ 1, 1 ≥ ∀0. 0 → 0, 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
+//│           IS RIGID 16
+//│           IS RIGID 17
+//│           IS RIGID 16
+//│         OK ⇝ 14 ≥ 16 → (17 ∨ 16)
+//│         IS RIGID 14
+//│         IS RIGID 14
+//│         IS RIGID 17
+//│         IS RIGID 14
+//│         IS RIGID 17
+//│         IS RIGID 14
+//│         IS RIGID 17
+//│         IS RIGID 17
+//│         IS RIGID 16
+//│         IS RIGID 14
+//│         IS RIGID 14
+//│         IS RIGID 17
+//│         IS RIGID 17
+//│         IS RIGID 16
+//│         constrain ⊥ ≤ Int → 17 in 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
 //│         OK ⇝ ∅
-//│       OK ⇝ 2 ≤ 1, 1 ≥ ∀0. 0 → 0
-//│     OK ⇝ 2 ≤ 1, 1 ≥ ∀0. 0 → 0, 2 ≥ ∀0. 0 → 0
-//│   OK ⇝ 2 ≤ 1, 1 ≥ ∀0. 0 → 0, 2 ≥ ∀0. 0 → 0, 2 flex
-//│   ignore 2 in 1 in 2 ≤ 1, 1 ≥ ∀0. 0 → 0, 2 ≥ ∀0. 0 → 0, 2 flex, 1 flex, id: ∀0. 0 → 0
-//│   0 rigid level 4
-//│   0 rigid level 4
-//│   = 1
-//│   inline 1 in 1 in 1 ≥ ∀0. 0 → 0, 1 flex, id: ∀0. 0 → 0
-//│   0 rigid level 3
-//│   = ∀0. 0 → 0
-//│ OK ∀0. 0 → 0 ⇝ ∅
-//│ b: ∀α. α → α
+//│       OK ⇝ 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16)
+//│     OK ⇝ 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex
+//│   OK ⇝ 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex
+//│   RECURSE 17 WITH 15 = Set()
+//│   RECURSE 17 WITH 15 = Set()
+//│   RECURSE 17 WITH 14 = Set()
+//│   17 IS DEPENDED ON BY Set(15, 14) IN 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│   RECURSE 17 WITH 15 = Set()
+//│   RECURSE 17 WITH 15 = Set()
+//│   RECURSE 17 WITH 14 = Set()
+//│   RECURSE 16 WITH 17 = Set(15, 14)
+//│   16 IS DEPENDED ON BY Set(17, 15, 14) IN 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│   15 IS DEPENDED ON BY Set() IN 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│   RECURSE 14 WITH 15 = Set()
+//│   14 IS DEPENDED ON BY Set(15) IN 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│   Sup IS DEPENDED ON BY Set() IN 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex, Sup rigid, class Refl Some(Eq), class Eq Some(Sub), class Sub None, ||: Bool → Bool → Bool, &&: Bool → Bool → Bool, ==: ∀A. A → A → Bool, ++: Str → Str → Str, -: Int → Int → Int, +: Int → Int → Int, fix: ∀A. (A → A) → A, _if_: ∀A. Bool → A → A → A, string: Str, num: Num, int: Int, bool: Bool, unit: Unit, bot: ⊥, top: ⊤, class Str None, class Num None, class Nat Some(Int), class Int None, class Bool None, class Unit None, class Bot None, class Top None, equals: ⊤, class untyped None, class Function None, class Object None
+//│   LEVLE VARS List(17, 16, 15, 14)
+//│   quantify 17 in 14 in 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│   = 14
+//│   inline 16 in 14 in 15 ≤ 14 ∧ (Int → 17), 14 ≥ 16 → (17 ∨ 16), 15 ≥ 16 → (17 ∨ 16), 17 ≥ 17 ∨ 16, 16 ≥ Int, 15 ≤ Int → 17, 16 ≤ Int, 17 flex, 16 flex, 15 flex, 14 flex
+//│   REMOVE 16 (INLINE)
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 16
+//│   IS RIGID 16
+//│   IS RIGID 16
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 16
+//│   IS RIGID 16
+//│   IS RIGID 16
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 17
+//│   IS RIGID 16
+//│   IS RIGID 16
+//│   IS RIGID 16
+//│   = 14
+//│   ignore 15 in 14 in 15 ≤ 14 ∧ (Int → 17), 14 ≥ Int → 17, 15 ≥ Int → 17, 15 ≤ Int → 17, 17 flex, 15 flex, 14 flex
+//│   REMOVE 15 (IGNORE)
+//│   = 14
+//│   inline 14 in 14 in 14 ≥ Int → 17, 17 flex, 14 flex
+//│   REMOVE 14 (INLINE)
+//│   = Int → 17
+//│ OK ∀17. Int → 17 ⇝ ∅
+//│ zero: ∀α. Int → α

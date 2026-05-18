@@ -84,9 +84,10 @@ val test(extr, x) =
 val test(extr, x) =
   let f = (n, m) => n(x, 0)
   f(0)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ ((β → Int → ⊤) → ⊤ → ⊥) → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ.
 //│ Typing error tree:
-//│   ∀α. (Int → α) → α ≤ ((β → Int → ⊤) → ⊤ → ⊥) → γ
-//│     (Int → δ) → δ ≤ ((β → Int → ⊤) → ⊤ → ⊥) → γ
-//│       (β → Int → ⊤) → ⊤ → ⊥ ≤ Int → δ
-//│         Int ≤ β → Int → ⊤
+//│   ∀α. (Int → α) → α ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ
+//│     (Int → ε) → ε ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ
+//│       ∀β. (γ → Int → β) → ⊤ → β ≤ Int → ε
+//│         (γ → Int → ζ) → ⊤ → ζ ≤ Int → ε
+//│           Int ≤ γ → Int → ζ

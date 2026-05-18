@@ -16,3 +16,8 @@ extension (clause: Clause)
         Set(boundVar)
       case _ =>
         Set.empty
+
+extension (ctx: Context)
+  /** Get the list of type variables that directly depend on another type variable in the clauses. */
+  def getDependentVars(var_ : TypeVar): Set[TypeVar] =
+    ctx.clauses.iterator.flatMap(_.getDependentVars(var_)).toSet

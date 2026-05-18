@@ -1,7 +1,9 @@
 package hkmc2.ctml.core.context
 
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.type_.getDependentVars
 
 extension (ctx: Context)
   /** Evaluate a function in a new level with a new fresh type variable and solve that level. */
@@ -23,3 +25,28 @@ extension (ctx: Context)
 
     // Evaluate the outer function with the type variable in the output clauses.
     outer(freshDecl.level, res, outs)
+
+  /** Get the type variable with the highest declaration level in the context. */
+  def getHighestLevelVar(): Option[TypeVar] =
+    ctx.clauses.typeVars
+      .maxByOption(ctx.getTypeVarLevel(_))
+
+  /** Get the type variable with the highest effective level in the context. */
+  def getHighestEffectiveLevelVar(): Option[TypeVar] =
+    ctx.clauses.typeVars
+      .maxByOption(ctx.getTypeVarEffectiveLevel(_))
+
+  /** Get all the type variable with an effective levels equal or higher to this level. */
+  def getLevelVars(level: Int): List[TypeVar] =
+    ctx.clauses.typeVars
+      .sortWith(ctx.getTypeVarLevel(_) > ctx.getTypeVarLevel(_))
+      .takeWhile(ctx.getTypeVarEffectiveLevel(_) >= level)
+      .toList
+
+  /** Get the effective level of a type variable. */
+  def getTypeVarEffectiveLevel(var_ : TypeVar): Int =
+    Iterator
+      .single(var_)
+      .concat(ctx.getDependentVars(var_))
+      .map(ctx.getTypeVarLevel(_))
+      .min

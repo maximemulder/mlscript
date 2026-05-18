@@ -9,9 +9,6 @@ val id(x) = x
 //│   OK 0 ⇝ ∅
 //│   quantify 0 in 0 → 0 in 0 flex
 //│   = 0 → 0
-//│   RECURSE 0 QUANTIFY true
-//│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2
-//│   NONE
 //│ OK ∀0. 0 → 0 ⇝ ∅
 //│ id: ∀α. α → α
 
@@ -45,12 +42,8 @@ val b = id(id)
 //│   0 rigid level 4
 //│   0 rigid level 4
 //│   = 1
-//│   RECURSE 2 QUANTIFY false
 //│   inline 1 in 1 in 1 ≥ ∀0. 0 → 0, 1 flex, id: ∀0. 0 → 0
 //│   0 rigid level 3
 //│   = ∀0. 0 → 0
-//│   RECURSE 1 QUANTIFY false
-//│   VAR Sup (level 1) IS AT LOWER LEVEL THAN 2
-//│   NONE
 //│ OK ∀0. 0 → 0 ⇝ ∅
 //│ b: ∀α. α → α

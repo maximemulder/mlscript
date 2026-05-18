@@ -54,15 +54,18 @@ foo as (Bool -> Bool -> Bool)
 
 :te
 foo(true, 1)
-//│ {Int ≤ Str} ⟹ Str
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
+//│ Typing error tree:
+//│   Int ≤ Str
 
 :te
 foo(true, true)
-//│ {Bool ≤ Str} ⟹ Str
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
+//│ Typing error tree:
+//│   Bool ≤ Str
 
 :te
 foo(1, "World")
-//│ {Str ≤ Int} ⟹ Int
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int

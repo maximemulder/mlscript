@@ -396,12 +396,10 @@ def checkSubtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context, ca
       checkSubtype(sup, sub)
 
 /** Check whether tow types are equal without requiring any additional constraint. */
-def checkEqual(left: Type, right: Type)(using ctx: Context): Boolean =
+def checkEqual(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache = SubtypingCache()): Boolean =
   val a =
-    given SubtypingCache = SubtypingCache()
     checkSubtype(left, right)
   val b =
-    given SubtypingCache = SubtypingCache()
     checkSubtype(right, left)
   a && b
 

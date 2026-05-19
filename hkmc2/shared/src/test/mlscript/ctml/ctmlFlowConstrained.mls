@@ -51,11 +51,13 @@ foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
 //│           {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
 //│             γ → δ ≤ Bool → Bool
 //│               Bool ≤ γ
-//│                 Bool ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str)
-//│                   Bool ≤ {δ ≥ Int} ⟹ Int
-//│                     Bool ≤ Int
-//│                   Bool ≤ {δ ≥ Str} ⟹ Str
-//│                     Bool ≤ Str
+//│                 Bool ≤ (({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str)) ∧ ε
+//│                   Bool ≤ ({δ ≥ Int} ⟹ Int) ∧ ε
+//│                     Bool ≤ {δ ≥ Int} ⟹ Int
+//│                       Bool ≤ Int
+//│                   Bool ≤ ({δ ≥ Str} ⟹ Str) ∧ ε
+//│                     Bool ≤ {δ ≥ Str} ⟹ Str
+//│                       Bool ≤ Str
 
 :te
 foo(true)
@@ -67,11 +69,13 @@ foo(true)
 //│         {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, δ ≤ ¬Int} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
 //│           δ → ε ≤ Bool → γ
 //│             Bool ≤ δ
-//│               Bool ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)
-//│                 Bool ≤ {ε ≥ Int} ⟹ Int
-//│                   Bool ≤ Int
-//│                 Bool ≤ {ε ≥ Str} ⟹ Str
-//│                   Bool ≤ Str
+//│               Bool ≤ (({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)) ∧ ζ
+//│                 Bool ≤ ({ε ≥ Int} ⟹ Int) ∧ ζ
+//│                   Bool ≤ {ε ≥ Int} ⟹ Int
+//│                     Bool ≤ Int
+//│                 Bool ≤ ({ε ≥ Str} ⟹ Str) ∧ ζ
+//│                   Bool ≤ {ε ≥ Str} ⟹ Str
+//│                     Bool ≤ Str
 
 // Multiple parameters
 

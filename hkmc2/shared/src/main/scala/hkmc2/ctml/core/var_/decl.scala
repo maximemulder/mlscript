@@ -30,11 +30,11 @@ extension (ctx: Context)
     ctx.extend(ClassDecl(name, parent))
 
   /** Add a new fresh type variable declaration to the context. */
-  def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None): (TypeVar, Context) =
+  def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None, level: Option[Int] = None): (TypeVar, Context) =
     val var_ = newFreshVar()
-    (var_, ctx.declVar(var_, kind, original))
+    (var_, ctx.declVar(var_, kind, original, level))
 
   /** Add a new type variable declaration to the context. */
-  def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None): Context =
-    val level = ctx.getMaxLevel() + 1
-    ctx.extend(debugTypeVar(TypeVarDecl(var_, kind, original, level)))
+  def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None, level: Option[Int] = None): Context =
+    val varLevel = level.getOrElse(ctx.getMaxLevel() + 1)
+    ctx.extend(debugTypeVar(TypeVarDecl(var_, kind, original, varLevel)))

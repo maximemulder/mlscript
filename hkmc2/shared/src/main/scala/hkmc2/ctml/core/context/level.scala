@@ -4,6 +4,7 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.type_.getDependentVars
+import hkmc2.ctml.config.debug
 
 extension (ctx: Context)
   /** Evaluate a function in a new level with a new fresh type variable and solve that level. */
@@ -38,10 +39,12 @@ extension (ctx: Context)
 
   /** Get all the type variable with an effective levels equal or higher to this level. */
   def getLevelVars(level: Int): List[TypeVar] =
-    ctx.clauses.typeVars
+    val a = ctx.clauses.typeVars
       .sortWith(ctx.getTypeVarLevel(_) > ctx.getTypeVarLevel(_))
-      .takeWhile(ctx.getTypeVarEffectiveLevel(_) >= level)
+      .filter(ctx.getTypeVarEffectiveLevel(_) >= level)
       .toList
+    debug(s"LEVEL VARS ${level}: ${a}")
+    a
 
   /** Get the effective level of a type variable. */
   def getTypeVarEffectiveLevel(var_ : TypeVar): Int =

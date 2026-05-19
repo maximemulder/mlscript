@@ -19,6 +19,12 @@ def debug(value: Any*): Unit =
 
   output(value*)
 
+def debugContext(value: Any*)(using ctx: Context): Unit =
+  if !config.debug.enabled then
+    return
+
+  outputContext(value.map(_.toString()).mkString(" "))
+
 /** Print a debugging message with the context if the context flag is enabled. */
 def outputContext(message: String)(using ctx: Context) =
   val fullMessage = if config.debug.context then

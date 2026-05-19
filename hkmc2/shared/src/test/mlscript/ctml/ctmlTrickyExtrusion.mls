@@ -35,15 +35,16 @@ fun test(f) =
 fun test(f) =
   let r(x, g) = (g(x), f(x))
   (r(0, inc), r(true, not'))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (ε → δ) → ⟨δ, ζ⟩)) → η.
 //│ Typing error tree:
-//│   ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η
-//│     ∀β. ((Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → β)) → ⟨θ, β⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η
-//│       ((Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → ι)) → ⟨θ, ι⟩ ≤ (γ → δ → ⟨ε, ζ⟩) → η
-//│         γ → δ → ⟨ε, ζ⟩ ≤ (Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → ι)
-//│           γ → δ → ⟨ε, ζ⟩ ≤ Bool → (Bool → Bool) → ι
+//│   ∀α, β. ((Int → (Int → Int) → α) ∧ (Bool → (Bool → Bool) → β)) → ⟨α, β⟩ ≤ (γ → (∀δ. (ε → δ) → ⟨δ, ζ⟩)) → η
+//│     ∀β. ((Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → β)) → ⟨θ, β⟩ ≤ (γ → (∀δ. (ε → δ) → ⟨δ, ζ⟩)) → η
+//│       ((Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → ι)) → ⟨θ, ι⟩ ≤ (γ → (∀δ. (ε → δ) → ⟨δ, ζ⟩)) → η
+//│         γ → (∀δ. (ε → δ) → ⟨δ, ζ⟩) ≤ (Int → (Int → Int) → θ) ∧ (Bool → (Bool → Bool) → ι)
+//│           γ → (∀δ. (ε → δ) → ⟨δ, ζ⟩) ≤ Bool → (Bool → Bool) → ι
 //│             Bool ≤ γ
-//│               Bool ≤ Int
+//│               Bool ≤ ε
+//│                 Bool ≤ Int
 
 fun test(f) =
   let r(x) = f(x)

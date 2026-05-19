@@ -151,7 +151,7 @@ given Show[ClassDecl] with
 /** Implementation of the `Show` trait for `TypeVarDecl`. */
 given Show[TypeVarDecl] with
   override def show(var_ : TypeVarDecl): String =
-    s"${var_.var_} ${var_.kind}"
+    s"${var_.var_} ${var_.kind} (${var_.level})"
 
 /** Implementation of the `Show` trait for `Bound`. */
 given Show[Bound] with

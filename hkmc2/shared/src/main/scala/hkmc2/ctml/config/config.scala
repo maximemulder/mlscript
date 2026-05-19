@@ -41,7 +41,7 @@ class Config:
   var currentCallDepth = 0
 
   /** The maximum call depth. */
-  val maxCallDepth = 50
+  val maxCallDepth = 60
 
   /** The maximum step count. */
   var currentStepCount = 0

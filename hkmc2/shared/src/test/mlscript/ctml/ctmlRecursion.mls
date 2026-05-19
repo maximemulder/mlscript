@@ -12,7 +12,7 @@ fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α. Int → α
+//│ zero: ∀α, β. {α ≥ α ∨ β, β ≥ Int} ⟹ (Int ∧ β) → (α ∨ β)
 
 val infinite = infinite + 1
 //│ infinite: Int

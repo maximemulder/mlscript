@@ -22,6 +22,7 @@ extension (ctx: Context)
 
   /** Get the declaration of a type variable in the context. */
   def getTypeVarDecl(var_ : TypeVar): TypeVarDecl =
+    // debug(s"GET ${var_}")
     ctx.clauses.typeVarDecls.find(_.var_ == var_).get
 
   /** Get the kind of a type variable in the context. */

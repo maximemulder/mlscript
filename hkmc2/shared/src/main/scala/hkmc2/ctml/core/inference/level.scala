@@ -13,7 +13,6 @@ import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.type_.impls.simplify.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.utils.OrderedSet as MutSet
 
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
@@ -35,7 +34,7 @@ extension (ctx: Context)
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)
 
-    val (type3, outs3) = quantifyLevelBounds(makePrettyType(type2), level, outs2)(using ctx)
+    val (type3, outs3) = quantifyLevelBounds(type2, level, outs2)(using ctx)
 
     val (type4, outs4) = quantifyVarsMut.foldRight((type3, outs3))((var_, to) =>
       quantifyVar2(to._1, var_, to._2)(using ctx)
@@ -48,7 +47,7 @@ extension (ctx: Context)
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
     val polarities = type_.getAllVarPolarities(var_)
-    if getTypeMinLevel(var_.lowerBound).exists(_ < level) || getTypeMinLevel(var_.upperBound).exists(_ < level) then
+    if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars().contains(var_)) then
       quantifyVar(type_, var_, outs)
     else if polarities == Polarities(false, false) then
       ignoreVar(type_, var_, outs)
@@ -96,26 +95,11 @@ def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
     false,
   )
 
-def getTypeMinLevel(type_ : Type)(using ctx: Context): Option[Int] =
-  Iterator
-    .concat(type_.getVars())
-    .map(_.level(using ctx))
-    .minOption
-
-def getBoundLevelMax(bound: Bound)(using ctx: Context): Int =
-  Iterator
-    .single(bound.var_)
-    .concat(bound.type_.getVars())
-    .map(_.level(using ctx))
-    .max
-
 def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  val keep = outs.filterBounds(getBoundLevelMax(_)(using ctx.extend(outs)) < level)
-  val quant = outs.bounds.filter(getBoundLevelMax(_)(using ctx.extend(outs)) >= level)
-
+  val (bounds, newOuts) = outs.extractBounds(_.highLevel(using ctx.extend(outs)) >= level)
   (
-    makeConstrainedType(type_, quant.map(_.toConstraint)),
-    keep
+    makeConstrainedType(type_, bounds.removeDuplicateBounds().map(_.toConstraint)),
+    newOuts
   )
 
 /** Quantify a type variable in a type. */

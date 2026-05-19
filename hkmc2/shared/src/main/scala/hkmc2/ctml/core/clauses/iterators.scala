@@ -1,5 +1,7 @@
 package hkmc2.ctml.core.clauses
 
+import scala.collection.mutable.Set as MutSet
+
 import hkmc2.ctml.core.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
@@ -71,7 +73,7 @@ extension (clauses: Clauses)
   def filter(f: Clause => Boolean): Clauses =
     Clauses(clauses.elems.filter(f))
 
-  /** Filter the bounds in the clauses. */
+  /** Filter the bounds in the clauses based on a predicate. */
   def filterBounds(f: Bound => Boolean): Clauses =
     clauses.filter(_ match
       case bound: Bound =>
@@ -79,6 +81,17 @@ extension (clauses: Clauses)
       case _ =>
         true
     )
+
+    /** Extract the bounds in the clauses based on a predicate. */
+  def extractBounds(f: Bound => Boolean): (List[Bound], Clauses) =
+    val (bounds, elems) = clauses.elems.partitionMap(_ match
+      case bound: Bound if f(bound) =>
+        Left(bound)
+      case clause =>
+        Right(clause)
+    )
+
+    (bounds, Clauses(elems))
 
   /** Remove the declaration and bounds of a type variable in the clauses. */
   def removeTypeVar(var_ : TypeVar): Clauses =
@@ -171,3 +184,15 @@ extension (clause: Clause)
         true
       case _ =>
         false
+
+extension (bounds: List[Bound])
+  def removeDuplicateBounds(): List[Bound] =
+    val cache = MutSet[(TypeVar, Direction)]()
+    bounds.filter((bound) =>
+      cache.contains((bound.var_, bound.dir)) match
+        case true =>
+          false
+        case false =>
+          cache.addOne((bound.var_, bound.dir))
+          true
+    )

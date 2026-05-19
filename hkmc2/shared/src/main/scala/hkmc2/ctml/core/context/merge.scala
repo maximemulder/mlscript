@@ -24,12 +24,19 @@ extension (ctx: Context)
     filteredLefts ::: filteredRights
 
   /** Merge two lists of bounds such that either of those must be satisfied. */
-  def joinBounds(leftClauses: Clauses, rightClauses: Clauses): List[Bound] =
+  def joinBounds(leftClauses: Clauses, rightClauses: Clauses): List[Clause] =
+    val leftTypeDecls = leftClauses.typeVarDecls
+    val rightTypeDecls = rightClauses.typeVarDecls
+    val fullCtx = ctx.extend(leftTypeDecls.asClauses, rightTypeDecls.asClauses)
     val lefts = leftClauses.bounds
     val rights = rightClauses.bounds
-    val lowerBounds = joinBoundsDir(lefts, rights, Direction.Sub)
-    val upperBounds = joinBoundsDir(lefts, rights, Direction.Super)
-    lowerBounds ::: upperBounds
+    val lowerBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Sub)
+    val upperBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Super)
+    val x = lowerBounds ::: upperBounds ::: leftTypeDecls ::: rightTypeDecls
+    debug(s"IN 1 ${leftClauses}")
+    debug(s"IN 2 ${rightClauses}")
+    debug(s"OUT ${Clauses(x)}")
+    x
 
   /** Join two lists of bounds in a given typing direction. */
   def joinBoundsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =

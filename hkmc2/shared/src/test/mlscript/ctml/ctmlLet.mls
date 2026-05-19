@@ -22,39 +22,36 @@ fun baz(a, b) =
 //│ baz: ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β → γ
 
 baz(1, 1)
-//│ Int
+//│ ⊥
 
 baz("", "")
-//│ Str
+//│ ⊥
 
 baz(bot, bot)
 //│ ⊥
 
 :te
 baz(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
-//│ Typing error tree:
-//│   Str ≤ Int
+//│ ⊥1313
+//│ FAILURE: Unexpected lack of type error
 
 :te
 baz(true, false)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
-//│ Typing error tree:
-//│   Bool ≤ Str
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error
 
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ. {α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ α → β → γ
+//│ bop: ∀α. (({α ≥ Int} ⟹ Int) ∨ ({α ≥ Str} ⟹ Str)) → ⊤ → α
 
 bop(0, 1)
-//│ Int
+//│ ⊥
 
 bop("0", "1")
-//│ Str
+//│ ⊥
 
 :te
 bop(0, "1")
-//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
-//│ Typing error tree:
-//│   Str ≤ Int
+//│ ⊥
+//│ FAILURE: Unexpected lack of type error

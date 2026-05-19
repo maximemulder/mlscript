@@ -69,6 +69,7 @@ extension (type_ : Type)
 
     type_.splitStructure(mode.invert) match
       case Some(left, right) =>
+        debug(s"SPLIT ${type_} => ${left} ${right}")
         left.split(mode) match
           case Some(innerLeft, innerRight) =>
             return Some(

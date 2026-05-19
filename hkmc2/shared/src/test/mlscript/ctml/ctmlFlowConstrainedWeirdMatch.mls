@@ -44,12 +44,12 @@ foo as (Bool -> Bool -> Bool)
 //│               δ → ε → ζ ≤ Bool → Bool → Bool
 //│                 ε → ζ ≤ Bool → Bool
 //│                   ζ ≤ Bool
-//│                     ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ Bool
-//│                       {ε ≤ Int, δ ≤ Int} ⟹ Int ≤ Bool
-//│                         ε ≤ Int
+//│                     ({θ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({θ ≤ Str, η ≤ ¬Int} ⟹ Str) ≤ Bool
+//│                       {θ ≤ Int, η ≤ Int} ⟹ Int ≤ Bool
+//│                         θ ≤ Int
 //│                           Bool ≤ Int
-//│                       {ε ≤ Str, δ ≤ ¬Int} ⟹ Str ≤ Bool
-//│                         ε ≤ Str
+//│                       {θ ≤ Str, η ≤ ¬Int} ⟹ Str ≤ Bool
+//│                         θ ≤ Str
 //│                           Bool ≤ Str
 
 :te
@@ -60,9 +60,19 @@ foo(true, 1)
 
 :te
 foo(true, true)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≥ {β ≤ Str} ⟹ Str} ⟹ ((({α ≥ Int} ⟹ Int) ∨ Str) ∧ β) → α ≤ Bool → γ.
 //│ Typing error tree:
-//│   Bool ≤ Str
+//│   ∀α, β. {α ≥ {β ≤ Str} ⟹ Str} ⟹ ((({α ≥ Int} ⟹ Int) ∨ Str) ∧ β) → α ≤ Bool → γ
+//│     ∀β. {δ ≥ {β ≤ Str} ⟹ Str} ⟹ ((({δ ≥ Int} ⟹ Int) ∨ Str) ∧ β) → δ ≤ Bool → γ
+//│       {δ ≥ {ε ≤ Str} ⟹ Str} ⟹ ((({δ ≥ Int} ⟹ Int) ∨ Str) ∧ ε) → δ ≤ Bool → γ
+//│         ((({δ ≥ Int} ⟹ Int) ∨ Str) ∧ ε) → δ ≤ Bool → γ
+//│           (({δ ≥ Int} ⟹ Int) ∧ ε) → δ ≤ Bool → γ
+//│             Bool ≤ ({δ ≥ Int} ⟹ Int) ∧ ε
+//│               Bool ≤ {δ ≥ Int} ⟹ Int
+//│                 Bool ≤ Int
+//│           (Str ∧ ε) → δ ≤ Bool → γ
+//│             Bool ≤ Str ∧ ε
+//│               Bool ≤ Str
 
 :te
 foo(1, "World")

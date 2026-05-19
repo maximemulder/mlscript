@@ -24,8 +24,8 @@ extension (ctx: Context)
   def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
     val levelVars = ctx.extend(outs).getLevelVars(level)
     var quantifyVarsMut = List[TypeVar]()
-    val (newType, newOuts) = levelVars.foldLeft((type_, outs))((x, var_) =>
-      val (newType, newOuts, quantify) = ctx.processLevelVar(x._1, var_, x._2)
+    val (type2, outs2) = levelVars.foldLeft((type_, outs))((x, var_) =>
+      val (newType, newOuts, quantify) = ctx.processLevelVar(level, x._1, var_, x._2)
       if quantify then
         quantifyVarsMut = var_ :: quantifyVarsMut
 
@@ -33,24 +33,29 @@ extension (ctx: Context)
     )
 
     if config.checkUnsolvableConstreds then
-      checkUnsolvableConstreds(newType, newOuts)(using ctx)
+      checkUnsolvableConstreds(type2, outs2)(using ctx)
 
-    quantifyVarsMut.foldRight((newType, newOuts))((var_, to) =>
+    val (type3, outs3) = quantifyLevelBounds(makePrettyType(type2), level, outs2)(using ctx)
+
+    val (type4, outs4) = quantifyVarsMut.foldRight((type3, outs3))((var_, to) =>
       quantifyVar2(to._1, var_, to._2)(using ctx)
     )
 
-  def processLevelVar(type_ : Type, var_ : TypeVar, outs: Clauses) =
+    (type4, outs4)
+
+
+  def processLevelVar(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses) =
     val fullCtx = ctx.extend(outs)
     given Context = fullCtx
     val polarities = type_.getAllVarPolarities(var_)
-    if polarities == Polarities(false, false) then
+    if getTypeMinLevel(var_.lowerBound).exists(_ < level) || getTypeMinLevel(var_.upperBound).exists(_ < level) then
+      quantifyVar(type_, var_, outs)
+    else if polarities == Polarities(false, false) then
       ignoreVar(type_, var_, outs)
-    else if var_.isRecursive then
+    else if var_.isRecursive  then
       quantifyVar(type_, var_, outs)
     else if polarities == Polarities(true, true) then
-      val lowerBound = fullCtx.getVarLowerBound(var_)
-      val upperBound = fullCtx.getVarUpperBound(var_)
-      if checkEqual(lowerBound, upperBound) then
+      if checkEqual(var_.lowerBound, var_.upperBound) then
         inlineVar(type_, var_, outs)
       else
         quantifyVar(type_, var_, outs)
@@ -91,19 +96,32 @@ def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
     false,
   )
 
-/** Quantify a type variable in a type. */
-def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  // If a polarity is not reachable, remove the bound ???
-  val fullCtx = ctx.extend(outs)
-  val lowerBound = fullCtx.getVarLowerBound(var_)
-  val upperBound = fullCtx.getVarUpperBound(var_)
-  val bounds = removeImplicitBounds(List(
-    Bound(var_, Direction.Super, lowerBound),
-    Bound(var_, Direction.Sub, upperBound),
-  )).map(_.toConstraint)
+def getTypeMinLevel(type_ : Type)(using ctx: Context): Option[Int] =
+  Iterator
+    .concat(type_.getVars())
+    .map(_.level(using ctx))
+    .minOption
+
+def getBoundLevelMax(bound: Bound)(using ctx: Context): Int =
+  Iterator
+    .single(bound.var_)
+    .concat(bound.type_.getVars())
+    .map(_.level(using ctx))
+    .max
+
+def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  val keep = outs.filterBounds(getBoundLevelMax(_)(using ctx.extend(outs)) < level)
+  val quant = outs.bounds.filter(getBoundLevelMax(_)(using ctx.extend(outs)) >= level)
 
   (
-    TUniv(var_, makeConstrainedType(type_, bounds)),
+    makeConstrainedType(type_, quant.map(_.toConstraint)),
+    keep
+  )
+
+/** Quantify a type variable in a type. */
+def quantifyVar2(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
+  (
+    TUniv(var_, type_),
     outs.removeTypeVar(var_),
   )
 

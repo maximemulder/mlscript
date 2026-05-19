@@ -75,11 +75,9 @@ extension (type_ : Type)
       case TUniv(_, body) =>
         List(body)
       case TConstrained(body, constraint) =>
-        // TODO: Should use both left and right.
-        List(constraint.right, body)
+        List(constraint.left, constraint.right, body)
       case TConstraining(body, constraint) =>
-        // TODO: Should use both left and right.
-        List(constraint.right, body)
+        List(constraint.left, constraint.right, body)
 
 /** Implementation of the `Tree` trait for `Type`. */
 given Tree[Type] with

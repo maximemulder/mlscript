@@ -26,20 +26,7 @@ idInt("Hello")
 //│           Str ≤ Int
 
 val idConflictingBounds: [A extends Int restricts Str] -> A -> A = id
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A.
-//│ Typing error tree:
-//│   ∀α. α → α ≤ ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
-//│     ∀α. α → α ≤ {β ≤ Int, β ≥ Str} ⟹ β → β
-//│       ∀α. α → α ≤ {β ≥ Str} ⟹ β → β
-//│         ∀α. α → α ≤ β → β
-//│           γ → γ ≤ β → β
-//│             γ ≤ β
-//│               δ ≤ ε
-//│                 δ ≤ Int ∧ δ
-//│                   Str ≤ Int ∧ δ
-//│                     Str ≤ Int
+//│ idConflictingBounds: ∀A. {A ≤ Int, A ≥ Str} ⟹ A → A
 
 val inc: [T extends Int] -> T -> Int = (x) => x + 1
 //│ inc: ∀T. {T ≤ Int} ⟹ T → Int

@@ -8,100 +8,850 @@ fun foo(a, b) =
   if a is
     Int then b as Int
     Top then b as Str
-//│ foo: ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})} ⟹ α → β → γ
+//│ LEVEL ERROR 2 4 2
+//│ LEVEL ERROR 1 3 2
+//│ LEVEL ERROR 1 3 2
+//│ foo: ∀α. {α ≤ (Int ⟹ {β ≤ Int}) ∨ (¬Int ⟹ {β ≤ Str})} ⟹ α → (∀β. {β ≤ (Int ⟹ {α ≤ Int}) ∨ (Str ⟹ {α ≤ ¬Int})} ⟹ β → ((Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})))
 
 // Function overloads
 
 foo as (Int -> Int -> Int) & (Str -> Str -> Str)
-//│ (Int → Int → Int) ∧ (Str → Str → Str)
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl$$anonfun$5(constraining.scala:178)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seqUnit$$anonfun$1(eval.scala:53)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seqUnit(eval.scala:53)
+//│ 	at hkmc2.ctml.core.context.eval$package$.all$$anonfun$1(eval.scala:15)
+//│ 	at scala.collection.immutable.ArraySeq.foldLeft(ArraySeq.scala:222)
+//│ 	at hkmc2.ctml.core.context.eval$package$.all(eval.scala:15)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:179)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeSeq$$anonfun$1(constraining.scala:35)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seqUnit$$anonfun$1(eval.scala:53)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seqUnit(eval.scala:53)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeSeq(constraining.scala:35)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtypeSeq(infer.scala:96)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:58)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 // Function applications
 
 foo(1, 1)
-//│ Int
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 foo("Hello", "World")
-//│ Str
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 foo(true, "")
-//│ Str
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 foo(bot, bot)
-//│ ⊥
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 // Errors
 
 :te
 foo as (Bool -> Bool -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})} ⟹ α → β → γ ≤ Bool → Bool → Bool.
-//│ Typing error tree:
-//│   ∀α, β, γ. {α ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, α ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, α ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, α ≤ Int}) ∧ (Str ⟹ {β ≤ Str, α ≤ ¬Int})} ⟹ α → β → γ ≤ Bool → Bool → Bool
-//│     ∀β, γ. {δ ≤ (Int ⟹ {γ ≥ Int, β ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, β ≤ Str}), β ≤ (Int ⟹ {γ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, δ ≤ ¬Int}), γ ≥ (Int ⟹ {β ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {β ≤ Str, δ ≤ ¬Int})} ⟹ δ → β → γ ≤ Bool → Bool → Bool
-//│       ∀γ. {δ ≤ (Int ⟹ {γ ≥ Int, ε ≤ Int}) ∨ (¬Int ⟹ {γ ≥ Str, ε ≤ Str}), ε ≤ (Int ⟹ {γ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {γ ≥ Str, δ ≤ ¬Int}), γ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → γ ≤ Bool → Bool → Bool
-//│         {δ ≤ (Int ⟹ {ζ ≥ Int, ε ≤ Int}) ∨ (¬Int ⟹ {ζ ≥ Str, ε ≤ Str}), ε ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}), ζ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
-//│           {ε ≤ (Int ⟹ {ζ ≥ Int, δ ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, δ ≤ ¬Int}), ζ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
-//│             {ζ ≥ (Int ⟹ {ε ≤ Int, δ ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, δ ≤ ¬Int})} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
-//│               δ → ε → ζ ≤ Bool → Bool → Bool
-//│                 ε → ζ ≤ Bool → Bool
-//│                   Bool ≤ ε
-//│                     Bool ≤ (((Int ⟹ {ζ ≥ Int, η ≤ Int}) ∨ (Str ⟹ {ζ ≥ Str, η ≤ ¬Int})) ∧ θ) ∧ Str
-//│                       Bool ≤ ((Int ⟹ {ζ ≥ Int, η ≤ Int}) ∧ θ) ∧ Str
-//│                         Bool ≤ (Int ⟹ {ζ ≥ Int, η ≤ Int}) ∧ θ
-//│                           Bool ≤ Int ⟹ {ζ ≥ Int, η ≤ Int}
-//│                             Bool ≤ Int ⟹ {η ≤ Int}
-//│                               Bool ≤ Int
-//│                       Bool ≤ ((Str ⟹ {ζ ≥ Str, η ≤ ¬Int}) ∧ θ) ∧ Str
-//│                         Bool ≤ (Str ⟹ {ζ ≥ Str, η ≤ ¬Int}) ∧ θ
-//│                           Bool ≤ Str ⟹ {ζ ≥ Str, η ≤ ¬Int}
-//│                             Bool ≤ Str ⟹ {η ≤ ¬Int}
-//│                               Bool ≤ Str
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeSeq$$anonfun$1(constraining.scala:35)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seqUnit$$anonfun$1(eval.scala:53)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seqUnit(eval.scala:53)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeSeq(constraining.scala:35)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtypeSeq(infer.scala:96)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:58)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 :te
 foo(true, 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≥ ((Int ⟹ {β ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {β ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {α ≥ Int}) ∨ Str) ∧ β) ∧ Str) → α ≤ Int → γ.
-//│ Typing error tree:
-//│   ∀α, β. {α ≥ ((Int ⟹ {β ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {β ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {α ≥ Int}) ∨ Str) ∧ β) ∧ Str) → α ≤ Int → γ
-//│     ∀β. {δ ≥ ((Int ⟹ {β ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {β ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {δ ≥ Int}) ∨ Str) ∧ β) ∧ Str) → δ ≤ Int → γ
-//│       {δ ≥ ((Int ⟹ {ε ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {ε ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {δ ≥ Int}) ∨ Str) ∧ ε) ∧ Str) → δ ≤ Int → γ
-//│         ((((Int ⟹ {δ ≥ Int}) ∨ Str) ∧ ε) ∧ Str) → δ ≤ Int → γ
-//│           (((Int ⟹ {δ ≥ Int}) ∧ ε) ∧ Str) → δ ≤ Int → γ
-//│             Int ≤ ((Int ⟹ {δ ≥ Int}) ∧ ε) ∧ Str
-//│               Int ≤ Str
-//│           ((Str ∧ ε) ∧ Str) → δ ≤ Int → γ
-//│             Int ≤ (Str ∧ ε) ∧ Str
-//│               Int ≤ Str ∧ ε
-//│                 Int ≤ Str
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 :te
 foo(true, true)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≥ ((Int ⟹ {β ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {β ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {α ≥ Int}) ∨ Str) ∧ β) ∧ Str) → α ≤ Bool → γ.
-//│ Typing error tree:
-//│   ∀α, β. {α ≥ ((Int ⟹ {β ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {β ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {α ≥ Int}) ∨ Str) ∧ β) ∧ Str) → α ≤ Bool → γ
-//│     ∀β. {δ ≥ ((Int ⟹ {β ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {β ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {δ ≥ Int}) ∨ Str) ∧ β) ∧ Str) → δ ≤ Bool → γ
-//│       {δ ≥ ((Int ⟹ {ε ≤ Int, Bool ≤ Int}) ∧ (Str ⟹ {ε ≤ Str})) ∨ Str} ⟹ ((((Int ⟹ {δ ≥ Int}) ∨ Str) ∧ ε) ∧ Str) → δ ≤ Bool → γ
-//│         ((((Int ⟹ {δ ≥ Int}) ∨ Str) ∧ ε) ∧ Str) → δ ≤ Bool → γ
-//│           (((Int ⟹ {δ ≥ Int}) ∧ ε) ∧ Str) → δ ≤ Bool → γ
-//│             Bool ≤ ((Int ⟹ {δ ≥ Int}) ∧ ε) ∧ Str
-//│               Bool ≤ (Int ⟹ {δ ≥ Int}) ∧ ε
-//│                 Bool ≤ Int ⟹ {δ ≥ Int}
-//│                   Bool ≤ Int
-//│           ((Str ∧ ε) ∧ Str) → δ ≤ Bool → γ
-//│             Bool ≤ (Str ∧ ε) ∧ Str
-//│               Bool ≤ Str ∧ ε
-//│                 Bool ≤ Str
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│
+//│
 
 :te
 foo(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≥ ((Int ⟹ {β ≤ Int}) ∧ (Str ⟹ {β ≤ Str, Int ≤ ¬Int})) ∨ Int} ⟹ (((Int ∨ (Str ⟹ {α ≥ Str})) ∧ β) ∧ Int) → α ≤ Str → γ.
-//│ Typing error tree:
-//│   ∀α, β. {α ≥ ((Int ⟹ {β ≤ Int}) ∧ (Str ⟹ {β ≤ Str, Int ≤ ¬Int})) ∨ Int} ⟹ (((Int ∨ (Str ⟹ {α ≥ Str})) ∧ β) ∧ Int) → α ≤ Str → γ
-//│     ∀β. {δ ≥ ((Int ⟹ {β ≤ Int}) ∧ (Str ⟹ {β ≤ Str, Int ≤ ¬Int})) ∨ Int} ⟹ (((Int ∨ (Str ⟹ {δ ≥ Str})) ∧ β) ∧ Int) → δ ≤ Str → γ
-//│       {δ ≥ ((Int ⟹ {ε ≤ Int}) ∧ (Str ⟹ {ε ≤ Str, Int ≤ ¬Int})) ∨ Int} ⟹ (((Int ∨ (Str ⟹ {δ ≥ Str})) ∧ ε) ∧ Int) → δ ≤ Str → γ
-//│         (((Int ∨ (Str ⟹ {δ ≥ Str})) ∧ ε) ∧ Int) → δ ≤ Str → γ
-//│           ((Int ∧ ε) ∧ Int) → δ ≤ Str → γ
-//│             Str ≤ (Int ∧ ε) ∧ Int
-//│               Str ≤ Int ∧ ε
-//│                 Str ≤ Int
-//│           (((Str ⟹ {δ ≥ Str}) ∧ ε) ∧ Int) → δ ≤ Str → γ
-//│             Str ≤ ((Str ⟹ {δ ≥ Str}) ∧ ε) ∧ Int
-//│               Str ≤ Int
+//│ java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:436)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSub(constraining.scala:346)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:218)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub$$anonfun$1(constraining.scala:333)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel$$anonfun$1(level.scala:10)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.subtyping.level$package$.withSubtypingLevel(level.scala:10)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeUnivSub(constraining.scala:330)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:230)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.typingSubtype(infer.scala:93)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2$$anonfun$1(infer.scala:49)
+//│ 	at hkmc2.ctml.core.context.level$package$.withFreshVarLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferenceLevel(level.scala:22)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl$$anonfun$2(infer.scala:45)
+//│ 	at hkmc2.ctml.core.context.eval$package$.seq(eval.scala:48)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:52)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferImpl(infer.scala:42)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer$$anonfun$1(infer.scala:16)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.infer(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:323)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.BbmlDiffMaker.processTerm(BbmlDiffMaker.scala:79)
+//│ 	at hkmc2.LlirDiffMaker.processTerm(LlirDiffMaker.scala:63)
+//│ 	at hkmc2.WasmDiffMaker.processTerm(WasmDiffMaker.scala:48)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:314)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:286)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:238)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:346)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:370)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:197)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:75)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:118)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:133)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:71)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:84)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:20)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ 
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '1' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:29)
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarLevel(var.scala:37)
+//│ 	at: hkmc2.ctml.core.context.var$package$.level(var.scala:96)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:31)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeConstraint(extrude.scala:89)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:83)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrudeType(extrude.scala:59)
+//│ 	at: hkmc2.ctml.core.var_.extrude$package$.extrude(extrude.scala:22)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeFlexVar(constraining.scala:297)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:148)
+//│
+//│
+//│
+//│
+//│
+//│
+//│3
+//│

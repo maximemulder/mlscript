@@ -7,12 +7,11 @@ fun fibonacci(n) =
     fibonacci(n - 2) + fibonacci(n - 1)
 //│ fibonacci: Int → Int
 
-// FIXME: Finally fix inlining forgetting bounds
 fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α, β. {α ≥ α ∨ β, β ≥ Int} ⟹ (Int ∧ β) → (α ∨ β)
+//│ zero: ∀α, β. {α ≥ Int, β ≥ α ∨ β, α ≤ Int} ⟹ (Int ∧ α) → (α ∨ β)
 
 val infinite = infinite + 1
 //│ infinite: Int

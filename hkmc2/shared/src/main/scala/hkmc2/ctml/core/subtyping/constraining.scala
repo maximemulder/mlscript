@@ -270,28 +270,22 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
 
 /** Constrain a type variable to be subtype of another type variable. */
 def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  ctx.compareVarLevels(sub, sup) match
+  (Order.compare(sub.level, sup.level), ctx.compareVarLevels(sub, sup)) match
     // If both variables are equal then they are subtype.
-    case Order.Equal =>
+    case (Order.Equal, Order.Equal) =>
       Clauses.empty
-    case Order.Lesser =>
+    case (Order.Lesser | Order.Equal, _) =>
       val y = subtype(TVar(sub), sup.upperBound)
       val supLowerBound = join(TVar(sub), sup.lowerBound)
       subtypeSeq(sup.lowerBound, sub.upperBound, y.concat(Clauses(List(Bound(sup, Direction.Super, supLowerBound)))))
-    case Order.Greater =>
+    case (Order.Greater, _) =>
       val x = subtype(sub.lowerBound, TVar(sup))
       val subUpperBound = meet(TVar(sup), sub.upperBound)
       subtypeSeq(sup.lowerBound, sub.upperBound, x.concat(Clauses(List(Bound(sub, Direction.Sub, subUpperBound)))))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  // for typeVar_ <- type_.getVars() do
-  //   if typeVar_.level < var_.level then
-  //     output(s"${var_} EXTRUDE ${typeVar_}")
-
-  debugContext(s"EXTRUDE 1 ${type_}")
   val (extrudedType, outs) = type_.extrude(var_.level, dir.pol)
-  debugContext(s"EXTRUDE 2 ${extrudedType}")(using ctx.extend(outs))
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(dir.invert())
@@ -300,19 +294,19 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
     // Do not return a new bound if it is already satisfied in the context.
     clauses
   else
-    val newBound = combine(bound, extrudedType, dir)
+    val newBound = combine(bound, extrudedType, dir)(using ctx.extend(clauses))
     Clauses(Bound(var_, dir, newBound) :: clauses.elems)
 
 // Rigid type variables.
 
 def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  ctx.compareVarLevels(sub, sup) match
+  (Order.compare(sub.level, sup.level), ctx.compareVarLevels(sub, sup)) match
     // If both variables are equal then they are subtype.
-    case Order.Equal =>
-      return Clauses.empty
-    case Order.Lesser =>
+    case (Order.Equal, Order.Equal) =>
+      Clauses.empty
+    case (Order.Lesser | Order.Equal, _) =>
       subtype(TVar(sub), sup.lowerBound)
-    case Order.Greater =>
+    case (Order.Greater, _) =>
       subtype(sub.upperBound, TVar(sup))
 
 /** Constrain a universal type to be a subtype of another type. */

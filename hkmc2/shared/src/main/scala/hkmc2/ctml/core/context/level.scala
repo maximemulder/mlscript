@@ -41,7 +41,7 @@ extension (ctx: Context)
   def getLevelVars(level: Int): List[TypeVar] =
     val a = ctx.clauses.typeVars
       .sortWith(ctx.getTypeVarLevel(_) > ctx.getTypeVarLevel(_))
-      .filter(ctx.getTypeVarEffectiveLevel(_) >= level)
+      .filter(ctx.getTypeVarLevel(_) >= level)
       .toList
     debug(s"LEVEL VARS ${level}: ${a}")
     a

@@ -32,11 +32,7 @@ extension (ctx: Context)
     val rights = rightClauses.bounds
     val lowerBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Sub)
     val upperBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Super)
-    val x = lowerBounds ::: upperBounds ::: leftTypeDecls ::: rightTypeDecls
-    debug(s"IN 1 ${leftClauses}")
-    debug(s"IN 2 ${rightClauses}")
-    debug(s"OUT ${Clauses(x)}")
-    x
+    lowerBounds ::: upperBounds ::: leftTypeDecls ::: rightTypeDecls
 
   /** Join two lists of bounds in a given typing direction. */
   def joinBoundsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =

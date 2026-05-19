@@ -1,6 +1,5 @@
 package hkmc2.ctml.core.subtyping
 
-import hkmc2.ctml.config.debug
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
@@ -69,7 +68,6 @@ extension (type_ : Type)
 
     type_.splitStructure(mode.invert) match
       case Some(left, right) =>
-        debug(s"SPLIT ${type_} => ${left} ${right}")
         left.split(mode) match
           case Some(innerLeft, innerRight) =>
             return Some(

@@ -6,7 +6,7 @@ fun foo(a) =
   let b = a
   let c = b
   c
-//│ foo: ∀α, β, γ, δ, ε. α → ({δ ≥ α, ε ≤ δ, ε ≥ α, β ≤ γ, γ ≥ δ, β ≥ δ} ⟹ γ)
+//│ foo: ∀α. α → α
 
 fun bar(a) =
   let b = 1
@@ -19,39 +19,39 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ, δ. α → β → ({δ ≤ γ, γ ≥ ∀ε. {β ≤ ({ε ≥ Int, α ≤ Int} ⟹ Int) ∨ ({ε ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), α ≤ ({ε ≥ Int, β ≤ Int} ⟹ Int) ∨ ({ε ≥ Str, β ≤ Str} ⟹ Str), ε ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ ε, δ ≥ ∀ε. {β ≤ ({ε ≥ Int, α ≤ Int} ⟹ Int) ∨ ({ε ≥ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str), α ≤ ({ε ≥ Int, β ≤ Int} ⟹ Int) ∨ ({ε ≥ Str, β ≤ Str} ⟹ Str), ε ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str, α ≤ ¬Int} ⟹ Str)} ⟹ ε} ⟹ γ)
+//│ baz: ∀α. α → (∀β. β → (∀γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ γ))
 
 baz(1, 1)
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ. {γ ≥ Int} ⟹ γ, α ≥ ∀γ. {γ ≥ Int} ⟹ γ} ⟹ β
+//│ ∀α. {α ≥ Int} ⟹ α
 
 baz("", "")
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ. {γ ≥ Str} ⟹ γ, α ≥ ∀γ. {γ ≥ Str} ⟹ γ} ⟹ β
+//│ ∀α. {α ≥ Str} ⟹ α
 
 baz(bot, bot)
 //│ ∀α. α
 
 :te
 baz(1, "")
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ. {γ ≥ {Str ≤ Int} ⟹ Int} ⟹ γ, α ≥ ∀γ. {γ ≥ {Str ≤ Int} ⟹ Int} ⟹ γ} ⟹ β
+//│ ∀α. {α ≥ {Str ≤ Int} ⟹ Int} ⟹ α
 //│ FAILURE: Unexpected lack of type error
 
 :te
 baz(true, false)
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ. {γ ≥ {Bool ≤ Str, Bool ≤ Str} ⟹ Str} ⟹ γ, α ≥ ∀γ. {γ ≥ {Bool ≤ Str, Bool ≤ Str} ⟹ Str} ⟹ γ} ⟹ β
+//│ ∀α. {α ≥ {Bool ≤ Str, Bool ≤ Str} ⟹ Str} ⟹ α
 //│ FAILURE: Unexpected lack of type error
 
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ, δ. α → β → ({δ ≤ γ, γ ≥ ∀ε, ζ, η, θ, ι, κ, λ. {θ ≥ α, κ ≤ θ, η ≥ β, ι ≤ η, ι ≥ β, λ ≥ α, κ ≥ α, λ ≤ κ, κ ≥ α, ε ≤ ζ, ζ ≥ ∀μ. {η ≤ ({μ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str), θ ≤ ({μ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, η ≤ Str} ⟹ Str), μ ≥ ({η ≤ Int, θ ≤ Int} ⟹ Int) ∧ ({η ≤ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str)} ⟹ μ, ε ≥ ∀μ. {η ≤ ({μ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str), θ ≤ ({μ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, η ≤ Str} ⟹ Str), μ ≥ ({η ≤ Int, θ ≤ Int} ⟹ Int) ∧ ({η ≤ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str)} ⟹ μ} ⟹ ζ, δ ≥ ∀ε, ζ, η, θ, ι, κ, λ. {θ ≥ α, κ ≤ θ, η ≥ β, ι ≤ η, ι ≥ β, λ ≥ α, κ ≥ α, λ ≤ κ, κ ≥ α, ε ≤ ζ, ζ ≥ ∀μ. {η ≤ ({μ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str), θ ≤ ({μ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, η ≤ Str} ⟹ Str), μ ≥ ({η ≤ Int, θ ≤ Int} ⟹ Int) ∧ ({η ≤ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str)} ⟹ μ, ε ≥ ∀μ. {η ≤ ({μ ≥ Int, θ ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str), θ ≤ ({μ ≥ Int, η ≤ Int} ⟹ Int) ∨ ({μ ≥ Str, η ≤ Str} ⟹ Str), μ ≥ ({η ≤ Int, θ ≤ Int} ⟹ Int) ∧ ({η ≤ Str, θ ≤ Str, θ ≤ ¬Int} ⟹ Str)} ⟹ μ} ⟹ ζ} ⟹ γ)
+//│ bop: ∀α. α → (∀β. β → (∀γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ γ))
 
 bop(0, 1)
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ, δ, ε, ζ, η, θ, ι. {ζ ≥ Int, θ ≤ ζ, ε ≥ Int, η ≤ ε, η ≥ Int, ι ≥ Int, θ ≥ Int, ι ≤ θ, θ ≥ Int, γ ≤ δ, δ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ, γ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ} ⟹ δ, α ≥ ∀γ, δ, ε, ζ, η, θ, ι. {ζ ≥ Int, θ ≤ ζ, ε ≥ Int, η ≤ ε, η ≥ Int, ι ≥ Int, θ ≥ Int, ι ≤ θ, θ ≥ Int, γ ≤ δ, δ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ, γ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ} ⟹ δ} ⟹ β
+//│ ∀α. {α ≥ Int} ⟹ α
 
 bop("0", "1")
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ, δ, ε, ζ, η, θ, ι. {ζ ≥ Str, θ ≤ ζ, ε ≥ Str, η ≤ ε, η ≥ Str, ι ≥ Str, θ ≥ Str, ι ≤ θ, θ ≥ Str, γ ≤ δ, δ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ, γ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ} ⟹ δ, α ≥ ∀γ, δ, ε, ζ, η, θ, ι. {ζ ≥ Str, θ ≤ ζ, ε ≥ Str, η ≤ ε, η ≥ Str, ι ≥ Str, θ ≥ Str, ι ≤ θ, θ ≥ Str, γ ≤ δ, δ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ, γ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ} ⟹ δ} ⟹ β
+//│ ∀α. {α ≥ Str} ⟹ α
 
 :te
 bop(0, "1")
-//│ ∀α, β. {α ≤ β, β ≥ ∀γ, δ, ε, ζ, η, θ, ι. {ζ ≥ Int, θ ≤ ζ, ε ≥ Str, η ≤ ε, η ≥ Str, ι ≥ Int, θ ≥ Int, ι ≤ θ, θ ≥ Int, γ ≤ δ, δ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ, γ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ} ⟹ δ, α ≥ ∀γ, δ, ε, ζ, η, θ, ι. {ζ ≥ Int, θ ≤ ζ, ε ≥ Str, η ≤ ε, η ≥ Str, ι ≥ Int, θ ≥ Int, ι ≤ θ, θ ≥ Int, γ ≤ δ, δ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ, γ ≥ ∀κ. {ε ≤ ({κ ≥ Int, ζ ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str), ζ ≤ ({κ ≥ Int, ε ≤ Int} ⟹ Int) ∨ ({κ ≥ Str, ε ≤ Str} ⟹ Str), κ ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str, ζ ≤ ¬Int} ⟹ Str)} ⟹ κ} ⟹ δ} ⟹ β
+//│ ∀α. {α ≥ {Str ≤ Int} ⟹ Int} ⟹ α
 //│ FAILURE: Unexpected lack of type error

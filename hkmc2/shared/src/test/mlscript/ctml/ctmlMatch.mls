@@ -14,7 +14,7 @@ if 1 is
 if (1 as Int | Str) is
   Int then 1
   Str then "Hello"
-//│ ∀α, β. ({α ≥ Int} ⟹ α) ∨ ({β ≥ Str} ⟹ β)
+//│ ∀α. {α ≥ Int} ⟹ α
 
 :te
 if (1 as Int) is

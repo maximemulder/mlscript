@@ -28,8 +28,8 @@ extension (ctx: Context)
     val leftTypeDecls = leftClauses.typeVarDecls
     val rightTypeDecls = rightClauses.typeVarDecls
     val fullCtx = ctx.extend(leftTypeDecls.asClauses, rightTypeDecls.asClauses)
-    val lefts = leftClauses.bounds
-    val rights = rightClauses.bounds
+    val lefts = leftClauses.bounds.removeDuplicateBounds()
+    val rights = rightClauses.bounds.removeDuplicateBounds()
     val lowerBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Sub)
     val upperBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Super)
     lowerBounds ::: upperBounds ::: leftTypeDecls ::: rightTypeDecls

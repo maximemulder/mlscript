@@ -11,7 +11,8 @@ fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α, β. {α ≥ Int, β ≥ α ∨ β, α ≤ Int} ⟹ (Int ∧ α) → (α ∨ β)
+//│ zero: ∀α, β. {β ≥ α ∨ β, α ≥ Int, α ≤ Int} ⟹ (Int ∧ α) → (α ∨ β)
+//│
 
 val infinite = infinite + 1
 //│ infinite: Int
@@ -19,6 +20,7 @@ val infinite = infinite + 1
 fun recursive(x) =
   recursive(x)
 //│ recursive: ⊤ → ⊥
+//│
 
 val never = never
 //│ never: ⊥

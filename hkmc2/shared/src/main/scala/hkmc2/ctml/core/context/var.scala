@@ -8,22 +8,29 @@ import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 
 extension (ctx: Context)
-  /** Get the class definition of a class variable. */
-  def getClassDef(var_ : ClassVar): ClassDecl =
-    ctx.clauses.classDefs.find(_.name == var_.name).get
-
   /** Get the type of a term variable. */
   def getVarType(name: String): Type =
     ctx.clauses.termVarDecls.find(_.name == name) match
       case Some(var_) =>
         var_.type_
       case None =>
-        throw new TypeError(Some(s"Variable '${name}' not found in the context."))
+        throw new Exception(s"Variable '${name}' not found in the context.")
+
+  /** Get the class definition of a class variable. */
+  def getClassDef(var_ : ClassVar): ClassDecl =
+    ctx.clauses.classDefs.find(_.name == var_.name) match
+      case Some(decl) =>
+        decl
+      case None =>
+        throw new Exception(s"Class '${var_}' not found in the context.")
 
   /** Get the declaration of a type variable in the context. */
   def getTypeVarDecl(var_ : TypeVar): TypeVarDecl =
-    // debug(s"GET ${var_}")
-    ctx.clauses.typeVarDecls.find(_.var_ == var_).get
+    ctx.clauses.typeVarDecls.find(_.var_ == var_) match
+      case Some(decl) =>
+        decl
+      case None =>
+        throw new Exception(s"Type variable '${var_}' not found in the context.")
 
   /** Get the kind of a type variable in the context. */
   def getTypeVarKind(var_ : TypeVar): TypeVarKind =

@@ -4,11 +4,14 @@ import scala.collection.mutable.Set as MutSet
 
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.clauses.typeVars
 
 extension (ctx: Context)
   /** Get the list of type variables that directly depend on another type variable in the clauses. */
   def getDependentVars(var_ : TypeVar): Set[TypeVar] =
-    ctx.getDependentVarsInner(var_)(using MutSet()).toSet.filter(_ != var_)
+    ctx.getDependentVarsInner(var_)(using MutSet()).toSet
+      .filter((x) => ctx.clauses.typeVars.exists((y) => x == y))
+      .filter(_ != var_)
 
   /** Get the list of type variables that directly depend on another type variable in the clauses. */
   def getDependentVarsInner(var_ : TypeVar)(using cache: MutSet[(TypeVar, Direction)]): Set[TypeVar] =

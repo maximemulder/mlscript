@@ -47,25 +47,27 @@ val test(extr) =
   let f = (n, m) => n(0)
   let _ = extr(f)
   f(0)
-//│ ═══[TYPE ERROR] Cannot solve judgment α → β ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ((Int → α) ∧ β) → α ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ.
 //│ Typing error tree:
-//│   α → β ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ
-//│     ∀γ. (Int → γ) → ⊤ → γ ≤ α
-//│       ∀γ. (Int → γ) → ⊤ → γ ≤ Int → β
-//│         (Int → ε) → ⊤ → ε ≤ Int → β
-//│           Int ≤ Int → ε
+//│   ∀α. ((Int → α) ∧ β) → α ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ
+//│     ((Int → ε) ∧ β) → ε ≤ (∀γ. (Int → γ) → ⊤ → γ) → δ
+//│       ∀γ. (Int → γ) → ⊤ → γ ≤ (Int → ε) ∧ β
+//│         ∀γ. (Int → γ) → ⊤ → γ ≤ Int → ε
+//│           (Int → ζ) → ⊤ → ζ ≤ Int → ε
+//│             Int ≤ Int → ζ
 
 :te
 val test(extr, x) =
   let f = (n, m) => x(n(0))
   let _ = extr(f)
   f(0)
-//│ ═══[TYPE ERROR] Cannot solve judgment α → β ≤ ((Int → γ) → ⊤ → δ) → ε.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ((Int → α) ∧ β) → α ≤ ((Int → γ) → ⊤ → δ) → ε.
 //│ Typing error tree:
-//│   α → β ≤ ((Int → γ) → ⊤ → δ) → ε
-//│     (Int → γ) → ⊤ → δ ≤ α
-//│       (Int → γ) → ⊤ → δ ≤ Int → β
-//│         Int ≤ Int → γ
+//│   ∀α. ((Int → α) ∧ β) → α ≤ ((Int → γ) → ⊤ → δ) → ε
+//│     ((Int → ζ) ∧ β) → ζ ≤ ((Int → γ) → ⊤ → δ) → ε
+//│       (Int → γ) → ⊤ → δ ≤ (Int → ζ) ∧ β
+//│         (Int → γ) → ⊤ → δ ≤ Int → ζ
+//│           Int ≤ Int → γ
 
 :te
 val test(extr, x) =

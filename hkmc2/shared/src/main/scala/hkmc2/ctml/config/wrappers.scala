@@ -113,18 +113,32 @@ def meetWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Ty
     type_
 
 /** Print a type variable declaration as a debug information. */
-def debugTypeVar(decl: TypeVarDecl): TypeVarDecl =
+def debugTypeVar(decl: TypeVarDecl): Unit =
   if !config.debug.var_ then
-    return decl
+    return
 
-  output(s"${decl.var_} ${decl.kind}${decl.original match
-    case Some(original) =>
-      s" freshen ${original}"
-    case None =>
-      ""
-  } level ${decl.level}")
+  output(s"${decl.var_} ${decl.kind} level ${decl.level}")
 
-  decl
+/** Print an inference type variable declaration as a debug information. */
+def debugInferVar(decl: TypeVarDecl): Unit =
+  if !config.debug.var_ then
+    return
+
+  output(s"${decl.var_} ${decl.kind} infer level ${decl.level}")
+
+/** Print a freshened type variable declaration as a debug information. */
+def debugFreshVar(decl: TypeVarDecl): Unit =
+  if !config.debug.var_ then
+    return
+
+  output(s"${decl.var_} ${decl.kind} freshen ${decl.original.get} level ${decl.level}")
+
+/** Print an extruded type variable declaration as a debug information. */
+def debugExtrudeVar(decl: TypeVarDecl): Unit =
+  if !config.debug.var_ then
+    return
+
+  output(s"${decl.var_} ${decl.kind} extrude ${decl.original.get} level ${decl.level}")
 
 /** Decorate the type variable quantification function to print debug information. */
 def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =

@@ -18,9 +18,11 @@ extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
   def withInferenceLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
-    ctx.withFreshVarLevel(TypeVarKind.Flex, None, f, (a, b, c) => ctx.solveLevel(a, b, c))
+    val decl = ctx.declInferVar()
+    ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.solveLevel(a, b, c))
 
   def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
+    recursionCheck()
     val levelVars = ctx.extend(outs).getLevelVars(level)
     var quantifyVarsMut = List[TypeVar]()
     val (type2, outs2) = levelVars.foldLeft((type_, outs))((x, var_) =>
@@ -34,7 +36,7 @@ extension (ctx: Context)
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)
 
-    val (type3, outs3) = quantifyLevelBounds(type2, level, outs2)(using ctx)
+    val (type3, outs3) = quantifyLevelBounds(makePrettyType(type2), level, outs2)(using ctx)
 
     val (type4, outs4) = quantifyVarsMut.foldRight((type3, outs3))((var_, to) =>
       quantifyVar2(to._1, var_, to._2)(using ctx)

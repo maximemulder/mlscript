@@ -98,7 +98,7 @@ class Tester(
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String, kind: TypeVarKind) =
-    this.ctx = this.ctx.declVar(TypeVar(name), kind, None)
+    this.ctx = this.ctx.declTypeVar(TypeVar(name), kind)
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =

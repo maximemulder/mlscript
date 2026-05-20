@@ -10,22 +10,18 @@ extension (ctx: Context)
   /** Evaluate a function in a new level with a new fresh type variable and solve that level. */
   def withFreshVarLevel[T](
     kind: TypeVarKind,
-    original: Option[TypeVar],
-    inner: (TypeVar, Context) => (T, Clauses),
+    decls : List[TypeVarDecl],
+    inner: (List[TypeVar], Context) => (T, Clauses),
     outer: (Int, T, Clauses) => (T, Clauses),
   ): (T, Clauses) =
-    // Create a new fresh type variable and add it to the context.
-    val (freshVar, freshCtx) = ctx.declFreshVar(kind, original)
-
     // Evaluate the inner function with the type variable in the context.
-    val (res, innerOuts) = inner(freshVar, freshCtx)
+    val (res, innerOuts) = inner(decls.map(_.var_), ctx.extend(decls))
 
     // Move the type variable to the output clauses.
-    val freshDecl = freshCtx.getTypeVarDecl(freshVar)
-    val outs = Clauses.single(freshDecl).concat(innerOuts)
+    val outs = Clauses(decls).concat(innerOuts)
 
     // Evaluate the outer function with the type variable in the output clauses.
-    outer(freshDecl.level, res, outs)
+    outer(decls(0).level, res, outs)
 
   /** Get the type variable with the highest declaration level in the context. */
   def getHighestLevelVar(): Option[TypeVar] =

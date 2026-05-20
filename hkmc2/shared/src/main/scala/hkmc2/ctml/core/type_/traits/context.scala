@@ -16,7 +16,7 @@ final class TypeContextApplicator[T[+_], P <: ContextParams[P]](
   override def apply(type_ : Type, params: P)(using first: TypeApplicator[T, Const[Constraint], P]): T[Type] =
     type_ match
       case TUniv(var_, body) =>
-        val ctx = params.ctx.declVar(var_, TypeVarKind.Rigid)
+        val ctx = params.ctx.declTypeVar(var_, TypeVarKind.Rigid)
         val bodyRes = first.apply(body, params.setContext(ctx))
         last.univ(var_, bodyRes, params)
       case _ =>

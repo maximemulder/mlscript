@@ -61,7 +61,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polar
       val (newArg, argOuts) = extrudeTypeSeq(arg, absOuts)
       (TApp(newAbs, newArg), argOuts)
     case TUniv(var_, body) =>
-      given Context = ctx.declVar(var_, TypeVarKind.Rigid)
+      given Context = ctx.declTypeVar(var_, TypeVarKind.Rigid)
       // FIXME: This might not work with shadowing.
       cache.addOne((var_, Polarity.Positive), TVar(var_))
       cache.addOne((var_, Polarity.Negative), TVar(var_))
@@ -86,8 +86,8 @@ private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level:
 
 private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
   // Create new fresh type variable at the right level.
-  val (freshVar, freshCtx) = ctx.declFreshVar(TypeVarKind.Flex, Some(var_), Some(level))
-  val freshDecl = freshCtx.clauses(0)
+  val freshDecl = ctx.declExtrudeVar(var_, level)
+  val freshVar  = freshDecl.var_
   val freshType = TVar(freshVar)
 
   // Add the new type variable to the cache.
@@ -95,7 +95,7 @@ private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Pola
 
   // Add the new fresh variable to the original variable bounds.
   val bound = var_.bound(pol.dir.invert())
-  val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir.invert())(using freshCtx)
+  val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir.invert())(using ctx.extend(freshDecl))
   val x = Bound(var_, pol.dir.invert(), newBound)
 
   val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(pol.dir), Clauses(List(freshDecl, x)))

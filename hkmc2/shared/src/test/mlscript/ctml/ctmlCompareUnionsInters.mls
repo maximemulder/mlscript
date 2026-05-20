@@ -134,10 +134,9 @@ A <:< (A & B)
 //│ Typing error tree:
 //│   ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩
 //│     ⟨Int, Str⟩ ≤ ∀A, B. ⟨A, B⟩
-//│       ⟨Int, Str⟩ ≤ ∀B. ⟨α, B⟩
-//│         ⟨Int, Str⟩ ≤ ⟨α, β⟩
-//│           Int ≤ α
-//│             Int ≤ ⊥
+//│       ⟨Int, Str⟩ ≤ ⟨α, β⟩
+//│         Int ≤ α
+//│           Int ≤ ⊥
 
 // Function distributivity across unions and variables
 

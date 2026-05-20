@@ -48,6 +48,7 @@ def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using c
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+  recursionCheck()
   try
     subtypeWithDebug(subtypeCache)(sub, sup)
   catch
@@ -311,18 +312,26 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  ctx.withSubtypingLevel(TypeVarKind.Flex, sub.var_, (var_, ctx) =>
+  // Instantiating all quantified variables on the same level reduces the number of extrusions.
+  val (vars, body) = sub.getUnivComponents
+  ctx.withSubtypingLevel(TypeVarKind.Flex, vars, (freshVars, ctx) =>
+    val freshBody = vars.zip(freshVars).foldRight(body)((of, body) =>
+      body.substitute(of._1, of._2)
+    )
     given Context = ctx
-    val body = sub.body.substitute(sub.var_, var_)
-    subtype(body, sup)
+    subtype(freshBody, sup)
   )
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  ctx.withSubtypingLevel(TypeVarKind.Rigid, sup.var_, (var_, ctx) =>
+  // Instantiating all quantified variables on the same level reduces the number of extrusions.
+  val (vars, body) = sup.getUnivComponents
+  ctx.withSubtypingLevel(TypeVarKind.Rigid, vars, (freshVars, ctx) =>
+    val freshBody = vars.zip(freshVars).foldRight(body)((of, body) =>
+      body.substitute(of._1, of._2)
+    )
     given Context = ctx
-    val body = sup.body.substitute(sup.var_, var_)
-    subtype(sub, body)
+    subtype(sub, freshBody)
   )
 
 /** Constrain a constrained type to be a subtype of another type. */

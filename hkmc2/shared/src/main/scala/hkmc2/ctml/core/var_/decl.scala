@@ -29,12 +29,33 @@ extension (ctx: Context)
   def declClass(name : String, parent: Option[ClassVar]): Context =
     ctx.extend(ClassDecl(name, parent))
 
-  /** Add a new fresh type variable declaration to the context. */
-  def declFreshVar(kind: TypeVarKind, original: Option[TypeVar] = None, level: Option[Int] = None): (TypeVar, Context) =
-    val var_ = newFreshVar()
-    (var_, ctx.declVar(var_, kind, original, level))
-
   /** Add a new type variable declaration to the context. */
-  def declVar(var_ : TypeVar, kind: TypeVarKind, original: Option[TypeVar] = None, level: Option[Int] = None): Context =
-    val varLevel = level.getOrElse(ctx.getMaxLevel() + 1)
-    ctx.extend(debugTypeVar(TypeVarDecl(var_, kind, original, varLevel)))
+  def declTypeVar(var_ : TypeVar, kind: TypeVarKind): Context =
+    val level = ctx.getMaxLevel() + 1
+    val decl = TypeVarDecl(var_, kind, None, level)
+    debugTypeVar(decl)
+    ctx.extend(decl)
+
+  /** Add a new inference type variable declaration to the context. */
+  def declInferVar(): TypeVarDecl =
+    val level = ctx.getMaxLevel() + 1
+    val var_ = newFreshVar()
+    val decl = TypeVarDecl(var_, TypeVarKind.Flex, None, level)
+    debugInferVar(decl)
+    decl
+
+  /** Add a new freshened type variable declaration to the context. */
+  def declFreshVars(originals: List[TypeVar], kind: TypeVarKind): List[TypeVarDecl] =
+    val level = ctx.getMaxLevel() + 1
+    val decls = originals.map((original) => TypeVarDecl(newFreshVar(), kind, Some(original), level))
+    for decl <- decls do
+      debugFreshVar(decl)
+
+    decls
+
+  /** Add a new extruded type variable declaration to the context. */
+  def declExtrudeVar(original: TypeVar, level: Int): TypeVarDecl =
+    val var_ = newFreshVar()
+    val decl = TypeVarDecl(var_, TypeVarKind.Flex, Some(original), level)
+    debugExtrudeVar(decl)
+    decl

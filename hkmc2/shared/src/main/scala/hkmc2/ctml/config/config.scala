@@ -96,4 +96,11 @@ class Debug:
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None
 
+  var counter = 0
+
 var config = Config()
+
+def recursionCheck() =
+  config.debug.counter += 1
+  // if config.debug.counter > 10000 then
+  //   throw Exception(s"infinite recursion")

@@ -57,7 +57,7 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polar
       val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
       (TInter(newLeft, newRight), rightOuts)
     case TApp(abs, arg) =>
-      val (newAbs, absOuts)  = extrudeType(abs)
+      val (newAbs, absOuts) = extrudeType(abs)
       val (newArg, argOuts) = extrudeTypeSeq(arg, absOuts)
       (TApp(newAbs, newArg), argOuts)
     case TUniv(var_, body) =>
@@ -79,9 +79,9 @@ private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polar
       (TConstraining(newBody, newBound), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
-private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =
-  val (leftType,  leftOuts)  = extrudeType(constraint.left)
-  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)
+private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =
+  val (leftType,  leftOuts)  = extrudeType(constraint.left)(using ctx, level, constraint.dir.pol.invert, cache, x)
+  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)(using ctx, level, constraint.dir.pol, cache, x)
   (Constraint(leftType, constraint.dir, rightType), rightOuts)
 
 private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =

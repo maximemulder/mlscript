@@ -78,6 +78,9 @@ class Debug:
   /** Show type variable calls debug flag. */
   var var_ = false
 
+  /** Show type extrusion calls debug flag. */
+  var extrude = false
+
   /** Show output clauses debug flag. */
   var output = false
 

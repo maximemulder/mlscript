@@ -2,6 +2,7 @@ package hkmc2.ctml.core.var_
 
 import scala.collection.mutable.Map as MutMap
 
+import hkmc2.ctml.config.*
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
@@ -25,6 +26,10 @@ private def extrudeTypeSeq(type_ : Type, ins: Clauses)(using ctx: Context, level
 
 /** Extrude the type variables of a type. */
 private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
+  extrudeWithDebug(extrudeTypeImpl)(type_)
+
+/** Extrude the type variables of a type. */
+private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
   type_ match
     case TVar(var_) if var_.level > level =>
       cache.get(var_, pol) match

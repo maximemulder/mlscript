@@ -28,8 +28,8 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
 
   override def apply(constraint: Constraint, params: P)(using first: TypeApplicator[T, B, P]): B[Constraint] =
     last.constraint(
-      first.apply(constraint.left, params.setPolarity(constraint.dir.pol.invert)),
+      first.apply(constraint.left, params.setPolarity(constraint.dir.rightPol)),
       constraint.dir,
-      first.apply(constraint.right, params.setPolarity(constraint.dir.pol)),
+      first.apply(constraint.right, params.setPolarity(constraint.dir.leftPol)),
       params,
     )

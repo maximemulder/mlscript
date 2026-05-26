@@ -20,7 +20,6 @@ val infinite = infinite + 1
 fun recursive(x) =
   recursive(x)
 //│ recursive: ⊤ → ⊥
-//│
 
 val never = never
 //│ never: ⊥

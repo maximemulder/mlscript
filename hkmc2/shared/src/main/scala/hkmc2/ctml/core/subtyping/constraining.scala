@@ -286,10 +286,10 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Constr
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  val (extrudedType, outs) = type_.extrude(var_.level, dir.pol)
+  val (extrudedType, outs) = type_.extrude(var_.level, dir.rightPol)
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
-  val oppositeBound = var_.bound(using ctx.extend(outs))(dir.invert())
+  val oppositeBound = var_.bound(using ctx.extend(outs))(dir.invert)
   val clauses = subtypeDirSeq(oppositeBound, extrudedType, dir, outs)
   if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
     // Do not return a new bound if it is already satisfied in the context.

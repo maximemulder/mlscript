@@ -76,15 +76,15 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       cache.remove((var_, Polarity.Negative))
       (TUniv(var_, newBody), bodyOuts)
     case TConstrained(body, constraint) =>
-      val (newBound, constraintOuts) =
+      val (newConstraint, constraintOuts) =
         given Polarity = pol.invert
         extrudeConstraint(constraint)
       val (newBody, bodyOuts) = extrudeTypeSeq(body, constraintOuts)
-      (TConstrained(newBody, newBound), bodyOuts)
+      (TConstrained(newBody, newConstraint), bodyOuts)
     case TConstraining(body, constraint) =>
-      val (newBound, constraintOuts) = extrudeConstraint(constraint)
-      val (newBody,  bodyOuts)       = extrudeTypeSeq(body, constraintOuts)
-      (TConstraining(newBody, newBound), bodyOuts)
+      val (newConstraint, constraintOuts) = extrudeConstraint(constraint)
+      val (newBody, bodyOuts)       = extrudeTypeSeq(body, constraintOuts)
+      (TConstraining(newBody, newConstraint), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
 private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =

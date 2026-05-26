@@ -20,13 +20,24 @@ case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):
 
     result
 
-  /** Add two types to the subtyping cache. */
+  /** Add two types to the subtyping cache according to the type checker configuration. */
   def add(sub: Type, sup: Type): SubtypingCache =
-    (sub, sup) match
-      case (TVar(_), _) | (_, TVar(_)) =>
-        if config.debug.cacheAdd then
-          output(s"CACHE ADD ${sub} ${sup}")
+    config.cacheMode match
+      case CacheMode.Var =>
+        (sub, sup) match
+          // Cache only when one of the types is a type variable.
+          case (TVar(_), _) | (_, TVar(_)) =>
+            this.addImpl(sub, sup)
+          // Do not cache otherwhile.
+          case _ =>
+            this
+      // Cache in all cases.
+      case CacheMode.All =>
+        this.addImpl(sub, sup)
 
-        SubtypingCache(this.pairs + ((sub, sup)))
-      case _ =>
-        this
+  /** Add two types to the subtyping cache unconditionally. */
+  def addImpl(sub: Type, sup: Type): SubtypingCache =
+    if config.debug.cacheAdd then
+      output(s"CACHE ADD ${sub} ${sup}")
+
+    SubtypingCache(this.pairs + ((sub, sup)))

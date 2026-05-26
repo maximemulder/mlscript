@@ -23,6 +23,12 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
           first.apply(ret, params),
           params,
         )
+      // case TConstrained(body, constraint) =>
+      //   last.constrained(
+      //     first.apply(body, params),
+      //     first.apply(constraint, params.setPolarity(params.pol.invert)),
+      //     params,
+      //   )
       case _ =>
         next.apply(type_, params)
 

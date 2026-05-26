@@ -90,6 +90,23 @@ def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type,
         output("FAIL")
         throw error
 
+/** Decorate the type extrusion function to print debug information. */
+def extrudeWithDebug(impl: Type => (Type, Clauses))(using Context): Type => (Type, Clauses) =
+  if !config.debug.extrude then
+    return impl
+
+  (type_ : Type) =>
+    outputContext(s"extrude ${type_}")
+
+    try
+      val (res, outs) = debugCall(() => impl(type_))
+      output(s"OK ${res} ⇝ ${outs}")
+      (res, outs)
+    catch
+      case error: TypeError =>
+        output("FAIL")
+        throw error
+
 /** Decorate the type join function to print debug information. */
 def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
   if !config.debug.join then

@@ -40,6 +40,7 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
     case TBot | TTop | TVar(_) | TClass(_) =>
       (type_, Clauses.empty)
     case TNeg(body) =>
+      given Polarity = pol.invert
       val (newBody, outs) = extrudeType(body)
       (TNeg(newBody), outs)
     case TTuple(left, right) =>
@@ -75,8 +76,10 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       cache.remove((var_, Polarity.Negative))
       (TUniv(var_, newBody), bodyOuts)
     case TConstrained(body, constraint) =>
-      val (newBound, constraintOuts) = extrudeConstraint(constraint)
-      val (newBody,  bodyOuts)       = extrudeTypeSeq(body, constraintOuts)
+      val (newBound, constraintOuts) =
+        given Polarity = pol.invert
+        extrudeConstraint(constraint)
+      val (newBody, bodyOuts) = extrudeTypeSeq(body, constraintOuts)
       (TConstrained(newBody, newBound), bodyOuts)
     case TConstraining(body, constraint) =>
       val (newBound, constraintOuts) = extrudeConstraint(constraint)
@@ -84,13 +87,14 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       (TConstraining(newBody, newBound), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
-private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =
-  val (leftType,  leftOuts)  = extrudeType(constraint.left)(using ctx, level, constraint.dir.pol.invert, cache, x)
-  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)(using ctx, level, constraint.dir.pol, cache, x)
+private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =
+  val (leftType,  leftOuts)  = extrudeType(constraint.left)(using ctx, level, constraint.dir.leftPol.product(pol), cache, x)
+  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)(using ctx, level, constraint.dir.rightPol.product(pol), cache, x)
   (Constraint(leftType, constraint.dir, rightType), rightOuts)
 
 private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
   // Create new fresh type variable at the right level.
+  debug(pol)
   val freshDecl = ctx.declExtrudeVar(var_, level)
   val freshVar  = freshDecl.var_
   val freshType = TVar(freshVar)
@@ -99,10 +103,10 @@ private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Pola
   cache.addOne((var_, pol), freshType)
 
   // Add the new fresh variable to the original variable bounds.
-  val bound = var_.bound(pol.dir.invert())
-  val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir.invert())(using ctx.extend(freshDecl))
-  val x = Bound(var_, pol.dir.invert(), newBound)
+  val bound = var_.bound(pol.dir)
+  val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl))
+  val x = Bound(var_, pol.dir, newBound)
 
-  val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(pol.dir), Clauses(List(freshDecl, x)))
-  val y = Bound(freshVar, pol.dir, newExtrudedBound)
+  val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(pol.dir.invert), Clauses(List(freshDecl, x)))
+  val y = Bound(freshVar, pol.dir.invert, newExtrudedBound)
   (freshType, outs.concat(y.asClauses))

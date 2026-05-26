@@ -10,16 +10,22 @@ enum Direction:
   case Super
 
   /** Invert a subtyping direction. */
-  def invert(): Direction =
+  def invert: Direction =
     this match
       case Sub   => Super
       case Super => Sub
 
-  /** The type polarity relevant to the subtyping direction. */
-  def pol: Polarity =
+  /** The type polarity at the left of the subtyping direction. */
+  def leftPol: Polarity =
     this match
       case Sub   => Polarity.Negative
       case Super => Polarity.Positive
+
+  /** The type polarity at the right of the subtyping direction. */
+  def rightPol: Polarity =
+    this match
+      case Sub   => Polarity.Positive
+      case Super => Polarity.Negative
 
   /** Get the string representation of the object. */
   override def toString: String =

@@ -1,6 +1,7 @@
 package hkmc2.ctml.types
 
 import hkmc2.ctml.utils.*
+import hkmc2.ctml.core.subtyping.SubtypingCache
 
 /** A typing context, which is made of an ordered list of clauses and is usualy taken as an input
  *  by various typing functions.
@@ -8,6 +9,7 @@ import hkmc2.ctml.utils.*
 case class Context(
   /** The list of clauses itself. */
   clauses: List[Clause],
+  cache: SubtypingCache,
 ):
   /** Get the string representation of the object. */
   override def toString(): String =
@@ -15,7 +17,7 @@ case class Context(
 
   /** Map over the clauses of the context as a single iterator. */
   def map(f: Iterator[Clause] => Iterator[Clause]): Context =
-    Context(f(this.clauses.iterator).toList)
+    Context(f(this.clauses.iterator).toList, this.cache)
 
   /** Map over the clauses of the context. */
   def mapClauses(f: Clause => Clause): Context =
@@ -30,7 +32,10 @@ case class Context(
         None
     )
 
+  def mapCache(f: SubtypingCache => SubtypingCache): Context =
+    Context(this.clauses, f(this.cache))
+
 object Context:
   /** The empty typing context. */
   def empty =
-    Context(Nil)
+    Context(Nil, SubtypingCache())

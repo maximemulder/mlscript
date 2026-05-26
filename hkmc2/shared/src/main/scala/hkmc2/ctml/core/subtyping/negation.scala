@@ -31,14 +31,14 @@ extension (type_ : Type)
         None
 
   /** Subtract another type from this type. */
-  def subtract(other: Type)(using ctx: Context, cache: SubtypingCache): Type =
+  def subtract(other: Type)(using ctx: Context): Type =
     type_.subtractStep(other) match
       case Some(type_) =>
         type_
       case None =>
         TInter(type_, TNeg(other))
 
-  def subtractStep(other: Type)(using ctx: Context, cache: SubtypingCache): Option[Type] =
+  def subtractStep(other: Type)(using ctx: Context): Option[Type] =
     if checkSubtype(type_, other) then
       return Some(TBot)
 

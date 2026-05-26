@@ -10,7 +10,7 @@ fun foo(a) =
   if a is
     Int then (a as Int)
     Str then (a as Str)
-//│ foo: ∀α, β. α → ({α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ β)
+//│ foo: ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
 
 fun bar(a) =
   foo(a) as Int
@@ -27,41 +27,49 @@ val int_or_string: Int | Str
 //│ int_or_string: Int ∨ Str
 
 foo(1)
-//│ ∀α. {α ≥ Int} ⟹ α
+//│ Int
 
 foo("Hello")
-//│ ∀α. {α ≥ Str} ⟹ α
+//│ Str
 
 foo(bot)
-//│ ∀α. α
+//│ ⊥
 
 foo(int_or_string)
-//│ ∀α, β. ({α ≥ Int} ⟹ α) ∨ ({β ≥ Str} ⟹ β)
+//│ Int ∨ Str
 
 // Errors
 
 :te
 foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. α → ({α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ β) ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
 //│ Typing error tree:
-//│   ∀α, β. α → ({α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ β) ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
-//│     ∀α, β. α → ({α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ β) ≤ Bool → Bool
-//│       γ → ({γ ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str), δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ δ) ≤ Bool → Bool
-//│         {γ ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str), δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ δ ≤ Bool
-//│           {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ δ ≤ Bool
-//│             δ ≤ Bool
-//│               ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str) ≤ Bool
-//│                 {γ ≤ Int} ⟹ Int ≤ Bool
-//│                   γ ≤ Int
-//│                     Bool ≤ Int
-//│                 {γ ≤ Str} ⟹ Str ≤ Bool
-//│                   γ ≤ Str
-//│                     Bool ≤ Str
+//│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
+//│     ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → Bool
+//│       {γ ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str), δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
+//│         {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
+//│           γ → δ ≤ Bool → Bool
+//│             Bool ≤ γ
+//│               Bool ≤ ({δ ≥ Int} ⟹ Int) ∨ ({δ ≥ Str} ⟹ Str)
+//│                 Bool ≤ {δ ≥ Int} ⟹ Int
+//│                   Bool ≤ Int
+//│                 Bool ≤ {δ ≥ Str} ⟹ Str
+//│                   Bool ≤ Str
 
 :te
 foo(true)
-//│ ∀α. {Bool ≤ ({α ≥ Int} ⟹ Int) ∨ ({α ≥ Str} ⟹ Str), α ≥ {Bool ≤ Str} ⟹ Str} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ
+//│     {δ ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str), ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│       {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│         δ → ε ≤ Bool → γ
+//│           Bool ≤ δ
+//│             Bool ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ Str} ⟹ Str)
+//│               Bool ≤ {ε ≥ Int} ⟹ Int
+//│                 Bool ≤ Int
+//│               Bool ≤ {ε ≥ Str} ⟹ Str
+//│                 Bool ≤ Str
 
 // Multiple parameters
 
@@ -71,11 +79,11 @@ fun foo2(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo2: ∀α, β, γ. α → β → ({β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ γ)
+//│ foo2: ∀α, β, γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ
 
 fun bar2(a, b) =
   foo2(a, b) as Int
-//│ bar2: Int → Int → Int
+//│ bar2: ∀α, β, γ. {α ≤ Int, γ ≤ Int, α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ Str, γ ≤ Str} ⟹ Str), β ≥ Int ∧ ({γ ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → Int → Int
 
 // Function overloads
 
@@ -85,17 +93,18 @@ foo2 as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo2(1, 2)
-//│ ∀α. {α ≥ Int} ⟹ α
+//│ Int
 
 foo2("Hello", "World")
-//│ ∀α. {α ≥ Str} ⟹ α
+//│ Str
 
 foo2(bot, bot)
-//│ ∀α. α
+//│ ⊥
 
 // Errors
 
 :te
 foo2(1, "World")
-//│ ∀α. {α ≥ {Str ≤ Int} ⟹ Int} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int

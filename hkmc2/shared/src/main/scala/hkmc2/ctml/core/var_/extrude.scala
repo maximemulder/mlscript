@@ -76,15 +76,11 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       cache.remove((var_, Polarity.Negative))
       (TUniv(var_, newBody), bodyOuts)
     case TConstrained(body, constraint) =>
-      val (newConstraint, constraintOuts) =
-        given Polarity = pol.invert
-        extrudeConstraint(constraint)
-      val (newBody, bodyOuts) = extrudeTypeSeq(body, constraintOuts)
-      (TConstrained(newBody, newConstraint), bodyOuts)
+      val (newBody, bodyOuts) = extrudeType(body)
+      (TConstrained(newBody, constraint), bodyOuts)
     case TConstraining(body, constraint) =>
-      val (newConstraint, constraintOuts) = extrudeConstraint(constraint)
-      val (newBody, bodyOuts)       = extrudeTypeSeq(body, constraintOuts)
-      (TConstraining(newBody, newConstraint), bodyOuts)
+      val (newBody, bodyOuts) = extrudeType(body)
+      (TConstraining(newBody, constraint), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
 private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =
@@ -94,7 +90,6 @@ private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level:
 
 private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
   // Create new fresh type variable at the right level.
-  debug(f"EXTRUDE ${var_}")
   val freshDecl = ctx.declExtrudeVar(var_, level)
   val freshVar  = freshDecl.var_
   val freshType = TVar(freshVar)
@@ -106,9 +101,7 @@ private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Pola
   val bound = var_.bound(pol.dir)
   val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl))
   val x = Bound(var_, pol.dir, newBound)
-  debug(f"NEW BOUND ${x}")
 
   val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(pol.dir.invert), Clauses(List(freshDecl)).concat(Clauses(removeImplicitBounds(List(x)))))
   val y = Bound(freshVar, pol.dir.invert, newExtrudedBound)
-  debug(f"NEW BOUND ${y}")
   (freshType, outs.concat(Clauses(removeImplicitBounds(List(y)))))

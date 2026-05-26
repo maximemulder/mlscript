@@ -30,7 +30,7 @@ def test(
 ): (Scope, Context) =
   // Do not output results in import files (such as the CTML prelude).
   val output = if !import_
-    then (message)   => outputter(message)
+    then (message: String) => outputter(message.stripLineEnd)
     else (_: String) => ()
 
   val raise = (ln: Line, fn: FileName) ?=> (source: Source, message: String) =>

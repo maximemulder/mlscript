@@ -184,7 +184,22 @@ def debugCall[T](f: () => T): T =
   config.currentStepCount += 1
   config.currentCallDepth += 1
 
+  val builder = StringBuilder()
+  val prevOutput = config.output
+  config.output = (message) => builder.append(s"${message}\n")
+
   try
-    f()
+    val res = f()
+    val builderString = builder.toString
+    if builderString != "" then
+      prevOutput(builderString.stripLineEnd)
+    res
+  catch
+    case e: Exception =>
+      val builderString = builder.toString
+      if builderString != "" then
+        prevOutput(builderString.stripLineEnd)
+      throw e
   finally
     config.currentCallDepth -= 1
+    config.output = prevOutput

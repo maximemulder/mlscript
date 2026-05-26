@@ -16,20 +16,20 @@ type ExtrudeCache = MutMap[(TypeVar, Polarity), Type]
 
 extension (type_ : Type)
   /** Extrude the type variables of a type such that no type variable is below a given level. */
-  def extrude(level: Int, pol: Polarity)(using ctx: Context, x: SubtypingCache): (Type, Clauses) =
+  def extrude(level: Int, pol: Polarity)(using ctx: Context): (Type, Clauses) =
     given ExtrudeCache = MutMap()
     extrudeType(type_)(using ctx, level, pol, MutMap())
 
 /** Sequentially extrude the type variables of a type. */
-private def extrudeTypeSeq(type_ : Type, ins: Clauses)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
+private def extrudeTypeSeq(type_ : Type, ins: Clauses)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
   ctx.seq(extrudeType(type_), ins)
 
 /** Extrude the type variables of a type. */
-private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
+private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
   extrudeWithDebug(extrudeTypeImpl)(type_)
 
 /** Extrude the type variables of a type. */
-private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
+private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
   type_ match
     case TVar(var_) if var_.level > level =>
       cache.get(var_, pol) match
@@ -83,12 +83,12 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       (TConstraining(newBody, constraint), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
-private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Constraint, Clauses) =
-  val (leftType,  leftOuts)  = extrudeType(constraint.left)(using ctx, level, constraint.dir.leftPol * pol, cache, x)
-  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)(using ctx, level, constraint.dir.rightPol * pol, cache, x)
+private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Constraint, Clauses) =
+  val (leftType,  leftOuts)  = extrudeType(constraint.left)(using ctx, level, constraint.dir.leftPol * pol, cache)
+  val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)(using ctx, level, constraint.dir.rightPol * pol, cache)
   (Constraint(leftType, constraint.dir, rightType), rightOuts)
 
-private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache, x: SubtypingCache): (Type, Clauses) =
+private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
   // Create new fresh type variable at the right level.
   val freshDecl = ctx.declExtrudeVar(var_, level)
   val freshVar  = freshDecl.var_

@@ -15,11 +15,11 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
 /** Constrain a set clauses to hold in the context. */
-def constrainClauses(clauses: Clauses)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def constrainClauses(clauses: Clauses)(using ctx: Context, mode: ConstraintMode): Clauses =
   clauses.elems.foldRight(Clauses.empty)((clause, clauses) => ctx.seqUnit(constrainClause(clause), clauses))
 
 /** Constrain a clause to hold in the context. */
-def constrainClause(clause: Clause)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def constrainClause(clause: Clause)(using ctx: Context, mode: ConstraintMode): Clauses =
   clause match
     case decl: TermVarDecl =>
       Clauses.single(decl)
@@ -31,11 +31,11 @@ def constrainClause(clause: Clause)(using ctx: Context, mode: ConstraintMode, ca
       subtypeDir(TVar(var_), type_, dir)
 
 /** Sequentially constrain a type to be a subtype of another type in a context. */
-def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeSeq(sub: Type, sup: Type, ins: Clauses)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.seqUnit(subtype(sub, sup), ins)
 
 /** Constrain a type to be a subtype or supertype of another type according to a typing direction. */
-def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode: ConstraintMode): Clauses =
   dir match
     case Direction.Sub =>
       subtype(left, right)
@@ -43,11 +43,11 @@ def subtypeDir(left: Type, right: Type, dir: Direction)(using ctx: Context, mode
       subtype(right, left)
 
 /** Sequentially constrain a type to be a subtype or supertype of another type according to a typing direction in a context. */
-def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.seqUnit(subtypeDir(left, right, dir), ins)
 
 /** Constrain a type to be a subtype of another type in a context. */
-def subtype(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtype(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   recursionCheck()
   try
     subtypeWithDebug(subtypeCache)(sub, sup)
@@ -57,15 +57,15 @@ def subtype(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, cach
       throw error
 
 /** Implementation of `constrainSub` with query cache. */
-def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
-  if cache.check(sub, sup) then
+def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
+  if ctx.cache.check(sub, sup) then
     return Clauses.empty
 
-  given SubtypingCache = cache.add(sub, sup)
+  given Context = ctx.mapCache(_.add(sub, sup))
   subtypeImpl(sub, sup)
 
 /** Implementation of `constrainSub`. */
-def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
 
   // Normalize negation types.
 
@@ -270,7 +270,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode, 
 // Flexible type variables (or rigid variables in reconstruction mode).
 
 /** Constrain a type variable to be subtype of another type variable. */
-def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode): Clauses =
   (Order.compare(sub.level, sup.level), ctx.compareVarLevels(sub, sup)) match
     // If both variables are equal then they are subtype.
     case (Order.Equal, Order.Equal) =>
@@ -285,7 +285,7 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Constr
       subtypeSeq(sup.lowerBound, sub.upperBound, x.concat(Clauses(List(Bound(sub, Direction.Sub, subUpperBound)))))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
-def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (extrudedType, outs) = type_.extrude(var_.level, dir.rightPol)
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
@@ -300,7 +300,7 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
 
 // Rigid type variables.
 
-def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: ConstraintMode): Clauses =
   (Order.compare(sub.level, sup.level), ctx.compareVarLevels(sub, sup)) match
     // If both variables are equal then they are subtype.
     case (Order.Equal, Order.Equal) =>
@@ -311,7 +311,7 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
       subtype(sub.upperBound, TVar(sup))
 
 /** Constrain a universal type to be a subtype of another type. */
-def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   // Instantiating all quantified variables on the same level reduces the number of extrusions.
   val (vars, body) = sub.getUnivComponents
   ctx.withSubtypingLevel(TypeVarKind.Flex, vars, (freshVars, ctx) =>
@@ -323,7 +323,7 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMo
   )
 
 /** Constrain a universal type to be a supertype of another type.. */
-def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode): Clauses =
   // Instantiating all quantified variables on the same level reduces the number of extrusions.
   val (vars, body) = sup.getUnivComponents
   ctx.withSubtypingLevel(TypeVarKind.Rigid, vars, (freshVars, ctx) =>
@@ -335,18 +335,18 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMo
   )
 
 /** Constrain a constrained type to be a subtype of another type. */
-def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   val clauses = subtypeConstraint(constrained.constraint)
   subtypeSeq(constrained.body, type_, clauses)
 
 /** Constrain a constrained type to be a supertype of another type. */
-def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   val constraintClauses = try
     config.assumptionMode match
       case AssumptionMode.Flexify =>
-        subtypeConstraint(constrained.constraint)(using ctx.flexify(), mode, cache)
+        subtypeConstraint(constrained.constraint)(using ctx.flexify(), mode)
       case AssumptionMode.Reconstruct =>
-        subtypeConstraint(constrained.constraint)(using ctx, ConstraintMode.Reconstruct, cache)
+        subtypeConstraint(constrained.constraint)(using ctx, ConstraintMode.Reconstruct)
   catch
     case error: TypeError =>
       if config.subtypeAbsurdConstreds then
@@ -356,24 +356,24 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Co
       else
         throw error
 
-  subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode, cache)
+  subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
-def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.all(
     subtype(sub.left,  sup.left),
     subtype(sub.right, sup.right),
   )
 
 /** Constrain a lambda type to be a subtype of another lambda type. */
-def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeLam(sub: TLam, sup: TLam)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.all(
     subtype(sup.param, sub.param),
     subtype(sub.ret,   sup.ret),
   )
 
 /** Constrain a type application to be a subtype of another typa application. */
-def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.all(
     subtype(sub.abs, sup.abs),
     // Arguments are covariant for now.
@@ -381,7 +381,7 @@ def subtypeApp(sub: TApp, sup: TApp)(using ctx: Context, mode: ConstraintMode, c
   )
 
 /** Constrain a set of bounds to be subsumed by another set of bounds. */
-def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode: ConstraintMode): Clauses =
   sups
     .foldRight(Clauses.empty)((sup, clauses) =>
       val subTypes = subs.filterVarDir(sup.var_, sup.dir)
@@ -390,16 +390,16 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode
     )
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
-def checkSubtype(sub: Type, sup: Type)(using ctx: Context, cache: SubtypingCache): Boolean =
+def checkSubtype(sub: Type, sup: Type)(using ctx: Context): Boolean =
   try
-    withCheckingMode(subtype(sub, sup)(using ctx.rigidify(), ConstraintMode.Solve, cache))
+    withCheckingMode(subtype(sub, sup)(using ctx.rigidify(), ConstraintMode.Solve))
   catch
     case _: TypeError =>
       return false
 
   return true
 
-def checkSubtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context, cache: SubtypingCache): Boolean =
+def checkSubtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context): Boolean =
   dir match
     case Direction.Sub =>
       checkSubtype(sub, sup)
@@ -407,7 +407,7 @@ def checkSubtypeDir(sub: Type, sup: Type, dir: Direction)(using ctx: Context, ca
       checkSubtype(sup, sub)
 
 /** Check whether tow types are equal without requiring any additional constraint. */
-def checkEqual(left: Type, right: Type)(using ctx: Context, cache: SubtypingCache = SubtypingCache()): Boolean =
+def checkEqual(left: Type, right: Type)(using ctx: Context): Boolean =
   val a =
     checkSubtype(left, right)
   val b =
@@ -425,9 +425,9 @@ def checkConstraint(constraint: Constraint)(using ctx: Context): Boolean =
   given SubtypingCache = SubtypingCache()
   checkSubtypeDir(constraint.left, constraint.right, constraint.dir)
 
-def subtypeConstraint(constraint: Constraint)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeConstraint(constraint: Constraint)(using ctx: Context, mode: ConstraintMode): Clauses =
   subtypeDir(constraint.left, constraint.right, constraint.dir)
 
-def subtypeConstraintSeq(constraint: Constraint, ins: Clauses)(using ctx: Context, mode: ConstraintMode, cache: SubtypingCache): Clauses =
+def subtypeConstraintSeq(constraint: Constraint, ins: Clauses)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.seqUnit(subtypeConstraint(constraint), ins)
 

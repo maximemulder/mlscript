@@ -10,14 +10,14 @@ def getExtremalType(dir: Direction): Type =
     case Direction.Super => TBot
 
 /** Combine two types as a join or a meet according to a typing direction. */
-def combine(left: Type, right: Type, dir: Direction)(using ctx: Context, cache: SubtypingCache): Type =
+def combine(left: Type, right: Type, dir: Direction)(using ctx: Context): Type =
   dir match
     case Direction.Sub   => meet(left, right)
     case Direction.Super => join(left, right)
 
 extension (types: List[Type])
   /** Combine many types as a join or a meet according to a typing direction. */
-  def combineMany(dir: Direction)(using ctx: Context, cache: SubtypingCache): Type =
+  def combineMany(dir: Direction)(using ctx: Context): Type =
     dir match
       case Direction.Sub =>
         types.meetMany()

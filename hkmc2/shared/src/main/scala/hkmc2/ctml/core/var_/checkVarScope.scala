@@ -3,6 +3,7 @@ package hkmc2.ctml.core.var_
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.subtyping.SubtypingCache
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.given
 
@@ -49,11 +50,11 @@ extension (ctx: Context)
   def findEscapedVars(): Set[TypeVar] =
     ctx.clauses match
       case (bound: Bound) :: clauses =>
-        given Context = Context(clauses)
-        bound.findEscapedVars() ++ Context(clauses).findEscapedVars()
+        given Context = Context(clauses, SubtypingCache())
+        bound.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
       case (decl: TermVarDecl) :: clauses =>
-        given Context = Context(clauses)
-        decl.type_.findEscapedVars() ++ Context(clauses).findEscapedVars()
+        given Context = Context(clauses, SubtypingCache())
+        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
       case _ =>
         Set.empty
 
@@ -63,10 +64,10 @@ extension (clauses: Clauses)(using ctx: Context)
     clauses.elems match
       case (bound: Bound) :: clauses =>
         given Context = ctx.extend(clauses)
-        bound.findEscapedVars() ++ Context(clauses).findEscapedVars()
+        bound.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
       case (decl: TermVarDecl) :: clauses =>
         given Context = ctx.extend(clauses)
-        decl.type_.findEscapedVars() ++ Context(clauses).findEscapedVars()
+        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
       case _ =>
         Set.empty
 

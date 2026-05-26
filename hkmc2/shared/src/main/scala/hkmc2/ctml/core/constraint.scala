@@ -12,10 +12,10 @@ def makePrettyType(type_ : Type): Type =
   type_ match
     case TLam(param, TUniv(var_, body)) =>
       TUniv(var_, makePrettyType(TLam(param, body)))
-    case TLam(param, TConstrained(body, constraint)) =>
-      TConstrained(makePrettyType(TLam(param, body)), constraint)
-    case TLam(param, TConstraining(body, constraint)) =>
-      TConstraining(makePrettyType(TLam(param, body)), constraint)
+    // case TLam(param, TConstrained(body, constraint)) =>
+    //   TConstrained(makePrettyType(TLam(param, body)), constraint)
+    // case TLam(param, TConstraining(body, constraint)) =>
+    //   TConstraining(makePrettyType(TLam(param, body)), constraint)
     case _ =>
       type_
 

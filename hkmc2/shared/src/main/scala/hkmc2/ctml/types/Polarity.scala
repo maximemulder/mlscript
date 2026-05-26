@@ -22,7 +22,7 @@ enum Polarity:
       case Positive => Direction.Super
 
   /** Get the product of this polarity with another polarity. */
-  def product(other: Polarity): Polarity =
+  def *(other: Polarity): Polarity =
     other match
       case Negative => this.invert
       case Positive => this

@@ -14,6 +14,13 @@ enum AssumptionMode:
   /** Use subtyping reconstruction. */
   case Reconstruct
 
+/** The mode used to cache subtyping relations. */
+enum CacheMode:
+  /** Cache only variable bounds. */
+  case Var
+  /** Cache all subtyping relations. */
+  case All
+
 /** Debugging information. */
 class Config:
   /** The global debug print function. */
@@ -24,6 +31,9 @@ class Config:
 
   /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
   var assumptionMode = AssumptionMode.Reconstruct
+
+  /** Whether to cache only type variable bounds or all subtyping relations. */
+  var cacheMode = CacheMode.Var
 
   /** Whether to check constraint coherence during subtyping reconstruction. */
   var reconstructCoherence = false

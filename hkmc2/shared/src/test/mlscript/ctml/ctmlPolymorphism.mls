@@ -9,27 +9,27 @@ id(1)
 
 fun apply(f, x) =
   f(x)
-//│ apply: ∀α, β. (α → β) → α → β
+//│ apply: ∀α, β. (β → α) → β → α
 
 fun double(f, x) =
   f(f(x))
-//│ double: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ
+//│ double: ∀α, β, γ. ((γ → β) ∧ (β → α)) → γ → α
 
 double(id, 1)
 //│ Int
 
 fun foo(a, b) =
   a(1, b)
-//│ foo: ∀α, β. (Int → α → β) → α → β
+//│ foo: ∀α, β. (Int → β → α) → β → α
 
 foo((+), 1)
 //│ Int
 
 :te
 foo((++), 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. (Int → β → α) → β → α ≤ (Str → Str → Str) → γ.
 //│ Typing error tree:
-//│   ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ
+//│   ∀α, β. (Int → β → α) → β → α ≤ (Str → Str → Str) → γ
 //│     (Int → δ → ε) → δ → ε ≤ (Str → Str → Str) → γ
 //│       Str → Str → Str ≤ Int → δ → ε
 //│         Int ≤ Str

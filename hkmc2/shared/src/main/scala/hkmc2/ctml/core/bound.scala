@@ -1,7 +1,7 @@
 package hkmc2.ctml.core
 
+import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.combine.getExtremalType
 
 extension (bounds: List[Bound])
   /** Get the type of the leftmost bound of a given type variable in a given direction, or the

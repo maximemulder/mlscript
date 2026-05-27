@@ -66,7 +66,7 @@ val s = (n, f, x) => f(n(f, x))
 val n3 = s(s(s(z)))
 //│ z: ∀α. ⊤ → α → α
 //│ s: ∀β, γ, δ, ε. (β → γ → δ) → (β ∧ (δ → ε)) → γ → ε
-//│ n3: ∀ζ, η, θ, ι. (((ζ → η) ∧ (η → θ)) ∧ (θ → ι)) → ζ → ι
+//│ n3: ∀ζ, η, θ, ι. (((ζ → ι) ∧ (ι → θ)) ∧ (θ → η)) → ζ → η
 
 // Terms
 
@@ -86,7 +86,7 @@ val a3 = choose(nil, ids)
 // OK
 
 fun a4(x) = x(x)
-//│ a4: ∀α, β. {α ≤ α → β} ⟹ α → β
+//│ a4: ∀α, β. {β ≤ β → α} ⟹ β → α
 // OK
 
 val a5 = id(auto)
@@ -106,7 +106,7 @@ val a8 = choose(id, auto2)
 // OK
 
 val a9 = f(choose(id), ids)
-//│ a9: ⊥
+//│ a9: ∀α. α → α
 // OK
 
 val a10 = poly(id)
@@ -122,7 +122,7 @@ val a12 = id(poly((p) => p))
 // OK
 
 fun b1(f) = (f(1), f(true))
-//│ b1: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
+//│ b1: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
 // OK
 
 fun b2(xs) = poly(head(xs))
@@ -243,7 +243,7 @@ val f10 = choose(id, (x) => auto2(x))
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α. Int → ((∀β. ⊤ → β → β) ∨ (∀γ. ⊤ → α → γ))
+//│ toChurch: ∀α, β. Int → ((∀γ. ⊤ → γ → γ) ∨ (∀δ. ⊤ → β → δ))
 // OK
 
 val g1a = z as ChurchInt
@@ -270,11 +270,11 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 // OK
 
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ∀α, β, γ. (((α ∨ β) → γ) ∧ (γ → α)) → β → α
+//│ g7: ∀α, β, γ. (((α ∨ γ) → β) ∧ (β → α)) → γ → α
 // MAYBE
 
 val g8 = toChurch
-//│ g8: ∀α. Int → ((∀β. ⊤ → β → β) ∨ (∀γ. ⊤ → α → γ))
+//│ g8: ∀α, β. Int → ((∀γ. ⊤ → γ → γ) ∨ (∀δ. ⊤ → β → δ))
 // OK
 
 val g8a = toChurch as ((Int) -> ChurchInt)
@@ -285,7 +285,7 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 // MAYBE
 
 val g10 = ((x) => x(x))((x) => x(x))
-//│ g10: ⊥
+//│ g10: ∀α, β. {α ≥ ∀γ, δ. {δ ≤ δ → γ} ⟹ δ → γ, β ≥ α, α ≤ α → ⊤, β ≤ β → ⊤} ⟹ ⊥
 // OK
 
 val g11 = auto(auto2(id))
@@ -296,7 +296,7 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀A, B. ⊤ → A → B → A
+//│ g12: ∀α, β, A, B. {β ≥ ∀A. A → A, β ≤ β → ⊤, α ≤ α → ⊤, α ≥ ∀A, B. A → B → A} ⟹ ⊤ → A → B → A
 // OK
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
@@ -309,3 +309,9 @@ val g14 = ((f) =>
 ) (const(const(id)))
 //│ g14: ∀α. Int → α → α
 // OK
+
+fun zero(i) =
+  if i == 0
+    then i
+    else zero(i - 1)
+//│ zero: ∀α. {α ≤ Int} ⟹ α → (Int ∨ α)

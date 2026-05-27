@@ -7,7 +7,6 @@ import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.inline.*
-import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*

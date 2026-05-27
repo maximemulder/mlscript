@@ -1,7 +1,6 @@
 package hkmc2.ctml.core.type_.traits
 
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 
 /** Applicator that recursively applies a combinator on the components of a type while tracking the

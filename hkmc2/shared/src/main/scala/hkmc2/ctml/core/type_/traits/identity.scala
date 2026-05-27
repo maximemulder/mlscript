@@ -1,6 +1,5 @@
 package hkmc2.ctml.core.type_.traits
 
-import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 

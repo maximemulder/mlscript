@@ -1,7 +1,6 @@
 package hkmc2.ctml.core.type_.traits
 
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.traits.*
 import hkmc2.ctml.types.*
 
 /** Handle variable shadowing while applying a transformation on a type. */

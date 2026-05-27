@@ -2,7 +2,6 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.config.recursionCheck
 
 /** Type splitting mode. */
 enum SplitMode:
@@ -50,7 +49,6 @@ extension (type_ : Type)
 
   /** Split a union or intersection like type in two depending on a type polarity. */
   def split(mode: SplitMode)(using ctx: Context, pol: Polarity, cache: Set[TypeVar]): Option[(Type, Type)] =
-    recursionCheck()
     type_ match
       case TVar(var_) if var_.isRigid && !cache.contains(var_) =>
         return var_.bound(pol.dir).split(mode)(using ctx, pol, cache + var_)

@@ -48,7 +48,6 @@ def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: Clauses)(using c
 
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
-  recursionCheck()
   try
     subtypeWithDebug(subtypeCache)(sub, sup)
   catch

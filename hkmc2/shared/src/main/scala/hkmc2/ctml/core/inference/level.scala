@@ -23,6 +23,7 @@ extension (ctx: Context)
 
   def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
     recursionCheck()
+
     val levelVars = ctx.extend(outs).getLevelVars(level)
     var quantifyVarsMut = List[TypeVar]()
     val (type2, outs2) = levelVars.foldLeft((type_, outs))((x, var_) =>
@@ -98,7 +99,8 @@ def ignoreVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
   )
 
 def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  val (bounds, newOuts) = outs.extractBounds(_.highLevel(using ctx.extend(outs)) >= level)
+  val levelBounds = ctx.extend(outs).getLevelBounds(level: Int)
+  val (bounds, newOuts) = outs.extractBounds(levelBounds.contains(_))
   (
     makeConstrainedType(type_, bounds.removeDuplicateBounds().map(_.toConstraint)),
     newOuts

@@ -106,15 +106,23 @@ val int_or_string: Int | Str
 
 :te
 foo(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ Int, α ≤ Int} ⟹ α → β ≤ Str → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│   ∀α, β. {β ≥ Int, α ≤ Int} ⟹ α → β ≤ Str → γ
+//│     {ε ≥ Int, δ ≤ Int} ⟹ δ → ε ≤ Str → γ
+//│       {δ ≤ Int} ⟹ δ → ε ≤ Str → γ
+//│         δ → ε ≤ Str → γ
+//│           Str ≤ δ
+//│             Str ≤ Int
 
 :te
 foo(1, int_or_string)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ Int, α ≤ Int} ⟹ α → β ≤ (Int ∨ Str) → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ (Int ∨ Str) → α
-//│     Int → Int ≤ Str → α
-//│       Str ≤ Int
+//│   ∀α, β. {β ≥ Int, α ≤ Int} ⟹ α → β ≤ (Int ∨ Str) → γ
+//│     ∀α, β. {β ≥ Int, α ≤ Int} ⟹ α → β ≤ Str → γ
+//│       {ε ≥ Int, δ ≤ Int} ⟹ δ → ε ≤ Str → γ
+//│         {δ ≤ Int} ⟹ δ → ε ≤ Str → γ
+//│           δ → ε ≤ Str → γ
+//│             Str ≤ δ
+//│               Str ≤ Int

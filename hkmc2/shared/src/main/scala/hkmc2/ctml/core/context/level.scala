@@ -23,6 +23,18 @@ extension (ctx: Context)
     // Evaluate the outer function with the type variable in the output clauses.
     outer(decls(0).level, res, outs)
 
+  /** Get the type variable declared at a level equal or higher than this level. */
+  def getLevelVars(level: Int): List[TypeVar] =
+    ctx.clauses.typeVars
+      .filter(_.level(using ctx) >= level)
+      .toList
+
+  /** Get the bounds with a high level equal or higher than this level. */
+  def getLevelBounds(level: Int): List[Bound] =
+    ctx.clauses.bounds
+      .filter(_.highLevel(using ctx) >= level)
+      .toList
+
   /** Get the type variable with the highest declaration level in the context. */
   def getHighestLevelVar(): Option[TypeVar] =
     ctx.clauses.typeVars
@@ -32,15 +44,6 @@ extension (ctx: Context)
   def getHighestEffectiveLevelVar(): Option[TypeVar] =
     ctx.clauses.typeVars
       .maxByOption(ctx.getTypeVarEffectiveLevel(_))
-
-  /** Get all the type variable with an effective levels equal or higher to this level. */
-  def getLevelVars(level: Int): List[TypeVar] =
-    val a = ctx.clauses.typeVars
-      .sortWith(ctx.getTypeVarLevel(_) > ctx.getTypeVarLevel(_))
-      .filter(ctx.getTypeVarLevel(_) >= level)
-      .toList
-    debug(s"LEVEL VARS ${level}: ${a}")
-    a
 
   /** Get the effective level of a type variable. */
   def getTypeVarEffectiveLevel(var_ : TypeVar): Int =

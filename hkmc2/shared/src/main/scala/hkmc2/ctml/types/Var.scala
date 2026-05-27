@@ -23,3 +23,18 @@ given Show[TypeVar] with
 given Show[ClassVar] with
   override def show(var_ : ClassVar): String =
     var_.name
+
+/** How to treat a variable during type simplification. */
+enum VarAction:
+  /** Quantify the type variable. */
+  case Quantify
+  /** Inline the type variable. */
+  case Inline
+
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    this match
+      case Quantify =>
+        "quantify"
+      case Inline =>
+        "inline"

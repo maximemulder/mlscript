@@ -158,37 +158,34 @@ def debugExtrudeVar(decl: TypeVarDecl): Unit =
   output(s"${decl.var_} ${decl.kind} extrude ${decl.original.get} level ${decl.level}")
 
 /** Decorate the type variable quantification function to print debug information. */
-def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =
-  if !config.debug.var_ then
+def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+  if !config.debug.quantify then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
     outputContext(s"quantify ${var_} in ${type_}")
-    val (newType, newOuts, b) = impl(type_, var_, outs)
+    val (newType, newOuts) = impl(type_, var_, outs)
     output(s"= ${newType}")
-    (newType, newOuts, b)
+    (newType, newOuts)
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =
-  if !config.debug.var_ then
+def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+  if !config.debug.inline then
     return impl
 
   (type_ : Type, var_ : TypeVar, outs: Clauses) =>
     outputContext(s"inline ${var_} in ${type_}")
-    val (newType, newOuts, b) = impl(type_, var_, outs)
+    val (newType, newOuts) = impl(type_, var_, outs)
     output(s"= ${newType}")
-    (newType, newOuts, b)
+    (newType, newOuts)
 
-/** Decorate the type variable ignoring function to print debug information. */
-def debugIgnoreVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses, Boolean))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses, Boolean) =
+/** Print a variable action as debug information. */
+def debugVarAction(var_ : TypeVar, action: VarAction, message: String)(using Context): VarAction =
   if !config.debug.var_ then
-    return impl
+    return action
 
-  (type_ : Type, var_ : TypeVar, outs: Clauses) =>
-    outputContext(s"ignore ${var_} in ${type_}")
-    val (newType, newOuts, b) = impl(type_, var_, outs)
-    output(s"= ${newType}")
-    (newType, newOuts, b)
+  outputContext(s"${action} ${var_} (${message})")
+  action
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =

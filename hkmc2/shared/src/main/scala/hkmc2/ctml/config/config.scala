@@ -88,6 +88,12 @@ class Debug:
   /** Show type variable calls debug flag. */
   var var_ = false
 
+  /** Show type variable inlining calls debug flag. */
+  var inline = false
+
+  /** Show type variable quantification calls debug flag. */
+  var quantify = false
+
   /** Show type extrusion calls debug flag. */
   var extrude = false
 
@@ -109,11 +115,4 @@ class Debug:
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None
 
-  var counter = 0
-
 var config = Config()
-
-def recursionCheck() =
-  config.debug.counter += 1
-  // if config.debug.counter > 10000 then
-  //   throw Exception(s"infinite recursion")

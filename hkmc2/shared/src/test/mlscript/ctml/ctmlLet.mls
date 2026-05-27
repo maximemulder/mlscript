@@ -23,21 +23,17 @@ fun baz(a, b) =
 
 baz(1, 1)
 //│ Int ∧ ({Int ≤ Str, Int ≤ Str} ⟹ Str)
-//│
 
 baz("", "")
 //│ ({Str ≤ Int, Str ≤ Int} ⟹ Int) ∧ Str
-//│
 
 baz(bot, bot)
 //│ ⊥
-//│
 
 :te
 baz(1, "")
 //│ ({Str ≤ Int} ⟹ Int) ∧ ({Int ≤ Str} ⟹ Str)
 //│ FAILURE: Unexpected lack of type error
-//│
 
 :te
 baz(true, false)
@@ -56,23 +52,18 @@ baz(true, false)
 //│                 Bool ≤ {η ≥ Str, ζ ≤ Str} ⟹ Str
 //│                   Bool ≤ {ζ ≤ Str} ⟹ Str
 //│                     Bool ≤ Str
-//│
 
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ, δ. {β ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str} ⟹ Str), γ ≤ ({δ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, α ≤ Str} ⟹ Str), δ ≥ ({γ ≤ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, α ≤ Str} ⟹ Str), α ≤ ({δ ≥ Int, γ ≤ Int} ⟹ Int) ∨ ({δ ≥ Str, γ ≤ Str} ⟹ Str), γ ≥ β} ⟹ α → β → (({γ ≤ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, α ≤ Str} ⟹ Str))
-//│
+//│ bop: ∀α, β, γ, δ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), δ ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), γ ≥ ({δ ≤ Int, α ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, α ≤ Str} ⟹ Str), α ≤ ({γ ≥ Int, δ ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, δ ≤ Str} ⟹ Str), δ ≥ β} ⟹ α → β → (({δ ≤ Int, α ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, α ≤ Str} ⟹ Str))
 
 :fixme
 // bop(0, 1)
-//│
 
 :fixme
 // bop("0", "1")
-//│
 
 :fixme
 :te
 // bop(0, "1")
-//│

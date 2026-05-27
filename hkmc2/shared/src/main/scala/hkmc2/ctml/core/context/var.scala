@@ -4,6 +4,7 @@ import hkmc2.ctml.config.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*

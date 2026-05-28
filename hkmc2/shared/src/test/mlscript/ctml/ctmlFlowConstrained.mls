@@ -83,7 +83,7 @@ fun foo2(a, b) =
 
 fun bar2(a, b) =
   foo2(a, b) as Int
-//│ bar2: ∀α, β, γ. {α ≤ Int, α ≤ ({γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ Int ∧ ({α ≤ Str, β ≤ Str} ⟹ Str), β ≤ Int} ⟹ α → Int → Int
+//│ bar2: ∀α, β, γ. {α ≤ Int, α ≤ ({β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ Int ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ Int} ⟹ α → Int → Int
 
 // Function overloads
 

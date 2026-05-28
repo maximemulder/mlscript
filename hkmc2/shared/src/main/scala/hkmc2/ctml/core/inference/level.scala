@@ -22,7 +22,7 @@ extension (ctx: Context)
     ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.solveLevel(a, b, c))
 
   def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
-    val levelBounds = ctx.extend(outs).getLevelBounds(level).removeDuplicateBounds()
+    val levelBounds = ctx.extend(outs).getLevelBounds(level)
     val levelVars = ctx.extend(outs).getLevelVars(level)
 
     val actions = levelVars.map((var_) => var_ -> processVar(level, type_, var_, outs)).toMap
@@ -73,14 +73,10 @@ def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Contex
   )
 
 def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  val levelBounds = ctx.extend(outs).getLevelBounds(level: Int)
-  val (bounds, newOuts) = outs.extractBounds(levelBounds.contains(_))
+  val levelBounds = ctx.extend(outs).getLevelBounds(level)
+  val newOuts = outs.filterBounds(_.highLevel(using ctx.extend(outs)) < level)
   (
-    makeConstrainedType(type_, bounds
-      .removeDuplicateBounds()
-      .sortBounds()(using ctx.extend(outs))
-      .map(_.toConstraint)
-    ),
+    makeConstrainedType(type_, levelBounds.map(_.toConstraint)),
     newOuts
   )
 

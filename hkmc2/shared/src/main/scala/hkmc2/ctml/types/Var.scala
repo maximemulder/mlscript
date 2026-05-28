@@ -24,10 +24,12 @@ given Show[ClassVar] with
   override def show(var_ : ClassVar): String =
     var_.name
 
-/** How to treat a variable during type simplification. */
+/** How to treat a type variable during type inference level solving. */
 enum VarAction:
   /** Quantify the type variable. */
   case Quantify
+  /** Skip the type variable. */
+  case Skip
   /** Inline the type variable. */
   case Inline
 
@@ -36,5 +38,7 @@ enum VarAction:
     this match
       case Quantify =>
         "quantify"
+      case Skip =>
+        "skip"
       case Inline =>
         "inline"

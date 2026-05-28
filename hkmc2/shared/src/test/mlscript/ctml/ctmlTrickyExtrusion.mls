@@ -24,7 +24,7 @@ fun test(f) =
 
 fun test(f) =
   (f(0), f(true))
-//│ test: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
+//│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
 fun test(f) =
   let r(x) = f(x)

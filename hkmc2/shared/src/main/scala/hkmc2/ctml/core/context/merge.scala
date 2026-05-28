@@ -60,8 +60,16 @@ extension (ctx: Context)
     val rightBound = rights.getVarDirType(var_, dir)
     val leftCtx  = ctx.extend(Bound(var_, dir, leftBound))
     val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
-    val filteredLefts  = leftCtx.removeSatisfiedBounds(lefts).map(_.toConstraint)
-    val filteredRights = rightCtx.removeSatisfiedBounds(rights).map(_.toConstraint)
+    val filteredLefts  = leftCtx
+      .removeSatisfiedBounds(lefts)
+      .removeDuplicateBounds()
+      .sortBounds()(using leftCtx)
+      .map(_.toConstraint)
+    val filteredRights = rightCtx
+      .removeSatisfiedBounds(rights)
+      .removeDuplicateBounds()
+      .sortBounds()(using rightCtx)
+      .map(_.toConstraint)
     val (leftType, rightType) = config.mergeMode match
       case MergeMode.Constrained =>
         (

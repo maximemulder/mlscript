@@ -3,6 +3,7 @@ package hkmc2.ctml.core.clauses
 import scala.collection.mutable.Set as MutSet
 
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
@@ -196,3 +197,6 @@ extension (bounds: List[Bound])
           cache.addOne((bound.var_, bound.dir))
           true
     )
+
+  def sortBounds()(using ctx: Context): List[Bound] =
+    bounds.sortWith((a, b) => ctx.compareVarLevels(a.var_, b.var_).lt)

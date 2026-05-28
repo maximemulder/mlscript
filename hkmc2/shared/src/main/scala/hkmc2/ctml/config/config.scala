@@ -51,13 +51,13 @@ class Config:
   var currentCallDepth = 0
 
   /** The maximum call depth. */
-  val maxCallDepth: Option[Int] = Some(5000)
+  val maxCallDepth: Option[Int] = Some(60)
 
   /** The maximum step count. */
   var currentStepCount = 0
 
   /** The maximum step count. */
-  val maxStepCount: Option[Int] = Some(60)
+  val maxStepCount: Option[Int] = Some(5000)
 
   /** The debugging configuration. */
   var debug = Debug()

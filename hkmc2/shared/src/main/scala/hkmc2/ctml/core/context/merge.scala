@@ -58,28 +58,20 @@ extension (ctx: Context)
     given Context = ctx
     val leftBound  = lefts.getVarDirType(var_, dir)
     val rightBound = rights.getVarDirType(var_, dir)
-    config.mergeMode match
-      case MergeMode.Constraining =>
-        val leftType =
-          val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
-          given Context = leftCtx
-          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts).map(_.toConstraint)
-          makeConstrainingType(leftBound, filteredLefts)
-        val rightType =
-          val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
-          given Context = rightCtx
-          val filteredRights = rightCtx.removeSatisfiedBounds(rights).map(_.toConstraint)
-          makeConstrainingType(rightBound, filteredRights)
-        hkmc2.ctml.core.combine.combine(leftType, rightType, dir.invert)
+    val leftCtx  = ctx.extend(Bound(var_, dir, leftBound))
+    val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
+    val filteredLefts  = leftCtx.removeSatisfiedBounds(lefts).map(_.toConstraint)
+    val filteredRights = rightCtx.removeSatisfiedBounds(rights).map(_.toConstraint)
+    val (leftType, rightType) = config.mergeMode match
       case MergeMode.Constrained =>
-        val leftType =
-          val leftCtx = ctx.extend(Bound(var_, dir, leftBound))
-          given Context = leftCtx
-          val filteredLefts = leftCtx.removeSatisfiedBounds(lefts).map(_.toConstraint)
-          makeConstrainedType(leftBound, filteredLefts)
-        val rightType =
-          val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
-          given Context = rightCtx
-          val filteredRights = rightCtx.removeSatisfiedBounds(rights).map(_.toConstraint)
-          makeConstrainedType(rightBound, filteredRights)
-        hkmc2.ctml.core.combine.combine(leftType, rightType, dir.invert)
+        (
+          makeConstrainedType(leftBound, filteredLefts),
+          makeConstrainedType(rightBound, filteredRights),
+        )
+      case MergeMode.Constraining =>
+        (
+          makeConstrainingType(leftBound, filteredLefts),
+          makeConstrainingType(rightBound, filteredRights),
+        )
+
+    hkmc2.ctml.core.combine.combine(leftType, rightType, dir.invert)

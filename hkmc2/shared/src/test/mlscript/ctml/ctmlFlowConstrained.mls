@@ -79,11 +79,11 @@ fun foo2(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo2: ∀α, β, γ. {β ≤ ({γ ≥ Int, α ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, α ≤ Str} ⟹ Str), α ≤ ({γ ≥ Int, β ≤ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → β → γ
+//│ foo2: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
 
 fun bar2(a, b) =
   foo2(a, b) as Int
-//│ bar2: ∀α, β, γ. {α ≤ Int, β ≤ Int, α ≤ ({γ ≥ Int} ⟹ Int) ∨ ({γ ≥ Str, β ≤ Str} ⟹ Str), γ ≥ Int ∧ ({β ≤ Str, α ≤ Str} ⟹ Str)} ⟹ α → Int → Int
+//│ bar2: ∀α, β, γ. {α ≤ Int, α ≤ ({γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ Int ∧ ({α ≤ Str, β ≤ Str} ⟹ Str), β ≤ Int} ⟹ α → Int → Int
 
 // Function overloads
 

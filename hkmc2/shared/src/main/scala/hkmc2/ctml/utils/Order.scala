@@ -9,6 +9,18 @@ enum Order:
   /** The left value is greater than the right value. */
   case Greater
 
+  /** Is this order strictly lesser? */
+  def lt: Boolean =
+    this == Order.Lesser
+
+  /** Is this order equal? */
+  def eq: Boolean =
+    this == Order.Equal
+
+  /** Is this order strictly greater? */
+  def gt: Boolean =
+    this == Order.Greater
+
 object Order:
   /** Compare the order of two integers, */
   def compare(a: Int, b: Int): Order =

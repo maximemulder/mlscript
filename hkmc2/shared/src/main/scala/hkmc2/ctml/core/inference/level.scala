@@ -76,7 +76,11 @@ def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Cont
   val levelBounds = ctx.extend(outs).getLevelBounds(level: Int)
   val (bounds, newOuts) = outs.extractBounds(levelBounds.contains(_))
   (
-    makeConstrainedType(type_, bounds.removeDuplicateBounds().map(_.toConstraint)),
+    makeConstrainedType(type_, bounds
+      .removeDuplicateBounds()
+      .sortBounds()(using ctx.extend(outs))
+      .map(_.toConstraint)
+    ),
     newOuts
   )
 

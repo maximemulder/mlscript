@@ -157,12 +157,9 @@ class Tester(
   /** Test equivalence between two types. */
   def testTypeEquivalence(left: Type, right: Type): Clauses =
     try
-      val subClauses =
-        subtype(left, right)(using this.ctx, ConstraintMode.Solve)
-      val b =
-        given SubtypingCache = SubtypingCache()
-        subtypeSeq(right, left, subClauses)(using this.ctx, ConstraintMode.Solve)
-      b
+      val subClauses = subtype(left, right)(using this.ctx, ConstraintMode.Solve)
+      val supClauses = subtypeSeq(right, left, subClauses)(using this.ctx, ConstraintMode.Solve)
+      supClauses
     catch
       case error: TypeError =>
         error.addStep(TypeEquivalenceJudgment(left, right))

@@ -42,6 +42,10 @@ extension (ctx: Context)
   def getTypeVarLevel(var_ : TypeVar): Int =
     ctx.getTypeVarDecl(var_).level
 
+  /** Get the level of a type variable in the context. */
+  def getTypeVarOriginal(var_ : TypeVar): Option[TypeVar] =
+    ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.original)
+
   /** Get all the bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =
     ctx

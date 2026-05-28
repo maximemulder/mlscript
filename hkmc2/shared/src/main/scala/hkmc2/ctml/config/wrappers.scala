@@ -55,7 +55,7 @@ def withCheckingMode[T](f: => T): T =
     mode = oldMode
 
 /** Decorate the subtype constraining function to print debug information. */
-def subtypeWithDebug(impl: (Type, Type) => Clauses)(using Context): (Type, Type) => Clauses =
+def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context): (Type, Type) => Clauses =
   if mode == RefineMode.Constrain && !config.debug.constrain then
     return impl
 
@@ -65,6 +65,11 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using Context): (Type, Type)
   (sub: Type, sup: Type) =>
     try
       outputContext(s"${mode} ${sub} ≤ ${sup}")
+      // if ctx.cache.pairs.map((a, b) => s"${a} ${b}").contains("⊤ ∀11. {27 ≤ Int → 11} ⟹ 11") then
+      //   debug(s"YOO")
+      // else
+      //   debug(s"NEE")
+
       val outs = debugCall(() => impl(sub, sup))
       output(s"OK ⇝ ${outs}")
       outs
@@ -200,19 +205,19 @@ def debugCall[T](f: () => T): T =
 
   val builder = StringBuilder()
   val prevOutput = config.output
-  config.output = (message) => builder.append(s"${message}\n")
+  // config.output = (message) => builder.append(s"${message}\n")
 
   try
     val res = f()
-    val builderString = builder.toString
-    if builderString != "" then
-      prevOutput(builderString.stripLineEnd)
+    // val builderString = builder.toString
+    // if builderString != "" then
+    //   prevOutput(builderString.stripLineEnd)
     res
   catch
     case e: Exception =>
-      val builderString = builder.toString
-      if builderString != "" then
-        prevOutput(builderString.stripLineEnd)
+      // val builderString = builder.toString
+      // if builderString != "" then
+      //   prevOutput(builderString.stripLineEnd)
       throw e
   finally
     config.currentCallDepth -= 1

@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.type_.impls.inline
 
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.context.getVarBound
+import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.traits.*
@@ -18,11 +18,19 @@ extension (bound: Bound)
   /** Replace a type variable by a substitute type in a bound, simplifying the resulting type if
       possible. */
   def inline(var_ : TypeVar)(using ctx: Context): Bound =
+    val newUpper = var_.upperBound.removeDirectVar(bound.var_, Polarity.Negative)
+    val newLower = var_.lowerBound.removeDirectVar(bound.var_, Polarity.Positive)
+    val newBoundType = TypeInline1(bound.type_, TypeInlineParams(
+      var_,
+      bound.dir.leftPol,
+      ctx.extend(Bound(var_, Direction.Sub, newUpper), Bound(var_, Direction.Super, newLower)),
+    ))
+      .removeDirectVar(bound.var_, bound.dir.leftPol)
+
     Bound(
       bound.var_,
       bound.dir,
-      TypeInline1(bound.type_, TypeInlineParams(var_, bound.dir.leftPol, ctx))
-        .removeDirectVar(bound.var_, bound.dir.leftPol)
+      newBoundType,
     )
 
 /** Parameters of the type variable inlining operation. */

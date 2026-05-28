@@ -189,10 +189,10 @@ def debugVarAction(var_ : TypeVar, action: VarAction, message: String)(using Con
 
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
-  if config.currentStepCount >= config.maxStepCount then
+  if config.maxStepCount.exists(config.currentStepCount >= _) then
     throw Exception("Exceeded maximum step count.")
 
-  if config.currentCallDepth >= config.maxCallDepth then
+  if config.maxCallDepth.exists(config.currentCallDepth >= _) then
     throw Exception("Exceeded maximum call depth.")
 
   config.currentStepCount += 1

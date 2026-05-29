@@ -43,8 +43,8 @@ extension (ctx: Context)
     ctx.getTypeVarDecl(var_).level
 
   /** Get the level of a type variable in the context. */
-  def getTypeVarOriginal(var_ : TypeVar): Option[TypeVar] =
-    ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.original)
+  def getTypeVarOrigin(var_ : TypeVar): Option[TypeVar] =
+    ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.origin)
 
   /** Get all the bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =
@@ -104,6 +104,10 @@ extension (var_ : TypeVar)(using ctx: Context)
   /** Get the level of the type variable in the context. */
   def level: Int =
     ctx.getTypeVarLevel(var_)
+
+  /** Get the origin of the type variable in the context. */
+  def origin: Option[TypeVar] =
+    ctx.getTypeVarOrigin(var_)
 
   /** Check whether the type variable is a flexible type variable. */
   def isFlex: Boolean =

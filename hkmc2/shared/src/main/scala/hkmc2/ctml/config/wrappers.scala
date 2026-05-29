@@ -153,14 +153,14 @@ def debugFreshVar(decl: TypeVarDecl): Unit =
   if !config.debug.var_ then
     return
 
-  output(s"${decl.var_} ${decl.kind} freshen ${decl.original.get} level ${decl.level}")
+  output(s"${decl.var_} ${decl.kind} freshen ${decl.origin.get} level ${decl.level}")
 
 /** Print an extruded type variable declaration as a debug information. */
 def debugExtrudeVar(decl: TypeVarDecl): Unit =
   if !config.debug.var_ then
     return
 
-  output(s"${decl.var_} ${decl.kind} extrude ${decl.original.get} level ${decl.level}")
+  output(s"${decl.var_} ${decl.kind} extrude ${decl.origin.get} level ${decl.level}")
 
 /** Decorate the type variable quantification function to print debug information. */
 def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =

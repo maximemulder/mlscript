@@ -41,7 +41,7 @@ extension (decl: TypeVarDecl)
     TypeVarDecl(
       decl.var_.prettify(prettyCtx),
       decl.kind,
-      decl.original.map(_.prettify(prettyCtx)),
+      decl.origin.map(_.prettify(prettyCtx)),
       decl.level,
     )
 

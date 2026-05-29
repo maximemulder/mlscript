@@ -80,7 +80,7 @@ case class TypeVarDecl(
   /** The type variable kind. */
   kind: TypeVarKind,
   /** The original type variable if the variable is fresh. */
-  original: Option[TypeVar],
+  origin: Option[TypeVar],
   /** The level of the type variable. */
   level: Int,
 ) extends Clause:

@@ -40,7 +40,7 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
     case TBot | TTop | TVar(_) | TClass(_) =>
       (type_, Clauses.empty)
     case TNeg(body) =>
-      given Polarity = pol.invert
+      given Polarity = !pol
       val (newBody, outs) = extrudeType(body)
       (TNeg(newBody), outs)
     case TTuple(left, right) =>
@@ -49,7 +49,7 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       (TTuple(newLeft, newRight), rightOuts)
     case TLam(param, ret) =>
       val (newParam, paramOuts) =
-        given Polarity = pol.invert
+        given Polarity = !pol
         extrudeType(param)
       given Polarity = pol
       val (newRet, retOuts) = extrudeTypeSeq(ret, paramOuts)
@@ -102,6 +102,6 @@ private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Pola
   val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl))
   val x = Bound(var_, pol.dir, newBound)
 
-  val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(pol.dir.invert), Clauses(List(freshDecl)).concat(Clauses(removeImplicitBounds(List(x)))))
-  val y = Bound(freshVar, pol.dir.invert, newExtrudedBound)
+  val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(!pol.dir), Clauses(List(freshDecl)).concat(Clauses(removeImplicitBounds(List(x)))))
+  val y = Bound(freshVar, !pol.dir, newExtrudedBound)
   (freshType, outs.concat(Clauses(removeImplicitBounds(List(y)))))

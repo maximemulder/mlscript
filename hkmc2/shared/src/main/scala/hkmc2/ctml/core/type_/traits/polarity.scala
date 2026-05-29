@@ -13,19 +13,19 @@ final class TypePolarityApplicator[T[+_], B[+_], P <: PolarityParams[P]](
     type_ match
       case TNeg(body) =>
         last.neg(
-          first.apply(body, params.setPolarity(params.pol.invert)),
+          first.apply(body, params.setPolarity(!params.pol)),
           params,
         )
       case TLam(param, ret) =>
         last.lam(
-          first.apply(param, params.setPolarity(params.pol.invert)),
+          first.apply(param, params.setPolarity(!params.pol)),
           first.apply(ret, params),
           params,
         )
       // case TConstrained(body, constraint) =>
       //   last.constrained(
       //     first.apply(body, params),
-      //     first.apply(constraint, params.setPolarity(params.pol.invert)),
+      //     first.apply(constraint, params.setPolarity(!params.pol)),
       //     params,
       //   )
       case _ =>

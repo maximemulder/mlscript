@@ -289,7 +289,7 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
   val (extrudedType, outs) = (type_, Clauses.empty)
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
-  val oppositeBound = var_.bound(using ctx.extend(outs))(dir.invert)
+  val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)
   val clauses = subtypeDirSeq(oppositeBound, extrudedType, dir, outs)
   if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
     // Do not return a new bound if it is already satisfied in the context.

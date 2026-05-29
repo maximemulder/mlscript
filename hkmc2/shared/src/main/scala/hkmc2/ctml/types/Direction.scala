@@ -10,7 +10,7 @@ enum Direction:
   case Super
 
   /** Invert a subtyping direction. */
-  def invert: Direction =
+  def unary_! : Direction =
     this match
       case Sub   => Super
       case Super => Sub

@@ -5,7 +5,6 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.structural.*
-import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 
@@ -136,13 +135,13 @@ extension (var_ : TypeVar)(using ctx: Context)
 extension (type_ : Type)(using ctx: Context)
   /** Get the lowest polymorphic level of the type variables referenced in this type, if any. */
   def lowLevel: Option[Int] =
-    type_.getVars()
+    type_.getVars
       .map(_.level)
       .minOption
 
   /** Get the highest polymorphic level of the type variables referenced in this type, if any. */
   def highLevel: Option[Int] =
-    type_.getVars()
+    type_.getVars
       .map(_.level)
       .maxOption
 

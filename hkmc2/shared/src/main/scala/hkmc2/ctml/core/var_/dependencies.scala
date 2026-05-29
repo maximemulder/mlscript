@@ -3,7 +3,7 @@ package hkmc2.ctml.core.var_
 import scala.collection.mutable.ListBuffer
 
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 import hkmc2.ctml.utils.OrderedSet as MutSet
@@ -16,7 +16,7 @@ class VarDependencies(val var_ : TypeVar, val dependencies: Set[VarDependencies]
     this.show
 
   def toSet: Set[TypeVar] =
-    Set(var_) ++ dependencies.map(_.toSet).flatten
+    dependencies.map((dependency) => Set(dependency.var_) ++ dependency.toSet).flatten
 
 /** Implementation of the `Tree` trait for `VarDependencies`. */
 given Tree[VarDependencies] with
@@ -41,7 +41,7 @@ extension (var_ : TypeVar)
   private def getDependenciesImpl()(using ctx: Context, cache: MutSet[TypeVar]): VarDependencies =
     // Get the direct dependency type variables.
     val dependencyVars = if !cache.contains(var_) then
-      ctx.getVarLowerBound(var_).getVars() ++ ctx.getVarUpperBound(var_).getVars()
+      var_.lowerBound.getVars ++ var_.upperBound.getVars
     else
       Set.empty
 

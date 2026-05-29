@@ -9,7 +9,7 @@ import hkmc2.ctml.core.clauses.typeVars
 extension (ctx: Context)
   /** Get the list of type variables that directly depend on another type variable in the clauses. */
   def getDependentVars(var_ : TypeVar): Set[TypeVar] =
-    ctx.getDependentVarsInner(var_)(using MutSet()).toSet
+    ctx.getDependentVarsInner(var_)(using MutSet())
       .filter((x) => ctx.clauses.typeVars.exists((y) => x == y))
       .filter(_ != var_)
 

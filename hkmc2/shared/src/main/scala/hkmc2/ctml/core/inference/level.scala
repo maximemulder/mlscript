@@ -47,7 +47,7 @@ extension (ctx: Context)
   def processVar(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses): VarAction =
     given Context = ctx.extend(outs)
     val polarities = type_.getAllVarPolarities(var_)
-    if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars().contains(var_)) then
+    if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars.contains(var_)) then
       return debugVarAction(var_, VarAction.Quantify, "bound at lower level")
 
     if var_.isRecursive then

@@ -9,22 +9,22 @@ enum Polarity:
   /** The positive type polarity. */
   case Positive
 
-  /** Invert a type polarity. */
-  def invert: Polarity =
-    this match
-      case Negative => Positive
-      case Positive => Negative
-
   /** The subtyping direction relevant to the type polarity. */
   def dir: Direction =
     this match
       case Negative => Direction.Sub
       case Positive => Direction.Super
 
+  /** Invert a type polarity. */
+  def unary_! : Polarity =
+    this match
+      case Negative => Positive
+      case Positive => Negative
+
   /** Get the product of this polarity with another polarity. */
   def *(other: Polarity): Polarity =
     other match
-      case Negative => this.invert
+      case Negative => !this
       case Positive => this
 
   /** Get the string representation of the object. */

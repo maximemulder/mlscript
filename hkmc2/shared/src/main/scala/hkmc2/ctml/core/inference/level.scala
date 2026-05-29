@@ -57,7 +57,7 @@ extension (ctx: Context)
       return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
 
     if checkEqual(var_.lowerBound, var_.upperBound) then
-      return debugVarAction(var_, VarAction.Inline, s"sandwith ${var_.lowerBound} ${var_.upperBound}")
+      return debugVarAction(var_, VarAction.Inline, s"sandwich ${var_.lowerBound} ${var_.upperBound}")
 
     debugVarAction(var_, VarAction.Quantify, "default")
 

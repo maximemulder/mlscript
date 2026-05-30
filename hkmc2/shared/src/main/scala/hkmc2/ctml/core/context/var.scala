@@ -33,18 +33,6 @@ extension (ctx: Context)
       case None =>
         throw new Exception(s"Type variable '${var_}' not found in the context.")
 
-  /** Get the kind of a type variable in the context. */
-  def getTypeVarKind(var_ : TypeVar): TypeVarKind =
-    ctx.getTypeVarDecl(var_).kind
-
-  /** Get the level of a type variable in the context. */
-  def getTypeVarLevel(var_ : TypeVar): Int =
-    ctx.getTypeVarDecl(var_).level
-
-  /** Get the level of a type variable in the context. */
-  def getTypeVarOrigin(var_ : TypeVar): Option[TypeVar] =
-    ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.origin)
-
   /** Get all the bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =
     ctx
@@ -70,14 +58,6 @@ extension (ctx: Context)
       case None =>
         getExtremalType(dir)
 
-  /** Get the lower bound of a type variable. */
-  def getVarLowerBound(var_ : TypeVar): Type =
-    ctx.getVarBound(var_, Direction.Super)
-
-  /** Get the upper bound of a type variable. */
-  def getVarUpperBound(var_ : TypeVar): Type =
-    ctx.getVarBound(var_, Direction.Sub)
-
 extension (type_ : Type)(using ctx: Context)
   /** Check whether the type is a flexible type variable. */
   def isFlexVar: Boolean =
@@ -98,15 +78,7 @@ extension (type_ : Type)(using ctx: Context)
 extension (var_ : TypeVar)(using ctx: Context)
   /** Get the kind of the type variable in the context. */
   def kind: TypeVarKind =
-    ctx.getTypeVarKind(var_)
-
-  /** Get the level of the type variable in the context. */
-  def level: Int =
-    ctx.getTypeVarLevel(var_)
-
-  /** Get the origin of the type variable in the context. */
-  def origin: Option[TypeVar] =
-    ctx.getTypeVarOrigin(var_)
+    ctx.getTypeVarDecl(var_).kind
 
   /** Check whether the type variable is a flexible type variable. */
   def isFlex: Boolean =
@@ -115,6 +87,14 @@ extension (var_ : TypeVar)(using ctx: Context)
   /** Check whether the type variable is a rigid type variable. */
   def isRigid: Boolean =
     var_.kind == TypeVarKind.Rigid
+
+  /** Get the level of the type variable in the context. */
+  def level: Int =
+    ctx.getTypeVarDecl(var_).level
+
+  /** Get the origin of the type variable in the context. */
+  def origin: Option[TypeVar] =
+    ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.origin)
 
   /** Check whether the type variable is recursive. */
   def isRecursive: Boolean =
@@ -126,11 +106,11 @@ extension (var_ : TypeVar)(using ctx: Context)
 
   /** Get the lower bound of the type variable. */
   def lowerBound: Type =
-    ctx.getVarLowerBound(var_)
+    var_.bound(using ctx)(Direction.Super)
 
   /** Get the upper bound of the type variable. */
   def upperBound: Type =
-    ctx.getVarUpperBound(var_)
+    var_.bound(using ctx)(Direction.Sub)
 
 extension (type_ : Type)(using ctx: Context)
   /** Get the lowest polymorphic level of the type variables referenced in this type, if any. */

@@ -56,7 +56,7 @@ private object TypeInline4 extends TypeChainApplicator[Const[Type], Const[Constr
   override def apply(type_ : Type, params: TypeInlineParams)(using first: TypeApplicator[Const[Type], Const[Constraint], TypeInlineParams]): Type =
     type_ match
       case TVar(var_) if var_ == params.var_ =>
-        params.ctx.getVarBound(var_, params.pol.dir)
+        var_.bound(using params.ctx)(params.pol.dir)
       case _ =>
         next.apply(type_, params)
 

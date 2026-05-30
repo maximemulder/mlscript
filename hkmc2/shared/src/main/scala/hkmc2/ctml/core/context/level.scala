@@ -41,7 +41,7 @@ extension (ctx: Context)
   /** Get the type variable with the highest declaration level in the context. */
   def getHighestLevelVar(): Option[TypeVar] =
     ctx.clauses.typeVars
-      .maxByOption(ctx.getTypeVarLevel(_))
+      .maxByOption(_.level(using ctx))
 
   /** Get the type variable with the highest effective level in the context. */
   def getHighestEffectiveLevelVar(): Option[TypeVar] =
@@ -53,5 +53,5 @@ extension (ctx: Context)
     Iterator
       .single(var_)
       .concat(ctx.getDependentVars(var_))
-      .map(ctx.getTypeVarLevel(_))
+      .map(_.level(using ctx))
       .min

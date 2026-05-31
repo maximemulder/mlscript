@@ -19,32 +19,44 @@ extension (ctx: Context)
    *  that level. */
   def withInferenceLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
     val decl = ctx.declInferVar()
-    ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.solveLevel(a, b, c))
+    ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.processLevel(a, b, c))
 
-  def solveLevel(level: Int, type_ : Type, outs: Clauses, quantifyVars: List[TypeVar] = List()): (Type, Clauses) =
-    val levelBounds = ctx.extend(outs).getLevelBounds(level)
-    val levelVars = ctx.extend(outs).getLevelVars(level)
+  /** Process the type, variables, and constraints generated in a level. Quantifying and
+   *  simplifying then if possible. */
+  def processLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
+    val (type2, outs2) = simplifyLevel(level, type_, outs)
 
-    val actions = levelVars.map((var_) => var_ -> processVar(level, type_, var_, outs)).toMap
-    val inlineVars = actions.filter((_, action) => action == VarAction.Inline).keys.toList
-    val quantifyVars = actions.filter((_, action) => action == VarAction.Quantify).keys.toList
-
-    val (type2, outs2) = inlineVars.foldLeft((type_, outs))((x, var_) =>
-      inlineVar(x._1, var_, x._2)(using ctx.extend(x._2))
-    )
+    val levelVars = ctx.extend(outs2).getLevelVars(level)
+    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type2, var_, outs2)).toMap
+    val varsToQuantify = getQuantifyVars(actions)
 
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)
 
     val (type3, outs3) = quantifyLevelBounds(makePrettyType(type2), level, outs2)(using ctx)
 
-    val (type4, outs4) = quantifyVars.foldRight((type3, outs3))((var_, to) =>
+    val (type4, outs4) = varsToQuantify.foldRight((type3, outs3))((var_, to) =>
       quantifyVar(to._1, var_, to._2)(using ctx)
     )
 
     (type4, outs4)
 
-  def processVar(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses): VarAction =
+  /** Iteratively collect and simplify the variables in a level until no further simplification is
+   *  possible. */
+  def simplifyLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
+    val levelBounds = ctx.extend(outs).getLevelBounds(level)
+    val levelVars = ctx.extend(outs).getLevelVars(level)
+    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type_, var_, outs)).toMap
+
+    getInlineVars(actions) match
+      case Nil =>
+        (type_, outs)
+      case varsToInline =>
+        val (nextType, nextOuts) = inlineVars(type_, outs, varsToInline)
+        simplifyLevel(level, nextType, nextOuts)
+
+  /** Determine how to process a variable of this level. */
+  def determineVarAction(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses): VarAction =
     given Context = ctx.extend(outs)
     val polarities = type_.getAllVarPolarities(var_)
     if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars.contains(var_)) then
@@ -60,6 +72,20 @@ extension (ctx: Context)
       return debugVarAction(var_, VarAction.Inline, s"sandwich ${var_.lowerBound} ${var_.upperBound}")
 
     debugVarAction(var_, VarAction.Quantify, "default")
+
+  /** Inline a list of type variables. */
+  def inlineVars(type_ : Type, outs: Clauses, vars: List[TypeVar]): (Type, Clauses) =
+    vars.foldLeft((type_, outs))((to, var_) =>
+      inlineVar(to._1, var_, to._2)(using ctx.extend(to._2))
+    )
+
+/** Get the type variables to inline in a mapping of type variable actions. */
+def getInlineVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
+  actions.filter((_, action) => action == VarAction.Inline).keys.toList
+
+/** Get the type variables to quantify in a mapping of type variable actions. */
+def getQuantifyVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
+  actions.filter((_, action) => action == VarAction.Inline).keys.toList
 
 /** Inline a type variable in a type. */
 def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =

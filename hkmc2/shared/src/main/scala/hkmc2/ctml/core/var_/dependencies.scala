@@ -11,7 +11,7 @@ import hkmc2.ctml.utils.OrderedSet as MutSet
 /** A type variable and its dependency graph, that is, the other type variables on which it
  *  depends.
  */
-class VarDependencies(val var_ : TypeVar, val dependencies: Set[VarDependencies]):
+class VarDependencies(val var_ : TypeVar, val pol: Polarity, val dependencies: Set[VarDependencies]):
   override def toString: String =
     this.show
 
@@ -32,42 +32,21 @@ given Show[VarDependencies] =
   TreeShow
 
 extension (var_ : TypeVar)
-  /** Get the dependencies of a type variable in a context. */
-  def getDependencies()(using ctx: Context): VarDependencies =
-    given MutSet[TypeVar] = MutSet()
-    var_.getDependenciesImpl()
+  def getDependencies(pol: Polarity)(using ctx: Context): VarDependencies =
+    given MutSet[(Polarity, TypeVar)] = MutSet()
+    var_.getDependenciesInner(pol)
 
-  /** Implementation of `getDependencies`. */
-  private def getDependenciesImpl()(using ctx: Context, cache: MutSet[TypeVar]): VarDependencies =
+  def getDependenciesInner(pol: Polarity)(using ctx: Context, cache: MutSet[(Polarity, TypeVar)]): VarDependencies =
     // Get the direct dependency type variables.
-    val dependencyVars = if !cache.contains(var_) then
-      var_.lowerBound.getVars ++ var_.upperBound.getVars
+    val dependencyVars = if cache.contains((pol, var_)) then
+      Set.empty[(Polarity, TypeVar)]
     else
-      Set.empty
+      cache.add((pol, var_))
+      pol match
+        case Polarity.Negative =>
+          var_.upperBound.getPolVars(using Polarity.Negative)
+        case Polarity.Positive =>
+          var_.lowerBound.getPolVars(using Polarity.Positive)
 
-    // Add the current variable to the cache.
-    cache.add(var_)
-
-    val dependencies = dependencyVars.map(_.getDependenciesImpl())
-    VarDependencies(var_, dependencies)
-
-extension (dependencies: VarDependencies)
-  /** Get the list of type variables in the type variable dependency graph sorted such that each
-   *  variable appears before its dependent variables. */
-  def getSortedVars(): List[TypeVar] =
-    val vars = ListBuffer[TypeVar]()
-    for dependencies <- dependencies.dependencies do
-      vars.appendAllUnique(dependencies.getSortedVars())
-
-    vars.appendUnique(dependencies.var_)
-    vars.toList
-
-extension (dependencies: List[VarDependencies])
-  /** Get the list of type variables in the type variable dependency graphs sorted such that each
-   *  variable appears before its dependent variables. */
-  def getSortedVars(): List[TypeVar] =
-    val vars = ListBuffer[TypeVar]()
-    for dependencies <- dependencies do
-      vars.appendAllUnique(dependencies.getSortedVars())
-
-    vars.toList
+    val dependencies = dependencyVars.map((pol, var_) => var_.getDependenciesInner(pol))
+    VarDependencies(var_, pol, dependencies)

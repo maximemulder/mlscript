@@ -62,10 +62,19 @@ extension (ctx: Context)
     if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars.contains(var_)) then
       return debugVarAction(var_, VarAction.Quantify, "bound at lower level")
 
-    if var_.isRecursive then
-      return debugVarAction(var_, VarAction.Quantify, "recursive")
+    if polarities == Polarities(false, false) then
+      return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
 
-    if polarities != Polarities(true, true) then
+    if polarities == Polarities(false, true) then
+      if var_.isRecursive(Polarity.Positive) then
+        return debugVarAction(var_, VarAction.Quantify, "recursive")
+
+      return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
+
+    if polarities == Polarities(true, false) then
+      if var_.isRecursive(Polarity.Negative) then
+        return debugVarAction(var_, VarAction.Quantify, "recursive")
+
       return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
 
     if checkEqual(var_.lowerBound, var_.upperBound) then

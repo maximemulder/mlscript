@@ -20,45 +20,49 @@ val True = true
 fun test(f) =
   let r(x, g) = (g(x), unit)
   (r(0, inc), r(true, not'))
-//│ test: ⊤ → ⟨∀α. {∀β, γ. β → γ → ⟨∀δ. {γ ≤ β → δ} ⟹ δ, Unit⟩ ≤ Int → α, α ≤ (Int → Int) → ⊤} ⟹ ⊥, ∀ε. {∀β, γ. β → γ → ⟨∀δ. {γ ≤ β → δ} ⟹ δ, Unit⟩ ≤ Bool → ε, ε ≤ (Bool → Bool) → ⊤} ⟹ ⊥⟩
+//│ test: ⊤ → ⟨⟨Int, Unit⟩, ⟨Bool, Unit⟩⟩
 
 fun test(f) =
   (f(0), f(true))
-//│ test: ∀α. α → ⟨∀β. {α ≤ Int → β} ⟹ β, ∀γ. {α ≤ Bool → γ} ⟹ γ⟩
+//│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α. α → ⟨∀β. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Int → β} ⟹ β, ∀ε. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Bool → ε} ⟹ ε⟩
+//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
 
 :fixme
 fun test(f) =
   let r(x, g) = (g(x), f(x))
   (r(0, inc), r(true, not'))
-//│ test: ∀α. α → ⟨∀β. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, ∀ζ. {α ≤ γ → ζ} ⟹ ζ⟩ ≤ Int → β, β ≤ (Int → Int) → ⊤} ⟹ ⊥, ∀η. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, ∀ζ. {α ≤ γ → ζ} ⟹ ζ⟩ ≤ Bool → η, η ≤ (Bool → Bool) → ⊤} ⟹ ⊥⟩
+//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨⟨Int, α⟩, ⟨Bool, α⟩⟩
 //│ FAILURE: Unexpected lack of error to fix
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α. α → ⟨∀β. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Int → β} ⟹ β, ∀ε. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Bool → ε} ⟹ ε⟩
+//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
 
 :fixme
 fst(test(id)) + 1
-//│ Int
-//│ FAILURE: Unexpected lack of error to fix
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ (Int ∨ Bool) → α.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ (Int ∨ Bool) → α
+//│     Int → Int → Int ≤ Bool → α
+//│       Bool ≤ Int
 
 :fixme
 not'(snd(test(id)))
-//│ Bool
-//│ FAILURE: Unexpected lack of error to fix
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (Int ∨ Bool) → α.
+//│ Typing error tree:
+//│   Bool → Bool ≤ (Int ∨ Bool) → α
+//│     Bool → Bool ≤ Int → α
+//│       Int ≤ Bool
 
 :te
 not'(fst(test(id)))
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α) → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (Int ∨ Bool) → α.
 //│ Typing error tree:
-//│   Bool → Bool ≤ (∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α) → δ
-//│     ∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α ≤ Bool
-//│       {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → ε} ⟹ ε ≤ Bool
-//│         ε ≤ Bool
-//│           Int ≤ Bool
+//│   Bool → Bool ≤ (Int ∨ Bool) → α
+//│     Bool → Bool ≤ Int → α
+//│       Int ≤ Bool

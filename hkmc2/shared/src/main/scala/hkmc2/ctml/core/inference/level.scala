@@ -85,7 +85,7 @@ def getInlineVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
 
 /** Get the type variables to quantify in a mapping of type variable actions. */
 def getQuantifyVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
-  actions.filter((_, action) => action == VarAction.Inline).keys.toList
+  actions.filter((_, action) => action == VarAction.Quantify).keys.toList
 
 /** Inline a type variable in a type. */
 def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =

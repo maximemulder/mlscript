@@ -12,15 +12,11 @@ fun zero(i) =
     then i
     else zero(i - 1)
 //│ java.lang.StackOverflowError
-//│ 	at java.base/java.lang.Exception.<init>(Exception.java:55)
-//│ 	at hkmc2.ctml.types.Error.<init>(Error.scala:11)
-//│ 	at hkmc2.ctml.types.TypeError.<init>(Error.scala:22)
-//│ 	at hkmc2.ctml.types.TypeError$.apply(Error.scala:19)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:267)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:201)
+//│ 	at hkmc2.ctml.core.context.var$package$.kind(var.scala:81)
+//│ 	at hkmc2.ctml.core.context.var$package$.isRigid(var.scala:89)
+//│ 	at hkmc2.ctml.core.subtyping.split$package$.split(split.scala:53)
+//│ 	at hkmc2.ctml.core.subtyping.split$package$.splitUnion(split.scala:34)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:155)
 //│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
 //│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
 //│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
@@ -1036,6 +1032,10 @@ fun zero(i) =
 //│ 	at hkmc2.ctml.core.context.eval$package$.$anonfun$1(eval.scala:27)
 //│ 	at scala.collection.immutable.ArraySeq.foldLeft(ArraySeq.scala:222)
 //│ 	at hkmc2.ctml.core.context.eval$package$.any(eval.scala:24)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:171)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:64)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:52)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:52)
 //│ FAILURE: Unexpected exception
 //│ /!!!\ Uncaught error: java.lang.StackOverflowError
 
@@ -1044,7 +1044,7 @@ val infinite = infinite + 1
 
 fun recursive(x) =
   recursive(x)
-//│ recursive: ∀α, β. {α ≥ β, β ≥ α} ⟹ ⊤ → α
+//│ recursive: ⊤ → ⊥
 
 val never = never
 //│ never: ⊥

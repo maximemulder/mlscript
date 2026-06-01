@@ -1,0 +1,945 @@
+:ctml
+
+:ctml-dbg constrain check var context meet join
+
+fun zero(i) =
+  if i == 0
+    then i
+    else zero(i - 1)
+//│ 0 flex infer level 2
+//│ 1 flex infer level 3
+//│ 2 flex infer level 4
+//│ constrain ∀A. A → A → Bool ≤ 1 → 2 in 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   3 flex freshen A level 5
+//│   constrain 3 → 3 → Bool ≤ 1 → 2 in 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     constrain 1 ≤ 3 in 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVars
+//│       constrain 1 ≤ ⊤ in 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       join 1 and ⊥ in 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 1 ≤ ⊥ in 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check ⊤ ≤ ⊥ in 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│         check ⊥ ≤ 1 in 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 1
+//│       constrain ⊥ ≤ ⊤ in 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     OK ⇝ 3 ≥ 1
+//│     constrain 3 → Bool ≤ 2 in 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVar
+//│       4 flex extrude 3 level 4
+//│       join 1 and 4 in 4 flex (4), 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 1 ≤ 4 in 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeRigidVars
+//│           check 1 ≤ ⊥ in 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSub
+//│             check ⊤ ≤ ⊥ in 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check 4 ≤ 1 in 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeRigidVars
+//│           check ⊤ ≤ 1 in 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSup
+//│             check ⊤ ≤ ⊥ in 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       = 1 ∨ 4
+//│       constrain 4 → Bool ≤ ⊤ in 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       check 4 → Bool ≤ ⊥ in 3 ≥ 1 ∨ 4, 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│       join ⊥ and 4 → Bool in 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check ⊥ ≤ 4 → Bool in 3 ≥ 1 ∨ 4, 4 rigid (4), 3 ≥ 1, 3 rigid (5), 2 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 4 → Bool
+//│     OK ⇝ 2 ≥ 4 → Bool, 3 ≥ 1 ∨ 4, 4 flex (4)
+//│   OK ⇝ 2 ≥ 4 → Bool, 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1
+//│ OK ⇝ 2 ≥ 4 → Bool, 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1, 3 flex (5)
+//│ inline 2 (polarities Polarities(false,true)) in 2 ≥ 4 → Bool, 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 3 (polarities Polarities(false,false)) in 2 ≥ 4 → Bool, 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 4 (polarities Polarities(true,false)) in 2 ≥ 4 → Bool, 3 ≥ 1 ∨ 4, 4 flex (4), 3 ≥ 1, 3 flex (5), 2 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 5 flex infer level 4
+//│ constrain ⊤ → Bool ≤ Int → 5 in 5 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   constrain Int ≤ ⊤ in 5 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│   constrain Bool ≤ 5 in 5 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     subtypeFlexVar
+//│     constrain Bool ≤ ⊤ in 5 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│     check Bool ≤ ⊥ in 5 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│     FAIL
+//│     join ⊥ and Bool in 5 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       check ⊥ ≤ Bool in 5 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     = Bool
+//│   OK ⇝ 5 ≥ Bool
+//│ OK ⇝ 5 ≥ Bool
+//│ inline 5 (polarities Polarities(false,true)) in 5 ≥ Bool, 5 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 6 flex infer level 4
+//│ constrain ∀A. Bool → A → A → A ≤ Bool → 6 in 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   7 flex freshen A level 5
+//│   constrain Bool → 7 → 7 → 7 ≤ Bool → 6 in 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     constrain Bool ≤ Bool in 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│     constrain 7 → 7 → 7 ≤ 6 in 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVar
+//│       8 flex extrude 7 level 4
+//│       join ⊥ and 8 in 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check ⊥ ≤ 8 in 8 rigid (4), 7 rigid (5), 6 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 8
+//│       9 flex extrude 7 level 4
+//│       meet ⊤ and 9 in 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 9 ≤ ⊤ in 9 rigid (4), 7 ≥ 8, 8 rigid (4), 7 rigid (5), 6 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 9
+//│       constrain 8 → 8 → 9 ≤ ⊤ in 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       check 8 → 8 → 9 ≤ ⊥ in 9 ≥ 8, 7 ≤ 9, 9 rigid (4), 7 ≥ 8, 8 rigid (4), 7 rigid (5), 6 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│       join ⊥ and 8 → 8 → 9 in 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check ⊥ ≤ 8 → 8 → 9 in 9 ≥ 8, 7 ≤ 9, 9 rigid (4), 7 ≥ 8, 8 rigid (4), 7 rigid (5), 6 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 8 → 8 → 9
+//│     OK ⇝ 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4)
+//│   OK ⇝ 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4)
+//│ OK ⇝ 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5)
+//│ inline 6 (polarities Polarities(false,true)) in 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 7 (polarities Polarities(false,false)) in 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 rigid (4), 7 ≥ 8, 8 rigid (4), 7 rigid (5), 6 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 rigid (4), 7 ≥ 8, 8 rigid (4), 7 rigid (5), 6 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 8 (default) in 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 9 (polarities Polarities(false,true)) in 6 ≥ 8 → 8 → 9, 9 ≥ 8, 7 ≤ 9, 9 flex (4), 7 ≥ 8, 8 flex (4), 7 flex (5), 6 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 8 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 8 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 8 (default) in 8 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 8 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 8 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 8 (default) in 8 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 10 flex infer level 4
+//│ constrain ∀8. 8 → 8 → 8 ≤ 1 → 10 in 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   11 flex freshen 8 level 5
+//│   constrain 11 → 11 → 11 ≤ 1 → 10 in 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     constrain 1 ≤ 11 in 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVars
+//│       constrain 1 ≤ ⊤ in 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       join 1 and ⊥ in 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 1 ≤ ⊥ in 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check ⊤ ≤ ⊥ in 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│         check ⊥ ≤ 1 in 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 1
+//│       constrain ⊥ ≤ ⊤ in 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     OK ⇝ 11 ≥ 1
+//│     constrain 11 → 11 ≤ 10 in 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVar
+//│       12 flex extrude 11 level 4
+//│       join 1 and 12 in 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 1 ≤ 12 in 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeRigidVars
+//│           check 1 ≤ ⊥ in 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSub
+//│             check ⊤ ≤ ⊥ in 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check 12 ≤ 1 in 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeRigidVars
+//│           check ⊤ ≤ 1 in 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSup
+//│             check ⊤ ≤ ⊥ in 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│       = 1 ∨ 12
+//│       13 flex extrude 11 level 4
+//│       meet ⊤ and 13 in 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 13 ≤ ⊤ in 13 rigid (4), 11 ≥ 1 ∨ 12, 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 13
+//│       constrain 12 → 13 ≤ ⊤ in 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       check 12 → 13 ≤ ⊥ in 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 rigid (4), 11 ≥ 1 ∨ 12, 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│       join ⊥ and 12 → 13 in 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check ⊥ ≤ 12 → 13 in 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 rigid (4), 11 ≥ 1 ∨ 12, 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 12 → 13
+//│     OK ⇝ 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4)
+//│   OK ⇝ 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1
+//│ OK ⇝ 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5)
+//│ inline 10 (polarities Polarities(false,true)) in 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 11 (polarities Polarities(false,false)) in 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 rigid (4), 11 ≥ 1 ∨ 12, 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 rigid (4), 11 ≥ 1 ∨ 12, 12 rigid (4), 11 ≥ 1, 11 rigid (5), 10 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 12 (default) in 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 13 (polarities Polarities(false,true)) in 10 ≥ 12 → 13, 13 ≥ 1 ∨ 12, 11 ≤ 13, 13 flex (4), 11 ≥ 1 ∨ 12, 12 flex (4), 11 ≥ 1, 11 flex (5), 10 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 12 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 12 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 12 (default) in 12 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 12 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 12 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 12 (default) in 12 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 14 flex infer level 4
+//│ constrain Int → Int → Int ≤ 1 → 14 in 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   constrain 1 ≤ Int in 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     subtypeFlexVar
+//│     constrain ⊥ ≤ Int in 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ Int in 14 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│     FAIL
+//│     meet ⊤ and Int in 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       check Int ≤ ⊤ in 14 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     = Int
+//│   OK ⇝ 1 ≤ Int
+//│   constrain Int → Int ≤ 14 in 1 ≤ Int, 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     subtypeFlexVar
+//│     constrain Int → Int ≤ ⊤ in 1 ≤ Int, 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│     check Int → Int ≤ ⊥ in 1 ≤ Int, 14 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│     FAIL
+//│     join ⊥ and Int → Int in 1 ≤ Int, 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       check ⊥ ≤ Int → Int in 1 ≤ Int, 14 rigid (4), i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     = Int → Int
+//│   OK ⇝ 14 ≥ Int → Int
+//│ OK ⇝ 14 ≥ Int → Int, 1 ≤ Int
+//│ inline 14 (polarities Polarities(false,true)) in 14 ≥ Int → Int, 1 ≤ Int, 14 flex (4), i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 15 flex infer level 4
+//│ constrain Int → Int ≤ Int → 15 in 15 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   constrain Int ≤ Int in 15 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│   constrain Int ≤ 15 in 15 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     subtypeFlexVar
+//│     constrain Int ≤ ⊤ in 15 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│     check Int ≤ ⊥ in 15 rigid (4), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│     FAIL
+//│     join ⊥ and Int in 15 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       check ⊥ ≤ Int in 15 rigid (4), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     = Int
+//│   OK ⇝ 15 ≥ Int
+//│ OK ⇝ 15 ≥ Int
+//│ inline 15 (polarities Polarities(false,true)) in 15 ≥ Int, 15 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 16 flex infer level 4
+//│ constrain 0 ≤ Int → 16 in 16 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   subtypeFlexVar
+//│   17 flex extrude 16 level 2
+//│   join ⊥ and 17 in 17 flex (2), 16 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     check ⊥ ≤ 17 in 17 rigid (2), 16 rigid (4), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│   = 17
+//│   constrain ⊥ ≤ Int → 17 in 16 ≥ 17, 17 flex (2), 16 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ Int → 17 in 16 ≥ 17, 17 rigid (2), 16 rigid (4), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│     HERE 3
+//│   FAIL
+//│   meet ⊤ and Int → 17 in 16 ≥ 17, 17 flex (2), 16 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     check Int → 17 ≤ ⊤ in 16 ≥ 17, 17 rigid (2), 16 rigid (4), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│   = Int → 17
+//│ OK ⇝ 0 ≤ Int → 17, 16 ≥ 17, 17 flex (2)
+//│ inline 16 (polarities Polarities(false,true)) in 0 ≤ Int → 17, 16 ≥ 17, 17 flex (2), 16 flex (4), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ 18 flex infer level 4
+//│ constrain ∀12. 12 → (1 ∨ 12) ≤ 17 → 18 in 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   HERE 3
+//│   19 flex freshen 12 level 5
+//│   constrain 19 → (1 ∨ 19) ≤ 17 → 18 in 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│     HERE 3
+//│     constrain 17 ≤ 19 in 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVars
+//│       constrain 17 ≤ ⊤ in 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       join 17 and ⊥ in 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 17 ≤ ⊥ in 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check ⊤ ≤ ⊥ in 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│         check ⊥ ≤ 17 in 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 17
+//│       constrain ⊥ ≤ ⊤ in 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     OK ⇝ 19 ≥ 17
+//│     constrain 1 ∨ 19 ≤ 18 in 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│       HERE 3
+//│       subtypeFlexVar
+//│       20 flex extrude 19 level 4
+//│       meet ⊤ and 20 in 20 flex (4), 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check 20 ≤ ⊤ in 20 rigid (4), 19 ≥ 17, 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 20
+//│       constrain 1 ∨ 20 ≤ ⊤ in 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       check 1 ∨ 20 ≤ ⊥ in 20 ≥ 17, 19 ≤ 20, 20 rigid (4), 19 ≥ 17, 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│         check 1 ≤ ⊥ in 20 ≥ 17, 19 ≤ 20, 20 rigid (4), 19 ≥ 17, 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check Int ≤ ⊥ in 20 ≥ 17, 19 ≤ 20, 20 rigid (4), 19 ≥ 17, 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│       join ⊥ and 1 ∨ 20 in 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│         check ⊥ ≤ 1 ∨ 20 in 20 ≥ 17, 19 ≤ 20, 20 rigid (4), 19 ≥ 17, 19 rigid (5), 18 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       = 1 ∨ 20
+//│     OK ⇝ 18 ≥ 1 ∨ 20, 20 ≥ 17, 19 ≤ 20, 20 flex (4)
+//│   OK ⇝ 18 ≥ 1 ∨ 20, 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17
+//│ OK ⇝ 18 ≥ 1 ∨ 20, 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17, 19 flex (5)
+//│ inline 18 (polarities Polarities(false,true)) in 18 ≥ 1 ∨ 20, 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 19 (polarities Polarities(false,false)) in 18 ≥ 1 ∨ 20, 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 20 (polarities Polarities(false,true)) in 18 ≥ 1 ∨ 20, 20 ≥ 17, 19 ≤ 20, 20 flex (4), 19 ≥ 17, 19 flex (5), 18 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│ join 1 and 17 in 20 ≥ 17, 20 flex (4), 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, i: 1, 1 flex (3), zero: 0, 0 flex (2)
+//│   check 1 ≤ 17 in 20 ≥ 17, 20 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│     HERE 3
+//│     subtypeRigidVars
+//│     check Int ≤ 17 in 20 ≥ 17, 20 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│       subtypeImpl.rigidSup
+//│       check Int ≤ ⊥ in 20 ≥ 17, 20 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check 17 ≤ 1 in 20 ≥ 17, 20 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│     HERE 3
+//│     subtypeRigidVars
+//│     check 17 ≤ ⊥ in 20 ≥ 17, 20 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│       HERE 3
+//│       subtypeImpl.rigidSub
+//│       check ⊤ ≤ ⊥ in 20 ≥ 17, 20 rigid (4), 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, i: 1, 1 rigid (3), zero: 0, 0 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│ = 1 ∨ 17
+//│ check ⊥ ≤ Int in 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check Int ≤ ⊥ in 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 1 (default) in 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, 1 flex (3), zero: 0, 0 flex (2)
+//│ check ⊥ ≤ Int in 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check Int ≤ ⊥ in 0 ≤ Int → 17, 17 rigid (2), 1 ≤ Int, 1 rigid (3), zero: 0, 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 1 (default) in 0 ≤ Int → 17, 17 flex (2), 1 ≤ Int, 1 flex (3), zero: 0, 0 flex (2)
+//│ inline 0 (polarities Polarities(true,false)) in 0 ≤ Int → 17, 17 flex (2), 0 flex (2)
+//│ check ⊥ ≤ ⊤ in 0 ≤ Int → 17, 17 rigid (2), 0 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 0 ≤ Int → 17, 17 rigid (2), 0 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 17 (default) in 0 ≤ Int → 17, 17 flex (2), 0 flex (2)
+//│ 1 rigid level 3
+//│ check 1 ≤ Int in 1 rigid (3), 0 ≤ Int → 17, 17 rigid (2), 0 rigid (2)
+//│   HERE 3
+//│   subtypeImpl.rigidSub
+//│   check ⊤ ≤ Int in 1 rigid (3), 0 ≤ Int → 17, 17 rigid (2), 0 rigid (2)
+//│     HERE 3
+//│   FAIL
+//│ FAIL
+//│ check ⊥ ≤ ⊤ in 17 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 17 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 17 (default) in 17 flex (2)
+//│ check ⊥ ≤ ⊤ in 17 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check ⊤ ≤ ⊥ in 17 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 17 (default) in 17 flex (2)
+//│ 21 flex infer level 2
+//│ constrain ∀A. (A → A) → A ≤ (∀17, 1. (Int → 17) → ({1 ≤ Int} ⟹ 1 → (1 ∨ 17))) → 21 in 21 flex (2)
+//│   HERE 3
+//│   22 flex freshen A level 3
+//│   constrain (22 → 22) → 22 ≤ (∀17, 1. (Int → 17) → ({1 ≤ Int} ⟹ 1 → (1 ∨ 17))) → 21 in 22 flex (3), 21 flex (2)
+//│     HERE 3
+//│     constrain ∀17, 1. (Int → 17) → ({1 ≤ Int} ⟹ 1 → (1 ∨ 17)) ≤ 22 → 22 in 22 flex (3), 21 flex (2)
+//│       HERE 3
+//│       23 flex freshen 17 level 4
+//│       24 flex freshen 1 level 4
+//│       constrain (Int → 23) → ({24 ≤ Int} ⟹ 24 → (24 ∨ 23)) ≤ 22 → 22 in 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│         HERE 3
+//│         constrain 22 ≤ Int → 23 in 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           HERE 3
+//│           subtypeFlexVar
+//│           25 flex extrude 23 level 3
+//│           join ⊥ and 25 in 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             check ⊥ ≤ 25 in 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           = 25
+//│           constrain ⊥ ≤ Int → 25 in 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             HERE 3
+//│           OK ⇝ ∅
+//│           check ⊤ ≤ Int → 25 in 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│           meet ⊤ and Int → 25 in 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             check Int → 25 ≤ ⊤ in 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           = Int → 25
+//│         OK ⇝ 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3)
+//│         constrain {24 ≤ Int} ⟹ 24 → (24 ∨ 23) ≤ 22 in 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           HERE 3
+//│           subtypeFlexVar
+//│           26 flex extrude 24 level 3
+//│           join ⊥ and 26 in 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             check ⊥ ≤ 26 in 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           = 26
+//│           27 flex extrude 24 level 3
+//│           meet ⊤ and 27 in 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             check 27 ≤ ⊤ in 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           = 27
+//│           28 flex extrude 23 level 3
+//│           meet ⊤ and 28 in 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             check 28 ≤ ⊤ in 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           = 28
+//│           constrain {24 ≤ Int} ⟹ 26 → (27 ∨ 28) ≤ Int → 25 in 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             HERE 3
+//│             constrain 24 ≤ Int in 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│               HERE 3
+//│               subtypeFlexVar
+//│               constrain 26 ≤ Int in 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                 HERE 3
+//│                 subtypeFlexVar
+//│                 constrain ⊥ ≤ Int in 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                   HERE 3
+//│                 OK ⇝ ∅
+//│                 check ⊤ ≤ Int in 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                 FAIL
+//│                 meet ⊤ and Int in 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                   check Int ≤ ⊤ in 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                     HERE 3
+//│                   OK ⇝ ∅
+//│                 = Int
+//│               OK ⇝ 26 ≤ Int
+//│               check 27 ≤ Int in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                 HERE 3
+//│                 subtypeImpl.rigidSub
+//│                 check ⊤ ≤ Int in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                 FAIL
+//│               FAIL
+//│               meet 27 and Int in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                 check Int ≤ 27 in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                   subtypeImpl.rigidSup
+//│                   check Int ≤ 26 in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                     HERE 3
+//│                     subtypeImpl.rigidSup
+//│                     check Int ≤ ⊥ in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                       HERE 3
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│                 check 27 ≤ Int in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                   subtypeImpl.rigidSub
+//│                   check ⊤ ≤ Int in 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                     HERE 3
+//│                   FAIL
+//│                 FAIL
+//│               = 27 ∧ Int
+//│             OK ⇝ 24 ≤ 27 ∧ Int, 26 ≤ Int
+//│             constrain 26 → (27 ∨ 28) ≤ Int → 25 in 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│               HERE 3
+//│               constrain Int ≤ 26 in 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                 HERE 3
+//│                 subtypeFlexVar
+//│                 constrain Int ≤ Int in 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                   HERE 3
+//│                 OK ⇝ ∅
+//│                 check Int ≤ ⊥ in 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                 FAIL
+//│                 join ⊥ and Int in 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                   check ⊥ ≤ Int in 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                     HERE 3
+//│                   OK ⇝ ∅
+//│                 = Int
+//│               OK ⇝ 26 ≥ Int
+//│               constrain 27 ∨ 28 ≤ 25 in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                 HERE 3
+//│                 subtypeFlexVar
+//│                 constrain 27 ∨ 28 ≤ ⊤ in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                   HERE 3
+//│                 OK ⇝ ∅
+//│                 check 27 ∨ 28 ≤ ⊥ in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                   check 27 ≤ ⊥ in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                     HERE 3
+//│                     subtypeImpl.rigidSub
+//│                     check ⊤ ≤ ⊥ in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                       HERE 3
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│                 join ⊥ and 27 ∨ 28 in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│                   check ⊥ ≤ 27 ∨ 28 in 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                     HERE 3
+//│                   OK ⇝ ∅
+//│                 = 27 ∨ 28
+//│               OK ⇝ 25 ≥ 27 ∨ 28
+//│             OK ⇝ 25 ≥ 27 ∨ 28, 26 ≥ Int
+//│           OK ⇝ 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int
+//│           check {24 ≤ Int} ⟹ 26 → (27 ∨ 28) ≤ ⊥ in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│             check 24 ≤ Int in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│               check 27 ≤ Int in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                 HERE 3
+//│                 subtypeImpl.rigidSub
+//│                 check ⊤ ≤ Int in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                 FAIL
+//│               FAIL
+//│               check Int ≤ Int in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                 HERE 3
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│             check 26 → (27 ∨ 28) ≤ ⊥ in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│           join ⊥ and {24 ≤ Int} ⟹ 26 → (27 ∨ 28) in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│             check ⊥ ≤ {24 ≤ Int} ⟹ 26 → (27 ∨ 28) in 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           = {24 ≤ Int} ⟹ 26 → (27 ∨ 28)
+//│         OK ⇝ 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3)
+//│       OK ⇝ 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3)
+//│     OK ⇝ 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4)
+//│     constrain 22 ≤ 21 in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│       HERE 3
+//│       subtypeFlexVars
+//│       constrain {24 ≤ Int} ⟹ 26 → (27 ∨ 28) ≤ 21 in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│         HERE 3
+//│         subtypeFlexVar
+//│         29 flex extrude 26 level 2
+//│         join Int and 29 in 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           check Int ≤ 29 in 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSup
+//│             check Int ≤ ⊥ in 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│           check 29 ≤ Int in 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSub
+//│             check ⊤ ≤ Int in 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│         = Int ∨ 29
+//│         30 flex extrude 27 level 2
+//│         meet ⊤ and 30 in 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           check 30 ≤ ⊤ in 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           OK ⇝ ∅
+//│         = 30
+//│         31 flex extrude 26 level 2
+//│         meet Int and 31 in 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           check 31 ≤ Int in 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSub
+//│             check ⊤ ≤ Int in 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│           check Int ≤ 31 in 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│             subtypeImpl.rigidSup
+//│             check Int ≤ ⊥ in 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             FAIL
+//│           FAIL
+//│         = Int ∧ 31
+//│         32 flex extrude 28 level 2
+//│         meet ⊤ and 32 in 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           check 32 ≤ ⊤ in 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           OK ⇝ ∅
+//│         = 32
+//│         33 flex extrude 25 level 2
+//│         meet ⊤ and 33 in 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           check 33 ≤ ⊤ in 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           OK ⇝ ∅
+//│         = 33
+//│         constrain {24 ≤ Int} ⟹ 29 → (30 ∨ 32) ≤ ⊤ in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│         check {24 ≤ Int} ⟹ 29 → (30 ∨ 32) ≤ ⊥ in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│           check 24 ≤ Int in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│             check 27 ≤ Int in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│               subtypeImpl.rigidSub
+//│               check 30 ≤ Int in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                 HERE 3
+//│                 subtypeImpl.rigidSub
+//│                 check ⊤ ≤ Int in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│                   HERE 3
+//│                 FAIL
+//│               FAIL
+//│             FAIL
+//│             check Int ≤ Int in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│               HERE 3
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 29 → (30 ∨ 32) ≤ ⊥ in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│         join ⊥ and {24 ≤ Int} ⟹ 29 → (30 ∨ 32) in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│           check ⊥ ≤ {24 ≤ Int} ⟹ 29 → (30 ∨ 32) in 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           OK ⇝ ∅
+//│         = {24 ≤ Int} ⟹ 29 → (30 ∨ 32)
+//│       OK ⇝ 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2)
+//│       meet 21 and Int → 25 in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│         check Int → 25 ≤ 21 in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSup
+//│           check Int → 25 ≤ ⊥ in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│         check 21 ≤ Int → 25 in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check ⊤ ≤ Int → 25 in 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│       = 21 ∧ (Int → 25)
+//│       constrain ⊥ ≤ Int → 25 in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│     OK ⇝ 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2)
+//│   OK ⇝ 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4)
+//│ OK ⇝ 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3)
+//│ inline 21 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 22 (polarities Polarities(false,false)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 24 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 23 (polarities Polarities(false,false)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 25 (polarities Polarities(false,false)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 26 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 27 (polarities Polarities(false,false)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 28 (polarities Polarities(false,false)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ check ⊥ ≤ Int in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│   HERE 3
+//│ OK ⇝ ∅
+//│ check Int ≤ ⊥ in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│   HERE 3
+//│ FAIL
+//│ quantify 29 (default) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 30 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 31 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 32 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ inline 33 (polarities Polarities(false,true)) in 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│ check 24 ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│   HERE 3
+//│   check 27 ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     subtypeImpl.rigidSub
+//│     check 30 ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       subtypeImpl.rigidSub
+//│       check ⊤ ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ join 27 and 25 in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│   check 27 ≤ 25 in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     SPLIT 25 IN 27 AND 28
+//│     check 27 ≤ 27 in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│     OK ⇝ ∅
+//│     check 27 ≤ 28 in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       SPLIT 28 IN 27 AND 28
+//│       check 27 ≤ 27 in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│       OK ⇝ ∅
+//│       check 27 ≤ 28 in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ = 25
+//│ check 24 ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│   HERE 3
+//│   check 27 ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     subtypeImpl.rigidSub
+//│     check 30 ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       subtypeImpl.rigidSub
+//│       check ⊤ ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check Int ≤ Int in 28 ≥ 25, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│ OK ⇝ ∅
+//│ join 27 and ⊥ in 28 ≥ ⊥, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 28 ≤ 32, 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 flex (3), 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│   check 27 ≤ ⊥ in 28 ≥ ⊥, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     subtypeImpl.rigidSub
+//│     check 30 ≤ ⊥ in 28 ≥ ⊥, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       subtypeImpl.rigidSub
+//│       check ⊤ ≤ ⊥ in 28 ≥ ⊥, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│       FAIL
+//│     FAIL
+//│   FAIL
+//│   check ⊥ ≤ 27 in 28 ≥ ⊥, 28 ≤ 32, 22 ≤ 21 ∧ (Int → 25), 21 ≥ {24 ≤ Int} ⟹ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 28 ≤ 32, 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ {24 ≤ Int} ⟹ 26 → (27 ∨ 28), 25 ≥ 27 ∨ 28, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 28 ≥ 25, 23 ≤ 28, 28 rigid (3), 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│ = 27
+//│ join 31 and 32 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│   check 31 ≤ 32 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     SPLIT 32 IN 30 AND 32
+//│     check 31 ≤ 30 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       SPLIT 30 IN Int AND 29
+//│       check 31 ≤ Int in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│         subtypeImpl.rigidSub
+//│         check ⊤ ≤ Int in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│         FAIL
+//│       FAIL
+//│       check 31 ≤ 29 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│         subtypeRigidVars
+//│         check 31 ≤ ⊥ in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check ⊤ ≤ ⊥ in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 31 ≤ 32 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ = 32
+//│ join 31 and 32 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 flex (2), 32 flex (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 27 ≤ 30, 30 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 23 ≥ 25, 25 flex (3), 23 flex (4), 24 flex (4), 22 flex (3), 21 flex (2)
+//│   check 31 ≤ 32 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     SPLIT 32 IN 30 AND 32
+//│     check 31 ≤ 30 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       SPLIT 30 IN Int AND 29
+//│       check 31 ≤ Int in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│         subtypeImpl.rigidSub
+//│         check ⊤ ≤ Int in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│         FAIL
+//│       FAIL
+//│       check 31 ≤ 29 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│         subtypeRigidVars
+//│         check 31 ≤ ⊥ in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│           subtypeImpl.rigidSub
+//│           check ⊤ ≤ ⊥ in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│             HERE 3
+//│           FAIL
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 31 ≤ 32 in 30 ≥ 31, 30 ≤ ⊤, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → (30 ∨ 32), 32 ≥ 33, 33 ≥ 30 ∨ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 30 ≥ 31, 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 27 ≤ 30, 30 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 23 ≤ 32, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 23 ≥ 25, 25 rigid (3), 23 rigid (4), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ = 32
+//│ meet 21 and Int → 33 in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 flex (2), 32 flex (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 25, 25 flex (3), 24 flex (4), 22 flex (3), 21 flex (2)
+//│   check Int → 33 ≤ 21 in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 25 rigid (3), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│     subtypeImpl.rigidSup
+//│     check Int → 33 ≤ 29 → 32 in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 25 rigid (3), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│       HERE 3
+//│       check 29 ≤ Int in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 25 rigid (3), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│         subtypeImpl.rigidSub
+//│         check Int ≤ Int in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 25 rigid (3), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 33 ≤ 32 in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 25 rigid (3), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│         HERE 3
+//│         subtypeRigidVars
+//│         check 33 ≤ 33 in 25 ≥ 27, 25 ≤ 33, 22 ≤ 21 ∧ (Int → 25), 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 25 ≤ 33, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 25, 25 ≥ 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 25, 25 rigid (3), 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│           HERE 3
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│ = Int → 33
+//│ meet Int and ⊤ in 31 ≥ Int ∨ 29, 31 ≤ ⊤, 22 ≤ Int → 33, 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 33 flex (2), 32 flex (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 flex (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 22 ≥ 26 → 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 22 ≤ Int → 33, 24 flex (4), 22 flex (3), 21 flex (2)
+//│   check ⊤ ≤ Int in 31 ≥ Int ∨ 29, 31 ≤ ⊤, 22 ≤ Int → 33, 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 33, 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│   FAIL
+//│   check Int ≤ ⊤ in 31 ≥ Int ∨ 29, 31 ≤ ⊤, 22 ≤ Int → 33, 21 ≥ 29 → 32, 32 ≥ 33, 33 ≥ 32, 33 rigid (2), 32 rigid (2), 31 ≥ Int ∨ 29, 26 ≤ Int ∧ 31, 31 rigid (2), 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 22 ≥ 26 → 27, 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 22 ≤ Int → 33, 24 rigid (4), 22 rigid (3), 21 rigid (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│ = Int
+//│ meet ⊤ and Int in 27 ≥ 26, 27 ≤ ⊤, 21 ≥ 29 → 32, 32 flex (2), 26 ≤ Int, 29 ≤ Int, 26 ≥ Int ∨ 29, 29 flex (2), 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 flex (3), 24 ≥ 26, 26 flex (3), 24 flex (4), 21 flex (2)
+//│   check Int ≤ ⊤ in 27 ≥ 26, 27 ≤ ⊤, 21 ≥ 29 → 32, 32 rigid (2), 26 ≤ Int, 29 ≤ Int, 26 ≥ Int ∨ 29, 29 rigid (2), 26 ≥ Int, 24 ≤ 27 ∧ Int, 26 ≤ Int, 27 ≥ 26, 24 ≤ 27, 27 rigid (3), 24 ≥ 26, 26 rigid (3), 24 rigid (4), 21 rigid (2)
+//│     HERE 3
+//│   OK ⇝ ∅
+//│ = Int
+//│ inline 29 (polarities Polarities(true,false)) in 29 ≤ Int, 29 flex (2)
+//│ zero: Int → ⊥

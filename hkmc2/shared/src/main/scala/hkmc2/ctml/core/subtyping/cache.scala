@@ -23,7 +23,7 @@ case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):
     //  case _ =>
     //      this.pairs.contains((sub, sup))
 
-    val result = this.pairs.contains(sub.shadow, sup.shadow)
+    val result = this.pairs.contains(sub, sup)
 
     if config.debug.cacheHit && result then
       output(s"CACHE HIT ${sub} ${sup}")
@@ -64,9 +64,9 @@ case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):
           case (TVar(_), TVar(_)) =>
             this.addImpl(sub, sup)
           case (TVar(_), sup) =>
-            this.addImpl(sub, sup.shadow)
+            this.addImpl(sub, sup)
           case (sub, TVar(_)) =>
-            this.addImpl(sub.shadow, sup)
+            this.addImpl(sub, sup)
           // Cache only when one of the types is a type variable.
           // case (TVar(var_), _) =>
           //   val a = this.addImpl(TVar(var_), sup)

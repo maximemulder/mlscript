@@ -1,7 +1,5 @@
 :ctml
 
-:ctml-cfg cache-all
-
 fun foo(a) =
   let b = a
   let c = b

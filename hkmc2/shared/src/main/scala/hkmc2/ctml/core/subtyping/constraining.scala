@@ -66,6 +66,12 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode)
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
 
+  // Handle the reflexion case.
+
+  if sub == sup then
+    debug(s"REFLEXION ${sub} ${sup}")
+    return Clauses.empty
+
   // Normalize negation types.
 
   sub match
@@ -285,8 +291,8 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Constr
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Context, mode: ConstraintMode): Clauses =
-  val (extrudedType, outs) = type_.extrude(var_.level, dir.rightPol)
-  // val (extrudedType, outs) = (type_, Clauses.empty)
+  // val (extrudedType, outs) = type_.extrude(var_.level, dir.rightPol)
+  val (extrudedType, outs) = (type_, Clauses.empty)
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)
@@ -324,6 +330,7 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMo
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode): Clauses =
+  debug(s"SUBTYPE ${sub} <= ${sup}")
   // Instantiating all quantified variables on the same level reduces the number of extrusions.
   val (vars, body) = sup.getUnivComponents
   ctx.withSubtypingLevel(TypeVarKind.Rigid, vars, (freshVars, ctx) =>

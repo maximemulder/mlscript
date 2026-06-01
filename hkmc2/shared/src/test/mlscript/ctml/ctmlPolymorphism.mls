@@ -9,27 +9,30 @@ id(1)
 
 fun apply(f, x) =
   f(x)
-//│ apply: ∀α, β. (α → β) → α → β
+//│ apply: ∀α, β, γ. {α ≤ β → γ} ⟹ α → β → γ
 
 fun double(f, x) =
   f(f(x))
-//│ double: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ
+//│ double: ∀α, β, γ. {α ≤ (∀δ. {α ≤ β → δ} ⟹ δ) → γ} ⟹ α → β → γ
 
 double(id, 1)
-//│ Int
+//│ ∀α. {∀β. β → β ≤ Int → α} ⟹ α
 
 fun foo(a, b) =
   a(1, b)
-//│ foo: ∀α, β. (Int → α → β) → α → β
+//│ foo: ∀α, β, γ. {α ≤ Int → γ, γ ≤ β → ⊤} ⟹ α → β → ⊥
 
 foo((+), 1)
-//│ Int
+//│ ⊥
 
 :te
 foo((++), 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ Int → γ, γ ≤ β → ⊤} ⟹ α → β → ⊥ ≤ (Str → Str → Str) → δ.
 //│ Typing error tree:
-//│   ∀α, β. (Int → α → β) → α → β ≤ (Str → Str → Str) → γ
-//│     (Int → δ → ε) → δ → ε ≤ (Str → Str → Str) → γ
-//│       Str → Str → Str ≤ Int → δ → ε
-//│         Int ≤ Str
+//│   ∀α, β, γ. {α ≤ Int → γ, γ ≤ β → ⊤} ⟹ α → β → ⊥ ≤ (Str → Str → Str) → δ
+//│     {ε ≤ Int → η, η ≤ ζ → ⊤} ⟹ ε → ζ → ⊥ ≤ (Str → Str → Str) → δ
+//│       {η ≤ ζ → ⊤} ⟹ ε → ζ → ⊥ ≤ (Str → Str → Str) → δ
+//│         ε → ζ → ⊥ ≤ (Str → Str → Str) → δ
+//│           Str → Str → Str ≤ ε
+//│             Str → Str → Str ≤ Int → η
+//│               Int ≤ Str

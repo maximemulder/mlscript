@@ -5,13 +5,13 @@ fun fibonacci(n) =
     n
   else
     fibonacci(n - 2) + fibonacci(n - 1)
-//│ fibonacci: Int → Int
+//│ fibonacci: ∀α, β, γ, δ. {α ≥ Int → ({δ ≤ (Int → γ) ∧ (Int → β), γ ≤ Int, β ≤ Int} ⟹ Int), δ ≥ α, δ ≤ (Int → γ) ∧ (Int → β), γ ≤ Int, β ≤ Int} ⟹ Int → Int
 
 fun zero(i) =
   if i == 0
     then i
     else zero(i - 1)
-//│ zero: ∀α. {α ≤ Int} ⟹ α → (Int ∨ α)
+//│ zero: ∀α, β, γ. {α ≥ ∀δ. β → ({γ ≤ Int → δ} ⟹ δ), β ≤ Int, γ ≥ α} ⟹ β → (β ∨ (∀δ. {γ ≤ Int → δ} ⟹ δ))
 
 val infinite = infinite + 1
 //│ infinite: Int

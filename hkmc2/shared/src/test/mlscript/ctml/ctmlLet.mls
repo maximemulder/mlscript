@@ -54,7 +54,7 @@ baz(true, false)
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ, δ. {α ≤ ({γ ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, δ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, δ ≥ Str} ⟹ Str), γ ≤ ({α ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, δ ≥ Str} ⟹ Str), γ ≥ β, δ ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str)} ⟹ α → β → (({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str))
+//│ bop: ∀α, β, γ, δ. {α ≤ ({γ ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, δ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, δ ≥ Str} ⟹ Str), γ ≥ β, γ ≤ ({α ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str)} ⟹ α → β → (({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str))
 
 :fixme
 // bop(0, 1)

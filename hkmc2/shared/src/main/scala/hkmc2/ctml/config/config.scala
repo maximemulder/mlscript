@@ -35,6 +35,9 @@ class Config:
   /** Whether to cache only type variable bounds or all subtyping relations. */
   var cacheMode = CacheMode.Var
 
+  /** Whether to use type variable shadows in the cache. */
+  var cacheShadow = true
+
   /** Whether to check constraint coherence during subtyping reconstruction. */
   var reconstructCoherence = false
 

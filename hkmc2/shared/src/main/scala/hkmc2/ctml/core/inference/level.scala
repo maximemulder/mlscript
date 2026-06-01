@@ -66,13 +66,13 @@ extension (ctx: Context)
       return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
 
     if polarities == Polarities(false, true) then
-      if var_.isRecursive(Polarity.Positive) then
+      if var_.isIndirectRecursive(Polarity.Positive) then
         return debugVarAction(var_, VarAction.Quantify, "recursive")
 
       return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
 
     if polarities == Polarities(true, false) then
-      if var_.isRecursive(Polarity.Negative) then
+      if var_.isIndirectRecursive(Polarity.Negative) then
         return debugVarAction(var_, VarAction.Quantify, "recursive")
 
       return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")

@@ -28,11 +28,3 @@ extension (ctx: Context)
           break(Order.Lesser)
 
       throw new TypeError(Some(s"Type variable '${left}' or '${right}' not found in the context."))
-
-  /** Check whether a type variable is recursive, that is, whether it appears in its own bounds. */
-  def isVarRecursive(var_ : TypeVar, pol: Polarity): Boolean =
-    var_.getDependencies(pol)(using ctx).toSet.contains(var_)
-// ctx.varBounds(var_)
-    //   .map((bound) => bound.type_.containsVar(var_))
-    //   .foldM()(using AnyMonoid)
-

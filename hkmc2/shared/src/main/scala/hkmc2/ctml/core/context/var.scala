@@ -96,10 +96,6 @@ extension (var_ : TypeVar)(using ctx: Context)
   def origin: Option[TypeVar] =
     ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.origin)
 
-  /** Check whether the type variable is recursive. */
-  def isRecursive(pol: Polarity): Boolean =
-    ctx.isVarRecursive(var_, pol)
-
   /** Get the bound of a type variable in a given direction. */
   def bound(dir: Direction) =
     ctx.getVarBound(var_, dir)

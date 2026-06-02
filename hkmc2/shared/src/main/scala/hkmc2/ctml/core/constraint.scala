@@ -7,18 +7,6 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*
 
-/** Make a type prettier by lifting universal types and constrained types above function types. */
-def makePrettyType(type_ : Type): Type =
-  type_ match
-    case TLam(param, TUniv(var_, body)) =>
-      TUniv(var_, makePrettyType(TLam(param, body)))
-    case TLam(param, TConstrained(body, constraint)) =>
-      TConstrained(makePrettyType(TLam(param, body)), constraint)
-    case TLam(param, TConstraining(body, constraint)) =>
-      TConstraining(makePrettyType(TLam(param, body)), constraint)
-    case _ =>
-      type_
-
 /** Make a negation type, simplifying it if possible. */
 def makeNegationType(body: Type): Type =
   body.negate()

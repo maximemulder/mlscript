@@ -1,256 +1,1287 @@
 :ctml
 
-:ctml-dbg infer var constrain
+:ctml-dbg constrain infer var check inline context
 
-fun zero(i) =
-  if i == 0
-    then i
-    else zero(i - 1)
-//│ infer EApp(EVar(fix),ELam(zero,ELam(i,EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int)))))))
-//│   infer EVar(fix)
+fun g9(x) = if true then x else g9(g9)(x)
+//│ infer EApp(EVar(fix),ELam(g9,ELam(x,EApp(EApp(EApp(EVar(_if_),EVar(bool)),EVar(x)),EApp(EApp(EVar(g9),EVar(g9)),EVar(x)))))) in 
+//│   infer EVar(fix) in 
 //│   OK ∀A. (A → A) → A ⇝ ∅
-//│   infer ELam(zero,ELam(i,EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int))))))
+//│   infer ELam(g9,ELam(x,EApp(EApp(EApp(EVar(_if_),EVar(bool)),EVar(x)),EApp(EApp(EVar(g9),EVar(g9)),EVar(x))))) in 
 //│     0 flex infer level 2
-//│     infer ELam(i,EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int)))))
+//│     infer ELam(x,EApp(EApp(EApp(EVar(_if_),EVar(bool)),EVar(x)),EApp(EApp(EVar(g9),EVar(g9)),EVar(x)))) in g9: 0, 0 flex (2)
 //│       1 flex infer level 3
-//│       infer EApp(EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i)),EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int))))
-//│         infer EApp(EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int))),EVar(i))
-//│           infer EApp(EVar(_if_),EApp(EApp(EVar(==),EVar(i)),EVar(int)))
-//│             infer EVar(_if_)
+//│       infer EApp(EApp(EApp(EVar(_if_),EVar(bool)),EVar(x)),EApp(EApp(EVar(g9),EVar(g9)),EVar(x))) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         infer EApp(EApp(EVar(_if_),EVar(bool)),EVar(x)) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           infer EApp(EVar(_if_),EVar(bool)) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             infer EVar(_if_) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│             OK ∀A. Bool → A → A → A ⇝ ∅
-//│             infer EApp(EApp(EVar(==),EVar(i)),EVar(int))
-//│               infer EApp(EVar(==),EVar(i))
-//│                 infer EVar(==)
-//│                 OK ∀A. A → A → Bool ⇝ ∅
-//│                 infer EVar(i)
-//│                 OK 1 ⇝ ∅
-//│                 2 flex infer level 4
-//│                 constrain ∀A. A → A → Bool ≤ 1 → 2
-//│                   3 flex freshen A level 5
-//│                   constrain 3 → 3 → Bool ≤ 1 → 2
-//│                     constrain 1 ≤ 3
-//│                       constrain 1 ≤ ⊤
-//│                       OK ⇝ ∅
-//│                       constrain ⊥ ≤ ⊤
-//│                       OK ⇝ ∅
-//│                     OK ⇝ 3 ≥ 1
-//│                     constrain 3 → Bool ≤ 2
-//│                       constrain 3 → Bool ≤ ⊤
-//│                       OK ⇝ ∅
-//│                     OK ⇝ 2 ≥ 3 → Bool
-//│                   OK ⇝ 2 ≥ 3 → Bool, 3 ≥ 1
-//│                 OK ⇝ 2 ≥ 3 → Bool, 3 ≥ 1, 3 flex (5)
-//│                 inline 2 (polarities Polarities(false,true)) in 2
-//│                 inline 3 (polarities Polarities(true,false)) in 2
-//│               OK ⊤ → Bool ⇝ ∅
-//│               infer EVar(int)
-//│               OK Int ⇝ ∅
-//│               4 flex infer level 4
-//│               constrain ⊤ → Bool ≤ Int → 4
-//│                 constrain Int ≤ ⊤
-//│                 OK ⇝ ∅
-//│                 constrain Bool ≤ 4
-//│                   constrain Bool ≤ ⊤
-//│                   OK ⇝ ∅
-//│                 OK ⇝ 4 ≥ Bool
-//│               OK ⇝ 4 ≥ Bool
-//│               inline 4 (polarities Polarities(false,true)) in 4
+//│             infer EVar(bool) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│             OK Bool ⇝ ∅
-//│             5 flex infer level 4
-//│             constrain ∀A. Bool → A → A → A ≤ Bool → 5
-//│               6 flex freshen A level 5
-//│               constrain Bool → 6 → 6 → 6 ≤ Bool → 5
-//│                 constrain Bool ≤ Bool
-//│                   REFLEXION Bool Bool
+//│             2 flex infer level 4
+//│             constrain ∀A. Bool → A → A → A ≤ Bool → 2 in 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               3 flex freshen A level 5
+//│               constrain Bool → 3 → 3 → 3 ≤ Bool → 2 in 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain Bool ≤ Bool in 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│                 OK ⇝ ∅
-//│                 constrain 6 → 6 → 6 ≤ 5
-//│                   constrain 6 → 6 → 6 ≤ ⊤
+//│                 constrain 3 → 3 → 3 ≤ 2 in 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                   constrain 3 → 3 → 3 ≤ ⊤ in 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│                   OK ⇝ ∅
-//│                 OK ⇝ 5 ≥ 6 → 6 → 6
-//│               OK ⇝ 5 ≥ 6 → 6 → 6
-//│             OK ⇝ 5 ≥ 6 → 6 → 6, 6 flex (5)
-//│             inline 5 (polarities Polarities(false,true)) in 5
-//│             quantify 6 (default) in 5
-//│             quantify 6 (default) in 6 → 6 → 6
-//│             quantify 6 (default) in 6 → 6 → 6
-//│           OK ∀6. 6 → 6 → 6 ⇝ ∅
-//│           infer EVar(i)
+//│                   check 3 → 3 → 3 ≤ ⊥ in 3 rigid (5), 2 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   FAIL
+//│                   check ⊥ ≤ 3 → 3 → 3 in 3 rigid (5), 2 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 2 ≥ 3 → 3 → 3
+//│               OK ⇝ 2 ≥ 3 → 3 → 3
+//│             OK ⇝ 2 ≥ 3 → 3 → 3, 3 flex (5)
+//│             inline 2 (polarities Polarities(false,true)) in 2 in 2 ≥ 3 → 3 → 3, 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             check ⊥ ≤ ⊤ in 2 ≥ 3 → 3 → 3, 3 rigid (5), 2 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             OK ⇝ ∅
+//│             check ⊤ ≤ ⊥ in 2 ≥ 3 → 3 → 3, 3 rigid (5), 2 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             FAIL
+//│             quantify 3 (default) in 2 in 2 ≥ 3 → 3 → 3, 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             inline 2 in 2 in 2 ≥ 3 → 3 → 3, 3 flex (5), 2 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             = 3 → 3 → 3
+//│             check ⊥ ≤ ⊤ in 3 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             OK ⇝ ∅
+//│             check ⊤ ≤ ⊥ in 3 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             FAIL
+//│             quantify 3 (default) in 3 → 3 → 3 in 3 flex (5), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             check ⊥ ≤ ⊤ in 3 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             OK ⇝ ∅
+//│             check ⊤ ≤ ⊥ in 3 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             FAIL
+//│             quantify 3 (default) in 3 → 3 → 3 in 3 flex (5), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           OK ∀3. 3 → 3 → 3 ⇝ ∅
+//│           infer EVar(x) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           OK 1 ⇝ ∅
+//│           4 flex infer level 4
+//│           constrain ∀3. 3 → 3 → 3 ≤ 1 → 4 in 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             5 flex freshen 3 level 5
+//│             constrain 5 → 5 → 5 ≤ 1 → 4 in 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               constrain 1 ≤ 5 in 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain 1 ≤ ⊤ in 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 OK ⇝ ∅
+//│                 check 1 ≤ ⊥ in 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   check ⊤ ≤ ⊥ in 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   FAIL
+//│                 FAIL
+//│                 check ⊥ ≤ 1 in 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 OK ⇝ ∅
+//│                 constrain ⊥ ≤ ⊤ in 5 ≥ 1, 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ 5 ≥ 1
+//│               constrain 5 → 5 ≤ 4 in 5 ≥ 1, 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain 5 → 5 ≤ ⊤ in 5 ≥ 1, 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 OK ⇝ ∅
+//│                 check 5 → 5 ≤ ⊥ in 5 ≥ 1, 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 FAIL
+//│                 check ⊥ ≤ 5 → 5 in 5 ≥ 1, 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ 4 ≥ 5 → 5
+//│             OK ⇝ 4 ≥ 5 → 5, 5 ≥ 1
+//│           OK ⇝ 4 ≥ 5 → 5, 5 ≥ 1, 5 flex (5)
+//│           inline 4 (polarities Polarities(false,true)) in 4 in 4 ≥ 5 → 5, 5 ≥ 1, 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           check 1 ≤ ⊤ in 4 ≥ 5 → 5, 5 ≥ 1, 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│           OK ⇝ ∅
+//│           check ⊤ ≤ 1 in 4 ≥ 5 → 5, 5 ≥ 1, 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             check ⊤ ≤ ⊥ in 4 ≥ 5 → 5, 5 ≥ 1, 5 rigid (5), 4 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             FAIL
+//│           FAIL
+//│           quantify 5 (default) in 4 in 4 ≥ 5 → 5, 5 ≥ 1, 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           inline 4 in 4 in 4 ≥ 5 → 5, 5 ≥ 1, 5 flex (5), 4 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           = 5 → 5
+//│           check 1 ≤ ⊤ in 5 ≥ 1, 5 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│           OK ⇝ ∅
+//│           check ⊤ ≤ 1 in 5 ≥ 1, 5 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             check ⊤ ≤ ⊥ in 5 ≥ 1, 5 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             FAIL
+//│           FAIL
+//│           quantify 5 (default) in 5 → 5 in 5 ≥ 1, 5 flex (5), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           check 1 ≤ ⊤ in 5 ≥ 1, 5 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│           OK ⇝ ∅
+//│           check ⊤ ≤ 1 in 5 ≥ 1, 5 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             check ⊤ ≤ ⊥ in 5 ≥ 1, 5 rigid (5), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│             FAIL
+//│           FAIL
+//│           quantify 5 (default) in 5 → 5 in 5 ≥ 1, 5 flex (5), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         OK ∀5. {5 ≥ 1} ⟹ 5 → 5 ⇝ ∅
+//│         infer EApp(EApp(EVar(g9),EVar(g9)),EVar(x)) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           infer EApp(EVar(g9),EVar(g9)) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             infer EVar(g9) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             OK 0 ⇝ ∅
+//│             infer EVar(g9) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             OK 0 ⇝ ∅
+//│             6 flex infer level 4
+//│             constrain 0 ≤ 0 → 6 in 6 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               constrain ⊥ ≤ 0 → 6 in 6 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               OK ⇝ ∅
+//│               check ⊤ ≤ 0 → 6 in 6 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│               FAIL
+//│               check 0 → 6 ≤ ⊤ in 6 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│               OK ⇝ ∅
+//│             OK ⇝ 0 ≤ 0 → 6
+//│             quantify 6 (bound at lower level) in 6 in 0 ≤ 0 → 6, 6 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             quantify 6 (bound at lower level) in 6 in 0 ≤ 0 → 6, 6 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           OK ∀6. {0 ≤ 0 → 6} ⟹ 6 ⇝ ∅
+//│           infer EVar(x) in x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│           OK 1 ⇝ ∅
 //│           7 flex infer level 4
-//│           constrain ∀6. 6 → 6 → 6 ≤ 1 → 7
+//│           constrain ∀6. {0 ≤ 0 → 6} ⟹ 6 ≤ 1 → 7 in 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│             8 flex freshen 6 level 5
-//│             constrain 8 → 8 → 8 ≤ 1 → 7
-//│               constrain 1 ≤ 8
-//│                 constrain 1 ≤ ⊤
+//│             constrain {0 ≤ 0 → 8} ⟹ 8 ≤ 1 → 7 in 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               constrain 0 ≤ 0 → 8 in 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain ⊥ ≤ 0 → 8 in 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│                 OK ⇝ ∅
-//│                 constrain ⊥ ≤ ⊤
+//│                 check ⊤ ≤ 0 → 8 in 8 rigid (5), 7 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 FAIL
+//│                 check 0 → 8 ≤ ⊤ in 8 rigid (5), 7 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
 //│                 OK ⇝ ∅
-//│               OK ⇝ 8 ≥ 1
-//│               constrain 8 → 8 ≤ 7
-//│                 constrain 8 → 8 ≤ ⊤
+//│               OK ⇝ 0 ≤ 0 → 8
+//│               constrain 8 ≤ 1 → 7 in 0 ≤ 0 → 8, 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain ⊥ ≤ 1 → 7 in 0 ≤ 0 → 8, 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│                 OK ⇝ ∅
-//│               OK ⇝ 7 ≥ 8 → 8
-//│             OK ⇝ 7 ≥ 8 → 8, 8 ≥ 1
-//│           OK ⇝ 7 ≥ 8 → 8, 8 ≥ 1, 8 flex (5)
-//│           inline 7 (polarities Polarities(false,true)) in 7
-//│           quantify 8 (default) in 7
-//│           quantify 8 (default) in 8 → 8
-//│           quantify 8 (default) in 8 → 8
-//│         OK ∀8. {8 ≥ 1} ⟹ 8 → 8 ⇝ ∅
-//│         infer EApp(EVar(zero),EApp(EApp(EVar(-),EVar(i)),EVar(int)))
-//│           infer EVar(zero)
-//│           OK 0 ⇝ ∅
-//│           infer EApp(EApp(EVar(-),EVar(i)),EVar(int))
-//│             infer EApp(EVar(-),EVar(i))
-//│               infer EVar(-)
-//│               OK Int → Int → Int ⇝ ∅
-//│               infer EVar(i)
-//│               OK 1 ⇝ ∅
-//│               9 flex infer level 4
-//│               constrain Int → Int → Int ≤ 1 → 9
-//│                 constrain 1 ≤ Int
-//│                   constrain ⊥ ≤ Int
-//│                   OK ⇝ ∅
-//│                 OK ⇝ 1 ≤ Int
-//│                 constrain Int → Int ≤ 9
-//│                   constrain Int → Int ≤ ⊤
-//│                   OK ⇝ ∅
-//│                 OK ⇝ 9 ≥ Int → Int
-//│               OK ⇝ 9 ≥ Int → Int, 1 ≤ Int
-//│               inline 9 (polarities Polarities(false,true)) in 9
-//│             OK Int → Int ⇝ 1 ≤ Int
-//│             infer EVar(int)
-//│             OK Int ⇝ ∅
-//│             10 flex infer level 4
-//│             constrain Int → Int ≤ Int → 10
-//│               constrain Int ≤ Int
-//│                 REFLEXION Int Int
+//│                 check ⊤ ≤ 1 → 7 in 0 ≤ 0 → 8, 8 rigid (5), 7 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 FAIL
+//│                 check 1 → 7 ≤ ⊤ in 0 ≤ 0 → 8, 8 rigid (5), 7 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ 8 ≤ 1 → 7
+//│             OK ⇝ 8 ≤ 1 → 7, 0 ≤ 0 → 8
+//│           OK ⇝ 8 ≤ 1 → 7, 0 ≤ 0 → 8, 8 flex (5)
+//│           quantify 7 (bound at lower level) in 7 in 8 ≤ 1 → 7, 0 ≤ 0 → 8, 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           quantify 8 (bound at lower level) in 7 in 8 ≤ 1 → 7, 0 ≤ 0 → 8, 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           quantify 7 (bound at lower level) in 7 in 8 ≤ 1 → 7, 0 ≤ 0 → 8, 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           quantify 8 (bound at lower level) in 7 in 8 ≤ 1 → 7, 0 ≤ 0 → 8, 8 flex (5), 7 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         OK ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ⇝ ∅
+//│         9 flex infer level 4
+//│         constrain ∀5. {5 ≥ 1} ⟹ 5 → 5 ≤ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) → 9 in 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│           10 flex freshen 5 level 5
+//│           constrain {10 ≥ 1} ⟹ 10 → 10 ≤ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) → 9 in 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│             constrain 1 ≤ 10 in 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               constrain 1 ≤ ⊤ in 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│               OK ⇝ ∅
-//│               constrain Int ≤ 10
-//│                 constrain Int ≤ ⊤
-//│                 OK ⇝ ∅
-//│               OK ⇝ 10 ≥ Int
-//│             OK ⇝ 10 ≥ Int
-//│             inline 10 (polarities Polarities(false,true)) in 10
-//│           OK Int ⇝ 1 ≤ Int
-//│           11 flex infer level 4
-//│           constrain 0 ≤ Int → 11
-//│             constrain ⊥ ≤ Int → 11
-//│             OK ⇝ ∅
-//│           OK ⇝ 0 ≤ Int → 11
-//│           quantify 11 (bound at lower level) in 11
-//│           quantify 11 (bound at lower level) in 11
-//│         OK ∀11. {0 ≤ Int → 11} ⟹ 11 ⇝ 1 ≤ Int
-//│         12 flex infer level 4
-//│         constrain ∀8. {8 ≥ 1} ⟹ 8 → 8 ≤ (∀11. {0 ≤ Int → 11} ⟹ 11) → 12
-//│           13 flex freshen 8 level 5
-//│           constrain {13 ≥ 1} ⟹ 13 → 13 ≤ (∀11. {0 ≤ Int → 11} ⟹ 11) → 12
-//│             constrain 1 ≤ 13
-//│               constrain 1 ≤ ⊤
+//│               check 1 ≤ ⊥ in 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 check ⊤ ≤ ⊥ in 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                 FAIL
+//│               FAIL
+//│               check ⊥ ≤ 1 in 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
 //│               OK ⇝ ∅
-//│               constrain ⊥ ≤ Int
+//│               constrain ⊥ ≤ ⊤ in 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│               OK ⇝ ∅
-//│             OK ⇝ 13 ≥ 1
-//│             constrain 13 → 13 ≤ (∀11. {0 ≤ Int → 11} ⟹ 11) → 12
-//│               constrain ∀11. {0 ≤ Int → 11} ⟹ 11 ≤ 13
-//│                 constrain ∀11. {0 ≤ Int → 11} ⟹ 11 ≤ ⊤
+//│             OK ⇝ 10 ≥ 1
+//│             constrain 10 → 10 ≤ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) → 9 in 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│               constrain ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ≤ 10 in 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ≤ ⊤ in 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│                 OK ⇝ ∅
-//│                 14 flex freshen 11 level 6
-//│                 15 rigid freshen 11 level 6
-//│                 16 flex freshen 11 level 6
-//│               OK ⇝ 13 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11)
-//│               constrain 13 ≤ 12
-//│                 constrain 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11) ≤ 12
-//│                   constrain 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11) ≤ ⊤
+//│                 check ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ≤ 1 in 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   check ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ≤ ⊥ in 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                     11 flex freshen 7 level 6
+//│                     12 flex freshen 8 level 6
+//│                     check {0 ≤ 0 → 12, 12 ≤ 1 → 11} ⟹ 11 ≤ ⊥ in 12 flex (6), 11 flex (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                       check 0 ≤ 0 → 12 in 12 flex (6), 11 flex (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         check ⊤ ≤ 0 → 12 in 12 flex (6), 11 flex (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         FAIL
+//│                       FAIL
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│                 check 1 ≤ ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 in 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   check ⊤ ≤ ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 in 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                     13 rigid freshen 7 level 6
+//│                     14 rigid freshen 8 level 6
+//│                     check ⊤ ≤ {0 ≤ 0 → 14, 14 ≤ 1 → 13} ⟹ 13 in 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                       check 0 ≤ 0 → 14 in 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         check ⊥ ≤ 0 → 14 in 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         OK ⇝ ∅
+//│                         check ⊤ ≤ 0 → 14 in 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         FAIL
+//│                         check 0 → 14 ≤ ⊤ in 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         OK ⇝ ∅
+//│                       OK ⇝ 0 ≤ 0 → 14
+//│                       check ⊤ ≤ {14 ≤ 1 → 13} ⟹ 13 in 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         check 14 ≤ 1 → 13 in 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                           check ⊥ ≤ 1 → 13 in 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                           OK ⇝ ∅
+//│                           check ⊤ ≤ 1 → 13 in 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                           FAIL
+//│                           check 1 → 13 ≤ ⊤ in 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ 14 ≤ 1 → 13
+//│                         check ⊤ ≤ 13 in 14 ≤ 1 → 13, 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                           check ⊤ ≤ ⊥ in 14 ≤ 1 → 13, 0 ≤ 0 → 14, 14 rigid (6), 13 rigid (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                           FAIL
+//│                         FAIL
+//│                       FAIL
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│                 check ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ≤ 1 in 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   check ∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7 ≤ ⊥ in 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                     15 flex freshen 7 level 6
+//│                     16 flex freshen 8 level 6
+//│                     check {0 ≤ 0 → 16, 16 ≤ 1 → 15} ⟹ 15 ≤ ⊥ in 16 flex (6), 15 flex (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                       check 0 ≤ 0 → 16 in 16 flex (6), 15 flex (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         check ⊤ ≤ 0 → 16 in 16 flex (6), 15 flex (6), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                         FAIL
+//│                       FAIL
+//│                     FAIL
+//│                   FAIL
+//│                 FAIL
+//│               OK ⇝ 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7)
+//│               constrain 10 ≤ 9 in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 constrain 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) ≤ 9 in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                   constrain 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) ≤ ⊤ in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
 //│                   OK ⇝ ∅
-//│                 OK ⇝ 12 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11)
-//│                 constrain ⊥ ≤ ⊤
+//│                   check 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) ≤ ⊥ in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                     check 1 ≤ ⊥ in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                       check ⊤ ≤ ⊥ in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                       FAIL
+//│                     FAIL
+//│                   FAIL
+//│                   check ⊥ ≤ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7)
+//│                 check ⊤ ≤ 9 in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   check ⊤ ≤ ⊥ in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
+//│                   FAIL
+//│                 FAIL
+//│                 check 9 ≤ ⊤ in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 rigid (5), 9 rigid (4), x: 1, 1 rigid (3), g9: 0, 0 rigid (2)
 //│                 OK ⇝ ∅
-//│               OK ⇝ 13 ≤ 12, 12 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11)
-//│             OK ⇝ 13 ≤ 12, 12 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11), 13 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11)
-//│           OK ⇝ 13 ≤ 12, 12 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11), 13 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11), 13 ≥ 1
-//│         OK ⇝ 13 ≤ 12, 12 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11), 13 ≥ 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11), 13 ≥ 1, 13 flex (5)
-//│         inline 12 (polarities Polarities(false,true)) in 12
-//│         inline 13 (polarities Polarities(false,false)) in 12
-//│         11 rigid level 6
-//│         11 rigid level 6
-//│         11 rigid level 6
-//│         11 rigid level 6
-//│       OK 1 ∨ (∀11. {0 ≤ Int → 11} ⟹ 11) ⇝ 1 ≤ Int
-//│       constrain 0 ≤ Int → 11
-//│         constrain ⊥ ≤ Int → 11
+//│                 constrain ⊥ ≤ ⊤ in 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7)
+//│             OK ⇝ 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7)
+//│           OK ⇝ 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1
+//│         OK ⇝ 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5)
+//│         inline 9 (polarities Polarities(false,true)) in 9 in 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         inline 10 (polarities Polarities(false,false)) in 9 in 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         inline 9 in 9 in 10 ≤ 9, 9 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), 9 flex (4), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         7 rigid level 6
+//│         8 rigid level 7
+//│         7 rigid level 6
+//│         8 rigid level 7
+//│         = 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7)
+//│         inline 10 in 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) in 10 ≥ 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7), 10 ≥ 1, 10 flex (5), x: 1, 1 flex (3), g9: 0, 0 flex (2)
+//│         7 rigid level 6
+//│         8 rigid level 7
+//│         7 rigid level 6
+//│         8 rigid level 7
+//│         = 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7)
+//│       OK 1 ∨ (∀7, 8. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 7) ⇝ ∅
+//│       constrain 8 ≤ 1 → 7 in 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│         constrain ⊥ ≤ 1 → 7 in 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
 //│         OK ⇝ ∅
-//│       OK ⇝ 0 ≤ Int → 11
-//│       quantify 1 (default) in 1 → (1 ∨ 11)
-//│       quantify 11 (bound at lower level) in 1 → (1 ∨ 11)
-//│       quantify 1 (default) in 1 → (1 ∨ 11)
-//│       quantify 11 (bound at lower level) in 1 → (1 ∨ 11)
-//│     OK ∀1, 11. {0 ≤ Int → 11, 1 ≤ Int} ⟹ 1 → (1 ∨ 11) ⇝ ∅
-//│     constrain 1 ≤ Int
-//│       constrain ⊥ ≤ Int
+//│         check ⊤ ≤ 1 → 7 in 7 rigid (3), 8 rigid (3), 1 rigid (3), g9: 0, 0 rigid (2)
+//│         FAIL
+//│         check 1 → 7 ≤ ⊤ in 7 rigid (3), 8 rigid (3), 1 rigid (3), g9: 0, 0 rigid (2)
+//│         OK ⇝ ∅
+//│       OK ⇝ 8 ≤ 1 → 7
+//│       constrain 0 ≤ 0 → 8 in 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│         constrain ⊥ ≤ 0 → 8 in 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│         OK ⇝ ∅
+//│         check ⊤ ≤ 0 → 8 in 8 ≤ 1 → 7, 7 rigid (3), 8 rigid (3), 1 rigid (3), g9: 0, 0 rigid (2)
+//│         FAIL
+//│         check 0 → 8 ≤ ⊤ in 8 ≤ 1 → 7, 7 rigid (3), 8 rigid (3), 1 rigid (3), g9: 0, 0 rigid (2)
+//│         OK ⇝ ∅
+//│       OK ⇝ 0 ≤ 0 → 8
+//│       quantify 1 (bound at lower level) in 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│       quantify 8 (bound at lower level) in 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│       quantify 7 (bound at lower level) in 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│       quantify 1 (bound at lower level) in 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│       quantify 8 (bound at lower level) in 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│       quantify 7 (bound at lower level) in 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 7 flex (3), 8 flex (3), 1 flex (3), g9: 0, 0 flex (2)
+//│     OK ∀1, 8, 7. {0 ≤ 0 → 8, 8 ≤ 1 → 7} ⟹ 1 → (1 ∨ 7) ⇝ ∅
+//│     constrain 8 ≤ 1 → 7 in 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│       constrain ⊥ ≤ 1 → 7 in 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
 //│       OK ⇝ ∅
-//│     OK ⇝ 1 ≤ Int
-//│     constrain 0 ≤ Int → 11
-//│       constrain ⊥ ≤ Int → 11
+//│       check ⊤ ≤ 1 → 7 in 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│       FAIL
+//│       check 1 → 7 ≤ ⊤ in 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
 //│       OK ⇝ ∅
-//│     OK ⇝ 0 ≤ Int → 11
-//│     inline 0 (polarities Polarities(true,false)) in 0 → 1 → (1 ∨ 11)
-//│     quantify 11 (default) in 0 → 1 → (1 ∨ 11)
-//│     quantify 1 (default) in 0 → 1 → (1 ∨ 11)
-//│     quantify 11 (default) in (Int → 11) → 1 → (1 ∨ 11)
-//│     quantify 1 (default) in (Int → 11) → 1 → (1 ∨ 11)
-//│     quantify 11 (default) in (Int → 11) → 1 → (1 ∨ 11)
-//│     quantify 1 (default) in (Int → 11) → 1 → (1 ∨ 11)
-//│   OK ∀11, 1. {1 ≤ Int} ⟹ (Int → 11) → 1 → (1 ∨ 11) ⇝ ∅
+//│     OK ⇝ 8 ≤ 1 → 7
+//│     constrain 0 ≤ 0 → 8 in 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│       constrain ⊥ ≤ 0 → 8 in 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│       OK ⇝ ∅
+//│       check ⊤ ≤ 0 → 8 in 8 ≤ 1 → 7, 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│       FAIL
+//│       check 0 → 8 ≤ ⊤ in 8 ≤ 1 → 7, 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│       OK ⇝ ∅
+//│     OK ⇝ 0 ≤ 0 → 8
+//│     quantify 0 (recursive) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│     check ⊥ ≤ ⊤ in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ ⊥ in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     FAIL
+//│     quantify 7 (default) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│     inline 8 (polarities Polarities(true,false)) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│     check ⊥ ≤ ⊤ in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ ⊥ in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 rigid (2), 8 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     FAIL
+//│     quantify 1 (default) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│     inline 8 in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 8, 8 ≤ 1 → 7, 1 flex (2), 8 flex (2), 7 flex (2), 0 flex (2)
+//│     = 0 → 1 → (1 ∨ 7)
+//│     quantify 0 (recursive) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 1 → 7, 1 flex (2), 7 flex (2), 0 flex (2)
+//│     check ⊥ ≤ ⊤ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ ⊥ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     FAIL
+//│     quantify 7 (default) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 1 → 7, 1 flex (2), 7 flex (2), 0 flex (2)
+//│     check ⊥ ≤ ⊤ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ ⊥ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     FAIL
+//│     quantify 1 (default) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 1 → 7, 1 flex (2), 7 flex (2), 0 flex (2)
+//│     quantify 0 (recursive) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 1 → 7, 1 flex (2), 7 flex (2), 0 flex (2)
+//│     check ⊥ ≤ ⊤ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ ⊥ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     FAIL
+//│     quantify 7 (default) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 1 → 7, 1 flex (2), 7 flex (2), 0 flex (2)
+//│     check ⊥ ≤ ⊤ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     OK ⇝ ∅
+//│     check ⊤ ≤ ⊥ in 0 ≤ 0 → 1 → 7, 1 rigid (2), 7 rigid (2), 0 rigid (2)
+//│     FAIL
+//│     quantify 1 (default) in 0 → 1 → (1 ∨ 7) in 0 ≤ 0 → 1 → 7, 1 flex (2), 7 flex (2), 0 flex (2)
+//│   OK ∀0, 7, 1. {0 ≤ 0 → 1 → 7} ⟹ 0 → 1 → (1 ∨ 7) ⇝ ∅
 //│   17 flex infer level 2
-//│   constrain ∀A. (A → A) → A ≤ (∀11, 1. {1 ≤ Int} ⟹ (Int → 11) → 1 → (1 ∨ 11)) → 17
+//│   constrain ∀A. (A → A) → A ≤ (∀0, 7, 1. {0 ≤ 0 → 1 → 7} ⟹ 0 → 1 → (1 ∨ 7)) → 17 in 17 flex (2)
 //│     18 flex freshen A level 3
-//│     constrain (18 → 18) → 18 ≤ (∀11, 1. {1 ≤ Int} ⟹ (Int → 11) → 1 → (1 ∨ 11)) → 17
-//│       constrain ∀11, 1. {1 ≤ Int} ⟹ (Int → 11) → 1 → (1 ∨ 11) ≤ 18 → 18
-//│         19 flex freshen 11 level 4
-//│         20 flex freshen 1 level 4
-//│         constrain {20 ≤ Int} ⟹ (Int → 19) → 20 → (20 ∨ 19) ≤ 18 → 18
-//│           constrain 20 ≤ Int
-//│             constrain ⊥ ≤ Int
+//│     constrain (18 → 18) → 18 ≤ (∀0, 7, 1. {0 ≤ 0 → 1 → 7} ⟹ 0 → 1 → (1 ∨ 7)) → 17 in 18 flex (3), 17 flex (2)
+//│       constrain ∀0, 7, 1. {0 ≤ 0 → 1 → 7} ⟹ 0 → 1 → (1 ∨ 7) ≤ 18 → 18 in 18 flex (3), 17 flex (2)
+//│         19 flex freshen 0 level 4
+//│         20 flex freshen 7 level 4
+//│         21 flex freshen 1 level 4
+//│         constrain {19 ≤ 19 → 21 → 20} ⟹ 19 → 21 → (21 ∨ 20) ≤ 18 → 18 in 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│           constrain 19 ≤ 19 → 21 → 20 in 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│             constrain ⊥ ≤ 19 → 21 → 20 in 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
 //│             OK ⇝ ∅
-//│           OK ⇝ 20 ≤ Int
-//│           constrain (Int → 19) → 20 → (20 ∨ 19) ≤ 18 → 18
-//│             constrain 18 ≤ Int → 19
-//│               constrain ⊥ ≤ Int → 19
+//│             check ⊤ ≤ 19 → 21 → 20 in 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             FAIL
+//│             check 19 → 21 → 20 ≤ ⊤ in 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             OK ⇝ ∅
+//│           OK ⇝ 19 ≤ 19 → 21 → 20
+//│           constrain 19 → 21 → (21 ∨ 20) ≤ 18 → 18 in 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│             constrain 18 ≤ 19 in 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│               constrain 18 ≤ 19 → 21 → 20 in 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                 constrain ⊥ ≤ 19 → 21 → 20 in 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                 OK ⇝ ∅
+//│                 check ⊤ ≤ 19 → 21 → 20 in 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 FAIL
+//│                 check 19 → 21 → 20 ≤ ⊤ in 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ 18 ≤ 19 → 21 → 20
+//│               check 18 ≤ ⊥ in 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check ⊤ ≤ ⊥ in 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 FAIL
+//│               FAIL
+//│               check ⊥ ≤ 18 in 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
 //│               OK ⇝ ∅
-//│             OK ⇝ 18 ≤ Int → 19
-//│             constrain 20 → (20 ∨ 19) ≤ 18
-//│               constrain 20 → (20 ∨ 19) ≤ Int → 19
-//│                 constrain Int ≤ 20
-//│                   constrain Int ≤ Int
-//│                     REFLEXION Int Int
+//│               constrain ⊥ ≤ ⊤ in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│               OK ⇝ ∅
+//│             OK ⇝ 19 ≥ 18, 18 ≤ 19 → 21 → 20
+//│             constrain 21 → (21 ∨ 20) ≤ 18 in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│               constrain 21 → (21 ∨ 20) ≤ 19 → 21 → 20 in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                 constrain 19 ≤ 21 in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                   constrain 19 ≤ ⊤ in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
 //│                   OK ⇝ ∅
-//│                 OK ⇝ 20 ≥ Int
-//│                 constrain 20 ∨ 19 ≤ 19
-//│                   constrain 20 ∨ 19 ≤ ⊤
+//│                   check 19 ≤ ⊥ in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 19 → 21 → 20 ≤ ⊥ in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     FAIL
+//│                   FAIL
+//│                   check ⊥ ≤ 19 in 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
 //│                   OK ⇝ ∅
-//│                 OK ⇝ 19 ≥ 20 ∨ 19
-//│               OK ⇝ 19 ≥ 20 ∨ 19, 20 ≥ Int
-//│             OK ⇝ 18 ≥ 20 → (20 ∨ 19), 19 ≥ 20 ∨ 19, 20 ≥ Int
-//│           OK ⇝ 18 ≥ 20 → (20 ∨ 19), 19 ≥ 20 ∨ 19, 20 ≥ Int, 18 ≤ Int → 19
-//│         OK ⇝ 18 ≥ 20 → (20 ∨ 19), 19 ≥ 20 ∨ 19, 20 ≥ Int, 18 ≤ Int → 19, 20 ≤ Int
-//│       OK ⇝ 18 ≥ 20 → (20 ∨ 19), 19 ≥ 20 ∨ 19, 20 ≥ Int, 18 ≤ Int → 19, 20 ≤ Int, 20 flex (4), 19 flex (4)
-//│       constrain 18 ≤ 17
-//│         constrain 20 → (20 ∨ 19) ≤ 17
-//│           constrain 20 → (20 ∨ 19) ≤ ⊤
+//│                   constrain ⊥ ≤ 19 → 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                   OK ⇝ ∅
+//│                 OK ⇝ 21 ≥ 19
+//│                 constrain 21 ∨ 20 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                   constrain 21 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                     constrain 19 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                       constrain 18 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                         constrain ⊥ ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                         OK ⇝ ∅
+//│                         check 19 → 21 → 20 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 ≤ 19 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 21 ≤ 18 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check ⊤ ≤ 18 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 check ⊤ ≤ ⊥ in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 FAIL
+//│                               FAIL
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         check 21 → 20 ≤ 19 → 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 19 ≤ 21 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 19 ≤ 19 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                           check 20 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check ⊤ ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         check 19 → 21 → 20 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 ≤ 19 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 21 ≤ 18 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check ⊤ ≤ 18 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 check ⊤ ≤ ⊥ in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 FAIL
+//│                               FAIL
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         check 19 ≤ 21 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 19 ≤ 19 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                         check 21 ≤ 19 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 ≤ 18 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check ⊤ ≤ 18 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check ⊤ ≤ ⊥ in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               FAIL
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                         check 21 → 20 ≤ 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 → 20 ≤ ⊥ in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           FAIL
+//│                         FAIL
+//│                         check 20 ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check ⊤ ≤ 21 → 20 in 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           FAIL
+//│                         FAIL
+//│                       OK ⇝ 18 ≤ (19 → 21 → 20) ∧ (21 → 20)
+//│                       check 19 → 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check ⊤ ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check ⊤ ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               FAIL
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                       FAIL
+//│                       check 21 → 20 ≤ 19 → 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 19 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 19 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check ⊤ ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           FAIL
+//│                         FAIL
+//│                       FAIL
+//│                       check 19 → 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check ⊤ ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check ⊤ ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               FAIL
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                       FAIL
+//│                       check 19 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 19 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                       check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check ⊤ ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check ⊤ ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             FAIL
+//│                           FAIL
+//│                         FAIL
+//│                       FAIL
+//│                       check 21 → 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         FAIL
+//│                       FAIL
+//│                       check 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check ⊤ ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         FAIL
+//│                       FAIL
+//│                     OK ⇝ 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20)
+//│                     check ⊤ ≤ 21 → 20 in 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     FAIL
+//│                     check 21 → 20 ≤ ⊤ in 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     OK ⇝ ∅
+//│                   OK ⇝ 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20)
+//│                   constrain 20 ≤ 21 → 20 in 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                     constrain ⊥ ≤ 21 → 20 in 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│                     OK ⇝ ∅
+//│                     check ⊤ ≤ 21 → 20 in 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     FAIL
+//│                     check 21 → 20 ≤ ⊤ in 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     OK ⇝ ∅
+//│                   OK ⇝ 20 ≤ 21 → 20
+//│                 OK ⇝ 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20)
+//│               OK ⇝ 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19
+//│               check 21 → (21 ∨ 20) ≤ ⊥ in 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               FAIL
+//│               check ⊥ ≤ 21 → (21 ∨ 20) in 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               OK ⇝ ∅
+//│             OK ⇝ 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19
+//│           OK ⇝ 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20
+//│         OK ⇝ 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20
+//│       OK ⇝ 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4)
+//│       constrain 18 ≤ 17 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│         constrain 21 → (21 ∨ 20) ≤ 17 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│           constrain 21 → (21 ∨ 20) ≤ ⊤ in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
 //│           OK ⇝ ∅
-//│         OK ⇝ 17 ≥ 20 → (20 ∨ 19)
-//│         constrain ⊥ ≤ Int → 19
+//│           check 21 → (21 ∨ 20) ≤ ⊥ in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           FAIL
+//│           check ⊥ ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           OK ⇝ ∅
+//│         OK ⇝ 17 ≥ 21 → (21 ∨ 20)
+//│         check (19 → 21 → 20) ∧ (21 → 20) ≤ 17 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 19 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 19 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             OK ⇝ ∅
+//│             check 21 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 21 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     OK ⇝ ∅
+//│                     check 20 ≤ 21 ∨ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                       check 20 ≤ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│             check 20 ≤ 21 → 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 → 20 ≤ 21 → 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│             check 19 → 21 → 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 19 → 21 → 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 19 → 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 19 → 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 21 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 21 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             OK ⇝ ∅
+//│                             check 20 ≤ 21 ∨ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 check 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                   check 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                     check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                     OK ⇝ ∅
+//│                                   OK ⇝ ∅
+//│                                 OK ⇝ ∅
+//│                               OK ⇝ ∅
+//│                               check 20 ≤ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                     check 21 → 20 ≤ 21 ∨ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 → 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 → 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check 21 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               OK ⇝ ∅
+//│                               check 20 ≤ 21 ∨ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 check 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                   check 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                     check 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                       check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                       OK ⇝ ∅
+//│                                     OK ⇝ ∅
+//│                                   OK ⇝ ∅
+//│                                 OK ⇝ ∅
+//│                                 check 20 ≤ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 OK ⇝ ∅
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                       check 21 → 20 ≤ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 → 20 ≤ ⊥ in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         FAIL
+//│                       FAIL
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│             check 21 → 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 → 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 21 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     OK ⇝ ∅
+//│                     check 20 ≤ 21 ∨ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                       check 20 ≤ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 21 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 21 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   OK ⇝ ∅
+//│                   check 20 ≤ 21 ∨ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 20 ≤ 21 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 20 ≤ 19 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 21 → 20 ≤ 18 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                     check 20 ≤ 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 20 ≤ 21 → 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 → 20 ≤ 21 → 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 19 → 21 → 20 ≤ 17 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 19 → 21 → 20 ≤ ⊥ in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             FAIL
+//│           FAIL
+//│           check 21 → 20 ≤ 17 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 → 20 ≤ ⊥ in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         check 17 ≤ (19 → 21 → 20) ∧ (21 → 20) in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 17 ≤ 19 → 21 → 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check ⊤ ≤ 19 → 21 → 20 in 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             FAIL
+//│           FAIL
+//│         FAIL
+//│         constrain ⊥ ≤ (19 → 21 → 20) ∧ (21 → 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
 //│         OK ⇝ ∅
-//│       OK ⇝ 18 ≤ 17 ∧ (Int → 19), 17 ≥ 20 → (20 ∨ 19)
-//│     OK ⇝ 18 ≤ 17 ∧ (Int → 19), 17 ≥ 20 → (20 ∨ 19), 18 ≥ 20 → (20 ∨ 19), 19 ≥ 20 ∨ 19, 20 ≥ Int, 18 ≤ Int → 19, 20 ≤ Int, 20 flex (4), 19 flex (4)
-//│   OK ⇝ 18 ≤ 17 ∧ (Int → 19), 17 ≥ 20 → (20 ∨ 19), 18 ≥ 20 → (20 ∨ 19), 19 ≥ 20 ∨ 19, 20 ≥ Int, 18 ≤ Int → 19, 20 ≤ Int, 20 flex (4), 19 flex (4), 18 flex (3)
-//│   inline 17 (polarities Polarities(false,true)) in 17
-//│   inline 18 (polarities Polarities(false,false)) in 17
-//│   inline 19 (polarities Polarities(false,true)) in 17
-//│   REFLEXION Int Int
-//│   REFLEXION Int Int
-//│   inline 20 (sandwich Int Int) in 17
-//│   REFLEXION 20 20
-//│ OK Int → Int ⇝ ∅
-//│ zero: Int → Int
+//│       OK ⇝ 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20)
+//│     OK ⇝ 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4)
+//│   OK ⇝ 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   inline 17 (polarities Polarities(false,true)) in 17 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│   quantify 18 (recursive) in 17 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│   quantify 19 (recursive) in 17 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│   check ⊥ ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│   OK ⇝ ∅
+//│   check 21 → 20 ≤ ⊥ in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│   FAIL
+//│   quantify 20 (default) in 17 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│   check 19 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│     check 19 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       check 19 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       OK ⇝ ∅
+//│       check 21 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 20 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 → 20 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 19 → 21 → 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 19 → 21 → 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 19 → 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 19 → 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 21 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       OK ⇝ ∅
+//│                       check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│               check 21 → 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 21 → 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 21 → 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                             check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                               check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                                 OK ⇝ ∅
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                           check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 21 → 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 21 → 20 ≤ ⊥ in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   FAIL
+//│                 FAIL
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 21 → 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 → 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 21 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       check 21 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             OK ⇝ ∅
+//│             check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│               check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 20 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       check 21 → 20 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 19 → 21 → 20 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       check 21 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                   check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                     check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 21 → 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 → 20 ≤ ⊥ in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 21 → 20 ≤ 21 → 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 21 → 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│     check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│       check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         check 21 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│         OK ⇝ ∅
+//│         check 20 ≤ 21 ∨ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           check 20 ≤ 21 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│             check 20 ≤ 19 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│               check 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 check 21 → 20 ≤ 18 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 20 ≤ 20 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   quantify 21 (default) in 17 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│   inline 17 in 17 in 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3), 17 flex (2)
+//│   check (19 → 21 → 20) ∧ (21 → 20) ≤ ⊤ in 17 ≥ 21 → (21 ∨ 20), 17 ≤ ⊤, 18 ≤ 17 ∧ (19 → 21 → 20) ∧ (21 → 20), 17 ≥ 21 → (21 ∨ 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3), 17 rigid (2)
+//│   OK ⇝ ∅
+//│   = 21 → (21 ∨ 20)
+//│   quantify 18 (recursive) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   quantify 19 (recursive) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   check ⊥ ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│   OK ⇝ ∅
+//│   check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│   FAIL
+//│   quantify 20 (default) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   check 19 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│     check 19 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 19 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       OK ⇝ ∅
+//│       check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 19 → 21 → 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 19 → 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 19 → 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 19 → 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                       check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                           check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                             check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                               check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│               check 21 → 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 21 → 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                           check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                             check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                               check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                                 check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                                 OK ⇝ ∅
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                           check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 21 → 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   FAIL
+//│                 FAIL
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 21 → 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             OK ⇝ ∅
+//│             check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│               check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 19 → 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 21 → 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│     check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         OK ⇝ ∅
+//│         check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   quantify 21 (default) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   quantify 18 (recursive) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   quantify 19 (recursive) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   check ⊥ ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│   OK ⇝ ∅
+//│   check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│   FAIL
+//│   quantify 20 (default) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│   check 19 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│     check 19 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 19 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       OK ⇝ ∅
+//│       check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 19 → 21 → 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 19 → 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 19 → 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 19 → 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                       check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                           check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                             check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                               check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│               check 21 → 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 21 → 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                         OK ⇝ ∅
+//│                         check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                           check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                             check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                               check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                                 check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                                 OK ⇝ ∅
+//│                               OK ⇝ ∅
+//│                             OK ⇝ ∅
+//│                           OK ⇝ ∅
+//│                           check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                           OK ⇝ ∅
+//│                         OK ⇝ ∅
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 21 → 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   FAIL
+//│                 FAIL
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 21 → 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             OK ⇝ ∅
+//│             check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│               check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│     check 19 → 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               OK ⇝ ∅
+//│               check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                   check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                     check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                       OK ⇝ ∅
+//│                     OK ⇝ ∅
+//│                   OK ⇝ ∅
+//│                 OK ⇝ ∅
+//│                 check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│       check 21 → 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 → 20 ≤ ⊥ in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         FAIL
+//│       FAIL
+//│     FAIL
+//│     check 21 → 20 ≤ 21 → 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   check 21 → 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│     check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│       check 21 → 20 ≤ 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         check 21 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│         OK ⇝ ∅
+//│         check 20 ≤ 21 ∨ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           check 20 ≤ 21 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│             check 20 ≤ 19 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│               check 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 check 21 → 20 ≤ 18 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│                 OK ⇝ ∅
+//│               OK ⇝ ∅
+//│             OK ⇝ ∅
+//│           OK ⇝ ∅
+//│           check 20 ≤ 20 in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 rigid (4), 20 rigid (4), 19 rigid (4), 18 rigid (3)
+//│           OK ⇝ ∅
+//│         OK ⇝ ∅
+//│       OK ⇝ ∅
+//│     OK ⇝ ∅
+//│   OK ⇝ ∅
+//│   quantify 21 (default) in 21 → (21 ∨ 20) in 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 20 ≤ 21 → 20, 21 ≤ 21 → 20, 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≤ (19 → 21 → 20) ∧ (21 → 20), 21 ≥ 19, 19 ≥ 18, 18 ≤ 19 → 21 → 20, 19 ≤ 19 → 21 → 20, 21 flex (4), 20 flex (4), 19 flex (4), 18 flex (3)
+//│ OK ∀18, 19, 20, 21. {18 ≤ (19 → 21 → 20) ∧ (21 → 20), 18 ≥ 21 → (21 ∨ 20), 19 ≤ (19 → 21 → 20) ∧ (21 → 20), 19 ≥ 18, 20 ≤ 21 → 20, 21 ≤ 21 → 20, 21 ≥ 19} ⟹ 21 → (21 ∨ 20) ⇝ ∅
+//│ g9: ∀α, β, γ, δ. {α ≤ (β → δ → γ) ∧ (δ → γ), α ≥ δ → (δ ∨ γ), β ≤ (β → δ → γ) ∧ (δ → γ), β ≥ α, γ ≤ δ → γ, δ ≤ δ → γ, δ ≥ β} ⟹ δ → (δ ∨ γ)

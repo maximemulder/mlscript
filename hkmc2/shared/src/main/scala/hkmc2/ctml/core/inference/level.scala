@@ -79,7 +79,7 @@ extension (ctx: Context)
 
       return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
 
-    if checkEqual(var_.lowerBound, var_.upperBound) then
+    if checkEqual(var_.lowerBound, var_.upperBound) && !var_.isIndirectRecursive(Polarity.Negative) then
       return debugVarAction(var_, type_, VarAction.Inline, s"sandwich ${var_.lowerBound} ${var_.upperBound}")
 
     debugVarAction(var_, type_, VarAction.Quantify, "default")

@@ -69,7 +69,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: Context, mode: ConstraintMode):
   // Handle the reflexion case.
 
   if sub == sup then
-    debug(s"REFLEXION ${sub} ${sup}")
     return Clauses.empty
 
   // Normalize negation types.

@@ -61,4 +61,7 @@ not'(fst(test(id)))
 //│     ∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α ≤ Bool
 //│       {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → ε} ⟹ ε ≤ Bool
 //│         ε ≤ Bool
-//│           Int ≤ Bool
+//│           ζ ≤ Bool
+//│             η ≤ Bool
+//│               θ ≤ Bool
+//│                 Int ≤ Bool

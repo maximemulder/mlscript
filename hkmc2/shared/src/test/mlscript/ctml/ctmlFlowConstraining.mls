@@ -12,7 +12,7 @@ fun foo(a, b) =
 
 fun bar(a, b) =
   foo(a, b) as Int
-//│ bar: ∀α, β, γ. {α ≤ ((Int ⟹ {β ≥ Int}) ∨ (Str ⟹ {γ ≤ Str, β ≥ Str})) ∧ Int, β ≥ Int ∧ (Str ⟹ {α ≤ Str, γ ≤ Str}), γ ≤ ((Int ⟹ {β ≥ Int}) ∨ (Str ⟹ {α ≤ Str, β ≥ Str})) ∧ Int} ⟹ α → ((((Int ⟹ {α ≤ Int, β ≥ Int}) ∨ (Str ⟹ {α ≤ Str, β ≥ Str})) ∧ ((Int ⟹ {α ≤ Int, β ≥ Int}) ∨ (Str ⟹ {α ≤ Str, β ≥ Str}))) ∧ Int) → Int
+//│ bar: ∀α, β, γ. {α ≤ ((Int ⟹ {γ ≥ Int}) ∨ (Str ⟹ {β ≤ Str, γ ≥ Str})) ∧ Int, β ≤ ((Int ⟹ {γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})) ∧ Int, γ ≤ Int, γ ≥ Int ∧ (Str ⟹ {α ≤ Str, β ≤ Str})} ⟹ α → ((((Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str})) ∧ ((Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (Str ⟹ {α ≤ Str, γ ≥ Str}))) ∧ Int) → Int
 
 // Function overloads
 

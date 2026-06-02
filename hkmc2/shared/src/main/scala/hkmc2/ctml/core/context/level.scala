@@ -23,6 +23,13 @@ extension (ctx: Context)
     // Evaluate the outer function with the type variable in the output clauses.
     outer(decls(0).level, res, outs)
 
+  /** Get the maximum level of all type variables in the context. */
+  def maxLevel: Int =
+    ctx.typeVarDecls
+      .map(_.level)
+      .maxOption
+      .getOrElse(0)
+
   /** Get the type variable declared at a level equal or higher than this level. */
   def getLevelVars(level: Int): List[TypeVar] =
     ctx.clauses.typeVars

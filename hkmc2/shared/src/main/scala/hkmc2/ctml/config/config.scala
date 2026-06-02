@@ -32,8 +32,14 @@ class Config:
   /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
   var assumptionMode = AssumptionMode.Reconstruct
 
-  /** Whether to cache only type variable bounds or all subtyping relations. */
-  var cacheMode = CacheMode.Var
+  /** Whether to cache type variable bounds. */
+  var cacheVar = true
+
+  /** Whether to cache all subttyping constraints. */
+  var cacheType = false
+
+  /** Whether to cache type variable instantiations. */
+  var cacheUniv = false
 
   /** Whether to use type variable shadows in the cache. */
   var cacheShadow = true

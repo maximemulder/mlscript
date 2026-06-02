@@ -6,7 +6,14 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.clauses.typeVarDecls
 
 /** Cache used to store, detect, and solve recursive subtyping queries. */
-case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):
+case class SubtypingCache(
+  /** The type variable cache. */
+  val vars: Set[(TypeVar, Direction, Type)] = Set(),
+  /** The full type cache. */
+  val types: Set[(Type, Type)] = Set(),
+  /** The universal type cache. */
+  val univs: Map[(TypeVar, Type), TypeVar] = Map(),
+):
   /** Check whether two types are in the subtyping cache. */
   def check(sub: Type, sup: Type)(using ctx: Context): Boolean =
     if config.debug.cacheCheck then
@@ -29,49 +36,58 @@ case class SubtypingCache(pairs: Set[(Type, Type)] = Set()):
 
     this.addInner(sub, sup)
 
+  def checkUniv(var_ : TypeVar, type_ : Type): Option[TypeVar] =
+    this.univs.get((var_, type_))
+
+  def addUniv(var_ : TypeVar, type_ : Type, fresh: TypeVar): SubtypingCache =
+    SubtypingCache(this.vars, this.types, this.univs + ((var_, type_) -> fresh))
+
   private def checkInner(sub: Type, sup: Type)(using ctx: Context): Boolean =
-    config.cacheMode match
-      case CacheMode.Var =>
-        sub match
-          case TVar(var_) if this.pairs.contains(this.shadow(var_), sup) =>
-            return true
-          case _ =>
-            ()
+    if config.cacheVar then
+      sub match
+        case TVar(var_) if this.vars.contains((this.shadow(var_), Direction.Sub, sup)) =>
+          return true
+        case _ =>
+          ()
 
-        sup match
-          case TVar(var_) if this.pairs.contains(sub, this.shadow(var_)) =>
-            return true
-          case _ =>
-            ()
+      sup match
+        case TVar(var_) if this.vars.contains((this.shadow(var_), Direction.Super, sub)) =>
+          return true
+        case _ =>
+          ()
 
-        false
-      case CacheMode.All =>
-        this.pairs.contains(sub, sup)
+    if config.cacheType then
+      if this.types.contains(sub, sup) then
+        return true
+
+    false
 
   private def addInner(sub: Type, sup: Type)(using ctx: Context): SubtypingCache =
-    config.cacheMode match
-      case CacheMode.Var =>
-        var cache = this
+    var cache = this
+
+    if config.cacheVar then
 
         sub match
           case TVar(var_) =>
-            cache = SubtypingCache(this.pairs + ((this.shadow(var_), sup)))
+            cache = SubtypingCache(this.vars + ((this.shadow(var_), Direction.Sub, sup)), this.types, this.univs)
           case _ =>
             ()
 
         sup match
           case TVar(var_) =>
-            cache = SubtypingCache(this.pairs + ((sub, this.shadow(var_))))
+            cache = SubtypingCache(this.vars + ((this.shadow(var_), Direction.Super, sub)), this.types, this.univs)
           case _ =>
             ()
 
         cache
       // Cache in all cases.
-      case CacheMode.All =>
-        SubtypingCache(this.pairs + ((sub, sup)))
+    if config.cacheType then
+      cache = SubtypingCache(this.vars, this.types + ((sub, sup)), this.univs)
 
-  private def shadow(var_ : TypeVar)(using ctx: Context): Type =
+    cache
+
+  private def shadow(var_ : TypeVar)(using ctx: Context): TypeVar =
     if config.cacheShadow then
-      TVar(var_.shadow)
+      var_.shadow
     else
-      TVar(var_)
+      var_

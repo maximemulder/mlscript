@@ -23,10 +23,3 @@ extension (ctx: Context)
   /** Append a clause at the end of the clauses. */
   def extendOne(clause: Clause): Context =
     Context(clause :: ctx.clauses, ctx.cache)
-
-  /** Get the maximum level of all type variables in the context. */
-  def getMaxLevel(): Int =
-    ctx.typeVarDecls
-      .map((decl) => decl.level)
-      .maxOption
-      .getOrElse(0)

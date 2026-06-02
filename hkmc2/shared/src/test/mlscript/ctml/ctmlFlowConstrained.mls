@@ -79,11 +79,11 @@ fun foo2(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo2: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
+//│ foo2: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β
 
 fun bar2(a, b) =
   foo2(a, b) as Int
-//│ bar2: ∀α, β, γ. {α ≤ Int, α ≤ {β ≤ Str, γ ≥ Str} ⟹ Str, β ≤ Int, γ ≤ Int, γ ≥ Int ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → Int → Int
+//│ bar2: Int → Int → Int
 
 // Function overloads
 

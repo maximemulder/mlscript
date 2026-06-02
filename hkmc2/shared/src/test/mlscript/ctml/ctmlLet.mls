@@ -17,7 +17,7 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
+//│ baz: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β
 
 baz(1, 1)
 //│ Int ∧ ({Int ≤ Str, Int ≤ Str} ⟹ Str)
@@ -35,12 +35,12 @@ baz(1, "")
 
 :te
 baz(true, false)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Bool → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β ≤ Bool → δ.
 //│ Typing error tree:
-//│   ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Bool → δ
-//│     {ε ≤ ({ζ ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ζ ≤ Str, η ≥ Str} ⟹ Str), ζ ≤ ({ε ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ε ≤ Str, η ≥ Str} ⟹ Str), η ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Bool → δ
-//│       {ζ ≤ ({ε ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ε ≤ Str, η ≥ Str} ⟹ Str), η ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Bool → δ
-//│         {η ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Bool → δ
+//│   ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β ≤ Bool → δ
+//│     {ε ≤ ({ζ ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ζ ≤ Str, η ≥ Str} ⟹ Str), η ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str} ⟹ Str), ζ ≤ ({ε ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ε ≤ Str, η ≥ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Bool → δ
+//│       {η ≥ ({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, ζ ≤ Str} ⟹ Str), ζ ≤ ({ε ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ε ≤ Str, η ≥ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Bool → δ
+//│         {ζ ≤ ({ε ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ε ≤ Str, η ≥ Str} ⟹ Str)} ⟹ ε → ζ → η ≤ Bool → δ
 //│           ε → ζ → η ≤ Bool → δ
 //│             Bool ≤ ε
 //│               Bool ≤ ({ζ ≤ Int, η ≥ Int} ⟹ Int) ∨ ({ζ ≤ Str, η ≥ Str} ⟹ Str)
@@ -54,7 +54,7 @@ baz(true, false)
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ, δ. {α ≤ ({γ ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, δ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, δ ≥ Str} ⟹ Str), γ ≥ β, γ ≤ ({α ≤ Int, δ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str)} ⟹ α → β → δ
+//│ bop: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β
 
 :fixme
 // bop(0, 1)

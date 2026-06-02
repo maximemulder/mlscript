@@ -354,7 +354,10 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Co
       else
         throw error
 
-  subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode)
+  // TODO: While it makes sense to return new variables that may have been created in the constraints,
+  // the only case where that happens currently results in infinite recursion.
+  val bodyClauses = subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode)
+  Clauses(constraintClauses.typeVarDecls).concat(bodyClauses)
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: Context, mode: ConstraintMode): Clauses =

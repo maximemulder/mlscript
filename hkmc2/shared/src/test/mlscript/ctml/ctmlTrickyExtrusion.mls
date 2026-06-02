@@ -1,7 +1,6 @@
 :ctml
 
-// Tests copied from the `TrickyExtrusion.mls` file. Most of these tests fail in CTML because the
-// inferred types, although not incorrect, are not precise enough.
+// Tests copied from the `TrickyExtrusion.mls` file.
 
 declare val fst: [T] -> ([T, Top]) -> T
 declare val snd: [T] -> ([Top, T]) -> T
@@ -20,45 +19,36 @@ val True = true
 fun test(f) =
   let r(x, g) = (g(x), unit)
   (r(0, inc), r(true, not'))
-//│ test: ⊤ → ⟨∀α, β. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, Unit⟩ ≤ Int → β, β ≤ (Int → Int) → α} ⟹ α, ∀ζ, η. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, Unit⟩ ≤ Bool → η, η ≤ (Bool → Bool) → ζ} ⟹ ζ⟩
+//│ test: ⊤ → ⟨⟨Int, Unit⟩, ⟨Bool, Unit⟩⟩
 
 fun test(f) =
   (f(0), f(true))
-//│ test: ∀α. α → ⟨∀β. {α ≤ Int → β} ⟹ β, ∀γ. {α ≤ Bool → γ} ⟹ γ⟩
+//│ test: ∀α, β, γ. {α ≤ Int → β, α ≤ Bool → γ} ⟹ α → ⟨β, γ⟩
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α. α → ⟨∀β. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Int → β} ⟹ β, ∀ε. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Bool → ε} ⟹ ε⟩
+//│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
-:fixme
 fun test(f) =
   let r(x, g) = (g(x), f(x))
   (r(0, inc), r(true, not'))
-//│ test: ∀α. α → ⟨∀β, γ. {∀δ, ε. δ → ε → ⟨∀ζ. {ε ≤ δ → ζ} ⟹ ζ, ∀η. {α ≤ δ → η} ⟹ η⟩ ≤ Int → γ, γ ≤ (Int → Int) → β} ⟹ β, ∀θ, ι. {∀δ, ε. δ → ε → ⟨∀ζ. {ε ≤ δ → ζ} ⟹ ζ, ∀η. {α ≤ δ → η} ⟹ η⟩ ≤ Bool → ι, ι ≤ (Bool → Bool) → θ} ⟹ θ⟩
-//│ FAILURE: Unexpected lack of error to fix
+//│ test: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨⟨Int, β⟩, ⟨Bool, α⟩⟩
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α. α → ⟨∀β. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Int → β} ⟹ β, ∀ε. {∀γ, δ. {α ≤ γ → δ} ⟹ γ → δ ≤ Bool → ε} ⟹ ε⟩
+//│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
-:fixme
 fst(test(id)) + 1
 //│ Int
-//│ FAILURE: Unexpected lack of error to fix
 
-:fixme
 not'(snd(test(id)))
 //│ Bool
-//│ FAILURE: Unexpected lack of error to fix
 
 :te
 not'(fst(test(id)))
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α) → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ Int → α.
 //│ Typing error tree:
-//│   Bool → Bool ≤ (∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α) → δ
-//│     ∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α ≤ Bool
-//│       {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → ε} ⟹ ε ≤ Bool
-//│         ε ≤ Bool
-//│           Int ≤ Bool
+//│   Bool → Bool ≤ Int → α
+//│     Int ≤ Bool

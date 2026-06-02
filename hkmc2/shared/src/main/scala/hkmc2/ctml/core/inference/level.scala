@@ -35,7 +35,7 @@ extension (ctx: Context)
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)
 
-    val (type3, outs3) = quantifyLevelBounds(makePrettyType(type2), level, outs2)(using ctx)
+    val (type3, outs3) = quantifyLevelBounds(type2, level, outs2)(using ctx)
 
     val (type4, outs4) = varsToQuantify.foldRight((type3, outs3))((var_, to) =>
       quantifyVar(to._1, var_, to._2)(using ctx)

@@ -55,7 +55,10 @@ not'(snd(test(id)))
 
 :te
 not'(fst(test(id)))
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ (∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α) → δ.
 //│ Typing error tree:
-//│   Bool → Bool ≤ Int → α
-//│     Int ≤ Bool
+//│   Bool → Bool ≤ (∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α) → δ
+//│     ∀α. {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → α} ⟹ α ≤ Bool
+//│       {∀β, γ. {∀T. T → T ≤ β → γ} ⟹ β → γ ≤ Int → ε} ⟹ ε ≤ Bool
+//│         ε ≤ Bool
+//│           Int ≤ Bool

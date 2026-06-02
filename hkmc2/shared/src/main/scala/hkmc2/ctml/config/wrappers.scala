@@ -185,11 +185,11 @@ def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Cont
     (newType, newOuts)
 
 /** Print a variable action as debug information. */
-def debugVarAction(var_ : TypeVar, action: VarAction, message: String)(using Context): VarAction =
+def debugVarAction(var_ : TypeVar, type_ : Type, action: VarAction, message: String)(using Context): VarAction =
   if !config.debug.var_ then
     return action
 
-  outputContext(s"${action} ${var_} (${message})")
+  outputContext(s"${action} ${var_} (${message}) in ${type_}")
   action
 
 /** Register and call a function in the debug environment. */

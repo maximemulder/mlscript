@@ -5,7 +5,7 @@ fun fibonacci(n) =
     n
   else
     fibonacci(n - 2) + fibonacci(n - 1)
-//│ fibonacci: ∀α, β, γ, δ. {α ≥ Int → ({β ≤ (Int → γ) ∧ (Int → δ), γ ≤ Int, δ ≤ Int} ⟹ Int), β ≥ α} ⟹ α
+//│ fibonacci: Int → Int
 
 fun zero(i) =
   if i == 0

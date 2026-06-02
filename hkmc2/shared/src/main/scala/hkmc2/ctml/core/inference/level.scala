@@ -43,16 +43,24 @@ extension (ctx: Context)
 
   /** Iteratively collect and simplify the variables in a level until no further simplification is
    *  possible. */
-  def simplifyLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
+  def simplifyLevel(level: Int, type_ : Type, origOuts: Clauses): (Type, Clauses) =
+    val prettyType = makePrettyType(type_)
+    val (typeVars, type1) = prettyType.getUnivComponents
+    val (typeBody, typeConstraints) = type1.getConstrainedComponents
+    val outs1 = origOuts.concat(Clauses(typeVars.map(TypeVarDecl(_, TypeVarKind.Flex, None, level))))
+    val outs = typeConstraints.foldRight(outs1)((constraint, outs) =>
+      subtypeConstraintSeq(constraint, outs)(using ctx, ConstraintMode.Solve)
+    )
+
     val levelBounds = ctx.extend(outs).getLevelBounds(level)
     val levelVars = ctx.extend(outs).getLevelVars(level)
-    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type_, var_, outs)).toMap
+    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, typeBody, var_, outs)).toMap
 
     getInlineVars(actions) match
       case Nil =>
-        (type_, outs)
+        (typeBody, outs)
       case varsToInline =>
-        val (nextType, nextOuts) = inlineVars(type_, outs, varsToInline)
+        val (nextType, nextOuts) = inlineVars(typeBody, outs, varsToInline)
         simplifyLevel(level, nextType, nextOuts)
 
   /** Determine how to process a variable of this level. */
@@ -60,27 +68,27 @@ extension (ctx: Context)
     given Context = ctx.extend(outs)
     val polarities = type_.getAllVarPolarities(var_)
     if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars.contains(var_)) then
-      return debugVarAction(var_, VarAction.Quantify, "bound at lower level")
+      return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
 
     if polarities == Polarities(false, false) then
-      return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
+      return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
 
     if polarities == Polarities(false, true) then
       if var_.isIndirectRecursive(Polarity.Positive) then
-        return debugVarAction(var_, VarAction.Quantify, "recursive")
+        return debugVarAction(var_, type_, VarAction.Quantify, "recursive")
 
-      return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
+      return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
 
     if polarities == Polarities(true, false) then
       if var_.isIndirectRecursive(Polarity.Negative) then
-        return debugVarAction(var_, VarAction.Quantify, "recursive")
+        return debugVarAction(var_, type_, VarAction.Quantify, "recursive")
 
-      return debugVarAction(var_, VarAction.Inline, s"polarities ${polarities}")
+      return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
 
     if checkEqual(var_.lowerBound, var_.upperBound) then
-      return debugVarAction(var_, VarAction.Inline, s"sandwich ${var_.lowerBound} ${var_.upperBound}")
+      return debugVarAction(var_, type_, VarAction.Inline, s"sandwich ${var_.lowerBound} ${var_.upperBound}")
 
-    debugVarAction(var_, VarAction.Quantify, "default")
+    debugVarAction(var_, type_, VarAction.Quantify, "default")
 
   /** Inline a list of type variables. */
   def inlineVars(type_ : Type, outs: Clauses, vars: List[TypeVar]): (Type, Clauses) =

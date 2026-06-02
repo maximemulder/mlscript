@@ -12,4 +12,4 @@ extension (ctx: Context)
     ctx.withFreshVarLevel(kind, decls, (a, b) => ((), f(a, b)), (_, _, b) => ((), b))._2
 
   def withSubtypingLevel2(f: (Int) => Clauses): Clauses =
-    f(ctx.maxLevel)
+    f(ctx.maxLevel + 1)

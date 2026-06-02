@@ -16,19 +16,20 @@ fun double(f, x) =
 //│ double: ∀α, β, γ. {α ≤ (∀δ. {α ≤ γ → δ} ⟹ δ) → β} ⟹ α → γ → β
 
 double(id, 1)
-//│ Int
+//│ ∀α. {∀β. β → β ≤ Int → α} ⟹ α
 
 fun foo(a, b) =
   a(1, b)
-//│ foo: (Int → ⊥ → ⊤) → ⊤ → ⊥
+//│ foo: ∀α, β. (Int → β → α) → β → α
 
 foo((+), 1)
-//│ ⊥
+//│ Int
 
 :te
 foo((++), 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment (Int → ⊥ → ⊤) → ⊤ → ⊥ ≤ (Str → Str → Str) → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. (Int → β → α) → β → α ≤ (Str → Str → Str) → γ.
 //│ Typing error tree:
-//│   (Int → ⊥ → ⊤) → ⊤ → ⊥ ≤ (Str → Str → Str) → α
-//│     Str → Str → Str ≤ Int → ⊥ → ⊤
-//│       Int ≤ Str
+//│   ∀α, β. (Int → β → α) → β → α ≤ (Str → Str → Str) → γ
+//│     (Int → δ → ε) → δ → ε ≤ (Str → Str → Str) → γ
+//│       Str → Str → Str ≤ Int → δ → ε
+//│         Int ≤ Str

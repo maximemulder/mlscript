@@ -24,7 +24,9 @@ extension (ctx: Context)
   /** Process the type, variables, and constraints generated in a level. Quantifying and
    *  simplifying then if possible. */
   def processLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
-    val (type2, outs2) = simplifyLevel(level, type_, outs)
+    val (type1, outs1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
+
+    val (type2, outs2) = simplifyLevel(level, type1, outs.concat(outs1))
 
     val levelVars = ctx.extend(outs2).getLevelVars(level)
     val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type2, var_, outs2)).toMap
@@ -43,31 +45,23 @@ extension (ctx: Context)
 
   /** Iteratively collect and simplify the variables in a level until no further simplification is
    *  possible. */
-  def simplifyLevel(level: Int, type_ : Type, origOuts: Clauses): (Type, Clauses) =
-    val prettyType = makePrettyType(type_)
-    val (typeVars, type1) = prettyType.getUnivComponents
-    val (typeBody, typeConstraints) = type1.getConstrainedComponents
-    val outs1 = origOuts.concat(Clauses(typeVars.map(TypeVarDecl(_, TypeVarKind.Flex, None, level))))
-    val outs = typeConstraints.foldRight(outs1)((constraint, outs) =>
-      subtypeConstraintSeq(constraint, outs)(using ctx, ConstraintMode.Solve)
-    )
-
+  def simplifyLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
     val levelBounds = ctx.extend(outs).getLevelBounds(level)
     val levelVars = ctx.extend(outs).getLevelVars(level)
-    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, typeBody, var_, outs)).toMap
+    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type_, var_, outs)).toMap
 
     getInlineVars(actions) match
       case Nil =>
-        (typeBody, outs)
+        (type_, outs)
       case varsToInline =>
-        val (nextType, nextOuts) = inlineVars(typeBody, outs, varsToInline)
+        val (nextType, nextOuts) = inlineVars(type_, outs, varsToInline)
         simplifyLevel(level, nextType, nextOuts)
 
   /** Determine how to process a variable of this level. */
   def determineVarAction(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses): VarAction =
     given Context = ctx.extend(outs)
     val polarities = type_.getAllVarPolarities(var_)
-    if outs.bounds.exists((bound) => bound.var_.level < level && bound.type_.getVars.contains(var_)) then
+    if ctx.extend(outs).getTypeVarEffectiveLevel(var_) < level then
       return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
 
     if polarities == Polarities(false, false) then

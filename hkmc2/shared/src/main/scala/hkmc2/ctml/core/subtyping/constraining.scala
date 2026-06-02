@@ -318,27 +318,18 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
-  // Instantiating all quantified variables on the same level reduces the number of extrusions.
-  val (vars, body) = sub.getUnivComponents
-  ctx.withSubtypingLevel(TypeVarKind.Flex, vars, (freshVars, ctx) =>
-    val freshBody = vars.zip(freshVars).foldRight(body)((of, body) =>
-      body.substitute(of._1, of._2)
-    )
-    given Context = ctx
-    subtype(freshBody, sup)
+  val (univVars, univBody) = sub.getUnivComponents
+  ctx.withSubtypingLevel2((level) =>
+    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, TypeVarKind.Flex)
+    subtypeSeq(instanceBody, sup, outs)(using ctx.mapCache((_) => cache), mode)
   )
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode): Clauses =
-  debug(s"SUBTYPE ${sub} <= ${sup}")
-  // Instantiating all quantified variables on the same level reduces the number of extrusions.
-  val (vars, body) = sup.getUnivComponents
-  ctx.withSubtypingLevel(TypeVarKind.Rigid, vars, (freshVars, ctx) =>
-    val freshBody = vars.zip(freshVars).foldRight(body)((of, body) =>
-      body.substitute(of._1, of._2)
-    )
-    given Context = ctx
-    subtype(sub, freshBody)
+  val (univVars, univBody) = sup.getUnivComponents
+  ctx.withSubtypingLevel2((level) =>
+    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, TypeVarKind.Rigid)
+    subtypeSeq(sub, instanceBody, outs)(using ctx.mapCache((_) => cache), mode)
   )
 
 /** Constrain a constrained type to be a subtype of another type. */
@@ -436,3 +427,22 @@ def subtypeConstraint(constraint: Constraint)(using ctx: Context, mode: Constrai
 def subtypeConstraintSeq(constraint: Constraint, ins: Clauses)(using ctx: Context, mode: ConstraintMode): Clauses =
   ctx.seqUnit(subtypeConstraint(constraint), ins)
 
+/** Instantiate the quantified variables of a universal type at the given level, using fresh
+ *  variables or approximations from the cache. */
+def instantiateUniv(level: Int, vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: Context): (Type, SubtypingCache, Clauses) =
+  var instanceBody = body
+  var cache = ctx.cache
+  var outs = Clauses.empty
+  for var_ <- vars do
+    val decl = ctx.cache.checkUniv(var_, body) match
+      case Some(instanceVar) =>
+        instanceVar.decl(using ctx)
+      case None =>
+        val decl = ctx.declFreshVar(level, kind, var_)
+        cache = cache.addUniv(var_, body, decl.var_)
+        outs = outs.concat(decl.asClauses)
+        decl
+
+    instanceBody = instanceBody.substitute(var_, decl.var_)
+
+  (instanceBody, cache, outs)

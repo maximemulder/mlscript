@@ -10,3 +10,6 @@ extension (ctx: Context)
   def withSubtypingLevel(kind: TypeVarKind, originals: List[TypeVar], f: (List[TypeVar], Context) => Clauses): Clauses =
     val decls = ctx.declFreshVars(originals, kind)
     ctx.withFreshVarLevel(kind, decls, (a, b) => ((), f(a, b)), (_, _, b) => ((), b))._2
+
+  def withSubtypingLevel2(f: (Int) => Clauses): Clauses =
+    f(ctx.maxLevel)

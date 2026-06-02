@@ -76,9 +76,13 @@ extension (type_ : Type)(using ctx: Context)
         false
 
 extension (var_ : TypeVar)(using ctx: Context)
+  /** Get the declaration of a type variable in the context. */
+  def decl: TypeVarDecl =
+    ctx.getTypeVarDecl(var_)
+
   /** Get the kind of the type variable in the context. */
   def kind: TypeVarKind =
-    ctx.getTypeVarDecl(var_).kind
+    var_.decl.kind
 
   /** Check whether the type variable is a flexible type variable. */
   def isFlex: Boolean =
@@ -90,7 +94,7 @@ extension (var_ : TypeVar)(using ctx: Context)
 
   /** Get the level of the type variable in the context. */
   def level: Int =
-    ctx.getTypeVarDecl(var_).level
+    var_.decl.level
 
   /** Get the origin of the type variable in the context. */
   def origin: Option[TypeVar] =

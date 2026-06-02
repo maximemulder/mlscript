@@ -4,216 +4,129 @@
 
 :ctml-cfg cache-univ
 
-fun id(x) = x
-//│ infer ELam(x,EVar(x))
+fun foo(a, b) =
+  a(1, b)
+//│ infer ELam(a,ELam(b,EApp(EApp(EVar(a),EVar(int)),EVar(b))))
 //│   0 flex infer level 2
-//│   infer EVar(x)
-//│   OK 0 ⇝ ∅
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 0 (default) in 0 → 0
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 0 (default) in 0 → 0
-//│ OK ∀0. 0 → 0 ⇝ ∅
-//│ id: ∀α. α → α
-
-fun apply(f, x) =
-  f(x)
-//│ infer ELam(f,ELam(x,EApp(EVar(f),EVar(x))))
-//│   1 flex infer level 2
-//│   infer ELam(x,EApp(EVar(f),EVar(x)))
-//│     2 flex infer level 3
-//│     infer EApp(EVar(f),EVar(x))
-//│       infer EVar(f)
+//│   infer ELam(b,EApp(EApp(EVar(a),EVar(int)),EVar(b)))
+//│     1 flex infer level 3
+//│     infer EApp(EApp(EVar(a),EVar(int)),EVar(b))
+//│       infer EApp(EVar(a),EVar(int))
+//│         infer EVar(a)
+//│         OK 0 ⇝ ∅
+//│         infer EVar(int)
+//│         OK Int ⇝ ∅
+//│         2 flex infer level 4
+//│         constrain 0 ≤ Int → 2
+//│           constrain ⊥ ≤ Int → 2
+//│           OK ⇝ ∅
+//│           check ⊤ ≤ Int → 2
+//│           FAIL
+//│           check Int → 2 ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ Int → 2
+//│         quantify 2 (bound at lower level) in 2
+//│         quantify 2 (bound at lower level) in 2
+//│       OK ∀2. {0 ≤ Int → 2} ⟹ 2 ⇝ ∅
+//│       infer EVar(b)
 //│       OK 1 ⇝ ∅
-//│       infer EVar(x)
-//│       OK 2 ⇝ ∅
 //│       3 flex infer level 4
-//│       constrain 1 ≤ 2 → 3
-//│         constrain ⊥ ≤ 2 → 3
-//│         OK ⇝ ∅
-//│         check ⊤ ≤ 2 → 3
-//│         FAIL
-//│         check 2 → 3 ≤ ⊤
-//│         OK ⇝ ∅
-//│       OK ⇝ 1 ≤ 2 → 3
+//│       constrain ∀2. {0 ≤ Int → 2} ⟹ 2 ≤ 1 → 3
+//│         4 flex freshen 2 level 5
+//│         constrain {0 ≤ Int → 4} ⟹ 4 ≤ 1 → 3
+//│           constrain 0 ≤ Int → 4
+//│             constrain ⊥ ≤ Int → 4
+//│             OK ⇝ ∅
+//│             check ⊤ ≤ Int → 4
+//│             FAIL
+//│             check Int → 4 ≤ ⊤
+//│             OK ⇝ ∅
+//│           OK ⇝ 0 ≤ Int → 4
+//│           constrain 4 ≤ 1 → 3
+//│             constrain ⊥ ≤ 1 → 3
+//│             OK ⇝ ∅
+//│             check ⊤ ≤ 1 → 3
+//│             FAIL
+//│             check 1 → 3 ≤ ⊤
+//│             OK ⇝ ∅
+//│           OK ⇝ 4 ≤ 1 → 3
+//│         OK ⇝ 4 ≤ 1 → 3, 0 ≤ Int → 4
+//│       OK ⇝ 4 ≤ 1 → 3, 0 ≤ Int → 4, 4 flex (5)
 //│       quantify 3 (bound at lower level) in 3
+//│       quantify 4 (bound at lower level) in 3
 //│       quantify 3 (bound at lower level) in 3
-//│     OK ∀3. {1 ≤ 2 → 3} ⟹ 3 ⇝ ∅
-//│     constrain 1 ≤ 2 → 3
-//│       constrain ⊥ ≤ 2 → 3
+//│       quantify 4 (bound at lower level) in 3
+//│     OK ∀3, 4. {0 ≤ Int → 4, 4 ≤ 1 → 3} ⟹ 3 ⇝ ∅
+//│     constrain 4 ≤ 1 → 3
+//│       constrain ⊥ ≤ 1 → 3
 //│       OK ⇝ ∅
-//│       check ⊤ ≤ 2 → 3
+//│       check ⊤ ≤ 1 → 3
 //│       FAIL
-//│       check 2 → 3 ≤ ⊤
+//│       check 1 → 3 ≤ ⊤
 //│       OK ⇝ ∅
-//│     OK ⇝ 1 ≤ 2 → 3
-//│     quantify 2 (bound at lower level) in 2 → 3
-//│     quantify 3 (bound at lower level) in 2 → 3
-//│     quantify 2 (bound at lower level) in 2 → 3
-//│     quantify 3 (bound at lower level) in 2 → 3
-//│   OK ∀2, 3. {1 ≤ 2 → 3} ⟹ 2 → 3 ⇝ ∅
-//│   constrain 1 ≤ 2 → 3
-//│     constrain ⊥ ≤ 2 → 3
+//│     OK ⇝ 4 ≤ 1 → 3
+//│     constrain 0 ≤ Int → 4
+//│       constrain ⊥ ≤ Int → 4
+//│       OK ⇝ ∅
+//│       check ⊤ ≤ Int → 4
+//│       FAIL
+//│       check Int → 4 ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ 0 ≤ Int → 4
+//│     quantify 1 (bound at lower level) in 1 → 3
+//│     quantify 4 (bound at lower level) in 1 → 3
+//│     quantify 3 (bound at lower level) in 1 → 3
+//│     quantify 1 (bound at lower level) in 1 → 3
+//│     quantify 4 (bound at lower level) in 1 → 3
+//│     quantify 3 (bound at lower level) in 1 → 3
+//│   OK ∀1, 4, 3. {0 ≤ Int → 4, 4 ≤ 1 → 3} ⟹ 1 → 3 ⇝ ∅
+//│   constrain 4 ≤ 1 → 3
+//│     constrain ⊥ ≤ 1 → 3
 //│     OK ⇝ ∅
-//│     check ⊤ ≤ 2 → 3
+//│     check ⊤ ≤ 1 → 3
 //│     FAIL
-//│     check 2 → 3 ≤ ⊤
+//│     check 1 → 3 ≤ ⊤
 //│     OK ⇝ ∅
-//│   OK ⇝ 1 ≤ 2 → 3
-//│   inline 1 (polarities Polarities(true,false)) in 1 → 2 → 3
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 3 (default) in 1 → 2 → 3
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 2 (default) in 1 → 2 → 3
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 3 (default) in (2 → 3) → 2 → 3
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 2 (default) in (2 → 3) → 2 → 3
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 3 (default) in (2 → 3) → 2 → 3
-//│   check ⊥ ≤ ⊤
-//│   OK ⇝ ∅
-//│   check ⊤ ≤ ⊥
-//│   FAIL
-//│   quantify 2 (default) in (2 → 3) → 2 → 3
-//│ OK ∀3, 2. (2 → 3) → 2 → 3 ⇝ ∅
-//│ apply: ∀α, β. (β → α) → β → α
-
-apply(id, id)
-//│ infer EApp(EApp(EVar(apply),EVar(id)),EVar(id))
-//│   infer EApp(EVar(apply),EVar(id))
-//│     infer EVar(apply)
-//│     OK ∀3, 2. (2 → 3) → 2 → 3 ⇝ ∅
-//│     infer EVar(id)
-//│     OK ∀0. 0 → 0 ⇝ ∅
-//│     4 flex infer level 2
-//│     constrain ∀3, 2. (2 → 3) → 2 → 3 ≤ (∀0. 0 → 0) → 4
-//│       5 flex freshen 3 level 2
-//│       6 flex freshen 2 level 2
-//│       constrain (6 → 5) → 6 → 5 ≤ (∀0. 0 → 0) → 4
-//│         constrain ∀0. 0 → 0 ≤ 6 → 5
-//│           7 flex freshen 0 level 2
-//│           constrain 7 → 7 ≤ 6 → 5
-//│             constrain 6 ≤ 7
-//│               constrain 6 ≤ ⊤
-//│               OK ⇝ ∅
-//│               check 6 ≤ ⊥
-//│                 check ⊤ ≤ ⊥
-//│                 FAIL
-//│               FAIL
-//│               check ⊥ ≤ 6
-//│               OK ⇝ ∅
-//│               constrain ⊥ ≤ ⊤
-//│               OK ⇝ ∅
-//│             OK ⇝ 7 ≥ 6
-//│             constrain 7 ≤ 5
-//│               constrain 7 ≤ ⊤
-//│               OK ⇝ ∅
-//│               check 7 ≤ ⊥
-//│                 check ⊤ ≤ ⊥
-//│                 FAIL
-//│               FAIL
-//│               check ⊥ ≤ 7
-//│               OK ⇝ ∅
-//│               constrain ⊥ ≤ ⊤
-//│               OK ⇝ ∅
-//│             OK ⇝ 5 ≥ 7
-//│           OK ⇝ 5 ≥ 7, 7 ≥ 6
-//│         OK ⇝ 5 ≥ 7, 7 ≥ 6, 7 flex (2)
-//│         constrain 6 → 5 ≤ 4
-//│           constrain 6 → 5 ≤ ⊤
-//│           OK ⇝ ∅
-//│           check 6 → 5 ≤ ⊥
-//│           FAIL
-//│           check ⊥ ≤ 6 → 5
-//│           OK ⇝ ∅
-//│         OK ⇝ 4 ≥ 6 → 5
-//│       OK ⇝ 4 ≥ 6 → 5, 5 ≥ 7, 7 ≥ 6, 7 flex (2)
-//│     OK ⇝ 4 ≥ 6 → 5, 5 ≥ 7, 7 ≥ 6, 7 flex (2), 6 flex (2), 5 flex (2)
-//│     inline 4 (polarities Polarities(false,true)) in 4
-//│     inline 5 (polarities Polarities(false,true)) in 4
-//│     check ⊥ ≤ ⊤
+//│   OK ⇝ 4 ≤ 1 → 3
+//│   constrain 0 ≤ Int → 4
+//│     constrain ⊥ ≤ Int → 4
 //│     OK ⇝ ∅
-//│     check ⊤ ≤ ⊥
+//│     check ⊤ ≤ Int → 4
 //│     FAIL
-//│     quantify 6 (default) in 4
-//│     inline 7 (polarities Polarities(false,true)) in 4
-//│     check ⊥ ≤ ⊤
+//│     check Int → 4 ≤ ⊤
 //│     OK ⇝ ∅
-//│     check ⊤ ≤ ⊥
-//│     FAIL
-//│     quantify 6 (default) in 6 → 6
-//│     check ⊥ ≤ ⊤
-//│     OK ⇝ ∅
-//│     check ⊤ ≤ ⊥
-//│     FAIL
-//│     quantify 6 (default) in 6 → 6
-//│   OK ∀6. 6 → 6 ⇝ ∅
-//│   infer EVar(id)
-//│   OK ∀0. 0 → 0 ⇝ ∅
-//│   8 flex infer level 2
-//│   constrain ∀6. 6 → 6 ≤ (∀0. 0 → 0) → 8
-//│     9 flex freshen 6 level 2
-//│     constrain 9 → 9 ≤ (∀0. 0 → 0) → 8
-//│       constrain ∀0. 0 → 0 ≤ 9
-//│         constrain ∀0. 0 → 0 ≤ ⊤
-//│         OK ⇝ ∅
-//│         check ∀0. 0 → 0 ≤ ⊥
-//│           10 flex freshen 0 level 2
-//│           check 10 → 10 ≤ ⊥
-//│           FAIL
-//│         FAIL
-//│         check ⊥ ≤ ∀0. 0 → 0
-//│         OK ⇝ ∅
-//│       OK ⇝ 9 ≥ ∀0. 0 → 0
-//│       constrain 9 ≤ 8
-//│         constrain 9 ≤ ⊤
-//│         OK ⇝ ∅
-//│         check 9 ≤ ⊥
-//│           check ⊤ ≤ ⊥
-//│           FAIL
-//│         FAIL
-//│         check ⊥ ≤ 9
-//│         OK ⇝ ∅
-//│         constrain ⊥ ≤ ⊤
-//│         OK ⇝ ∅
-//│       OK ⇝ 8 ≥ 9
-//│     OK ⇝ 8 ≥ 9, 9 ≥ ∀0. 0 → 0
-//│   OK ⇝ 8 ≥ 9, 9 ≥ ∀0. 0 → 0, 9 flex (2)
-//│   inline 8 (polarities Polarities(false,true)) in 8
-//│   inline 9 (polarities Polarities(false,true)) in 8
-//│   0 rigid level 3
-//│   0 rigid level 3
+//│   OK ⇝ 0 ≤ Int → 4
+//│   inline 0 (polarities Polarities(true,false)) in 0 → 1 → 3
 //│   check ⊥ ≤ ⊤
 //│   OK ⇝ ∅
 //│   check ⊤ ≤ ⊥
 //│   FAIL
-//│   quantify 0 (default) in 0 → 0
+//│   quantify 3 (default) in 0 → 1 → 3
+//│   inline 4 (polarities Polarities(true,false)) in 0 → 1 → 3
 //│   check ⊥ ≤ ⊤
 //│   OK ⇝ ∅
 //│   check ⊤ ≤ ⊥
 //│   FAIL
-//│   quantify 0 (default) in 0 → 0
-//│ OK ∀0. 0 → 0 ⇝ ∅
-//│ ∀α. α → α
+//│   quantify 1 (default) in 0 → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 3 (default) in (Int → 1 → 3) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 1 (default) in (Int → 1 → 3) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 3 (default) in (Int → 1 → 3) → 1 → 3
+//│   check ⊥ ≤ ⊤
+//│   OK ⇝ ∅
+//│   check ⊤ ≤ ⊥
+//│   FAIL
+//│   quantify 1 (default) in (Int → 1 → 3) → 1 → 3
+//│ OK ∀3, 1. (Int → 1 → 3) → 1 → 3 ⇝ ∅
+//│ foo: ∀α, β. (Int → β → α) → β → α

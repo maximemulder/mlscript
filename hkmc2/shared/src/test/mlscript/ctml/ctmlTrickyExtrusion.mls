@@ -20,7 +20,7 @@ val True = true
 fun test(f) =
   let r(x, g) = (g(x), unit)
   (r(0, inc), r(true, not'))
-//│ test: ⊤ → ⟨∀α. {∀β, γ. β → γ → ⟨∀δ. {γ ≤ β → δ} ⟹ δ, Unit⟩ ≤ Int → α, α ≤ (Int → Int) → ⊤} ⟹ ⊥, ∀ε. {∀β, γ. β → γ → ⟨∀δ. {γ ≤ β → δ} ⟹ δ, Unit⟩ ≤ Bool → ε, ε ≤ (Bool → Bool) → ⊤} ⟹ ⊥⟩
+//│ test: ⊤ → ⟨∀α, β. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, Unit⟩ ≤ Int → β, β ≤ (Int → Int) → α} ⟹ α, ∀ζ, η. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, Unit⟩ ≤ Bool → η, η ≤ (Bool → Bool) → ζ} ⟹ ζ⟩
 
 fun test(f) =
   (f(0), f(true))
@@ -35,7 +35,7 @@ fun test(f) =
 fun test(f) =
   let r(x, g) = (g(x), f(x))
   (r(0, inc), r(true, not'))
-//│ test: ∀α. α → ⟨∀β. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, ∀ζ. {α ≤ γ → ζ} ⟹ ζ⟩ ≤ Int → β, β ≤ (Int → Int) → ⊤} ⟹ ⊥, ∀η. {∀γ, δ. γ → δ → ⟨∀ε. {δ ≤ γ → ε} ⟹ ε, ∀ζ. {α ≤ γ → ζ} ⟹ ζ⟩ ≤ Bool → η, η ≤ (Bool → Bool) → ⊤} ⟹ ⊥⟩
+//│ test: ∀α. α → ⟨∀β, γ. {∀δ, ε. δ → ε → ⟨∀ζ. {ε ≤ δ → ζ} ⟹ ζ, ∀η. {α ≤ δ → η} ⟹ η⟩ ≤ Int → γ, γ ≤ (Int → Int) → β} ⟹ β, ∀θ, ι. {∀δ, ε. δ → ε → ⟨∀ζ. {ε ≤ δ → ζ} ⟹ ζ, ∀η. {α ≤ δ → η} ⟹ η⟩ ≤ Bool → ι, ι ≤ (Bool → Bool) → θ} ⟹ θ⟩
 //│ FAILURE: Unexpected lack of error to fix
 
 fun test(f) =

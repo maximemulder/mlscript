@@ -57,11 +57,18 @@ fun bop(a, b) =
 //│ bop: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β
 
 :fixme
-// bop(0, 1)
+bop(0, 1)
+//│ Int ∧ ({Int ≤ Str, Int ≤ Str} ⟹ Str)
+//│ FAILURE: Unexpected lack of error to fix
 
 :fixme
-// bop("0", "1")
+bop("0", "1")
+//│ ({Str ≤ Int, Str ≤ Int} ⟹ Int) ∧ Str
+//│ FAILURE: Unexpected lack of error to fix
 
 :fixme
 :te
-// bop(0, "1")
+bop(0, "1")
+//│ ({Str ≤ Int} ⟹ Int) ∧ ({Int ≤ Str} ⟹ Str)
+//│ FAILURE: Unexpected lack of type error
+//│ FAILURE: Unexpected lack of error to fix

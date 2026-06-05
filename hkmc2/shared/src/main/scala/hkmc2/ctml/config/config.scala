@@ -44,6 +44,9 @@ class Config:
   /** Whether to use type variable shadows in the cache. */
   var cacheShadow = true
 
+  /** Whether to extrude type variable bounds. */
+  var extrudeVar = false
+
   /** Whether to check constraint coherence during subtyping reconstruction. */
   var reconstructCoherence = false
 

@@ -7,6 +7,9 @@ fun id(x) =
 id(1)
 //│ Int
 
+val idInt = id as (Int -> Int)
+//│ idInt: Int → Int
+
 fun apply(f, x) =
   f(x)
 //│ apply: ∀α, β. (β → α) → β → α
@@ -17,6 +20,14 @@ fun double(f, x) =
 
 double(id, 1)
 //│ ∀α. {∀β. β → β ≤ Int → α} ⟹ α
+
+double(idInt, 1)
+//│ Int
+
+:te
+double(idInt, "Hello")
+//│ Int
+//│ FAILURE: Unexpected lack of type error
 
 fun foo(a, b) =
   a(1, b)

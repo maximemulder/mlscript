@@ -76,6 +76,9 @@ extension (ctx: Context)
     if ctx.extend(outs).getTypeVarEffectiveLevel(var_) < level then
       return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
 
+    if ctx.extend(outs).bounds.exists(_.type_.hasConstrainedVar(var_)) then
+      return debugVarAction(var_, type_, VarAction.Quantify, "used in constrained type")
+
     if polarities == Polarities(false, false) then
       return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
 

@@ -29,12 +29,6 @@ private def hoistTypeCtx(type_ : Type, parent: (Type) => Type): Type =
       TUniv(var_, hoistTypeCtx(body, parent))
     case TConstrained(body, constraint) =>
       TConstrained(hoistTypeCtx(body, parent), constraint)
-    case TTuple(left, right) =>
-      hoistTypeCtx(left, (left) =>
-        hoistTypeCtx(right, (right) =>
-          parent(TTuple(left, right))
-        )
-      )
     case TLam(param, ret) =>
       hoistTypeCtx(ret, (ret) => parent(TLam(param, ret)))
     case TUnion(left, right) =>

@@ -47,12 +47,12 @@ val test(extr) =
   let f = (n, m) => n(0)
   let _ = extr(f)
   f(0)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ (∀β. (Int → β) → ⊤ → β) → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment α → β ≤ (γ → δ → ε) → ζ.
 //│ Typing error tree:
-//│   ∀α. (Int → α) → α ≤ (∀β. (Int → β) → ⊤ → β) → γ
-//│     (Int → δ) → δ ≤ (∀β. (Int → β) → ⊤ → β) → γ
-//│       ∀β. (Int → β) → ⊤ → β ≤ Int → δ
-//│         (Int → ε) → ⊤ → ε ≤ Int → δ
+//│   α → β ≤ (γ → δ → ε) → ζ
+//│     γ → δ → ε ≤ α
+//│       γ → δ → ε ≤ Int → η
+//│         Int ≤ γ
 //│           Int ≤ Int → ε
 
 :te
@@ -60,24 +60,34 @@ val test(extr, x) =
   let f = (n, m) => x(n(0))
   let _ = extr(f)
   f(0)
-//│ test: ∀α. ⊤ → ((∀β. {Int ≤ Int → β} ⟹ β) → α) → ⊤ → α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment α → β ≤ (γ → δ → ε) → ζ.
+//│ Typing error tree:
+//│   α → β ≤ (γ → δ → ε) → ζ
+//│     γ → δ → ε ≤ α
+//│       γ → δ → ε ≤ Int → η
+//│         Int ≤ γ
+//│           Int ≤ Int → θ
 
 :te
 val test(extr, x) =
   let f = (n, m) => x(n(0))
   f(0)
-//│ test: ∀α. ⊤ → ((∀β. {Int ≤ Int → β} ⟹ β) → α) → ⊤ → α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment α → β ≤ (γ → δ → ε) → ζ.
+//│ Typing error tree:
+//│   α → β ≤ (γ → δ → ε) → ζ
+//│     γ → δ → ε ≤ α
+//│       γ → δ → ε ≤ Int → β
+//│         Int ≤ γ
+//│           Int ≤ Int → η
 
 :te
 val test(extr, x) =
   let f = (n, m) => n(x, 0)
   f(0)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (Int → α) → α ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment α → β ≤ (γ → δ → ε) → ζ.
 //│ Typing error tree:
-//│   ∀α. (Int → α) → α ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ
-//│     (Int → ε) → ε ≤ (∀β. (γ → Int → β) → ⊤ → β) → δ
-//│       ∀β. (γ → Int → β) → ⊤ → β ≤ Int → ε
-//│         (γ → Int → ζ) → ⊤ → ζ ≤ Int → ε
-//│           Int ≤ γ → Int → ζ
+//│   α → β ≤ (γ → δ → ε) → ζ
+//│     γ → δ → ε ≤ α
+//│       γ → δ → ε ≤ Int → β
+//│         Int ≤ γ
+//│           Int ≤ η → θ

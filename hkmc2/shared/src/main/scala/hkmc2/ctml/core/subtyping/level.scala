@@ -7,9 +7,16 @@ import hkmc2.ctml.types.*
 extension (ctx: Context)
   /** Evaluate a subtyping function in a new level with a new fresh type variable and solve that
    *  level. */
-  def withSubtypingLevel(kind: TypeVarKind, originals: List[TypeVar], f: (List[TypeVar], Context) => Clauses): Clauses =
+  def withSubtypingLevel3(kind: TypeVarKind, originals: List[TypeVar], f: (List[TypeVar], Context) => Clauses): Clauses =
     val decls = ctx.declFreshVars(originals, kind)
     ctx.withFreshVarLevel(kind, decls, (a, b) => ((), f(a, b)), (_, _, b) => ((), b))._2
 
   def withSubtypingLevel2(f: (Int) => Clauses): Clauses =
     f(ctx.maxLevel + 1)
+
+  def withSubtypingLevel(f: () => (Context) ?=> Clauses): Clauses =
+    ctx.withLevel(() => ((), f()))._2
+
+  def withFreshVars(kind: TypeVarKind, originals: List[TypeVar], f: (List[TypeVar], Context) => Clauses): Clauses =
+    val decls = ctx.declFreshVars(originals, kind)
+    f(decls.map(_.var_), ctx.extend(decls))

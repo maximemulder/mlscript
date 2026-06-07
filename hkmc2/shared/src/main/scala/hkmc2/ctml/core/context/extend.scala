@@ -22,4 +22,4 @@ extension (ctx: Context)
 
   /** Append a clause at the end of the clauses. */
   def extendOne(clause: Clause): Context =
-    Context(clause :: ctx.clauses, ctx.cache)
+    Context(clause :: ctx.clauses, ctx.cache, ctx.level)

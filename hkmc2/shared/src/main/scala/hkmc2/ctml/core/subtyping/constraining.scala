@@ -320,16 +320,16 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (univVars, univBody) = sub.getUnivComponents
-  ctx.withSubtypingLevel2((level) =>
-    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, TypeVarKind.Flex)
+  ctx.withSubtypingLevel(() =>
+    val (instanceBody, cache, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)
     subtypeSeq(instanceBody, sup, outs)(using ctx.mapCache((_) => cache), mode)
   )
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (univVars, univBody) = sup.getUnivComponents
-  ctx.withSubtypingLevel2((level) =>
-    val (instanceBody, cache, outs) = instantiateUniv(level, univVars, univBody, TypeVarKind.Rigid)
+  ctx.withSubtypingLevel(() =>
+    val (instanceBody, cache, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Rigid)
     subtypeSeq(sub, instanceBody, outs)(using ctx.mapCache((_) => cache), mode)
   )
 
@@ -433,7 +433,7 @@ def subtypeConstraintSeq(constraint: Constraint, ins: Clauses)(using ctx: Contex
 
 /** Instantiate the quantified variables of a universal type at the given level, using fresh
  *  variables or approximations from the cache. */
-def instantiateUniv(level: Int, vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: Context): (Type, SubtypingCache, Clauses) =
+def instantiateUniv(vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: Context): (Type, SubtypingCache, Clauses) =
   var instanceBody = body
   var cache = ctx.cache
   var outs = Clauses.empty
@@ -442,7 +442,7 @@ def instantiateUniv(level: Int, vars: List[TypeVar], body: Type, kind: TypeVarKi
       case Some(instanceVar) =>
         instanceVar.decl(using ctx)
       case None =>
-        val decl = ctx.declFreshVar(level, kind, var_)
+        val decl = ctx.declFreshVar(kind, var_)
         cache = cache.addUniv(var_, body, decl.var_)
         outs = outs.concat(decl.asClauses)
         decl

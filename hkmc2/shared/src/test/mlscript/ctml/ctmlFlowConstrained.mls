@@ -79,7 +79,7 @@ fun foo2(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo2: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β
+//│ foo2: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
 
 fun bar2(a, b) =
   foo2(a, b) as Int
@@ -105,6 +105,6 @@ foo2(bot, bot)
 
 :te
 foo2(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
 //│ Typing error tree:
-//│   Str ≤ Int
+//│   Int ≤ Str

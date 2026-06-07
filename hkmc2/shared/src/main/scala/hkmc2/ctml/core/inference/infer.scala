@@ -7,9 +7,13 @@ import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
+import hkmc2.ctml.core.var_.declInferVar
 
 def inferSeq(expr: Expr, ins: Clauses)(using ctx: Context): (Type, Clauses) =
   ctx.seq(infer(expr), ins)
+
+def inferTopLevel(expr: Expr)(using ctx: Context): (Type, Clauses) =
+  ctx.withInferLevel(() => infer(expr))
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: Context): (Type, Clauses) =
@@ -30,27 +34,23 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 
     // Lambda abstraction.
     case lam: ELam =>
-      ctx.withInferenceLevel((paramVar, ctx) =>
-        val paramType = TVar(paramVar)
-        given Context = ctx.extend(TermVarDecl(lam.paramName, paramType))
+      ctx.withInferLevel(() =>
+        val paramVarDecl = ctx.declInferVar()
+        val paramType = TVar(paramVarDecl.var_)
+        given Context = ctx.extend(paramVarDecl, TermVarDecl(lam.paramName, paramType))
         val (bodyType, bodyClauses) = infer(lam.body)
-        (TLam(paramType, bodyType), bodyClauses)
+        (TLam(paramType, bodyType), Clauses.single(paramVarDecl).concat(bodyClauses))
       )
 
     // Lambda application.
     case app: EApp =>
       val (lamType, lamClauses) = infer(app.lam)
       val (argType, argClauses) = inferSeq(app.arg, lamClauses)
-      ctx.seq(
-        summon[Context].withInferenceLevel((retVar, ctx) =>
-          val retType = TVar(retVar)
-          val mockLamType = TLam(argType, retType)
-          given Context = ctx
-          val consrainClauses = typingSubtype(lamType, mockLamType)
-          (retType, consrainClauses)
-        ),
-        argClauses,
-      )
+      val retVarDecl = ctx.declInferVar()
+      val retType = TVar(retVarDecl.var_)
+      val mockLamType = TLam(argType, retType)
+      val consrainClauses = typingSubtypeSeq(lamType, mockLamType, argClauses.concat(retVarDecl.asClauses))
+      (retType, consrainClauses)
 
     // Type ascription.
     case ascr: EAscr =>
@@ -70,22 +70,44 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   ctx.seq(
-    summon[Context].withInferenceLevel((matchVar, matchCtx) =>
-      given Context = matchCtx
-      val matchType = TVar(matchVar)
-      val patternClauses = typingSubtype(scrutineeType, match_.pattern)
-      val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
-      val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
+    summon[Context].withInferLevel(() =>
+      val ctx = summon[Context]
+      val matchVarDecl = ctx.declInferVar()
+      val matchType = TVar(matchVarDecl.var_)
+      val matchCtx = ctx.extend(matchVarDecl)
+      val (a, b) = (() =>
+        given Context = matchCtx
+        val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+        val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+        val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
 
-      match_.else_ match
-        case Some(else_) =>
-          val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
-          val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
-          val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
-          (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
-        case None =>
-          (matchType, realBodyClauses)
+        match_.else_ match
+          case Some(else_) =>
+            val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+            val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+            val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+            (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
+          case None =>
+            (matchType, realBodyClauses)
+      )()
+      (a, Clauses.single(matchVarDecl).concat(b))
     ),
+    //summon[Context].withInferenceLevel2((matchVar, matchCtx) =>
+    //  given Context = matchCtx
+    //  val matchType = TVar(matchVar)
+    //  val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+    //  val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+    //  val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
+//
+    //  match_.else_ match
+    //    case Some(else_) =>
+    //      val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+    //      val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+    //      val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+    //      (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
+    //    case None =>
+    //      (matchType, realBodyClauses)
+    //),
     scrutineeClauses,
   )
 

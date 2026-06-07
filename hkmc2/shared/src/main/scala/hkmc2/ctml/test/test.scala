@@ -9,7 +9,7 @@ import hkmc2.Raise
 import hkmc2.ctml.config.config
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.inference.infer
+import hkmc2.ctml.core.inference.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.core.var_.*
@@ -117,7 +117,7 @@ class Tester(
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
-    val (type_, outs) = infer(expr)(using this.ctx)
+    val (type_, outs) = inferTopLevel(expr)(using this.ctx)
     this.output(s"${name}: ${type_.prettify(prettyCtx)}")
     if config.debug.output then
       this.outputClauses(outs)
@@ -125,7 +125,7 @@ class Tester(
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
-    val (type_, outs) = infer(expr)(using this.ctx)
+    val (type_, outs) = inferTopLevel(expr)(using this.ctx)
     if config.debug.output then
       this.outputClauses(outs)
     this.outputType(type_)

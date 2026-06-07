@@ -17,14 +17,26 @@ import hkmc2.ctml.types.*
 extension (ctx: Context)
   /** Evaluate a type inference function in a new level with a new fresh type variable and solve
    *  that level. */
-  def withInferenceLevel(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
+  def withInferenceLevel2(f: (TypeVar, Context) => (Type, Clauses)): (Type, Clauses) =
     val decl = ctx.declInferVar()
     ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.processLevel(a, b, c))
+
+  def withInferLevel(f: () => (Context) ?=> (Type, Clauses)): (Type, Clauses) =
+    // val decl = ctx.declInferVar()
+    // ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.processLevel(a, b, c))
+    ctx.withLevel(() =>
+      val (type_, outs) = f()
+      debug(s"LEVEL INPUT ${type_}")
+      val (a, b) = processLevel(summon[Context].level, type_, outs)
+      debug(s"LEVEL OUTPUT ${a}")
+      (a, b)
+    )
 
   /** Process the type, variables, and constraints generated in a level. Quantifying and
    *  simplifying then if possible. */
   def processLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
     val (type1, outs1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
+    // val (type1, outs1) = (type_, outs)
 
     val (type2, outs2) = simplifyLevel(level, type1, outs.concat(outs1))
 
@@ -106,7 +118,12 @@ def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
 def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   (
     type_.inline(var_),
-    outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
+    outs.mapBounds((b) =>
+
+      val a = b.inline(var_)
+      debug(s"INLINE ${var_} IN BOUND ${b} TO ${a}")
+      a
+    ).removeTypeVar(var_),
   )
 
 def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =

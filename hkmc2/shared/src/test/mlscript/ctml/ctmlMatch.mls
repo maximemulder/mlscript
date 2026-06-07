@@ -14,21 +14,23 @@ if 1 is
 if (1 as Int | Str) is
   Int then 1
   Str then "Hello"
-//│ Int ∨ Str
+//│ {Int ∨ Str ≤ Str} ⟹ Str
 
 :te
 if (1 as Int) is
   Str then 1
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Int ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment α → Int ≤ Int → β.
 //│ Typing error tree:
-//│   Str → Int ≤ Int → α
-//│     Int ≤ Str
+//│   α → Int ≤ Int → β
+//│     Int ≤ α
+//│       Int ≤ Str
 
 :te
 if (1 as Int | Str) is
   Int then 1
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment α → Int ≤ (Int ∨ Str) → β.
 //│ Typing error tree:
-//│   Int → Int ≤ (Int ∨ Str) → α
-//│     Int → Int ≤ Str → α
-//│       Str ≤ Int
+//│   α → Int ≤ (Int ∨ Str) → β
+//│     α → Int ≤ Str → β
+//│       Str ≤ α
+//│         Str ≤ Int

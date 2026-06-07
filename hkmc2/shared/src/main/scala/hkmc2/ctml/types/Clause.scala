@@ -9,7 +9,7 @@ extension (clauses: AsClauses)
   /** Read a clauses-like object as a list of clauses. */
   def asClauses: List[Clause] =
     clauses match
-      case Context(clauses, _) =>
+      case Context(clauses, _, _) =>
         clauses
       case Clauses(clauses) =>
         clauses

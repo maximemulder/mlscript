@@ -16,14 +16,16 @@ baz(bot, bot)
 
 :te
 baz(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
 //│ Typing error tree:
-//│   Int → Int ≤ Str → α
-//│     Str ≤ Int
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
 
 :te
 baz(1, top)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ ⊤ → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⊤ → β.
 //│ Typing error tree:
-//│   Int → Int ≤ ⊤ → α
-//│     ⊤ ≤ Int
+//│   α ≤ ⊤ → β
+//│     Int → Int ≤ ⊤ → β
+//│       ⊤ ≤ Int

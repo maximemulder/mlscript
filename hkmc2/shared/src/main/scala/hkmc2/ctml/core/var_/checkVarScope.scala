@@ -50,11 +50,11 @@ extension (ctx: Context)
   def findEscapedVars(): Set[TypeVar] =
     ctx.clauses match
       case (bound: Bound) :: clauses =>
-        given Context = Context(clauses, SubtypingCache())
-        bound.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
+        given Context = Context(clauses, SubtypingCache(), 0)
+        bound.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
       case (decl: TermVarDecl) :: clauses =>
-        given Context = Context(clauses, SubtypingCache())
-        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
+        given Context = Context(clauses, SubtypingCache(), 0)
+        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
       case _ =>
         Set.empty
 
@@ -64,10 +64,10 @@ extension (clauses: Clauses)(using ctx: Context)
     clauses.elems match
       case (bound: Bound) :: clauses =>
         given Context = ctx.extend(clauses)
-        bound.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
+        bound.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
       case (decl: TermVarDecl) :: clauses =>
         given Context = ctx.extend(clauses)
-        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache()).findEscapedVars()
+        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
       case _ =>
         Set.empty
 

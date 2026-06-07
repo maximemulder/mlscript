@@ -3,19 +3,9 @@ package hkmc2.ctml.core.structural
 import hkmc2.ctml.types.*
 
 /** Structurally combine two types while removing redundant top and bottom types. */
-def structuralCombine(left: Type, right: Type, pol: Polarity) =
-  pol match
-    case Polarity.Negative =>
-      (left, right) match
-        case (TTop, TTop) =>
-          TTop
-        case (left, TTop) =>
-          left
-        case (TTop, right) =>
-          right
-        case (left, right) =>
-          TInter(left, right)
-    case Polarity.Positive =>
+def structuralCombine(mode: JointMode, left: Type, right: Type) =
+  mode match
+    case JointMode.Union =>
       (left, right) match
         case (TBot, TBot) =>
           TBot
@@ -25,3 +15,13 @@ def structuralCombine(left: Type, right: Type, pol: Polarity) =
           right
         case (left, right) =>
           TUnion(left, right)
+    case JointMode.Inter =>
+      (left, right) match
+        case (TTop, TTop) =>
+          TTop
+        case (left, TTop) =>
+          left
+        case (TTop, right) =>
+          right
+        case (left, right) =>
+          TInter(left, right)

@@ -19,66 +19,32 @@ val True = true
 fun test(f) =
   let r(x, g) = (g(x), unit)
   (r(0, inc), r(true, not'))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment α → ⟨β, γ⟩ ≤ (δ → ε → ⟨ζ, Unit⟩) → η.
-//│ Typing error tree:
-//│   α → ⟨β, γ⟩ ≤ (δ → ε → ⟨ζ, Unit⟩) → η
-//│     δ → ε → ⟨ζ, Unit⟩ ≤ α
-//│       δ → ε → ⟨ζ, Unit⟩ ≤ (Int → θ) ∧ (Bool → ι)
-//│         δ → ε → ⟨ζ, Unit⟩ ≤ Bool → ι
-//│           Bool ≤ δ
-//│             Bool ≤ Int
+//│ test: ⊤ → ⟨⟨Int, Unit⟩, ⟨Bool, Unit⟩⟩
 
 fun test(f) =
   (f(0), f(true))
-//│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
+//│ test: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
+//│ test: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
 
 fun test(f) =
   let r(x, g) = (g(x), f(x))
   (r(0, inc), r(true, not'))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment α → ⟨β, γ⟩ ≤ (δ → ε → ⟨ζ, η⟩) → θ.
-//│ Typing error tree:
-//│   α → ⟨β, γ⟩ ≤ (δ → ε → ⟨ζ, η⟩) → θ
-//│     δ → ε → ⟨ζ, η⟩ ≤ α
-//│       δ → ε → ⟨ζ, η⟩ ≤ (Int → ι) ∧ (Bool → κ)
-//│         δ → ε → ⟨ζ, η⟩ ≤ Bool → κ
-//│           Bool ≤ δ
-//│             Bool ≤ Int
+//│ test: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨⟨Int, β⟩, ⟨Bool, α⟩⟩
 
 fun test(f) =
   let r(x) = f(x)
   (r(0), r(true))
-//│ test: ∀α. ((Int ∨ Bool) → α) → ⟨α, α⟩
+//│ test: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
 
 fst(test(id)) + 1
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ α → β.
-//│ Typing error tree:
-//│   Int → Int → Int ≤ α → β
-//│     α ≤ Int
-//│       γ ∨ δ ≤ Int
-//│         γ ≤ Int
-//│           Bool ≤ Int
+//│ Int
 
 not'(snd(test(id)))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ α → β.
-//│ Typing error tree:
-//│   Bool → Bool ≤ α → β
-//│     α ≤ Bool
-//│       γ ∨ δ ≤ Bool
-//│         δ ≤ Bool
-//│           Int ≤ Bool
+//│ Bool
 
 :te
 not'(fst(test(id)))
@@ -86,6 +52,4 @@ not'(fst(test(id)))
 //│ Typing error tree:
 //│   Bool → Bool ≤ α → β
 //│     α ≤ Bool
-//│       γ ∨ δ ≤ Bool
-//│         δ ≤ Bool
-//│           Int ≤ Bool
+//│       Int ≤ Bool

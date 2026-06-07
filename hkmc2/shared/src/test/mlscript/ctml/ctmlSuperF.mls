@@ -65,7 +65,7 @@ val z = (f, x) => x
 val s = (n, f, x) => f(n(f, x))
 val n3 = s(s(s(z)))
 //│ z: ∀α. ⊤ → α → α
-//│ s: ∀β, γ, δ, ε. {β ≤ δ → ε} ⟹ (β → γ → δ) → β → γ → ε
+//│ s: ∀β, γ, δ, ε. {γ ≤ β → ε} ⟹ (γ → δ → β) → γ → δ → ε
 //│ n3: ∀ζ, η, θ, ι. ((η → ι) ∧ (ζ → η) ∧ (θ → ζ)) → θ → ι
 
 // Terms
@@ -86,7 +86,7 @@ val a3 = choose(nil, ids)
 // OK
 
 fun a4(x) = x(x)
-//│ a4: ∀α, β. {α ≤ α → β} ⟹ α → β
+//│ a4: ∀α, β. {β ≤ β → α} ⟹ β → α
 // OK
 
 val a5 = id(auto)
@@ -122,7 +122,7 @@ val a12 = id(poly((p) => p))
 // OK
 
 fun b1(f) = (f(1), f(true))
-//│ b1: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
+//│ b1: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
 // OK
 
 fun b2(xs) = poly(head(xs))
@@ -153,7 +153,7 @@ val c5 = cons(id, ids)
 // OK
 
 val c6 = cons((x) => x, ids)
-//│ c6: ∀α. List[α → α]
+//│ c6: List[∀α. α → α]
 // OK
 
 val c7 = append(single(inc), single(id))
@@ -239,11 +239,11 @@ val f9 =
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀α, β. {α ≤ (∀γ, δ. {α ≥ γ → γ, γ ≥ ∀A. A → A, β ≥ δ → δ} ⟹ (∀A. A → A) → β) → ⊤, α ≥ ⊤ → ((∀A. A → A) ∨ (∀γ, δ. {α ≥ γ → γ, γ ≥ ∀A. A → A, β ≥ δ → δ} ⟹ (∀A. A → A) → β))} ⟹ (∀A. A → A) ∨ (∀γ, δ. {α ≥ γ → γ, γ ≥ ∀A. A → A, β ≥ δ → δ} ⟹ (∀A. A → A) → β)
+//│ f10: ∀α. {α ≤ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ) → ⊤, α ≥ ⊤ → ((∀A. A → A) ∨ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ))} ⟹ (∀A. A → A) ∨ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ)
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β. Int → ((((α ∨ β) → β) → α → β) ∨ (∀γ. ⊤ → γ → γ))
+//│ toChurch: ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ))
 // OK
 
 val g1a = z as ChurchInt
@@ -251,7 +251,7 @@ val g1a = z as ChurchInt
 // OK
 
 val g2 = s
-//│ g2: (α → β → γ) → α → β → δ
+//│ g2: ∀α, β, γ, δ. {γ ≤ δ → α} ⟹ (γ → β → δ) → γ → β → α
 // OK
 
 val g2a = s as ((ChurchInt) -> ChurchInt)
@@ -266,16 +266,7 @@ val g3a = n3 as ChurchInt
 // OK
 
 val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A, B. ⟨A, B⟩ → A ≤ α → β.
-//│ Typing error tree:
-//│   ∀A, B. ⟨A, B⟩ → A ≤ α → β
-//│     ⟨γ, δ⟩ → γ ≤ α → β
-//│       α ≤ ⟨γ, δ⟩
-//│         ε ≤ ⟨γ, δ⟩
-//│           ⟨ε, Int⟩ ∨ Int ≤ ⟨γ, δ⟩
-//│             Int ≤ ⟨γ, δ⟩
+//│ g5: Int
 // OK
 
 val g7 = (s(s(z)))(s(s(z)))
@@ -283,15 +274,31 @@ val g7 = (s(s(z)))(s(s(z)))
 // MAYBE
 
 val g8 = toChurch
-//│ g8: Int → ((((α ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
+//│ g8: ∀α, β, γ. {α ≥ β} ⟹ Int → ((((α ∨ γ) → γ) → β → γ) ∨ (⊤ → α → α))
 // OK
 
 val g8a = toChurch as ((Int) -> ChurchInt)
-//│ g8a: Int → ChurchInt
+//│ FAILURE: Unexpected type error
+//│ FAILURE LOCATION: raise (test.scala:71)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt.
+//│ Typing error tree:
+//│   ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt
+//│     {δ ≥ ζ} ⟹ Int → ((((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ)) ≤ Int → ChurchInt
+//│       Int → ((((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ)) ≤ Int → ChurchInt
+//│         (((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ) ≤ ChurchInt
+//│           ⊤ → δ → δ ≤ ChurchInt
+//│             ⊤ → δ → δ ≤ ∀A. (A → A) → A → A
+//│               ⊤ → δ → δ ≤ (η → η) → η → η
+//│                 δ → δ ≤ η → η
+//│                   η ≤ δ
+//│                     η ≤ θ
+//│                       η ≤ ⊥
+//│                         ⊤ ≤ ⊥
 // OK
 
-// fun g9(x) = if true then x else g9(g9)(x)
+fun g9(x) = if true then x else g9(g9)(x)
 // MAYBE
+//│ g9: ∀α, β, γ, δ. {α ≤ δ → γ, α ≥ δ → (γ ∨ δ), β ≤ δ → γ, β ≥ α, γ ≤ δ → γ, δ ≤ δ → γ, δ ≥ β} ⟹ δ → (γ ∨ δ)
 
 val g10 = ((x) => x(x))((x) => x(x))
 //│ g10: ⊥
@@ -305,16 +312,16 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: (∀A, B. A → B → A) ∨ (∀A, B. ⊤ → A → B → A)
+//│ g12: ∀A, B. ⊤ → A → B → A
 // OK
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
-//│ g13: ⟨⟨List[Int ∨ Bool] ∨ Int ∨ Bool, List[Int ∨ Bool] ∨ Int ∨ Bool⟩, ⟨List[Int ∨ Bool] ∨ Int ∨ Bool, List[Int ∨ Bool] ∨ Int ∨ Bool⟩⟩
+//│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩
 // OK
 
 val g14 = ((f) =>
     let a = ((u: Unit) => f(id))
     a(unit) as ((Int) -> ([B] -> (B) -> B))
 ) (const(const(id)))
-//│ g14: ∀B. Int → B → B
+//│ g14: ∀α. Int → α → α
 // OK

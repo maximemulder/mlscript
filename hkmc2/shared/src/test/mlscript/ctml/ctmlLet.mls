@@ -1,5 +1,7 @@
 :ctml
 
+:ctml-cfg subtype-absurd-constred error-absurd-constred reconstruct-coherence
+
 fun foo(a) =
   let b = a
   let c = b
@@ -17,45 +19,42 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ. α → β → ({α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ γ)
+//│ baz: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({γ ≤ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, α ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ γ → α → β
 
 baz(1, 1)
-//│ ∀α. {α ≥ Int ∧ ({Int ≤ Str, Int ≤ Str} ⟹ Str)} ⟹ α
+//│ Int
 
 baz("", "")
-//│ ∀α. {α ≥ ({Str ≤ Int, Str ≤ Int} ⟹ Int) ∧ Str} ⟹ α
+//│ Str
 
 baz(bot, bot)
 //│ ⊥
 
 :te
 baz(1, "")
-//│ ∀α. {α ≥ ({Str ≤ Int} ⟹ Int) ∧ ({Int ≤ Str} ⟹ Str)} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
+//│ Typing error tree:
+//│   Int ≤ Str
 
 :te
 baz(true, false)
-//│ ∀α. {Bool ≤ ({Bool ≤ Int, α ≥ Int} ⟹ Int) ∨ ({Bool ≤ Str, α ≥ Str} ⟹ Str), Bool ≤ ({Bool ≤ Int, α ≥ Int} ⟹ Int) ∨ ({Bool ≤ Str, α ≥ Str} ⟹ Str), α ≥ ({Bool ≤ Int, Bool ≤ Int} ⟹ Int) ∧ ({Bool ≤ Str, Bool ≤ Str} ⟹ Str)} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Str.
+//│ Typing error tree:
+//│   Bool ≤ Str
 
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ. α → β → ({α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ γ)
+//│ bop: ∀α, β, γ. {α ≥ ({γ ≤ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≤ Int, α ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, α ≥ Str} ⟹ Str), γ ≤ ({β ≤ Int, α ≥ Int} ⟹ Int) ∨ ({β ≤ Str, α ≥ Str} ⟹ Str)} ⟹ γ → β → α
 
-:fixme
 bop(0, 1)
-//│ ∀α. {α ≥ Int ∧ ({Int ≤ Str, Int ≤ Str} ⟹ Str)} ⟹ α
-//│ FAILURE: Unexpected lack of error to fix
+//│ Int
 
-:fixme
 bop("0", "1")
-//│ ∀α. {α ≥ ({Str ≤ Int, Str ≤ Int} ⟹ Int) ∧ Str} ⟹ α
-//│ FAILURE: Unexpected lack of error to fix
+//│ Str
 
-:fixme
 :te
 bop(0, "1")
-//│ ∀α. {α ≥ ({Str ≤ Int} ⟹ Int) ∧ ({Int ≤ Str} ⟹ Str)} ⟹ α
-//│ FAILURE: Unexpected lack of type error
-//│ FAILURE: Unexpected lack of error to fix
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
+//│ Typing error tree:
+//│   Int ≤ Str

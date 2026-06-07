@@ -65,11 +65,6 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context): (Type, 
   (sub: Type, sup: Type) =>
     try
       outputContext(s"${mode} ${sub} ≤ ${sup}")
-      // if ctx.cache.pairs.map((a, b) => s"${a} ${b}").contains("⊤ ∀11. {27 ≤ Int → 11} ⟹ 11") then
-      //   debug(s"YOO")
-      // else
-      //   debug(s"NEE")
-
       val outs = debugCall(() => impl(sub, sup))
       output(s"OK ⇝ ${outs}")
       outs

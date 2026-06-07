@@ -16,7 +16,7 @@ extension (type_ : Type)
   def unwrapCtx(using ctx: Context): (Type, Clauses) =
     val (vars, univBody) = type_.getUnivComponents
     val (constrainedBody, constraints) = univBody.getConstrainedComponents
-    val univOuts = Clauses(vars.map(TypeVarDecl(_, TypeVarKind.Flex, None, ctx.maxLevel)))
+    val univOuts = Clauses(vars.map(TypeVarDecl(_, TypeVarKind.Flex, None, ctx.level)))
     val constrainedOuts = constraints.foldRight(univOuts)((constraint, outs) =>
       subtypeConstraintSeq(constraint, outs)(using ctx, ConstraintMode.Solve)
     )

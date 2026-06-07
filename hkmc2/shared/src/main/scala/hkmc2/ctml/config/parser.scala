@@ -4,6 +4,47 @@ import scala.collection.mutable.ListBuffer
 
 import hkmc2.ctml.utils.*
 
+def applyConfigArguments(arguments: List[String]): Unit =
+  try
+    var buffer = ListBuffer(arguments*)
+    while buffer.nonEmpty do
+      buffer.remove(0) match
+        case "" =>
+          ()
+        case "merge-constred" =>
+          config.mergeMode = MergeMode.Constrained
+        case "merge-constring" =>
+          config.mergeMode = MergeMode.Constraining
+        case "assumption-reconstruct" =>
+          config.assumptionMode = AssumptionMode.Reconstruct
+        case "assumption-flexify" =>
+          config.assumptionMode = AssumptionMode.Flexify
+        case "cache-var" =>
+          config.cacheVar = true
+        case "cache-all" =>
+          config.cacheType = true
+        case "cache-univ" =>
+          config.cacheUniv = true
+        case "cache-shadow" =>
+          config.cacheShadow = true
+        case "cache-raw" =>
+          config.cacheShadow = false
+        case "extrude-var" =>
+          config.extrudeVar = true
+        case "reconstruct-coherence" =>
+          config.reconstructCoherence = true
+        case "subtype-absurd-constred" =>
+          config.subtypeAbsurdConstreds = true
+        case "error-absurd-constred" =>
+          config.checkUnsolvableConstreds = true
+        case "arbitrary-patterns" =>
+          config.arbitraryPatterns = true
+        case argument =>
+          throw Exception(s"unknown argument '${argument}'")
+  catch
+    case error: Exception =>
+      config.output(s"Could not parse config arguments: ${error.getMessage()}")
+
 def applyDebugArguments(arguments: List[String]): Unit =
   try
     var buffer = ListBuffer(arguments*)
@@ -52,44 +93,3 @@ def applyDebugArguments(arguments: List[String]): Unit =
   catch
     case error: Exception =>
       config.output(s"Could not parse debug arguments: ${error.getMessage()}")
-
-def applyConfigArguments(arguments: List[String]): Unit =
-  try
-    var buffer = ListBuffer(arguments*)
-    while buffer.nonEmpty do
-      buffer.remove(0) match
-        case "" =>
-          ()
-        case "merge-constred" =>
-          config.mergeMode = MergeMode.Constrained
-        case "merge-constring" =>
-          config.mergeMode = MergeMode.Constraining
-        case "assumption-reconstruct" =>
-          config.assumptionMode = AssumptionMode.Reconstruct
-        case "assumption-flexify" =>
-          config.assumptionMode = AssumptionMode.Flexify
-        case "cache-var" =>
-          config.cacheVar = true
-        case "cache-all" =>
-          config.cacheType = true
-        case "cache-univ" =>
-          config.cacheUniv = true
-        case "cache-shadow" =>
-          config.cacheShadow = true
-        case "cache-raw" =>
-          config.cacheShadow = false
-        case "extrude-var" =>
-          config.extrudeVar = true
-        case "reconstruct-coherence" =>
-          config.reconstructCoherence = true
-        case "subtype-absurd-constred" =>
-          config.subtypeAbsurdConstreds = true
-        case "error-absurd-constred" =>
-          config.checkUnsolvableConstreds = true
-        case "arbitrary-patterns" =>
-          config.arbitraryPatterns = true
-        case argument =>
-          throw Exception(s"unknown argument '${argument}'")
-  catch
-    case error: Exception =>
-      config.output(s"Could not parse config arguments: ${error.getMessage()}")

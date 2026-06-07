@@ -320,7 +320,8 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: Context, mode: Const
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (univVars, univBody) = sub.getUnivComponents
-  ctx.withSubtypingLevel(() =>
+  ctx.withSubtypingLevel((ctx) =>
+    given Context = ctx
     val (instanceBody, cache, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)
     subtypeSeq(instanceBody, sup, outs)(using ctx.mapCache((_) => cache), mode)
   )
@@ -328,7 +329,8 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: Context, mode: ConstraintMo
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: Context, mode: ConstraintMode): Clauses =
   val (univVars, univBody) = sup.getUnivComponents
-  ctx.withSubtypingLevel(() =>
+  ctx.withSubtypingLevel((ctx) =>
+    given Context = ctx
     val (instanceBody, cache, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Rigid)
     subtypeSeq(sub, instanceBody, outs)(using ctx.mapCache((_) => cache), mode)
   )

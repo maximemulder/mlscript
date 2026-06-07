@@ -21,15 +21,11 @@ extension (ctx: Context)
     val decl = ctx.declInferVar()
     ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.processLevel(a, b, c))
 
-  def withInferLevel(f: () => (Context) ?=> (Type, Clauses)): (Type, Clauses) =
-    // val decl = ctx.declInferVar()
-    // ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.processLevel(a, b, c))
-    ctx.withLevel(() =>
-      val (type_, outs) = f()
-      debug(s"LEVEL INPUT ${type_}")
-      val (a, b) = processLevel(summon[Context].level, type_, outs)
-      debug(s"LEVEL OUTPUT ${a}")
-      (a, b)
+  def withInferLevel(f: (Context) => (Type, Clauses)): (Type, Clauses) =
+    ctx.withLevel((ctx) =>
+      val level = ctx.level
+      val (type_, outs) = f(ctx)
+      ctx.processLevel(level, type_, outs)
     )
 
   /** Process the type, variables, and constraints generated in a level. Quantifying and
@@ -76,9 +72,6 @@ extension (ctx: Context)
     if ctx.extend(outs).getTypeVarEffectiveLevel(var_) < level then
       return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
 
-    if ctx.extend(outs).bounds.exists(_.type_.hasConstrainedVar(var_)) then
-      return debugVarAction(var_, type_, VarAction.Quantify, "used in constrained type")
-
     if polarities == Polarities(false, false) then
       return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
 
@@ -121,12 +114,7 @@ def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
 def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
   (
     type_.inline(var_),
-    outs.mapBounds((b) =>
-
-      val a = b.inline(var_)
-      debug(s"INLINE ${var_} IN BOUND ${b} TO ${a}")
-      a
-    ).removeTypeVar(var_),
+    outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
   )
 
 def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =

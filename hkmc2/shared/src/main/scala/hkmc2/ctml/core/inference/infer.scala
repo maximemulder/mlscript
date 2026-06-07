@@ -13,7 +13,7 @@ def inferSeq(expr: Expr, ins: Clauses)(using ctx: Context): (Type, Clauses) =
   ctx.seq(infer(expr), ins)
 
 def inferTopLevel(expr: Expr)(using ctx: Context): (Type, Clauses) =
-  ctx.withInferLevel(() => infer(expr))
+  ctx.withInferLevel((ctx) => infer(expr)(using ctx))
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: Context): (Type, Clauses) =
@@ -34,7 +34,7 @@ def inferImpl(expr: Expr)(using ctx: Context): (Type, Clauses) =
 
     // Lambda abstraction.
     case lam: ELam =>
-      ctx.withInferLevel(() =>
+      ctx.withInferLevel((ctx) =>
         val paramVarDecl = ctx.declInferVar()
         val paramType = TVar(paramVarDecl.var_)
         given Context = ctx.extend(paramVarDecl, TermVarDecl(lam.paramName, paramType))
@@ -70,12 +70,11 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   ctx.seq(
-    summon[Context].withInferLevel(() =>
-      val ctx = summon[Context]
+    summon[Context].withInferLevel((ctx) =>
       val matchVarDecl = ctx.declInferVar()
       val matchType = TVar(matchVarDecl.var_)
       val matchCtx = ctx.extend(matchVarDecl)
-      val (a, b) = (() =>
+      val (a, b) =
         given Context = matchCtx
         val patternClauses = typingSubtype(scrutineeType, match_.pattern)
         val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
@@ -89,25 +88,8 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
             (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
           case None =>
             (matchType, realBodyClauses)
-      )()
       (a, Clauses.single(matchVarDecl).concat(b))
     ),
-    //summon[Context].withInferenceLevel2((matchVar, matchCtx) =>
-    //  given Context = matchCtx
-    //  val matchType = TVar(matchVar)
-    //  val patternClauses = typingSubtype(scrutineeType, match_.pattern)
-    //  val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
-    //  val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
-//
-    //  match_.else_ match
-    //    case Some(else_) =>
-    //      val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
-    //      val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
-    //      val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
-    //      (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
-    //    case None =>
-    //      (matchType, realBodyClauses)
-    //),
     scrutineeClauses,
   )
 

@@ -23,8 +23,8 @@ extension (ctx: Context)
     // Evaluate the outer function with the type variable in the output clauses.
     outer(decls(0).level, res, outs)
 
-  def withLevel[T](f: () => (Context) ?=> (T, Clauses)): (T, Clauses) =
-    f()(using ctx.mapLevel(_ + 1))
+  def withLevel[T](f: (Context) => (T, Clauses)): (T, Clauses) =
+    f(ctx.mapLevel(_ + 1))
 
   /** Get the maximum level of all type variables in the context. */
   def maxLevel: Int =

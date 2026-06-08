@@ -86,7 +86,7 @@ val a3 = choose(nil, ids)
 // OK
 
 fun a4(x) = x(x)
-//│ a4: ∀α, β. {β ≤ β → α} ⟹ β → α
+//│ a4: ∀α, β. {α ≤ α → β} ⟹ α → β
 // OK
 
 val a5 = id(auto)
@@ -122,7 +122,7 @@ val a12 = id(poly((p) => p))
 // OK
 
 fun b1(f) = (f(1), f(true))
-//│ b1: ∀α, β. ((Int → β) ∧ (Bool → α)) → ⟨β, α⟩
+//│ b1: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 // OK
 
 fun b2(xs) = poly(head(xs))
@@ -243,7 +243,7 @@ val f10 = choose(id, (x) => auto2(x))
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ))
+//│ toChurch: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
 // OK
 
 val g1a = z as ChurchInt
@@ -251,7 +251,7 @@ val g1a = z as ChurchInt
 // OK
 
 val g2 = s
-//│ g2: ∀α, β, γ, δ. {γ ≤ δ → α} ⟹ (γ → β → δ) → γ → β → α
+//│ g2: ∀α, β, γ, δ. {β ≤ α → δ} ⟹ (β → γ → α) → β → γ → δ
 // OK
 
 val g2a = s as ((ChurchInt) -> ChurchInt)
@@ -274,15 +274,15 @@ val g7 = (s(s(z)))(s(s(z)))
 // MAYBE
 
 val g8 = toChurch
-//│ g8: ∀α, β, γ. {α ≥ β} ⟹ Int → ((((α ∨ γ) → γ) → β → γ) ∨ (⊤ → α → α))
+//│ g8: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
 // OK
 
 val g8a = toChurch as ((Int) -> ChurchInt)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt.
 //│ Typing error tree:
-//│   ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt
+//│   ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt
 //│     {δ ≥ ζ} ⟹ Int → ((((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ)) ≤ Int → ChurchInt
 //│       Int → ((((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ)) ≤ Int → ChurchInt
 //│         (((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ) ≤ ChurchInt
@@ -298,7 +298,7 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 
 fun g9(x) = if true then x else g9(g9)(x)
 // MAYBE
-//│ g9: ∀α, β, γ, δ. {α ≤ δ → γ, α ≥ δ → (γ ∨ δ), β ≤ δ → γ, β ≥ α, γ ≤ δ → γ, δ ≤ δ → γ, δ ≥ β} ⟹ δ → (γ ∨ δ)
+//│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), β ≤ γ → δ, β ≥ α, γ ≤ γ → δ, γ ≥ β, δ ≤ γ → δ} ⟹ γ → (δ ∨ γ)
 
 val g10 = ((x) => x(x))((x) => x(x))
 //│ g10: ⊥

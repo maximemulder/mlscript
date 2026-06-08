@@ -19,7 +19,7 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({γ ≤ Int, α ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, α ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ γ → α → β
+//│ baz: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({β ≤ Str, γ ≥ Str} ⟹ Str), β ≤ ({α ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({α ≤ Str, γ ≥ Str} ⟹ Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
 
 baz(1, 1)
 //│ Int
@@ -45,7 +45,7 @@ baz(true, false)
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β, γ. {α ≥ ({γ ≤ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≤ Str, β ≤ Str} ⟹ Str), β ≤ ({γ ≤ Int, α ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, α ≥ Str} ⟹ Str), γ ≤ ({β ≤ Int, α ≥ Int} ⟹ Int) ∨ ({β ≤ Str, α ≥ Str} ⟹ Str)} ⟹ γ → β → α
+//│ bop: ∀α, β, γ. {α ≤ ({γ ≤ Int, β ≥ Int} ⟹ Int) ∨ ({γ ≤ Str, β ≥ Str} ⟹ Str), β ≥ ({α ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≤ Str} ⟹ Str), γ ≤ ({α ≤ Int, β ≥ Int} ⟹ Int) ∨ ({α ≤ Str, β ≥ Str} ⟹ Str)} ⟹ α → γ → β
 
 bop(0, 1)
 //│ Int

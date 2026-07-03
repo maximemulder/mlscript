@@ -63,6 +63,12 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
   var invalmlTyper: Opt[InvalTyper] = None
 
   override def processTerm(term: semantics.Term.Blk, inImport: Bool)(using ctx: Config, raise: Raise): Unit =
+    if ctmlCommand.isSet then
+      val (scope, ctx) = hkmc2.ctml.test.test(term, this.ctmlScope, this.ctmlCtx, inImport, output.apply, raise)
+      this.ctmlCtx = ctx
+      this.ctmlScope = scope
+      return
+
     super.processTerm(term, inImport)
     if invalmlOpt.isSet then
       given Scope = Scope.empty(Scope.Cfg.default)
@@ -77,8 +83,3 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       val simplif = TypeSimplifier(tl)
       val sty = simplif(true, 0)(ty)
       printer.print(sty)
-
-    if ctmlCommand.isSet then
-      val (scope, ctx) = hkmc2.ctml.test.test(term, this.ctmlScope, this.ctmlCtx, inImport, output.apply, raise)
-      this.ctmlCtx = ctx
-      this.ctmlScope = scope

@@ -57,8 +57,8 @@ def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
         parseFlexVarDecl(mlSymbol)
       case TypeDef(mlSymbol, _, _, Some(mlType), _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseTypeVar(mlSymbol, mlType)
-      case TermDefinition(_, mlSymbol, _, _, _, mlType, None, _, _, _, _) =>
-        parseExprDecl(mlSymbol, mlType)
+      case TermDefinition(_, mlSymbol, _, _, mlTypeParams, mlType, None, _, _, _, _) =>
+        parseExprDecl(mlSymbol, mlTypeParams.getOrElse(Nil), mlType)
       case TermDefinition(_, mlSymbol, _, mlParams, _, mlType, Some(mlExpr), _, _, _, _) =>
         parseExprVar(mlSymbol, mlParams.map(_.allParams).flatten.toList, mlType, mlExpr)
       case Term.App(Term.SynthSel(_, mlIdent), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlIdent.name == "equals" =>
@@ -115,11 +115,14 @@ def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term)(using Scope): Stmt =
   StmtTypeVar(name, type_)
 
 /** Convert an MLScript term declaration to a CTML expression variable declaration. */
-def parseExprDecl(mlSymbol: BlockMemberSymbol, mlType: Option[Term])(using Scope): Stmt =
+def parseExprDecl(mlSymbol: BlockMemberSymbol, mlTypeParams: List[Param], mlType: Option[Term])(using scope: Scope): Stmt =
   val name  = mlSymbol.nme
   val type_ = mlType match
     case Some(mlType) =>
-      parseType(mlType)
+      val typeParamNames = mlTypeParams.map(_.sym.nme)
+      val typeParamScope = typeParamNames.foldLeft(scope)((scope, name) => scope.withType(name))
+      typeParamNames.foldRight(parseType(mlType)(using typeParamScope)): (typeParamName, body) =>
+        TUniv(TypeVar(typeParamName), body)
     case None =>
       TTop
 

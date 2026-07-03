@@ -133,7 +133,7 @@ def parseSplit(mlSplit: SimpleSplit)(using Scope): Expr =
     case SimpleSplit.Else(mlExpr) =>
       parseExpr(mlExpr)
     case SimpleSplit.End =>
-      throw new ParseError(Term.Error)
+      throw new ParseError(Term.Error())
 
 /** Convert an MLScript cons to a CTML expression */
 def parseCons(mlCons: SimpleSplit.Cons)(using Scope): Expr =
@@ -143,7 +143,7 @@ def parseCons(mlCons: SimpleSplit.Cons)(using Scope): Expr =
     case SimpleSplit.Cons(mlMatch : SimpleSplit.Head.Match, mlTail) =>
       parseMatch(mlMatch, mlTail)
     case _ =>
-      throw new ParseError(Term.Error)
+      throw new ParseError(Term.Error())
 
 /** Convert an MLScript let binding to a CTML expression */
 def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope): Expr =
@@ -178,7 +178,7 @@ def parsePattern(mlPattern: Pattern)(using Scope): Type =
     case Pattern.Composition(false, mlLeft, mlRight) =>
       TInter(parsePattern(mlLeft), parsePattern(mlRight))
     case _ =>
-      throw ParseError(Term.Error)
+      throw ParseError(Term.Error())
 
 /** Get the underlying term of an MLScript element. */
 def getElemTerm(elem: Elem): Term =

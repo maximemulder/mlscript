@@ -47,7 +47,7 @@ def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
     mlStmt match
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) =>
         return None
-      case ClassDef.Plain(_, _, _, mlSymbol,_, mlParent, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
+      case ClassDef.Plain(_, _, _, mlSymbol,_, mlParent, _, _, mlAnnotations, _, _) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol, mlParent)
       case ModuleOrObjectDef(_, _, mlSymbol,_, _, _, mlParent, _, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol, mlParent)

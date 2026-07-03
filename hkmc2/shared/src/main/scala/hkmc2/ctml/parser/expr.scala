@@ -49,6 +49,11 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
       val expr  = parseExpr(mlExpr)
       val type_ = parseType(mlType)
       EAscr(expr, type_)
+    // MLScript parses `foo as A & B` as expression-level composition whose
+    // left operand is an ascription. CTML only supports this shape as a
+    // compact way to ascribe an intersection or union type.
+    case Term.CompType(mlLeft, mlRight, mlPol) =>
+      parseAscriptionComposition(mlLeft, mlRight, mlPol)
     case Term.IfLike(_, IfLikeForm.ReturningIf, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, _, SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
       val condition = parseExpr(mlCondition)
       val then_ = parseExpr(mlThen)
@@ -58,6 +63,24 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
       parseSplit(mlSplit)
     case _ =>
       throw new ParseError(mlExpr)
+
+/** Convert an MLScript expression-level type composition to a CTML ascription. */
+def parseAscriptionComposition(mlLeft: Term, mlRight: Term, mlPol: Boolean)(using Scope): Expr =
+  val right = parseType(mlRight)
+  val type_ = (left: Type) =>
+    if mlPol then TUnion(left, right)
+    else TInter(left, right)
+  mlLeft match
+    case Term.Asc(mlExpr, mlType) =>
+      EAscr(parseExpr(mlExpr), type_(parseType(mlType)))
+    case Term.CompType(_, _, _) =>
+      parseExpr(mlLeft) match
+        case EAscr(expr, left) =>
+          EAscr(expr, type_(left))
+        case _ =>
+          throw new ParseError(mlLeft)
+    case _ =>
+      throw new ParseError(mlLeft)
 
 /** Parse a block, which can either be a variable binding or a tuple. */
 def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =

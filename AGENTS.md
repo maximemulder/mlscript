@@ -1,3 +1,46 @@
+# CTML
+
+## Description
+
+This project is a fork of MLScript, a research programming language. This specific fork is aimed at
+the study and implementation of CTML, a research type system. This section describes CTML-specific
+instructions, the section below is the original MLScript `AGENTS.md` file.
+
+## Scope
+
+CTML a type system that combines subtyping, set-theoretic types (unions, intersections, negations),
+first-class polymorphism, and first-class constrained types. The combination of these features also
+aims to exhibit flow-sensitive type inference through context disjunction.
+
+Since CTML is a research programming language, the type checker does not necessarily need to be
+production-grade. What matters the most is that it correct and easily maintainable.
+
+## CTML code
+
+The CTML code is located in `hkmc2/shared/src/main/scala/hkmc2/ctml`. Most of the code outside of
+this directory is irrelevant to CTML (although it does contain some common infrastructure).
+
+## CTML examples
+
+The CTML examples (which also serve as tests) are located in `hkmc2/shared/src/test/mlscript/ctml`.
+The examples outside of this directory are irrelevant by CTML.
+
+## CTML options
+
+Since CTML is a separate type checker, many of the options from MLScript are not available for
+CTML. However, whenever you run the CTML examples, you can use the options  listed in the
+`hkmc2/shared/src/main/scala/hkmc2/ctml/config` module to alter the type checker behavior or
+display various debugging information.
+
+Example:
+```
+:ctml
+
+:ctml-dbg infer
+
+val i = 1
+```
+
 # Using the MLscript code base
 
 
@@ -90,5 +133,3 @@ to ensure that no needless empty-line changes are included in the PR. If you fin
 ## Manipulating IR representations
 
 When working with IR representations, please refer to the "Important design notes" in `hkmc2/shared/src/main/scala/hkmc2/codegen/Block.scala`.
-
-

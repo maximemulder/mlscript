@@ -15,15 +15,29 @@ aims to exhibit flow-sensitive type inference through context disjunction.
 Since CTML is a research programming language, the type checker does not necessarily need to be
 production-grade. What matters the most is that it correct and easily maintainable.
 
+## Paper
+
+The paper related to the system implemented in this project  can be found in
+`/media/data/HKUST/Research/ctml/latex` (on the main development machine). Both the paper and
+implementation are still work-in-progress, however, they should eventually converse to the system
+at the abstract level, although specfic differences may still exist. The paper can be used as a
+reference for the implementation, but change suggestions for the paper may also be made if the
+implementation is deemed more correct in some cases.
+
 ## CTML code
 
 The CTML code is located in `hkmc2/shared/src/main/scala/hkmc2/ctml`. Most of the code outside of
 this directory is irrelevant to CTML (although it does contain some common infrastructure).
 
-## CTML examples
+## CTML tests
 
-The CTML examples (which also serve as tests) are located in `hkmc2/shared/src/test/mlscript/ctml`.
-The examples outside of this directory are irrelevant by CTML.
+The CTML tests are located in `hkmc2/shared/src/test/mlscript/ctml`.
+The tests outside of this directory are irrelevant by CTML.
+
+Each test file is generally expected to run in less than 5 seconds. Some worst-case scenario might
+run for more than 10 seconds, but these are problematic and should eventually be fixed. A test file
+running in more than 30 seconds should be considered as a timeout, in which case the exact test
+that is timing out should be located, and eventually fixed or commented.
 
 ## CTML options
 

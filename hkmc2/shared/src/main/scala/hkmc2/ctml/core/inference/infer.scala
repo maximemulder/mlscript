@@ -87,7 +87,9 @@ def inferMatch(match_ : EMatch)(using ctx: Context): (Type, Clauses) =
             val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
             (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
           case None =>
-            (matchType, realBodyClauses)
+            val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+            val realElseClauses = typingSubtypeSeq(scrutineeType, TBot, elsePatternClauses)
+            (matchType, Clauses(matchCtx.joinBounds(realBodyClauses, realElseClauses)))
       (a, Clauses.single(matchVarDecl).concat(b))
     ),
     scrutineeClauses,

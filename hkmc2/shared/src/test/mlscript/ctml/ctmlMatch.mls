@@ -14,21 +14,35 @@ if 1 is
 if (1 as Int | Str) is
   Int then 1
   Str then "Hello"
-//│ Int ∨ Str
+//│ Int ∨ (∀α. {Str ≤ (Str ⟹ {α ≥ Str}) ∨ ⊥, α ≥ Str ∧ (⊥ ⟹ {Str ≤ ⊥})} ⟹ α)
 
 :te
 if (1 as Int) is
   Str then 1
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Int ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ (Str ⟹ {β ≥ Int}) ∨ ⊥, β ≥ (Int ⟹ {α ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ α → β ≤ Int → γ.
 //│ Typing error tree:
-//│   Str → Int ≤ Int → α
-//│     Int ≤ Str
+//│   ∀α, β. {α ≤ (Str ⟹ {β ≥ Int}) ∨ ⊥, β ≥ (Int ⟹ {α ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ α → β ≤ Int → γ
+//│     {δ ≤ (Str ⟹ {ε ≥ Int}) ∨ ⊥, ε ≥ (Int ⟹ {δ ≤ Str}) ∧ (⊥ ⟹ {δ ≤ ⊥})} ⟹ δ → ε ≤ Int → γ
+//│       {ε ≥ (Int ⟹ {δ ≤ Str}) ∧ (⊥ ⟹ {δ ≤ ⊥})} ⟹ δ → ε ≤ Int → γ
+//│         δ → ε ≤ Int → γ
+//│           Int ≤ δ
+//│             Int ≤ (Str ⟹ {ε ≥ Int}) ∨ ⊥
+//│               Int ≤ Str ⟹ {ε ≥ Int}
+//│                 Int ≤ Str
+//│               Int ≤ ⊥
 
 :te
 if (1 as Int | Str) is
   Int then 1
-//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ (Int ⟹ {β ≥ Int}) ∨ ⊥, β ≥ (Int ⟹ {α ≤ Int}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ α → β ≤ (Int ∨ Str) → γ.
 //│ Typing error tree:
-//│   Int → Int ≤ (Int ∨ Str) → α
-//│     Int → Int ≤ Str → α
-//│       Str ≤ Int
+//│   ∀α, β. {α ≤ (Int ⟹ {β ≥ Int}) ∨ ⊥, β ≥ (Int ⟹ {α ≤ Int}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ α → β ≤ (Int ∨ Str) → γ
+//│     ∀α, β. {α ≤ (Int ⟹ {β ≥ Int}) ∨ ⊥, β ≥ (Int ⟹ {α ≤ Int}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ α → β ≤ Str → γ
+//│       {δ ≤ (Int ⟹ {ε ≥ Int}) ∨ ⊥, ε ≥ (Int ⟹ {δ ≤ Int}) ∧ (⊥ ⟹ {δ ≤ ⊥})} ⟹ δ → ε ≤ Str → γ
+//│         {ε ≥ (Int ⟹ {δ ≤ Int}) ∧ (⊥ ⟹ {δ ≤ ⊥})} ⟹ δ → ε ≤ Str → γ
+//│           δ → ε ≤ Str → γ
+//│             Str ≤ δ
+//│               Str ≤ (Int ⟹ {ε ≥ Int}) ∨ ⊥
+//│                 Str ≤ Int ⟹ {ε ≥ Int}
+//│                   Str ≤ Int
+//│                 Str ≤ ⊥

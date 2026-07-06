@@ -36,14 +36,14 @@ extension (type_ : Type)
       case Some(type_) =>
         type_
       case None =>
-        TInter(type_, TNeg(other))
+        TJointType(JointMode.Inter, type_, TNeg(other))
 
   def subtractStep(other: Type)(using ctx: Context): Option[Type] =
     if checkSubtype(type_, other) then
       return Some(TBot)
 
     type_ match
-      case TUnion(left, right) =>
+      case TJointType(JointMode.Union, left, right) =>
         return Some(join(left.subtract(other), right.subtract(other)))
       case _ =>
 

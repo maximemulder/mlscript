@@ -26,19 +26,8 @@ trait TypeCombinator[T[_], B[_], P]:
   /** Get a lambda type combination. */
   def lam(param: T[Type], ret: T[Type], p: P): T[TLam]
 
-  /** Get a union type combination. */
-  def union(left: T[Type], right: T[Type], p: P): T[TUnion]
-
-  /** Get an intersection type combination. */
-  def inter(left: T[Type], right: T[Type], p: P): T[TInter]
-
   /** Get a joint type combination. */
-  def joint(mode: JointMode, left: T[Type], right: T[Type], p: P): T[TJointType] =
-    mode match
-      case JointMode.Union =>
-        union(left, right, p)
-      case JointMode.Inter =>
-        inter(left, right, p)
+  def joint(mode: JointMode, left: T[Type], right: T[Type], p: P): T[TJointType]
 
   /** Get a type application combination. */
   def app(abs: T[Type], arg: T[Type], p: P): T[TApp]

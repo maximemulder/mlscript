@@ -17,7 +17,7 @@ def joinImpl(left: Type, right: Type)(using ctx: Context): Type =
   if checkSubtype(right, left) then
     return left
 
-  TUnion(left, right)
+  TJointType(JointMode.Union, left, right)
 
 def joinMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
   left match

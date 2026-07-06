@@ -27,6 +27,12 @@ enum Direction:
       case Sub   => Polarity.Positive
       case Super => Polarity.Negative
 
+  /** The joint mode corresponding to bounds in this direction. */
+  def jointMode: JointMode =
+    this match
+      case Sub   => JointMode.Inter
+      case Super => JointMode.Union
+
   /** Get the string representation of the object. */
   override def toString: String =
     this.show

@@ -82,4 +82,4 @@ extension (ctx: Context)
           makeConstrainingType(rightBound, filteredRights),
         )
 
-    hkmc2.ctml.core.combine.combine(leftType, rightType, !dir)
+    hkmc2.ctml.core.combine.combine(!dir.jointMode, leftType, rightType)

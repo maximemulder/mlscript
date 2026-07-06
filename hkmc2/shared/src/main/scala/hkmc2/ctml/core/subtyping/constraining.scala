@@ -302,7 +302,7 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: Cont
     // Do not return a new bound if it is already satisfied in the context.
     clauses
   else
-    val newBound = combine(bound, extrudedType, dir)(using ctx.extend(clauses))
+    val newBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
     Clauses(Bound(var_, dir, newBound) :: clauses.elems)
 
 // Rigid type variables.
@@ -389,7 +389,7 @@ def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: Context, mode
   sups
     .foldRight(Clauses.empty)((sup, clauses) =>
       val subTypes = subs.filterVarDir(sup.var_, sup.dir)
-      val subType = subTypes.combineMany(sup.dir)
+      val subType = subTypes.combineMany(sup.dir.jointMode)
       subtype(subType, sup.type_)
     )
 

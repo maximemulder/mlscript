@@ -36,11 +36,7 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
     makeLambdaType(param, ret)
 
   def joint(mode: JointMode, left: Type, right: Type, params: P): Type =
-    mode match
-      case JointMode.Union =>
-        join(left, right)(using params.ctx)
-      case JointMode.Inter =>
-        meet(left, right)(using params.ctx)
+    hkmc2.ctml.core.combine.combine(mode, left, right)(using params.ctx)
 
   def app(abs: Type, arg: Type, params: P): Type =
     TApp(abs, arg)

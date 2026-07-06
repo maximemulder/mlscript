@@ -22,7 +22,7 @@ def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
     case Some(mergedType) =>
       mergedType
     case None =>
-      TInter(left, right)
+      TJointType(JointMode.Inter, left, right)
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
 def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =

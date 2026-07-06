@@ -26,10 +26,7 @@ final class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Cons
   def lam(param: T, ret: T, p: P): T =
     m.combine(param, ret)
 
-  def union(left: T, right: T, p: P): T =
-    m.combine(left, right)
-
-  def inter(left: T, right: T, p: P): T =
+  def joint(mode: JointMode, left: T, right: T, p: P): T =
     m.combine(left, right)
 
   def app(abs: T, arg: T, p: P): T =

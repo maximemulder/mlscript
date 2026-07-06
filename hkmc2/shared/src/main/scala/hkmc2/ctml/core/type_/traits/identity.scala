@@ -26,11 +26,8 @@ final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P], Constra
   def lam(param: Type, ret: Type, p: P): TLam =
     TLam(param, ret)
 
-  def union(left: Type, right: Type, p: P): TUnion =
-    TUnion(left, right)
-
-  def inter(left: Type, right: Type, p: P): TInter =
-    TInter(left, right)
+  def joint(mode: JointMode, left: Type, right: Type, p: P): TJointType =
+    TJointType(mode, left, right)
 
   def app(abs: Type, arg: Type, p: P): Id[TApp] =
     TApp(abs, arg)

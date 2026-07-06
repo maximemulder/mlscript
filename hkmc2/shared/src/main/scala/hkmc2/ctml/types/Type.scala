@@ -51,36 +51,6 @@ type TBot = TBot.type
 /** The bottom type type alias. */
 type TTop = TTop.type
 
-/** A union type alias. */
-type TUnion = TJointType
-
-/** An intersection type alias. */
-type TInter = TJointType
-
-/** The union type view. */
-object TUnion:
-  def apply(left: Type, right: Type): TJointType =
-    TJointType(JointMode.Union, left, right)
-
-  def unapply(type_ : Type): Option[(Type, Type)] =
-    type_ match
-      case TJointType(JointMode.Union, left, right) =>
-        Some((left, right))
-      case _ =>
-        None
-
-/** The intersection type view. */
-object TInter:
-  def apply(left: Type, right: Type): TJointType =
-    TJointType(JointMode.Inter, left, right)
-
-  def unapply(type_ : Type): Option[(Type, Type)] =
-    type_ match
-      case TJointType(JointMode.Inter, left, right) =>
-        Some((left, right))
-      case _ =>
-        None
-
 extension (type_ : Type)
   /** Get the components of a type. */
   def components: List[Type] =

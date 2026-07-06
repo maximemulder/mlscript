@@ -7,9 +7,7 @@ extension (type_ : Type)
   /** Check whether the type is a constraining type. */
   def isConstraining(): Boolean =
     type_ match
-      case TUnion(left, right) =>
-        left.isConstraining() || right.isConstraining()
-      case TInter(left, right) =>
+      case TJointType(_, left, right) =>
         left.isConstraining() || right.isConstraining()
       case _ : TConstraining =>
         true

@@ -11,9 +11,7 @@ extension (type_ : Type)
         true
       case TNeg(body) =>
         body.isPattern
-      case TUnion(left, right) =>
-        left.isPattern && right.isPattern
-      case TInter(left, right) =>
+      case TJointType(_, left, right) =>
         left.isPattern && right.isPattern
       case _ =>
         false

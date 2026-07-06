@@ -36,14 +36,10 @@ def parseType(mlType: Term)(using scope: Scope): Type =
       parseTypeUniv(mlVars, mlBody)
     case Term.Constrained(mlConstraints, mlBody) =>
       parseTypeConstrained(mlConstraints, mlBody)
-    case Term.CompType(mlLeft, mlRight, true) =>
+    case Term.CompType(mlLeft, mlRight, mlPol) =>
       val left  = parseType(mlLeft)
       val right = parseType(mlRight)
-      TUnion(left, right)
-    case Term.CompType(mlLeft, mlRight, false) =>
-      val left  = parseType(mlLeft)
-      val right = parseType(mlRight)
-      TInter(left, right)
+      TJointType(parseJointMode(mlPol), left, right)
     case _ =>
       throw ParseError(mlType)
 
@@ -137,3 +133,8 @@ def parseTypeDirection(mlDir: SubDir): Direction =
       Direction.Sub
     case SubDir.Sup =>
       Direction.Super
+
+/** Convert an MLScript composition polarity to a CTML joint mode. */
+def parseJointMode(mlPol: Boolean): JointMode =
+  if mlPol then JointMode.Union
+  else JointMode.Inter

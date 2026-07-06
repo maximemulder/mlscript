@@ -24,3 +24,13 @@ enum JointMode:
     this match
       case Union => "∨"
       case Inter => "∧"
+
+  /** Check whether a polarity is the natural polarity of the joint mode. */
+  def isNaturalPol(pol: Polarity): Boolean =
+    (this, pol) match
+      case Tuple2(JointMode.Union, Polarity.Positive) =>
+        true
+      case Tuple2(JointMode.Inter, Polarity.Negative) =>
+        true
+      case (_, _) =>
+        false

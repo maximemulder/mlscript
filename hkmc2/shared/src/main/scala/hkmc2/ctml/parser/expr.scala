@@ -68,8 +68,7 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
 def parseAscriptionComposition(mlLeft: Term, mlRight: Term, mlPol: Boolean)(using Scope): Expr =
   val right = parseType(mlRight)
   val type_ = (left: Type) =>
-    if mlPol then TUnion(left, right)
-    else TInter(left, right)
+    TJointType(parseJointMode(mlPol), left, right)
   mlLeft match
     case Term.Asc(mlExpr, mlType) =>
       EAscr(parseExpr(mlExpr), type_(parseType(mlType)))
@@ -196,10 +195,8 @@ def parsePattern(mlPattern: Pattern)(using Scope): Type =
       parseType(mlPattern)
     case Pattern.Negation(mlPattern) =>
       TNeg(parsePattern(mlPattern))
-    case Pattern.Composition(true, mlLeft, mlRight) =>
-      TUnion(parsePattern(mlLeft), parsePattern(mlRight))
-    case Pattern.Composition(false, mlLeft, mlRight) =>
-      TInter(parsePattern(mlLeft), parsePattern(mlRight))
+    case Pattern.Composition(mlPol, mlLeft, mlRight) =>
+      TJointType(parseJointMode(mlPol), parsePattern(mlLeft), parsePattern(mlRight))
     case _ =>
       throw ParseError(Term.Error())
 

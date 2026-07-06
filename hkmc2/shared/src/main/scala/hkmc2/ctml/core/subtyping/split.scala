@@ -15,10 +15,8 @@ extension (type_ : Type)
 
   /** Split a union or intersection in two depending on a type polarity. */
   def splitStructure(mode: JointMode): Option[(Type, Type)] =
-    (mode, type_) match
-      case (JointMode.Union, TUnion(left, right)) =>
-        Some(left, right)
-      case (JointMode.Inter, TInter(left, right)) =>
+    type_ match
+      case TJointType(typeMode, left, right) if typeMode == mode =>
         Some(left, right)
       case _ =>
         None

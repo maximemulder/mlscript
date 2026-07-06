@@ -14,7 +14,7 @@ def structuralCombine(mode: JointMode, left: Type, right: Type) =
         case (TBot, right) =>
           right
         case (left, right) =>
-          TUnion(left, right)
+          TJointType(mode, left, right)
     case JointMode.Inter =>
       (left, right) match
         case (TTop, TTop) =>
@@ -24,4 +24,4 @@ def structuralCombine(mode: JointMode, left: Type, right: Type) =
         case (TTop, right) =>
           right
         case (left, right) =>
-          TInter(left, right)
+          TJointType(mode, left, right)

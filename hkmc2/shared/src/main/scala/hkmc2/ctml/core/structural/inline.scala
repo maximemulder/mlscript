@@ -26,15 +26,9 @@ extension (type_ : Type)
           param.structuralInline(var_, !pol),
           ret.structuralInline(var_, pol),
         )
-      case TUnion(left, right) =>
+      case TJointType(mode, left, right) =>
         structuralCombine(
-          JointMode.Union,
-          left.structuralInline(var_, pol),
-          right.structuralInline(var_, pol),
-        )
-      case TInter(left, right) =>
-        structuralCombine(
-          JointMode.Inter,
+          mode,
           left.structuralInline(var_, pol),
           right.structuralInline(var_, pol),
         )

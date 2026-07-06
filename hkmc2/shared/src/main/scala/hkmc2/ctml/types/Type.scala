@@ -30,11 +30,8 @@ case class TTuple(val left: Type, val right: Type) extends Type
 /** A lambda type. */
 case class TLam(val param: Type, val ret: Type) extends Type
 
-/** A union type. */
-case class TUnion(val left: Type, val right: Type) extends Type
-
-/** An intersection type. */
-case class TInter(val left: Type, val right: Type) extends Type
+/** A joint type. */
+case class TJointType(val mode: JointMode, val left: Type, val right: Type) extends Type
 
 /** A type application. */
 case class TApp(val abs: Type, val arg: Type) extends Type
@@ -54,6 +51,36 @@ type TBot = TBot.type
 /** The bottom type type alias. */
 type TTop = TTop.type
 
+/** A union type alias. */
+type TUnion = TJointType
+
+/** An intersection type alias. */
+type TInter = TJointType
+
+/** The union type view. */
+object TUnion:
+  def apply(left: Type, right: Type): TJointType =
+    TJointType(JointMode.Union, left, right)
+
+  def unapply(type_ : Type): Option[(Type, Type)] =
+    type_ match
+      case TJointType(JointMode.Union, left, right) =>
+        Some((left, right))
+      case _ =>
+        None
+
+/** The intersection type view. */
+object TInter:
+  def apply(left: Type, right: Type): TJointType =
+    TJointType(JointMode.Inter, left, right)
+
+  def unapply(type_ : Type): Option[(Type, Type)] =
+    type_ match
+      case TJointType(JointMode.Inter, left, right) =>
+        Some((left, right))
+      case _ =>
+        None
+
 extension (type_ : Type)
   /** Get the components of a type. */
   def components: List[Type] =
@@ -66,9 +93,7 @@ extension (type_ : Type)
         List(left, right)
       case TLam(param, ret) =>
         List(param, ret)
-      case TUnion(left, right) =>
-        List(left, right)
-      case TInter(left, right) =>
+      case TJointType(_, left, right) =>
         List(left, right)
       case TApp(abs, arg) =>
         List(abs, arg)
@@ -106,10 +131,8 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
       (s"⟨${showType(left)}, ${showType(right)}⟩", false)
     case lambda: TLam =>
       (lambda.getLambdaComponents.map(showType(_, true)).mkString(" → "), true)
-    case union: TUnion =>
-      (union.getUnionComponents.map(showType(_, true)).mkString(" ∨ "), true)
-    case inter: TInter =>
-      (inter.getInterComponents.map(showType(_, true)).mkString(" ∧ "), true)
+    case joint: TJointType =>
+      (joint.getJointComponents.map(showType(_, true)).mkString(s" ${joint.mode.symbol} "), true)
     case TApp(abs, arg) =>
       (s"${showType(abs)}[${showType(arg)}]", false)
     case univ: TUniv =>
@@ -148,17 +171,25 @@ extension (type_ : Type)
 
   /** Get the right-recursive nested union type operands of the type. */
   def getUnionComponents: List[Type] =
-    type_ match
-      case TUnion(left, right) =>
-        left :: right.getUnionComponents
-      case _ =>
-        type_ :: Nil
+    type_.getJointComponents(JointMode.Union)
 
   /** Get the right-recursive nested intersection type operands of the type. */
   def getInterComponents: List[Type] =
+    type_.getJointComponents(JointMode.Inter)
+
+  /** Get the right-recursive nested joint type operands of the type. */
+  def getJointComponents: List[Type] =
     type_ match
-      case TInter(left, right) =>
-        left :: right.getInterComponents
+      case TJointType(mode, left, right) =>
+        left :: right.getJointComponents(mode)
+      case _ =>
+        type_ :: Nil
+
+  /** Get the right-recursive nested joint type operands of the same mode. */
+  def getJointComponents(mode: JointMode): List[Type] =
+    type_ match
+      case TJointType(typeMode, left, right) if typeMode == mode =>
+        left :: right.getJointComponents(mode)
       case _ =>
         type_ :: Nil
 

@@ -102,7 +102,7 @@ val a7 = choose(id, auto)
 // OK
 
 val a8 = choose(id, auto2)
-//│ a8: (∀A. A → A) ∨ (∀B. (∀A. A → A) → B → B)
+//│ a8: ∀B. (∀A. A → A) → B → B
 // OK
 
 val a9 = f(choose(id), ids)
@@ -239,11 +239,11 @@ val f9 =
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀α. {α ≤ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ) → ⊤, α ≥ ⊤ → ((∀A. A → A) ∨ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ))} ⟹ (∀A. A → A) ∨ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ)
+//│ f10: ∀α, β, γ. {α ≤ (∀β, γ. {α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ) → ⊤, α ≥ ∀β, γ. ⊤ → ({α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ), α ≥ β → β, β ≥ ∀A. A → A} ⟹ (∀A. A → A) → γ → γ
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
+//│ toChurch: ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ))
 // OK
 
 val g1a = z as ChurchInt
@@ -274,15 +274,15 @@ val g7 = (s(s(z)))(s(s(z)))
 // MAYBE
 
 val g8 = toChurch
-//│ g8: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
+//│ g8: ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ))
 // OK
 
 val g8a = toChurch as ((Int) -> ChurchInt)
 //│ FAILURE: Unexpected type error
 //│ FAILURE LOCATION: raise (test.scala:71)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt.
 //│ Typing error tree:
-//│   ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt
+//│   ∀α, β, γ. {γ ≥ β} ⟹ Int → ((((γ ∨ α) → α) → β → α) ∨ (⊤ → γ → γ)) ≤ Int → ChurchInt
 //│     {δ ≥ ζ} ⟹ Int → ((((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ)) ≤ Int → ChurchInt
 //│       Int → ((((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ)) ≤ Int → ChurchInt
 //│         (((δ ∨ ε) → ε) → ζ → ε) ∨ (⊤ → δ → δ) ≤ ChurchInt

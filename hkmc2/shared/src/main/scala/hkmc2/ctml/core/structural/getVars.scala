@@ -14,9 +14,7 @@ extension (type_ : Type)
         left.getVars ++ right.getVars
       case TLam(param, ret) =>
         param.getVars ++ ret.getVars
-      case TUnion(left, right) =>
-        left.getVars ++ right.getVars
-      case TInter(left, right) =>
+      case TJointType(_, left, right) =>
         left.getVars ++ right.getVars
       case TApp(abs, arg) =>
         abs.getVars ++ arg.getVars

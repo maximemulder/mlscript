@@ -26,13 +26,9 @@ extension (type_ : Type)
           param.shadow,
           ret.shadow,
         )
-      case TUnion(left, right) =>
-        TUnion(
-          left.shadow,
-          right.shadow,
-        )
-      case TInter(left, right) =>
-        TInter(
+      case TJointType(mode, left, right) =>
+        TJointType(
+          mode,
           left.shadow,
           right.shadow,
         )

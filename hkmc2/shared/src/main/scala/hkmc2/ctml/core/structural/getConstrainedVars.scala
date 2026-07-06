@@ -14,9 +14,7 @@ extension (type_ : Type)
         left.getConstrainedVars ++ right.getConstrainedVars
       case TLam(param, ret) =>
         param.getConstrainedVars ++ ret.getConstrainedVars
-      case TUnion(left, right) =>
-        left.getConstrainedVars ++ right.getConstrainedVars
-      case TInter(left, right) =>
+      case TJointType(_, left, right) =>
         left.getConstrainedVars ++ right.getConstrainedVars
       case TApp(abs, arg) =>
         abs.getConstrainedVars ++ arg.getConstrainedVars

@@ -37,18 +37,12 @@ final class TypeLazyDispatcher[P](
         if newParam == param && newRet == ret then
           return type_
         last.lam(newParam, newRet, p)
-      case TUnion(left, right) =>
+      case TJointType(mode, left, right) =>
         val newLeft = first.apply(left, p);
         val newRight = first.apply(right, p);
         if newLeft == left && newRight == right then
           return type_
-        last.union(newLeft, newRight, p)
-      case TInter(left, right) =>
-        val newLeft = first.apply(left, p);
-        val newRight = first.apply(right, p);
-        if newLeft == left && newRight == right then
-          return type_
-        last.inter(newLeft, newRight, p)
+        last.joint(mode, newLeft, newRight, p)
       case TApp(abs, arg) =>
         val newAbs = first.apply(abs, p);
         val newArg = first.apply(arg, p);

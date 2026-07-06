@@ -35,14 +35,9 @@ final class TypeDispatcher[T[+_], B[+_], P](
           first.apply(ret, p),
           p,
         )
-      case TUnion(left, right) =>
-        last.union(
-          first.apply(left, p),
-          first.apply(right, p),
-          p,
-        )
-      case TInter(left, right) =>
-        last.inter(
+      case TJointType(mode, left, right) =>
+        last.joint(
+          mode,
           first.apply(left, p),
           first.apply(right, p),
           p,

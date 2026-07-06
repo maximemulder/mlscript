@@ -83,14 +83,12 @@ private def getTypeDeps(type_ : Type, pol: Polarity, direct: Boolean): VarDeps =
       getTypeDeps(left, pol, false) ++ getTypeDeps(right, pol, false)
     case TLam(param, ret) =>
       getTypeDeps(param, !pol, false) ++ getTypeDeps(ret, pol, false)
-    case TUnion(left, right) if pol == Polarity.Positive =>
-      getTypeDeps(left, pol, direct) ++ getTypeDeps(right, pol, direct)
-    case TInter(left, right) if pol == Polarity.Negative =>
-      getTypeDeps(left, pol, direct) ++ getTypeDeps(right, pol, direct)
-    case TUnion(left, right) =>
-      getTypeDeps(left, pol, false) ++ getTypeDeps(right, pol, false)
-    case TInter(left, right) =>
-      getTypeDeps(left, pol, false) ++ getTypeDeps(right, pol, false)
+    case TJointType(mode, left, right) =>
+      val jointDirect =
+        (mode == JointMode.Union && pol == Polarity.Positive)
+          || (mode == JointMode.Inter && pol == Polarity.Negative)
+      getTypeDeps(left, pol, direct && jointDirect)
+        ++ getTypeDeps(right, pol, direct && jointDirect)
     case TApp(abs, arg) =>
       getTypeDeps(abs, pol, false) ++ getTypeDeps(arg, pol, false)
     case TUniv(var_, body) =>

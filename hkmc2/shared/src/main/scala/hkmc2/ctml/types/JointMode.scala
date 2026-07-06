@@ -18,3 +18,9 @@ enum JointMode:
     this match
       case Union => JointMode.Inter
       case Inter => JointMode.Union
+
+  /** Get the type-level symbol for the mode. */
+  def symbol: String =
+    this match
+      case Union => "∨"
+      case Inter => "∧"

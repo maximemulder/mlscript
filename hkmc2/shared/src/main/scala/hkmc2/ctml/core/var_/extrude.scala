@@ -54,14 +54,10 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       given Polarity = pol
       val (newRet, retOuts) = extrudeTypeSeq(ret, paramOuts)
       (TLam(newParam, newRet), retOuts)
-    case TUnion(left, right) =>
+    case TJointType(mode, left, right) =>
       val (newLeft,  leftOuts)  = extrudeType(left)
       val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
-      (TUnion(newLeft, newRight), rightOuts)
-    case TInter(left, right) =>
-      val (newLeft,  leftOuts)  = extrudeType(left)
-      val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)
-      (TInter(newLeft, newRight), rightOuts)
+      (TJointType(mode, newLeft, newRight), rightOuts)
     case TApp(abs, arg) =>
       val (newAbs, absOuts) = extrudeType(abs)
       val (newArg, argOuts) = extrudeTypeSeq(arg, absOuts)

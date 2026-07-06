@@ -95,7 +95,7 @@ private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Pola
 
   // Add the new fresh variable to the original variable bounds.
   val bound = var_.bound(pol.dir)
-  val newBound = hkmc2.ctml.core.combine.combine(bound, freshType, pol.dir)(using ctx.extend(freshDecl))
+  val newBound = hkmc2.ctml.core.combine.combine(pol.dir.jointMode, bound, freshType)(using ctx.extend(freshDecl))
   val x = Bound(var_, pol.dir, newBound)
 
   val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(!pol.dir), Clauses(List(freshDecl)).concat(Clauses(removeImplicitBounds(List(x)))))

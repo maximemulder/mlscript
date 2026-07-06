@@ -3,17 +3,19 @@ package hkmc2.ctml.core.combine
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.subtyping.SubtypingCache
 
-/** Combine two types as a join or a meet according to a typing direction. */
-def combine(left: Type, right: Type, dir: Direction)(using ctx: Context): Type =
-  dir match
-    case Direction.Sub   => meet(left, right)
-    case Direction.Super => join(left, right)
+/** Combine two types as a join or a meet according to a joint mode. */
+def combine(mode: JointMode, left: Type, right: Type)(using ctx: Context): Type =
+  mode match
+    case JointMode.Union =>
+      join(left, right)
+    case JointMode.Inter =>
+      meet(left, right)
 
 extension (types: List[Type])
-  /** Combine many types as a join or a meet according to a typing direction. */
-  def combineMany(dir: Direction)(using ctx: Context): Type =
-    dir match
-      case Direction.Sub =>
-        types.meetMany()
-      case Direction.Super =>
+  /** Combine many types as a join or a meet according to a joint mode. */
+  def combineMany(mode: JointMode)(using ctx: Context): Type =
+    mode match
+      case JointMode.Union =>
         types.joinMany()
+      case JointMode.Inter =>
+        types.meetMany()

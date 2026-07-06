@@ -37,9 +37,15 @@ case class SubtypingCache(
     this.addInner(sub, sup)
 
   def checkUniv(var_ : TypeVar, type_ : Type): Option[TypeVar] =
+    if !config.cacheUniv then
+      return None
+
     this.univs.get((var_, type_))
 
   def addUniv(var_ : TypeVar, type_ : Type, fresh: TypeVar): SubtypingCache =
+    if !config.cacheUniv then
+      return this
+
     SubtypingCache(this.vars, this.types, this.univs + ((var_, type_) -> fresh))
 
   private def checkInner(sub: Type, sup: Type)(using ctx: Context): Boolean =

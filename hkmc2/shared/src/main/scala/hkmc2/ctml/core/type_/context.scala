@@ -31,16 +31,10 @@ private def hoistTypeCtx(type_ : Type, parent: (Type) => Type): Type =
       TConstrained(hoistTypeCtx(body, parent), constraint)
     case TLam(param, ret) =>
       hoistTypeCtx(ret, (ret) => parent(TLam(param, ret)))
-    case TUnion(left, right) =>
+    case TJointType(mode, left, right) =>
       hoistTypeCtx(left, (left) =>
         hoistTypeCtx(right, (right) =>
-          parent(TUnion(left, right))
-        )
-      )
-    case TInter(left, right) =>
-      hoistTypeCtx(left, (left) =>
-        hoistTypeCtx(right, (right) =>
-          parent(TInter(left, right))
+          parent(TJointType(mode, left, right))
         )
       )
     case _ =>

@@ -14,15 +14,9 @@ extension (type_ : Type)
     type_ match
       case TVar(typeVar) if var_ == typeVar =>
         getExtremalType(pol.dir)
-      case TUnion(left, right) if pol == Polarity.Positive =>
+      case TJointType(mode, left, right) if mode.isNaturalPol(pol) =>
         structuralCombine(
-          JointMode.Union,
-          left.removeDirectVar(var_, pol),
-          right.removeDirectVar(var_, pol),
-        )
-      case TInter(left, right) if pol == Polarity.Negative =>
-        structuralCombine(
-          JointMode.Inter,
+          mode,
           left.removeDirectVar(var_, pol),
           right.removeDirectVar(var_, pol),
         )

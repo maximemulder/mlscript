@@ -38,57 +38,81 @@ private def inlineType(type_ : Type, var_ : TypeVar, pol: Polarity)(using ctx: C
   type_ match
     case TVar(typeVar) if typeVar == var_ =>
       var_.bound(pol.dir)
-    case TNeg(body) =>
-      simplifyNegation(
-        inlineType(body, var_, !pol)
-      )
-    case TTuple(left, right) =>
-      val newLeft = inlineType(left, var_, pol)
-      val newRight = inlineType(right, var_, pol)
-      if newLeft == left && newRight == right then
-        type_
-      else
-        TTuple(newLeft, newRight)
-    case TLam(param, ret) =>
-      simplifyLambda(
-        inlineType(param, var_, !pol),
-        inlineType(ret, var_, pol),
-      )
-    case TJointType(mode, left, right) =>
-      val newLeft = inlineType(left, var_, pol)
-      val newRight = inlineType(right, var_, pol)
-      if newLeft == left && newRight == right then
-        type_
-      else
-        simplifyJoint(mode, newLeft, newRight)
-    case TApp(abs, arg) =>
-      val newAbs = inlineType(abs, var_, pol)
-      val newArg = inlineType(arg, var_, pol)
-      if newAbs == abs && newArg == arg then
-        type_
-      else
-        TApp(newAbs, newArg)
+    case neg: TNeg =>
+      inlineNegation(neg, var_, pol)
+    case tuple: TTuple =>
+      inlineTuple(tuple, var_, pol)
+    case lam: TLam =>
+      inlineLambda(lam, var_, pol)
+    case joint: TJointType =>
+      inlineJoint(joint, var_, pol)
+    case app: TApp =>
+      inlineApp(app, var_, pol)
     case TUniv(typeVar, _) if typeVar == var_ =>
       type_
-    case TUniv(typeVar, body) =>
-      val newBody = inlineType(body, var_, pol)(using ctx.declTypeVar(typeVar, TypeVarKind.Rigid))
-      simplifyUniv(typeVar, newBody)
-    case TConstrained(body, constraint) =>
-      val newBody = inlineType(body, var_, pol)
-      val newConstraint = inlineConstraint(constraint, var_)
-      if newBody == body && newConstraint == constraint then
-        type_
-      else
-        simplifyConstrained(newBody, newConstraint)
-    case TConstraining(body, constraint) =>
-      val newBody = inlineType(body, var_, pol)
-      val newConstraint = inlineConstraint(constraint, var_)
-      if newBody == body && newConstraint == constraint then
-        type_
-      else
-        simplifyConstraining(newBody, newConstraint)
+    case univ: TUniv =>
+      inlineUniv(univ, var_, pol)
+    case constrained: TConstrained =>
+      inlineConstrained(constrained, var_, pol)
+    case constraining: TConstraining =>
+      inlineConstraining(constraining, var_, pol)
     case TBot | TTop | TVar(_) | TClass(_) =>
       type_
+
+private def inlineNegation(neg: TNeg, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  simplifyNegation(
+    inlineType(neg.body, var_, !pol)
+  )
+
+private def inlineTuple(tuple: TTuple, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  val newLeft = inlineType(tuple.left, var_, pol)
+  val newRight = inlineType(tuple.right, var_, pol)
+  if newLeft == tuple.left && newRight == tuple.right then
+    tuple
+  else
+    TTuple(newLeft, newRight)
+
+private def inlineLambda(lam: TLam, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  simplifyLambda(
+    inlineType(lam.param, var_, !pol),
+    inlineType(lam.ret, var_, pol),
+  )
+
+private def inlineJoint(joint: TJointType, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  val newLeft = inlineType(joint.left, var_, pol)
+  val newRight = inlineType(joint.right, var_, pol)
+  if newLeft == joint.left && newRight == joint.right then
+    joint
+  else
+    simplifyJoint(joint.mode, newLeft, newRight)
+
+private def inlineApp(app: TApp, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  val newAbs = inlineType(app.abs, var_, pol)
+  val newArg = inlineType(app.arg, var_, pol)
+  if newAbs == app.abs && newArg == app.arg then
+    app
+  else
+    TApp(newAbs, newArg)
+
+private def inlineUniv(univ: TUniv, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  val newBody = inlineType(univ.body, var_, pol)(using ctx.declTypeVar(univ.var_, TypeVarKind.Rigid))
+  simplifyUniv(univ.var_, newBody)
+
+private def inlineConstrained(constrained: TConstrained, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  val newBody = inlineType(constrained.body, var_, pol)
+  val newConstraint = inlineConstraint(constrained.constraint, var_)
+  if newBody == constrained.body && newConstraint == constrained.constraint then
+    constrained
+  else
+    simplifyConstrained(newBody, newConstraint)
+
+private def inlineConstraining(constraining: TConstraining, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  val newBody = inlineType(constraining.body, var_, pol)
+  val newConstraint = inlineConstraint(constraining.constraint, var_)
+  if newBody == constraining.body && newConstraint == constraining.constraint then
+    constraining
+  else
+    simplifyConstraining(newBody, newConstraint)
 
 /** Inline a variable in a constraint using the current direction-based polarity convention. */
 private def inlineConstraint(constraint: Constraint, var_ : TypeVar)(using ctx: Context): Constraint =

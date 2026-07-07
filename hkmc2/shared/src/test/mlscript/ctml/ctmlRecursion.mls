@@ -5,6 +5,7 @@ fun fibonacci(n) =
     n
   else
     fibonacci(n - 2) + fibonacci(n - 1)
+//│ OK ⇝ ∅
 //│ fibonacci: Int → Int
 
 fun zero(i) =

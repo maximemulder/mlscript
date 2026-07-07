@@ -1,13 +1,6 @@
 package hkmc2.ctml.core.type_.traits
 
-import hkmc2.ctml.core.*
-import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
-import hkmc2.ctml.core.type_.impls.inline.*
-import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
@@ -21,7 +14,7 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
     TTop
 
   def neg(body: Type, params: P): Type =
-    makeNegationType(body)
+    simplifyNegation(body)
 
   def var_(var_ : TypeVar): Type =
     TVar(var_)
@@ -33,33 +26,22 @@ final class TypeSimplifyCombinator[P <: ContextParams[P]] extends TypeCombinator
     TTuple(left, right)
 
   def lam(param: Type, ret: Type, params: P): Type =
-    makeLambdaType(param, ret)
+    simplifyLambda(param, ret)
 
   def joint(mode: JointMode, left: Type, right: Type, params: P): Type =
-    hkmc2.ctml.core.combine.combine(mode, left, right)(using params.ctx)
+    simplifyJoint(mode, left, right)(using params.ctx)
 
   def app(abs: Type, arg: Type, params: P): Type =
     TApp(abs, arg)
 
   def univ(var_ : TypeVar, body: Type, params: P): Type =
-    // body.getVarPolarities(var_) match
-    //   case Polarities(true, true) =>
-    //     TUniv(var_, body)
-    //   case _ =>
-    //     body.inline(var_)(using params.ctx)
-    TUniv(var_, body)
+    simplifyUniv(var_, body)(using params.ctx)
 
   def constrained(body: Type, constraint: Constraint, params: P): Type =
-    if checkConstraint(constraint)(using params.ctx) then
-      body
-    else
-      makeConstrainedType(body, List(constraint))
+    simplifyConstrained(body, constraint)(using params.ctx)
 
   def constraining(body: Type, constraint: Constraint, params: P): Type =
-    if checkConstraint(constraint)(using params.ctx) then
-      body
-    else
-      makeConstrainingType(body, List(constraint))
+    simplifyConstraining(body, constraint)(using params.ctx)
 
   def constraint(left: Type, dir: Direction, right: Type, p: P): Constraint =
     Constraint(left, dir, right)

@@ -39,6 +39,17 @@ run for more than 10 seconds, but these are problematic and should eventually be
 running in more than 30 seconds should be considered as a timeout, in which case the exact test
 that is timing out should be located, and eventually fixed or commented.
 
+## CTML test baseline
+
+The CTML diff-test suite may temporarily contain known failures or timeouts while the type
+checker is under active development. When doing refactors, first run a focused baseline such as
+`sbt "dtest ctml/"`, record the failing files/locations, and compare later runs against that
+baseline rather than assuming the suite is currently green.
+
+Golden output rewrites in CTML `.mls` files should be reviewed and may be committed as an
+intentional baseline before larger refactors. Do not mix unrelated golden rewrites from other
+test families, such as WASM tests, into CTML refactor commits.
+
 ## CTML options
 
 Since CTML is a separate type checker, many of the options from MLScript are not available for

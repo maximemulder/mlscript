@@ -45,7 +45,7 @@ extension (type_ : Type)
           arg.simplify(),
         )
       case TUniv(var_, body) =>
-        val newBody = body.simplify()(using ctx.declTypeVar(var_, TypeVarKind.Rigid), noInlineVars)
+        val newBody = body.simplify()(using ctx.declTypeVar(var_, TypeVarKind.Flex), noInlineVars)
         simplifyUniv(TUniv(var_, newBody))
       case TConstrained(body, constraint) =>
         simplifyConstrained(
@@ -62,13 +62,12 @@ def simplifyUniv(univ: TUniv)(using ctx: Context, noInlineVars: NoInlineVars): T
   if noInlineVars.contains(univ.var_) then
     return univ
 
-  val (body, constraints) = univ.body.getConstrainedComponents
+  val univCtx = ctx.declTypeVar(univ.var_, TypeVarKind.Flex)
+  val (body, clauses) = univ.body.unwrapCtx(using univCtx)
 
-  val bounds = constraints.map(_.asBound)
-
-  body.getInlinePolarities(univ.var_)(using ctx.declTypeVar(univ.var_, TypeVarKind.Rigid).extend(bounds)) match
+  body.getInlinePolarities(univ.var_)(using univCtx.extend(clauses)) match
     case Some(polarities) =>
-      val (newBody, newClauses) = inlineVar(body, univ.var_, polarities, Clauses(bounds))(using ctx.declTypeVar(univ.var_, TypeVarKind.Rigid))
+      val (newBody, newClauses) = inlineVar(body, univ.var_, polarities, clauses)(using univCtx.extend(clauses))
       newBody.wrapCtx(newClauses)
     case None =>
       univ

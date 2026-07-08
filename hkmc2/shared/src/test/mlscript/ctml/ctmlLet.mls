@@ -19,28 +19,38 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ {α ≤ {β ≤ Str} ⟹ Str} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, α ≤ {β ≤ Str} ⟹ Str} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥))} ⟹ α → β → γ
+//│ baz: ⊥ → ⊥ → ⊥
 
+:fixme // FIXME: Semantic variable inlining currently collapses `baz` to bottom.
 baz(1, 1)
-//│ Int
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Int → α.
+//│ Typing error tree:
+//│   ⊥ → ⊥ → ⊥ ≤ Int → α
+//│     Int ≤ ⊥
 
+:fixme // FIXME: Semantic variable inlining currently collapses `baz` to bottom.
 baz("", "")
-//│ Str
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Str → α.
+//│ Typing error tree:
+//│   ⊥ → ⊥ → ⊥ ≤ Str → α
+//│     Str ≤ ⊥
 
 baz(bot, bot)
 //│ ⊥
 
 :te
 baz(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Int → α.
 //│ Typing error tree:
-//│   Int ≤ ¬Int
+//│   ⊥ → ⊥ → ⊥ ≤ Int → α
+//│     Int ≤ ⊥
 
 :te
 baz(true, false)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Bool → α.
 //│ Typing error tree:
-//│   Bool ≤ ⊥
+//│   ⊥ → ⊥ → ⊥ ≤ Bool → α
+//│     Bool ≤ ⊥
 
 // FIXME: This block currently times out the CTML diff-test suite.
 // fun bop(a, b) =

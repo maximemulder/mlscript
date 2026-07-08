@@ -19,26 +19,28 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ ∀δ. {α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ} ⟹ ¬Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ (∀δ. {α ≤ ¬Int, α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
+//│ baz: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ {α ≤ {β ≤ Str} ⟹ Str} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, α ≤ {β ≤ Str} ⟹ Str} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥))} ⟹ α → β → γ
 
 baz(1, 1)
 //│ Int
 
 baz("", "")
-//│ ∀α. {α ≥ Str} ⟹ α
+//│ Str
 
 baz(bot, bot)
-//│ ∀α. α
+//│ ⊥
 
 :te
 baz(1, "")
-//│ ∀α. {Int ≤ ¬Int, Int ≤ {α ≥ Str} ⟹ Str, α ≥ {Int ≤ ⊥} ⟹ ⊥} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Int.
+//│ Typing error tree:
+//│   Int ≤ ¬Int
 
 :te
 baz(true, false)
-//│ ∀α. {α ≥ {Bool ≤ ⊥} ⟹ ⊥} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ ⊥.
+//│ Typing error tree:
+//│   Bool ≤ ⊥
 
 // FIXME: This block currently times out the CTML diff-test suite.
 // fun bop(a, b) =

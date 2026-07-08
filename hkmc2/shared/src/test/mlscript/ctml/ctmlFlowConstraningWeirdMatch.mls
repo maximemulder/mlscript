@@ -8,7 +8,7 @@ fun foo(a, b) =
   if a is
     Int then b as Int
     Top then b as Str
-//│ foo: ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ ∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ ∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ})} ⟹ α → β → γ
+//│ foo: ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ {α ≤ (⊤ ⟹ {β ≤ Str}) ∨ ⊥, β ≤ Str ∨ (⊤ ⟹ {α ≤ ⊥})} ⟹ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ {α ≤ (⊤ ⟹ {β ≤ Str}) ∨ ⊥, β ≤ Str ∨ (⊤ ⟹ {α ≤ ⊥})} ⟹ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})})} ⟹ α → β → γ
 
 // Function overloads
 
@@ -21,28 +21,157 @@ foo(1, 1)
 //│ Int
 
 foo("Hello", "World")
-//│ ∀α. {Str ≤ (⊤ ⟹ {α ≥ Str}) ∨ ⊥, Str ≤ (Str ⟹ {α ≥ Str}) ∨ (⊤ ⟹ {Str ≤ ⊥}), α ≥ Str ∧ (⊥ ⟹ {Str ≤ ⊥})} ⟹ α
+//│ java.lang.Exception: Found unsupported non-bound constraint Str ≤ (⊤ ⟹ {84 ≤ Str, 3 ≥ Str}) ∨ ⊥
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at scala.collection.immutable.List.map(List.scala:240)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inline(inline.scala:15)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVarImpl(level.scala:109)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar$$anonfun$1(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars$$anonfun$1(level.scala:81)
+//│ 	at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:186)
+//│ 	at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:38)
+//│ 	at scala.collection.immutable.List.foldLeft(List.scala:83)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars(level.scala:80)
+//│ 	at hkmc2.ctml.core.inference.level$package$.simplifyLevel(level.scala:63)
+//│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:35)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$1(level.scala:27)
+//│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:24)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:327)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:66)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:448)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:413)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:253)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:377)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:407)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:301)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:80)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:124)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:139)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:76)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:89)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Found unsupported non-bound constraint Str ≤ (⊤ ⟹ {84 ≤ Str, 3 ≥ Str}) ∨ ⊥
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at: scala.collection.immutable.List.map(List.scala:240)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
 
 foo(true, "")
-//│ ∀α. {Bool ≤ (⊤ ⟹ {α ≥ Str}) ∨ ⊥, Str ≤ (Str ⟹ {α ≥ Str}) ∨ (⊤ ⟹ {Bool ≤ ⊥}), α ≥ Str ∧ (⊥ ⟹ {Bool ≤ ⊥})} ⟹ α
+//│ java.lang.Exception: Found unsupported non-bound constraint Str ≤ (Str ⟹ {3 ≥ Str}) ∨ (⊤ ⟹ {91 ≤ ⊥})
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at scala.collection.immutable.List.map(List.scala:244)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inline(inline.scala:26)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVarImpl$$anonfun$1(level.scala:110)
+//│ 	at hkmc2.ctml.core.clauses.iterators$package$.mapBounds$$anonfun$1(iterators.scala:61)
+//│ 	at scala.collection.immutable.List.map(List.scala:244)
+//│ 	at hkmc2.ctml.core.clauses.iterators$package$.map(iterators.scala:54)
+//│ 	at hkmc2.ctml.core.clauses.iterators$package$.mapBounds(iterators.scala:59)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVarImpl(level.scala:110)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar$$anonfun$1(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars$$anonfun$1(level.scala:81)
+//│ 	at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:186)
+//│ 	at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:38)
+//│ 	at scala.collection.immutable.List.foldLeft(List.scala:83)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars(level.scala:80)
+//│ 	at hkmc2.ctml.core.inference.level$package$.simplifyLevel(level.scala:63)
+//│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:35)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$1(level.scala:27)
+//│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:24)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:327)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:66)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:448)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:413)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:253)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:377)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:407)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:301)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:80)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:124)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:139)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:76)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:89)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Found unsupported non-bound constraint Str ≤ (Str ⟹ {3 ≥ Str}) ∨ (⊤ ⟹ {91 ≤ ⊥})
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at: scala.collection.immutable.List.map(List.scala:244)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
 
 foo(bot, bot)
-//│ ∀α. α
+//│ ⊥
 
 // Errors
 
 :te
 foo as (Bool -> Bool -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ ∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ ∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ})} ⟹ α → β → γ ≤ Bool → Bool → Bool.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ {α ≤ (⊤ ⟹ {β ≤ Str}) ∨ ⊥, β ≤ Str ∨ (⊤ ⟹ {α ≤ ⊥})} ⟹ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ {α ≤ (⊤ ⟹ {β ≤ Str}) ∨ ⊥, β ≤ Str ∨ (⊤ ⟹ {α ≤ ⊥})} ⟹ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})})} ⟹ α → β → γ ≤ Bool → Bool → Bool.
 //│ Typing error tree:
-//│   ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ ∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ ∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ})} ⟹ α → β → γ ≤ Bool → Bool → Bool
-//│     {η ≥ (Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∧ (∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ ⟹ {ε ≤ ¬Int}), ε ≤ (Int ⟹ {ζ ≤ Int, η ≥ Int}) ∨ (¬Int ⟹ {η ≥ ∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ}), ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, η ≥ ∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ})} ⟹ ε → ζ → η ≤ Bool → Bool → Bool
-//│       {ε ≤ (Int ⟹ {ζ ≤ Int, η ≥ Int}) ∨ (¬Int ⟹ {η ≥ ∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ}), ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, η ≥ ∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ})} ⟹ ε → ζ → η ≤ Bool → Bool → Bool
-//│         {ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, η ≥ ∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ})} ⟹ ε → ζ → η ≤ Bool → Bool → Bool
+//│   ∀α, β, γ. {γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (⊤ ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int}), α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ {α ≤ (⊤ ⟹ {β ≤ Str}) ∨ ⊥, β ≤ Str ∨ (⊤ ⟹ {α ≤ ⊥})} ⟹ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ {α ≤ (⊤ ⟹ {β ≤ Str}) ∨ ⊥, β ≤ Str ∨ (⊤ ⟹ {α ≤ ⊥})} ⟹ (Str ⟹ {β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})})} ⟹ α → β → γ ≤ Bool → Bool → Bool
+//│     {η ≥ (Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∧ (∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ ⟹ {ε ≤ ¬Int}), ε ≤ (Int ⟹ {ζ ≤ Int, η ≥ Int}) ∨ (¬Int ⟹ {η ≥ {ε ≤ (⊤ ⟹ {ζ ≤ Str}) ∨ ⊥, ζ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})}), ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, η ≥ {ε ≤ (⊤ ⟹ {ζ ≤ Str}) ∨ ⊥, ζ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})})} ⟹ ε → ζ → η ≤ Bool → Bool → Bool
+//│       {ε ≤ (Int ⟹ {ζ ≤ Int, η ≥ Int}) ∨ (¬Int ⟹ {η ≥ {ε ≤ (⊤ ⟹ {ζ ≤ Str}) ∨ ⊥, ζ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})}), ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, η ≥ {ε ≤ (⊤ ⟹ {ζ ≤ Str}) ∨ ⊥, ζ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})})} ⟹ ε → ζ → η ≤ Bool → Bool → Bool
+//│         {ζ ≤ (Int ⟹ {ε ≤ Int, η ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, η ≥ {ε ≤ (⊤ ⟹ {ζ ≤ Str}) ∨ ⊥, ζ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})})} ⟹ ε → ζ → η ≤ Bool → Bool → Bool
 //│           ε → ζ → η ≤ Bool → Bool → Bool
 //│             ζ → η ≤ Bool → Bool
 //│               η ≤ Bool
-//│                 ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∧ (∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ ⟹ {ε ≤ ¬Int})) ∨ (∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ) ≤ Bool
+//│                 ((Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∧ (∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ ⟹ {ε ≤ ¬Int})) ∨ ({ε ≤ (⊤ ⟹ {ζ ≤ Str}) ∨ ⊥, ζ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})) ≤ Bool
 //│                   (Int ⟹ {ε ≤ Int, ζ ≤ Int}) ∧ (∀δ. {ε ≤ (⊤ ⟹ {ζ ≤ Str, δ ≥ Str}) ∨ ⊥, ζ ≤ (Str ⟹ {δ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), δ ≥ (Str ⟹ {ζ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ δ ⟹ {ε ≤ ¬Int}) ≤ Bool
 //│                     Int ⟹ {ε ≤ Int, ζ ≤ Int} ≤ Bool
 //│                       Int ⟹ {ζ ≤ Int} ≤ Bool
@@ -59,13 +188,140 @@ foo as (Bool -> Bool -> Bool)
 
 :te
 foo(true, 1)
-//│ ∀α. {Bool ≤ (⊤ ⟹ {Int ≤ Str, α ≥ Str}) ∨ ⊥, Int ≤ (Str ⟹ {α ≥ Str}) ∨ (⊤ ⟹ {Bool ≤ ⊥}), α ≥ (Str ⟹ {Int ≤ Str}) ∧ (⊥ ⟹ {Bool ≤ ⊥})} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ java.lang.Exception: Found unsupported non-bound constraint Bool ≤ (⊤ ⟹ {117 ≤ Str, 3 ≥ Str}) ∨ ⊥
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at scala.collection.immutable.List.map(List.scala:240)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inline(inline.scala:26)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVarImpl$$anonfun$1(level.scala:110)
+//│ 	at hkmc2.ctml.core.clauses.iterators$package$.mapBounds$$anonfun$1(iterators.scala:61)
+//│ 	at scala.collection.immutable.List.map(List.scala:244)
+//│ 	at hkmc2.ctml.core.clauses.iterators$package$.map(iterators.scala:54)
+//│ 	at hkmc2.ctml.core.clauses.iterators$package$.mapBounds(iterators.scala:59)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVarImpl(level.scala:110)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar$$anonfun$1(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars$$anonfun$1(level.scala:81)
+//│ 	at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:186)
+//│ 	at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:38)
+//│ 	at scala.collection.immutable.List.foldLeft(List.scala:83)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars(level.scala:80)
+//│ 	at hkmc2.ctml.core.inference.level$package$.simplifyLevel(level.scala:63)
+//│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:35)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$1(level.scala:27)
+//│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:24)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:327)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:66)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:448)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:413)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:253)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:377)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:407)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:301)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:80)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:124)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:139)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:76)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:89)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Found unsupported non-bound constraint Bool ≤ (⊤ ⟹ {117 ≤ Str, 3 ≥ Str}) ∨ ⊥
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at: scala.collection.immutable.List.map(List.scala:240)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
 
 :te
 foo(true, true)
-//│ ∀α. {Bool ≤ (⊤ ⟹ {Bool ≤ Str, α ≥ Str}) ∨ ⊥, Bool ≤ (Str ⟹ {α ≥ Str}) ∨ (⊤ ⟹ {Bool ≤ ⊥}), α ≥ (Str ⟹ {Bool ≤ Str}) ∧ (⊥ ⟹ {Bool ≤ ⊥})} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ java.lang.Exception: Found unsupported non-bound constraint Bool ≤ (Str ⟹ {3 ≥ Str}) ∨ (⊤ ⟹ {125 ≤ ⊥})
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at scala.collection.immutable.List.map(List.scala:244)
+//│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at hkmc2.ctml.core.type_.impls.inline.inline$package$.inline(inline.scala:15)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVarImpl(level.scala:109)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar$$anonfun$1(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVar(level.scala:100)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars$$anonfun$1(level.scala:81)
+//│ 	at scala.collection.LinearSeqOps.foldLeft(LinearSeq.scala:186)
+//│ 	at scala.collection.LinearSeqOps.foldLeft$(LinearSeq.scala:38)
+//│ 	at scala.collection.immutable.List.foldLeft(List.scala:83)
+//│ 	at hkmc2.ctml.core.inference.level$package$.inlineVars(level.scala:80)
+//│ 	at hkmc2.ctml.core.inference.level$package$.simplifyLevel(level.scala:63)
+//│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:35)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$1(level.scala:27)
+//│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:24)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:327)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:66)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:448)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:413)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:253)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:377)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:407)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:301)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:80)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:124)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:139)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:76)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:89)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Found unsupported non-bound constraint Bool ≤ (Str ⟹ {3 ≥ Str}) ∨ (⊤ ⟹ {125 ≤ ⊥})
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.asBound(simplify.scala:93)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.$anonfun$1(simplify.scala:67)
+//│ 	at: scala.collection.immutable.List.map(List.scala:244)
+//│ 	at: hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplifyUniv(simplify.scala:67)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineUniv(inline.scala:100)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:55)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:84)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineJoint(inline.scala:83)
+//│ 	at: hkmc2.ctml.core.type_.impls.inline.inline$package$.inlineType(inline.scala:49)
 
 :te
 foo(1, "World")
@@ -74,12 +330,12 @@ foo(1, "World")
 //│   α ≤ Str → β
 //│     γ → δ ≤ Str → β
 //│       Str ≤ γ
-//│         Str ≤ ((Int ⟹ {ε ≤ Int, δ ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, δ ≥ ∀ζ. {ε ≤ (⊤ ⟹ {γ ≤ Str, ζ ≥ Str}) ∨ ⊥, γ ≤ (Str ⟹ {ζ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), ζ ≥ (Str ⟹ {γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ ζ})) ∧ Int
+//│         Str ≤ ((Int ⟹ {ε ≤ Int, δ ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, δ ≥ {ε ≤ (⊤ ⟹ {γ ≤ Str}) ∨ ⊥, γ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})})) ∧ Int
 //│           Str ≤ (Int ⟹ {ε ≤ Int, δ ≥ Int}) ∧ Int
 //│             Str ≤ Int ⟹ {ε ≤ Int, δ ≥ Int}
 //│               Str ≤ Int ⟹ {δ ≥ Int}
 //│                 Str ≤ Int
-//│           Str ≤ (⊤ ⟹ {ε ≤ ¬Int, δ ≥ ∀ζ. {ε ≤ (⊤ ⟹ {γ ≤ Str, ζ ≥ Str}) ∨ ⊥, γ ≤ (Str ⟹ {ζ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), ζ ≥ (Str ⟹ {γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ ζ}) ∧ Int
-//│             Str ≤ ⊤ ⟹ {ε ≤ ¬Int, δ ≥ ∀ζ. {ε ≤ (⊤ ⟹ {γ ≤ Str, ζ ≥ Str}) ∨ ⊥, γ ≤ (Str ⟹ {ζ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), ζ ≥ (Str ⟹ {γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ ζ}
+//│           Str ≤ (⊤ ⟹ {ε ≤ ¬Int, δ ≥ {ε ≤ (⊤ ⟹ {γ ≤ Str}) ∨ ⊥, γ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})}) ∧ Int
+//│             Str ≤ ⊤ ⟹ {ε ≤ ¬Int, δ ≥ {ε ≤ (⊤ ⟹ {γ ≤ Str}) ∨ ⊥, γ ≤ Str ∨ (⊤ ⟹ {ε ≤ ⊥})} ⟹ (Str ⟹ {γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})}
 //│               ε ≤ ¬Int
 //│                 Int ≤ ¬Int

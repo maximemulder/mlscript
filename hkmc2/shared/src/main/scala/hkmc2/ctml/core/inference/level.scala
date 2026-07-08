@@ -31,7 +31,6 @@ extension (ctx: Context)
    *  simplifying then if possible. */
   def processLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
     val (type1, outs1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
-    // val (type1, outs1) = (type_, outs)
 
     val (type2, outs2) = simplifyLevel(level, type1, outs.concat(outs1))
 
@@ -43,14 +42,6 @@ extension (ctx: Context)
     val noSimplifyInlineVars = levelVars
       .filter(levelCtx.getTypeVarEffectiveLevel(_) < level)
       .toSet
-    // val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type2, var_, outs2)).toMap
-    // val varsToQuantify = getQuantifyVars(actions)
-
-    // val (type3, outs3) = quantifyLevelBounds(type2, level, outs2)(using ctx)
-
-    // val (type4, outs4) = varsToQuantify.foldRight((type3, outs3))((var_, to) =>
-    //   quantifyVar(to._1, var_, to._2)(using ctx)
-    // )
 
     val type4 = type2.wrapCtx(outs2)
 

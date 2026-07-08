@@ -8,14 +8,10 @@ import hkmc2.ctml.core.combine.join
 extension (type_ : Type)
   /** Get the simplified negation of this type. */
   def negate(): Type =
-    type_ match
-      case TNeg(body) =>
-        body.negateStep() match
-          case Some(type_) =>
-            type_.negate()
-          case None =>
-            type_
-      case _ =>
+    type_.negateStep() match
+      case Some(type_) =>
+        type_
+      case None =>
         TNeg(type_)
 
   /** Evaluate a negation simplification step if possible. */

@@ -8,7 +8,6 @@ import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
-import hkmc2.ctml.core.type_.impls.getAllVarPolarities.*
 import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.type_.impls.simplify.*
 import hkmc2.ctml.core.var_.*
@@ -36,20 +35,28 @@ extension (ctx: Context)
 
     val (type2, outs2) = simplifyLevel(level, type1, outs.concat(outs1))
 
-    val levelVars = ctx.extend(outs2).getLevelVars(level)
-    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type2, var_, outs2)).toMap
-    val varsToQuantify = getQuantifyVars(actions)
-
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)
 
-    val (type3, outs3) = quantifyLevelBounds(type2, level, outs2)(using ctx)
+    val levelCtx = ctx.extend(outs2)
+    val levelVars = levelCtx.getLevelVars(level)
+    val noSimplifyInlineVars = levelVars
+      .filter(levelCtx.getTypeVarEffectiveLevel(_) < level)
+      .toSet
+    // val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type2, var_, outs2)).toMap
+    // val varsToQuantify = getQuantifyVars(actions)
 
-    val (type4, outs4) = varsToQuantify.foldRight((type3, outs3))((var_, to) =>
-      quantifyVar(to._1, var_, to._2)(using ctx)
-    )
+    // val (type3, outs3) = quantifyLevelBounds(type2, level, outs2)(using ctx)
 
-    (type4, outs4)
+    // val (type4, outs4) = varsToQuantify.foldRight((type3, outs3))((var_, to) =>
+    //   quantifyVar(to._1, var_, to._2)(using ctx)
+    // )
+
+    val type4 = type2.wrapCtx(outs2)
+
+    val type5 = type4.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
+
+    (type5, Clauses())
 
   /** Iteratively collect and simplify the variables in a level until no further simplification is
    *  possible. */
@@ -68,29 +75,14 @@ extension (ctx: Context)
   /** Determine how to process a variable of this level. */
   def determineVarAction(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses): VarAction =
     given Context = ctx.extend(outs)
-    val polarities = type_.getAllVarPolarities(var_)
     if ctx.extend(outs).getTypeVarEffectiveLevel(var_) < level then
       return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
 
-    if polarities == Polarities(false, false) then
-      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
-
-    if polarities == Polarities(false, true) then
-      if var_.isIndirectRecursive(Polarity.Positive) then
-        return debugVarAction(var_, type_, VarAction.Quantify, "recursive")
-
-      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
-
-    if polarities == Polarities(true, false) then
-      if var_.isIndirectRecursive(Polarity.Negative) then
-        return debugVarAction(var_, type_, VarAction.Quantify, "recursive")
-
-      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
-
-    if checkEqual(var_.lowerBound, var_.upperBound) && !var_.isIndirectRecursive(Polarity.Negative) then
-      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"sandwich ${var_.lowerBound} ${var_.upperBound}")
-
-    debugVarAction(var_, type_, VarAction.Quantify, "default")
+    type_.getInlinePolarities(var_) match
+      case Some(polarities) =>
+        debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
+      case None =>
+        debugVarAction(var_, type_, VarAction.Quantify, "default")
 
   /** Inline a list of type variables. */
   def inlineVars(type_ : Type, outs: Clauses, vars: List[(TypeVar, Polarities)]): (Type, Clauses) =

@@ -78,7 +78,7 @@ fun foo2(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo2: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ ∀δ. {α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ} ⟹ ¬Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ (∀δ. {α ≤ ¬Int, α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
+//│ foo2: ∀α, β, γ. {γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ (∀δ. {α ≤ ¬Int, α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ), α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ ∀δ. {α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ} ⟹ ¬Int)} ⟹ α → β → γ
 
 // FIXME: Applying the inferred multi-branch constrained type below currently exposes a separate
 // context leak in nested constrained-type subtyping.

@@ -3,6 +3,7 @@ package hkmc2.ctml.core.type_.impls.inline
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.structural.*
+import hkmc2.ctml.core.type_.impls.simplify.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
@@ -96,7 +97,7 @@ private def inlineApp(app: TApp, var_ : TypeVar, pol: Polarity)(using ctx: Conte
 
 private def inlineUniv(univ: TUniv, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
   val newBody = inlineType(univ.body, var_, pol)(using ctx.declTypeVar(univ.var_, TypeVarKind.Rigid))
-  simplifyUniv(univ.var_, newBody)
+  simplifyUniv(TUniv(univ.var_, newBody))
 
 private def inlineConstrained(constrained: TConstrained, var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
   val newBody = inlineType(constrained.body, var_, pol)

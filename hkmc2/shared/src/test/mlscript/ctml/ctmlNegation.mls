@@ -1,16 +1,16 @@
 :ctml
 
 1 as ~Bot
-//│ ¬⊥
+//│ ⊤
 
 1 as ~Bool
 //│ ¬Bool
 
 1 as ~(~Int)
-//│ ¬¬Int
+//│ Int
 
 1 as ~(~(~(~Int)))
-//│ ¬¬¬¬Int
+//│ Int
 
 :te
 1 as ~Int

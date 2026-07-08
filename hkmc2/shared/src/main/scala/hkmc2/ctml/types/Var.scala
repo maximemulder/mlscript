@@ -31,7 +31,7 @@ enum VarAction:
   /** Skip the type variable. */
   case Skip
   /** Inline the type variable. */
-  case Inline
+  case Inline(polarities: Polarities)
 
   /** Get the string representation of the object. */
   override def toString(): String =
@@ -40,5 +40,5 @@ enum VarAction:
         "quantify"
       case Skip =>
         "skip"
-      case Inline =>
-        "inline"
+      case Inline(polarities) =>
+        s"inline ${polarities}"

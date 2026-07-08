@@ -31,7 +31,6 @@ class A
 class B
 
 A <:< ~B
-//│ constrain ⊤ ∨ A ≤ ⊤
 //│ OK
 
 (~A & B) == B

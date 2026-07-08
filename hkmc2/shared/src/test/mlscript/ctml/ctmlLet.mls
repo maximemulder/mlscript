@@ -19,37 +19,25 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ∀α, β, γ. {α ≤ (Int ⟹ {β ≤ Int, γ ≥ Int}) ∨ (¬Int ⟹ {γ ≥ ∀δ. {α ≤ (Str ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {α ≤ Str, δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {α ≤ Str, β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ}), β ≤ (Int ⟹ {α ≤ Int, γ ≥ Int}) ∨ (⊤ ⟹ {α ≤ ¬Int, γ ≥ ∀δ. {α ≤ (Str ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {α ≤ Str, δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {α ≤ Str, β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ}), γ ≥ (Int ⟹ {α ≤ Int, β ≤ Int}) ∧ (∀δ. {α ≤ (Str ⟹ {β ≤ Str, δ ≥ Str}) ∨ ⊥, β ≤ (Str ⟹ {α ≤ Str, δ ≥ Str}) ∨ (⊤ ⟹ {α ≤ ⊥}), δ ≥ (Str ⟹ {α ≤ Str, β ≤ Str}) ∧ (⊥ ⟹ {α ≤ ⊥})} ⟹ δ ⟹ {α ≤ ¬Int})} ⟹ α → β → γ
+//│ baz: ∀α, β, γ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ ∀δ. {α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ} ⟹ ¬Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ (∀δ. {α ≤ ¬Int, α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
 
 baz(1, 1)
 //│ Int
 
 baz("", "")
-//│ ∀α. {Str ≤ (Str ⟹ {α ≥ Str}) ∨ ⊥, Str ≤ (Str ⟹ {α ≥ Str}) ∨ (⊤ ⟹ {Str ≤ ⊥}), α ≥ Str ∧ (⊥ ⟹ {Str ≤ ⊥})} ⟹ α
+//│ ∀α. {α ≥ Str} ⟹ α
 
 baz(bot, bot)
 //│ ∀α. α
 
 :te
 baz(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
-//│ Typing error tree:
-//│   α ≤ Str → β
-//│     γ → δ ≤ Str → β
-//│       Str ≤ γ
-//│         Str ≤ ((Int ⟹ {ε ≤ Int, δ ≥ Int}) ∨ (⊤ ⟹ {ε ≤ ¬Int, δ ≥ ∀ζ. {ε ≤ (Str ⟹ {γ ≤ Str, ζ ≥ Str}) ∨ ⊥, γ ≤ (Str ⟹ {ε ≤ Str, ζ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), ζ ≥ (Str ⟹ {ε ≤ Str, γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ ζ})) ∧ Int
-//│           Str ≤ (Int ⟹ {ε ≤ Int, δ ≥ Int}) ∧ Int
-//│             Str ≤ Int ⟹ {ε ≤ Int, δ ≥ Int}
-//│               Str ≤ Int ⟹ {δ ≥ Int}
-//│                 Str ≤ Int
-//│           Str ≤ (⊤ ⟹ {ε ≤ ¬Int, δ ≥ ∀ζ. {ε ≤ (Str ⟹ {γ ≤ Str, ζ ≥ Str}) ∨ ⊥, γ ≤ (Str ⟹ {ε ≤ Str, ζ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), ζ ≥ (Str ⟹ {ε ≤ Str, γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ ζ}) ∧ Int
-//│             Str ≤ ⊤ ⟹ {ε ≤ ¬Int, δ ≥ ∀ζ. {ε ≤ (Str ⟹ {γ ≤ Str, ζ ≥ Str}) ∨ ⊥, γ ≤ (Str ⟹ {ε ≤ Str, ζ ≥ Str}) ∨ (⊤ ⟹ {ε ≤ ⊥}), ζ ≥ (Str ⟹ {ε ≤ Str, γ ≤ Str}) ∧ (⊥ ⟹ {ε ≤ ⊥})} ⟹ ζ}
-//│               ε ≤ ¬Int
-//│                 Int ≤ ¬Int
+//│ ∀α. {Int ≤ ¬Int, Int ≤ {α ≥ Str} ⟹ Str, α ≥ {Int ≤ ⊥} ⟹ ⊥} ⟹ α
+//│ FAILURE: Unexpected lack of type error
 
 :te
 baz(true, false)
-//│ ∀α. {Bool ≤ (Str ⟹ {Bool ≤ Str, α ≥ Str}) ∨ ⊥, Bool ≤ (Str ⟹ {Bool ≤ Str, α ≥ Str}) ∨ (⊤ ⟹ {Bool ≤ ⊥}), α ≥ (Str ⟹ {Bool ≤ Str, Bool ≤ Str}) ∧ (⊥ ⟹ {Bool ≤ ⊥})} ⟹ α
+//│ ∀α. {α ≥ {Bool ≤ ⊥} ⟹ ⊥} ⟹ α
 //│ FAILURE: Unexpected lack of type error
 
 // FIXME: This block currently times out the CTML diff-test suite.

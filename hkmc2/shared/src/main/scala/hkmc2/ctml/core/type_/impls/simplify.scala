@@ -1,24 +1,61 @@
 package hkmc2.ctml.core.type_.impls.simplify
 
-import hkmc2.ctml.core.*
-import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.traits.*
+import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.utils.*
 
 extension (type_ : Type)
   /** Simplify the type based on the information available in a context. */
   def simplify()(using ctx: Context): Type =
-    Applicator(type_, TypeSimplifyParams(ctx))
+    simplifyType(type_)
 
-/** Parameters of the type simplification operation. */
-private class TypeSimplifyParams(val ctx: Context) extends ContextParams[TypeSimplifyParams]:
-  def setContext(ctx: Context) = TypeSimplifyParams(ctx)
+/** Implementation of semantic type simplification. */
+private def simplifyType(type_ : Type)(using ctx: Context): Type =
+  type_ match
+    case TBot | TTop | TVar(_) | TClass(_) =>
+      type_
+    case TNeg(body) =>
+      simplifyNegation(
+        simplifyType(body)
+      )
+    case TTuple(left, right) =>
+      TTuple(
+        simplifyType(left),
+        simplifyType(right),
+      )
+    case TLam(param, ret) =>
+      simplifyLambda(
+        simplifyType(param),
+        simplifyType(ret),
+      )
+    case TJointType(mode, left, right) =>
+      simplifyJoint(
+        mode,
+        simplifyType(left),
+        simplifyType(right),
+      )
+    case TApp(abs, arg) =>
+      TApp(
+        simplifyType(abs),
+        simplifyType(arg),
+      )
+    case TUniv(var_, body) =>
+      val newBody = simplifyType(body)(using ctx.declTypeVar(var_, TypeVarKind.Rigid))
+      simplifyUniv(var_, newBody)
+    case TConstrained(body, constraint) =>
+      simplifyConstrained(
+        simplifyType(body),
+        simplifyConstraint(constraint),
+      )
+    case TConstraining(body, constraint) =>
+      simplifyConstraining(
+        simplifyType(body),
+        simplifyConstraint(constraint),
+      )
 
-/** Implementation of the type simplification operation. */
-private def Applicator = TypeContextApplicator[Const[Type], TypeSimplifyParams](Dispatcher, Combinator)
-
-private def Dispatcher = TypeDispatcher[Const[Type], Const[Constraint], TypeSimplifyParams](Combinator)
-
-private def Combinator = TypeSimplifyCombinator[TypeSimplifyParams]
+private def simplifyConstraint(constraint: Constraint)(using ctx: Context): Constraint =
+  Constraint(
+    simplifyType(constraint.left),
+    constraint.dir,
+    simplifyType(constraint.right),
+  )

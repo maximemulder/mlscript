@@ -169,13 +169,13 @@ def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Co
     (newType, newOuts)
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+def debugInlineVar(impl: (Type, TypeVar, Polarities, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Polarities, Clauses) => (Type, Clauses) =
   if !config.debug.inline then
     return impl
 
-  (type_ : Type, var_ : TypeVar, outs: Clauses) =>
+  (type_ : Type, var_ : TypeVar, polarities: Polarities, outs: Clauses) =>
     outputContext(s"inline ${var_} in ${type_}")
-    val (newType, newOuts) = impl(type_, var_, outs)
+    val (newType, newOuts) = impl(type_, var_, polarities, outs)
     output(s"= ${newType}")
     (newType, newOuts)
 

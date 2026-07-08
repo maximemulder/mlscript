@@ -73,45 +73,55 @@ extension (ctx: Context)
       return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
 
     if polarities == Polarities(false, false) then
-      return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
+      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
 
     if polarities == Polarities(false, true) then
       if var_.isIndirectRecursive(Polarity.Positive) then
         return debugVarAction(var_, type_, VarAction.Quantify, "recursive")
 
-      return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
+      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
 
     if polarities == Polarities(true, false) then
       if var_.isIndirectRecursive(Polarity.Negative) then
         return debugVarAction(var_, type_, VarAction.Quantify, "recursive")
 
-      return debugVarAction(var_, type_, VarAction.Inline, s"polarities ${polarities}")
+      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
 
     if checkEqual(var_.lowerBound, var_.upperBound) && !var_.isIndirectRecursive(Polarity.Negative) then
-      return debugVarAction(var_, type_, VarAction.Inline, s"sandwich ${var_.lowerBound} ${var_.upperBound}")
+      return debugVarAction(var_, type_, VarAction.Inline(polarities), s"sandwich ${var_.lowerBound} ${var_.upperBound}")
 
     debugVarAction(var_, type_, VarAction.Quantify, "default")
 
   /** Inline a list of type variables. */
-  def inlineVars(type_ : Type, outs: Clauses, vars: List[TypeVar]): (Type, Clauses) =
-    vars.foldLeft((type_, outs))((to, var_) =>
-      inlineVar(to._1, var_, to._2)(using ctx.extend(to._2))
+  def inlineVars(type_ : Type, outs: Clauses, vars: List[(TypeVar, Polarities)]): (Type, Clauses) =
+    vars.foldLeft((type_, outs))((to, varAction) =>
+      inlineVar(to._1, varAction._1, varAction._2, to._2)(using ctx)
     )
 
 /** Get the type variables to inline in a mapping of type variable actions. */
-def getInlineVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
-  actions.filter((_, action) => action == VarAction.Inline).keys.toList
+def getInlineVars(actions: Map[TypeVar, VarAction]): List[(TypeVar, Polarities)] =
+  actions.toList.flatMap((var_, action) =>
+    action match
+      case VarAction.Inline(polarities) =>
+        Some(var_ -> polarities)
+      case VarAction.Quantify | VarAction.Skip =>
+        None
+  )
 
 /** Get the type variables to quantify in a mapping of type variable actions. */
 def getQuantifyVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
   actions.filter((_, action) => action == VarAction.Quantify).keys.toList
 
 /** Inline a type variable in a type. */
-def inlineVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
-  debugInlineVar(inlineVarImpl)(type_, var_, outs)
+def inlineVar(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: Clauses)(using ctx: Context) =
+  debugInlineVar(inlineVarImpl)(type_, var_, polarities, outs)
 
 /** Implementation of `inlineVar`. */
-def inlineVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
+def inlineVarImpl(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: Clauses)(using ctx: Context) =
+  val relevantOuts = outs.filterBounds((bound) =>
+    bound.var_ != var_ || polarities.contains(bound.dir.leftPol)
+  )
+  given Context = ctx.extend(relevantOuts)
   (
     type_.inline(var_),
     outs.mapBounds(_.inline(var_)).removeTypeVar(var_),

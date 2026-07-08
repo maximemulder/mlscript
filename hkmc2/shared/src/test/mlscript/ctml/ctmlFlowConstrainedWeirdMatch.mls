@@ -56,18 +56,21 @@ foo as (Bool -> Bool -> Bool)
 
 :te
 foo(true, 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⊥.
 //│ Typing error tree:
-//│   Bool ≤ ⊥
+//│   α ≤ ⊥
+//│     Bool ≤ ⊥
 
 :te
 foo(true, true)
-//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⊥.
 //│ Typing error tree:
-//│   Bool ≤ ⊥
+//│   α ≤ ⊥
+//│     Bool ≤ ⊥
 
 :te
 foo(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬Int.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ¬Int.
 //│ Typing error tree:
-//│   Int ≤ ¬Int
+//│   α ≤ ¬Int
+//│     Int ≤ ¬Int

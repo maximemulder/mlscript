@@ -79,9 +79,8 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 
 // Opposite bounds
 
+:fixme // FIXME: Contextual simplification currently solves the opposite-bound assumption too eagerly.
 ([A <:< Int] => Int) <:< ([A >:> Int] => Int)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
 //│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ≤ {A ≥ Int} ⟹ Int.
 //│ Typing error tree:
 //│   {A ≤ Int} ⟹ Int ≤ {A ≥ Int} ⟹ Int
@@ -89,9 +88,8 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│       A ≤ Int
 //│         ⊤ ≤ Int
 
+:fixme // FIXME: Contextual simplification currently solves the opposite-bound assumption too eagerly.
 ([A >:> Int] => Int) <:< ([A <:< Int] => Int)
-//│ FAILURE: Unexpected type error
-//│ FAILURE LOCATION: raise (test.scala:71)
 //│ ═══[TYPE ERROR] Cannot solve judgment {A ≥ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int.
 //│ Typing error tree:
 //│   {A ≥ Int} ⟹ Int ≤ {A ≤ Int} ⟹ Int

@@ -32,7 +32,8 @@ extension (ctx: Context)
   def processLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
     val (type1, outs1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
 
-    val (type2, outs2) = simplifyLevel(level, type1, outs.concat(outs1))
+    val type2 = type1
+    val outs2 = outs.concat(outs1)
 
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)

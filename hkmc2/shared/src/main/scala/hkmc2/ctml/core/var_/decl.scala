@@ -4,16 +4,21 @@ import hkmc2.ctml.config.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
-/** Global counter used to create unique fresh type variables. */
-var freshVarCounter = 0
+/** Counter used to create unique fresh type variables in the current thread. */
+private val freshVarCounter =
+  ThreadLocal.withInitial(() => 0)
+
+/** Reset the fresh type variable counter for the current thread. */
+def resetFreshVarCounter(): Unit =
+  freshVarCounter.set(0)
 
 /** Special fresh type variable renamings that should be applied for debugging. */
 val renamings = Map[Int, String]()
 
 /** Get a new unique fresh type variable name. */
 def newFreshVarName(): String =
-  val i = freshVarCounter
-  freshVarCounter += 1
+  val i = freshVarCounter.get()
+  freshVarCounter.set(i + 1)
   renamings.get(i) match
     case Some(renaming) =>
       renaming

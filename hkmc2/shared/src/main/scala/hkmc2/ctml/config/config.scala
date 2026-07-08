@@ -127,4 +127,13 @@ class Debug:
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None
 
-var config = Config()
+private val configLocal =
+  ThreadLocal.withInitial(() => Config())
+
+/** The CTML configuration for the current test or compiler thread. */
+def config: Config =
+  configLocal.get()
+
+/** Reset the CTML configuration for the current test or compiler thread. */
+def resetConfig(): Unit =
+  configLocal.set(Config())

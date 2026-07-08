@@ -29,9 +29,8 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
   val ctmlCommand = new NullaryCommand("ctml"):
     override def onSet(): Unit =
       super.onSet()
-      // Assign the global CTML fresh variable counter.
-      hkmc2.ctml.core.var_.freshVarCounter = 0
-      hkmc2.ctml.config.config = hkmc2.ctml.config.Config()
+      hkmc2.ctml.core.var_.resetFreshVarCounter()
+      hkmc2.ctml.config.resetConfig()
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init
         given Config = mkConfig

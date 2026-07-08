@@ -43,28 +43,32 @@ def cleanContext(ctx: Context): Context =
       true
   ))
 
-var mode: RefineMode = RefineMode.Constrain
+private val modeLocal =
+  ThreadLocal.withInitial(() => RefineMode.Constrain)
+
+def currentMode: RefineMode =
+  modeLocal.get()
 
 /** Run a function in type checking mode, where constrainings are not displayed. */
 def withCheckingMode[T](f: => T): T =
-  val oldMode = mode
+  val oldMode = currentMode
   try
-    mode = RefineMode.Check
+    modeLocal.set(RefineMode.Check)
     f
   finally
-    mode = oldMode
+    modeLocal.set(oldMode)
 
 /** Decorate the subtype constraining function to print debug information. */
 def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context): (Type, Type) => Clauses =
-  if mode == RefineMode.Constrain && !config.debug.constrain then
+  if currentMode == RefineMode.Constrain && !config.debug.constrain then
     return impl
 
-  if mode == RefineMode.Check && !config.debug.check then
+  if currentMode == RefineMode.Check && !config.debug.check then
     return impl
 
   (sub: Type, sup: Type) =>
     try
-      outputContext(s"${mode} ${sub} ≤ ${sup}")
+      outputContext(s"${currentMode} ${sub} ≤ ${sup}")
       val outs = debugCall(() => impl(sub, sup))
       output(s"OK ⇝ ${outs}")
       outs

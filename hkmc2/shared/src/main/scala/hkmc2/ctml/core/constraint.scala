@@ -20,12 +20,14 @@ def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
         makeConstrainingType(body, constraints)
       )
     case _ =>
-      constraints match
+      val (body, nestedConstraints) = type_.getConstrainingComponents
+      val constraints2 = (constraints ::: nestedConstraints).distinct
+      constraints2 match
         case Nil =>
-          type_
+          body
         case constraint :: constraints =>
           TConstraining(
-            makeConstrainingType(type_, constraints),
+            makeConstrainingType(body, constraints),
             constraint
           )
 
@@ -38,12 +40,14 @@ def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
         makeConstrainedType(body, constraints)
       )
     case _ =>
-      constraints match
+      val (body, nestedConstraints) = type_.getConstrainedComponents
+      val constraints2 = (constraints ::: nestedConstraints).distinct
+      constraints2 match
         case Nil =>
-          type_
+          body
         case constraint :: constraints =>
           TConstrained(
-            makeConstrainedType(type_, constraints),
+            makeConstrainedType(body, constraints),
             constraint
           )
 

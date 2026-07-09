@@ -21,7 +21,7 @@ foo(1, 1)
 //│ Int
 
 foo("Hello", "World")
-//│ ((Int ⟹ {Str ≤ Int, Str ≤ Int}) ∧ Str) ∨ (Str ∧ (⊥ ⟹ {Str ≤ ⊥}))
+//│ ((Int ⟹ {Str ≤ Int}) ∧ Str) ∨ (Str ∧ (⊥ ⟹ {Str ≤ ⊥}))
 
 foo(true, "")
 //│ ((Int ⟹ {Bool ≤ Int, Str ≤ Int}) ∧ Str) ∨ (Str ∧ (⊥ ⟹ {Bool ≤ ⊥}))

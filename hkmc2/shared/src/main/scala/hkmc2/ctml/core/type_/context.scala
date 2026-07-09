@@ -15,10 +15,10 @@ extension (type_ : Type)
 
   /** Unwrap the contextual information (quantified variables and constraints) in the top level of
    *  a type. */
-  def unwrapCtx(using ctx: Context): (Type, Clauses) =
+  def unwrapCtx(using ctx: SubContext): (Type, SubClauses) =
     val (vars, univBody) = type_.getUnivComponents
     val (constrainedBody, constraints) = univBody.getConstrainedComponents
-    val univOuts = Clauses(vars.reverse.map(TypeVarDecl(_, TypeVarKind.Flex, None, ctx.level)))
+    val univOuts = SubClauses(vars.reverse.map(TypeVarDecl(_, TypeVarKind.Flex, None, ctx.level)))
     val constrainedOuts = constraints.foldLeft(univOuts)((outs, constraint) =>
       subtypeConstraintSeq(constraint, outs)(using ctx, ConstraintMode.Solve)
     )
@@ -26,7 +26,7 @@ extension (type_ : Type)
     (constrainedBody, constrainedOuts)
 
   /** Wrap contextual information around a type using universal and constrained types. */
-  def wrapCtx(clauses: Clauses): Type =
+  def wrapCtx(clauses: SubClauses): Type =
     val constrained = makeConstrainedType(type_, clauses.bounds.map(_.toConstraint))
 
     clauses.typeVarDecls.foldLeft(constrained)((body, decl) =>
@@ -34,7 +34,7 @@ extension (type_ : Type)
     )
 
   /** Quantify/wrap contextual information around a type. */
-  def quantifyCtx(clauses: Clauses): Type =
+  def quantifyCtx(clauses: SubClauses): Type =
     type_.wrapCtx(clauses)
 
 private def hoistTypeCtx(type_ : Type, parent: (Type) => Type): Type =

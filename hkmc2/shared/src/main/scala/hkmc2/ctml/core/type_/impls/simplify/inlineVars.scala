@@ -16,7 +16,7 @@ object NoInlineVars:
 
 extension (type_ : Type)
   /** Get the relevant polarities if a variable can be simplified by inlining it. */
-  def getInlinePolarities(var_ : TypeVar)(using ctx: Context): Option[Polarities] =
+  def getInlinePolarities(var_ : TypeVar)(using ctx: SubContext): Option[Polarities] =
     val polarities = type_.getAllVarPolarities(var_)
 
     if polarities == Polarities(false, false) then

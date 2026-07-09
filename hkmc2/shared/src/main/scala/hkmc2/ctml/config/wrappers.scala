@@ -19,14 +19,14 @@ def debug(value: Any*): Unit =
 
   output(value*)
 
-def debugContext(value: Any*)(using ctx: Context): Unit =
+def debugContext(value: Any*)(using ctx: SubContext): Unit =
   if !config.debug.enabled then
     return
 
   outputContext(value.map(_.toString()).mkString(" "))
 
 /** Print a debugging message with the context if the context flag is enabled. */
-def outputContext(message: String)(using ctx: Context) =
+def outputContext(message: String)(using ctx: SubContext) =
   val fullMessage = if config.debug.context then
     message.concat(s" in ${cleanContext(ctx)}")
   else
@@ -35,7 +35,7 @@ def outputContext(message: String)(using ctx: Context) =
   output(fullMessage)
 
 /** Clean the context by removing definitions from the prelude. */
-def cleanContext(ctx: Context): Context =
+def cleanContext(ctx: SubContext): SubContext =
   ctx.map(_.takeWhile(_ match
     case TypeVarDecl(TypeVar("Sup"), _, _, _) =>
       false
@@ -59,7 +59,7 @@ def withCheckingMode[T](f: => T): T =
     modeLocal.set(oldMode)
 
 /** Decorate the subtype constraining function to print debug information. */
-def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context): (Type, Type) => Clauses =
+def subtypeWithDebug(impl: (Type, Type) => SubClauses)(using ctx: SubContext): (Type, Type) => SubClauses =
   if currentMode == RefineMode.Constrain && !config.debug.constrain then
     return impl
 
@@ -78,12 +78,12 @@ def subtypeWithDebug(impl: (Type, Type) => Clauses)(using ctx: Context): (Type, 
         throw error
 
 /** Decorate the type inference function to print debug information. */
-def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type, Clauses) =
+def inferWithDebug(impl: Expr => (Type, SubClauses))(using ctx: TypeContext): Expr => (Type, SubClauses) =
   if !config.debug.infer then
     return impl
 
   (expr: Expr) =>
-    outputContext(s"infer ${expr}")
+    outputContext(s"infer ${expr}")(using ctx.sub)
 
     try
       val (type_, outs) = debugCall(() => impl(expr))
@@ -95,7 +95,7 @@ def inferWithDebug(impl: Expr => (Type, Clauses))(using Context): Expr => (Type,
         throw error
 
 /** Decorate the type extrusion function to print debug information. */
-def extrudeWithDebug(impl: Type => (Type, Clauses))(using Context): Type => (Type, Clauses) =
+def extrudeWithDebug(impl: Type => (Type, SubClauses))(using SubContext): Type => (Type, SubClauses) =
   if !config.debug.extrude then
     return impl
 
@@ -112,7 +112,7 @@ def extrudeWithDebug(impl: Type => (Type, Clauses))(using Context): Type => (Typ
         throw error
 
 /** Decorate the type join function to print debug information. */
-def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
+def joinWithDebug(impl: (Type, Type) => Type)(using SubContext): (Type, Type) => Type =
   if !config.debug.join then
     return impl
 
@@ -123,7 +123,7 @@ def joinWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Ty
     type_
 
 /** Decorate the type meet function to print debug information. */
-def meetWithDebug(impl: (Type, Type) => Type)(using Context): (Type, Type) => Type =
+def meetWithDebug(impl: (Type, Type) => Type)(using SubContext): (Type, Type) => Type =
   if !config.debug.meet then
     return impl
 
@@ -162,22 +162,22 @@ def debugExtrudeVar(decl: TypeVarDecl): Unit =
   output(s"${decl.var_} ${decl.kind} extrude ${decl.origin.get} level ${decl.level}")
 
 /** Decorate the type variable quantification function to print debug information. */
-def debugQuantifyVar(impl: (Type, TypeVar, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Clauses) => (Type, Clauses) =
+def debugQuantifyVar(impl: (Type, TypeVar, SubClauses) => (Type, SubClauses))(using SubContext): (Type, TypeVar, SubClauses) => (Type, SubClauses) =
   if !config.debug.quantify then
     return impl
 
-  (type_ : Type, var_ : TypeVar, outs: Clauses) =>
+  (type_ : Type, var_ : TypeVar, outs: SubClauses) =>
     outputContext(s"quantify ${var_} in ${type_}")
     val (newType, newOuts) = impl(type_, var_, outs)
     output(s"= ${newType}")
     (newType, newOuts)
 
 /** Decorate the type variable inlining function to print debug information. */
-def debugInlineVar(impl: (Type, TypeVar, Polarities, Clauses) => (Type, Clauses))(using Context): (Type, TypeVar, Polarities, Clauses) => (Type, Clauses) =
+def debugInlineVar(impl: (Type, TypeVar, Polarities, SubClauses) => (Type, SubClauses))(using SubContext): (Type, TypeVar, Polarities, SubClauses) => (Type, SubClauses) =
   if !config.debug.inline then
     return impl
 
-  (type_ : Type, var_ : TypeVar, polarities: Polarities, outs: Clauses) =>
+  (type_ : Type, var_ : TypeVar, polarities: Polarities, outs: SubClauses) =>
     outputContext(s"inline ${var_} in ${type_}")
     val (newType, newOuts) = impl(type_, var_, polarities, outs)
     output(s"= ${newType}")

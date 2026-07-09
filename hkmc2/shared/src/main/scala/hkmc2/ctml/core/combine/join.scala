@@ -6,11 +6,11 @@ import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified join of two types. */
-def join(left: Type, right: Type)(using ctx: Context): Type =
+def join(left: Type, right: Type)(using ctx: SubContext): Type =
   joinWithDebug(joinImpl)(left, right)
 
 /** Implementation of `join`. */
-def joinImpl(left: Type, right: Type)(using ctx: Context): Type =
+def joinImpl(left: Type, right: Type)(using ctx: SubContext): Type =
   if checkSubtype(left, right) then
     return right
 
@@ -19,7 +19,7 @@ def joinImpl(left: Type, right: Type)(using ctx: Context): Type =
 
   TJointType(JointMode.Union, left, right)
 
-def joinMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
+def joinMerge(left: Type, right: Type)(using ctx: SubContext): Option[Type] =
   left match
     case TNeg(left) if checkSubtype(left, right) =>
       return Some(TTop)
@@ -34,9 +34,9 @@ def joinMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
 
 extension (types: List[Type])
   /** Get the simplified join of many types. */
-  def joinMany()(using ctx: Context): Type =
+  def joinMany()(using ctx: SubContext): Type =
     types.foldRight(TBot)(join)
 
-  def joinManySeq(ins: Clauses)(using ctx: Context): Type =
-    given Context = ctx.extend(ins)
+  def joinManySeq(ins: SubClauses)(using ctx: SubContext): Type =
+    given SubContext = ctx.extend(ins)
     types.foldRight(TBot)(join)

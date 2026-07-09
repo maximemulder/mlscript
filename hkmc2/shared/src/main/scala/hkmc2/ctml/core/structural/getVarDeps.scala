@@ -8,15 +8,15 @@ import hkmc2.ctml.config.debug
 
 extension (var_ : TypeVar)
   /** Get the dependencies of a type variable. */
-  def getDeps(pol: Polarity)(using ctx: Context): VarDeps =
+  def getDeps(pol: Polarity)(using ctx: SubContext): VarDeps =
     getTypeDeps(var_.bound(pol.dir), pol, true)
 
   /** Transitively get all the dependencies of a type variable. */
-  def getTransDeps(pol: Polarity)(using ctx: Context): VarDeps =
+  def getTransDeps(pol: Polarity)(using ctx: SubContext): VarDeps =
     getVarTransDeps(var_, pol, Set())
 
   /** Check whether a variable indirectly appears in its bounds. */
-  def isIndirectRecursive(pol: Polarity)(using ctx: Context): Boolean =
+  def isIndirectRecursive(pol: Polarity)(using ctx: SubContext): Boolean =
     var_.getTransDeps(pol).indirect.contains(var_)
 
 /** The dependencies of some type variable. */
@@ -58,7 +58,7 @@ object VarDeps:
       case false =>
         VarDeps(Set(), Set(var_))
 
-private def getVarTransDeps(var_ : TypeVar, pol: Polarity, cache: Set[TypeVar])(using ctx: Context): VarDeps =
+private def getVarTransDeps(var_ : TypeVar, pol: Polarity, cache: Set[TypeVar])(using ctx: SubContext): VarDeps =
   if cache.contains(var_) then
     return VarDeps.empty
 

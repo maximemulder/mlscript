@@ -10,7 +10,7 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
-extension (ctx: Context)
+extension (ctx: SubContext)
   // Merge bounds
 
   /** Merge two lists of bounds such that they must both be satisfied. */
@@ -24,10 +24,10 @@ extension (ctx: Context)
     filteredLefts ::: filteredRights
 
   /** Merge two lists of bounds such that either of those must be satisfied. */
-  def joinBounds(leftClauses: Clauses, rightClauses: Clauses): List[Clause] =
+  def joinBounds(leftClauses: SubClauses, rightClauses: SubClauses): List[SubClause] =
     val leftTypeDecls = leftClauses.typeVarDecls
     val rightTypeDecls = rightClauses.typeVarDecls
-    val fullCtx = ctx.extend(leftTypeDecls.asClauses, rightTypeDecls.asClauses)
+    val fullCtx = ctx.extend(leftTypeDecls.asSubClauses, rightTypeDecls.asSubClauses)
     val lefts = leftClauses.bounds.removeDuplicateBounds()
     val rights = rightClauses.bounds.removeDuplicateBounds()
     val lowerBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Sub)
@@ -55,7 +55,7 @@ extension (ctx: Context)
 
   /** Get the join of the bounds of a variable in two lists of constraints. */
   def joinVarBounds(var_ : TypeVar, lefts: List[Bound], rights: List[Bound], dir: Direction) =
-    given Context = ctx
+    given SubContext = ctx
     val leftBound  = lefts.getVarDirType(var_, dir)
     val rightBound = rights.getVarDirType(var_, dir)
     val leftCtx  = ctx.extend(Bound(var_, dir, leftBound))

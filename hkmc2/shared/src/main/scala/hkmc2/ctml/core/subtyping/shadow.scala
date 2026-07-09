@@ -4,7 +4,7 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
 extension (type_ : Type)
-  def shadow(using ctx: Context): Type =
+  def shadow(using ctx: SubContext): Type =
     type_ match
       case TBot =>
         TBot
@@ -54,7 +54,7 @@ extension (type_ : Type)
         )
 
 extension (var_ : TypeVar)
-  def shadow(using ctx: Context): TypeVar =
+  def shadow(using ctx: SubContext): TypeVar =
     var_.origin match
       case Some(origin) =>
         origin.shadow
@@ -62,7 +62,7 @@ extension (var_ : TypeVar)
         var_
 
 extension (constraint: Constraint)
-  def shadow(using ctx: Context): Constraint =
+  def shadow(using ctx: SubContext): Constraint =
     Constraint(
       constraint.left.shadow,
       constraint.dir,

@@ -6,7 +6,7 @@ import hkmc2.ctml.core.context.*
 
 extension (type_ : Type)
   /** Check if this type is a constructor type. */
-  def isConstructor(using ctx: Context): Boolean =
+  def isConstructor(using ctx: SubContext): Boolean =
     type_ match
       case TClass(_) =>
         true
@@ -18,7 +18,7 @@ extension (type_ : Type)
         false
 
 /** Check if two types are disjoint constructor types. */
-def areDisjointConstructors(left: Type, right: Type)(using ctx: Context): Boolean =
+def areDisjointConstructors(left: Type, right: Type)(using ctx: SubContext): Boolean =
   (left, right) match
     case (TLam(_, _), TLam(_, _)) =>
       false

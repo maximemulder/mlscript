@@ -16,29 +16,29 @@ type ExtrudeCache = MutMap[(TypeVar, Polarity), Type]
 
 extension (type_ : Type)
   /** Extrude the type variables of a type such that no type variable is below a given level. */
-  def extrude(level: Int, pol: Polarity)(using ctx: Context): (Type, Clauses) =
+  def extrude(level: Int, pol: Polarity)(using ctx: SubContext): (Type, SubClauses) =
     given ExtrudeCache = MutMap()
     extrudeType(type_)(using ctx, level, pol, MutMap())
 
 /** Sequentially extrude the type variables of a type. */
-private def extrudeTypeSeq(type_ : Type, ins: Clauses)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
+private def extrudeTypeSeq(type_ : Type, ins: SubClauses)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, SubClauses) =
   ctx.seq(extrudeType(type_), ins)
 
 /** Extrude the type variables of a type. */
-private def extrudeType(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
+private def extrudeType(type_ : Type)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, SubClauses) =
   extrudeWithDebug(extrudeTypeImpl)(type_)
 
 /** Extrude the type variables of a type. */
-private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
+private def extrudeTypeImpl(type_ : Type)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, SubClauses) =
   type_ match
     case TVar(var_) if var_.level > level =>
       cache.get(var_, pol) match
         case Some(type_) =>
-          (type_, Clauses.empty)
+          (type_, SubClauses.empty)
         case None =>
           extrudeVar(var_)
     case TBot | TTop | TVar(_) | TClass(_) =>
-      (type_, Clauses.empty)
+      (type_, SubClauses.empty)
     case TNeg(body) =>
       given Polarity = !pol
       val (newBody, outs) = extrudeType(body)
@@ -63,7 +63,7 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       val (newArg, argOuts) = extrudeTypeSeq(arg, absOuts)
       (TApp(newAbs, newArg), argOuts)
     case TUniv(var_, body) =>
-      given Context = ctx.declTypeVar(var_, TypeVarKind.Rigid)
+      given SubContext = ctx.declTypeVar(var_, TypeVarKind.Rigid)
       // FIXME: This might not work with shadowing.
       cache.addOne((var_, Polarity.Positive), TVar(var_))
       cache.addOne((var_, Polarity.Negative), TVar(var_))
@@ -79,12 +79,12 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: Context, level: Int, pol: P
       (TConstraining(newBody, constraint), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
-private def extrudeConstraint(constraint: Constraint)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Constraint, Clauses) =
+private def extrudeConstraint(constraint: Constraint)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Constraint, SubClauses) =
   val (leftType,  leftOuts)  = extrudeType(constraint.left)(using ctx, level, constraint.dir.leftPol * pol, cache)
   val (rightType, rightOuts) = extrudeTypeSeq(constraint.right, leftOuts)(using ctx, level, constraint.dir.rightPol * pol, cache)
   (Constraint(leftType, constraint.dir, rightType), rightOuts)
 
-private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, Clauses) =
+private def extrudeVar(var_ : TypeVar)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, SubClauses) =
   // Create new fresh type variable at the right level.
   val freshDecl = ctx.declExtrudeVar(var_, level)
   val freshVar  = freshDecl.var_
@@ -98,6 +98,6 @@ private def extrudeVar(var_ : TypeVar)(using ctx: Context, level: Int, pol: Pola
   val newBound = hkmc2.ctml.core.combine.combine(pol.dir.jointMode, bound, freshType)(using ctx.extend(freshDecl))
   val x = Bound(var_, pol.dir, newBound)
 
-  val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(!pol.dir), Clauses(List(freshDecl)).concat(Clauses(removeImplicitBounds(List(x)))))
+  val (newExtrudedBound, outs) = extrudeTypeSeq(var_.bound(!pol.dir), SubClauses(List(freshDecl)).concat(SubClauses(removeImplicitBounds(List(x)))))
   val y = Bound(freshVar, !pol.dir, newExtrudedBound)
-  (freshType, outs.concat(Clauses(removeImplicitBounds(List(y)))))
+  (freshType, outs.concat(SubClauses(removeImplicitBounds(List(y)))))

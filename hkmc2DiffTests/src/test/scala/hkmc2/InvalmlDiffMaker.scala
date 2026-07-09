@@ -49,7 +49,7 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
   /** The CTML parsing scope. */
   var ctmlScope = hkmc2.ctml.parser.Scope.root
   /** The CTML typing context. */
-  var ctmlCtx = hkmc2.ctml.types.Context.empty
+  var ctmlCtx = hkmc2.ctml.types.TypeContext.empty
 
   override def init(): Unit =
     super.init()

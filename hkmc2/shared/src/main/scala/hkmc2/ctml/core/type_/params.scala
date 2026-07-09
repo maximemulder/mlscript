@@ -2,12 +2,12 @@ package hkmc2.ctml.core.type_
 
 import hkmc2.ctml.types.*
 
-/** Trait for objects that carry a typing context. */
+/** Trait for objects that carry a subtyping context. */
 trait ContextParams[This <: ContextParams[This]]:
-  /** The typing context of the parameters. */
-  val ctx: Context
-  /** Set the typing context of the parameters. */
-  def setContext(ctx: Context): This
+  /** The subtyping context of the parameters. */
+  val ctx: SubContext
+  /** Set the subtyping context of the parameters. */
+  def setContext(ctx: SubContext): This
 
 /** Trait for objects that carry a polarity. */
 trait PolarityParams[This <: PolarityParams[This]]:

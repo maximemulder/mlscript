@@ -8,15 +8,16 @@ import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 
-extension (ctx: Context)
+extension (ctx: TypeContext)
   /** Get the type of a term variable. */
   def getVarType(name: String): Type =
-    ctx.clauses.termVarDecls.find(_.name == name) match
+    ctx.terms.find(_.name == name) match
       case Some(var_) =>
         var_.type_
       case None =>
         throw new Exception(s"Variable '${name}' not found in the context.")
 
+extension (ctx: SubContext)
   /** Get the class definition of a class variable. */
   def getClassDef(var_ : ClassVar): ClassDecl =
     ctx.clauses.classDefs.find(_.name == var_.name) match
@@ -58,7 +59,7 @@ extension (ctx: Context)
       case None =>
         getExtremalType(dir)
 
-extension (type_ : Type)(using ctx: Context)
+extension (type_ : Type)(using ctx: SubContext)
   /** Check whether the type is a flexible type variable. */
   def isFlexVar: Boolean =
     type_ match
@@ -75,7 +76,7 @@ extension (type_ : Type)(using ctx: Context)
       case _ =>
         false
 
-extension (var_ : TypeVar)(using ctx: Context)
+extension (var_ : TypeVar)(using ctx: SubContext)
   /** Get the declaration of a type variable in the context. */
   def decl: TypeVarDecl =
     ctx.getTypeVarDecl(var_)
@@ -112,7 +113,7 @@ extension (var_ : TypeVar)(using ctx: Context)
   def upperBound: Type =
     var_.bound(using ctx)(Direction.Sub)
 
-extension (type_ : Type)(using ctx: Context)
+extension (type_ : Type)(using ctx: SubContext)
   /** Get the lowest polymorphic level of the type variables referenced in this type, if any. */
   def lowLevel: Option[Int] =
     type_.getVars
@@ -125,7 +126,7 @@ extension (type_ : Type)(using ctx: Context)
       .map(_.level)
       .maxOption
 
-extension (bound: Bound)(using ctx: Context)
+extension (bound: Bound)(using ctx: SubContext)
   /** Get the lowest polymorphic level of the type variables referenced in this bound. */
   def lowLevel: Int =
     Iterator.single(bound.var_.level)

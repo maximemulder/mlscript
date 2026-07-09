@@ -29,13 +29,13 @@ def newFreshVarName(): String =
 def newFreshVar(): TypeVar =
   TypeVar(newFreshVarName())
 
-extension (ctx: Context)
+extension (ctx: SubContext)
   /** Add a new class declaration to the context. */
-  def declClass(name : String, parent: Option[ClassVar]): Context =
+  def declClass(name : String, parent: Option[ClassVar]): SubContext =
     ctx.extend(ClassDecl(name, parent))
 
   /** Add a new type variable declaration to the context. */
-  def declTypeVar(var_ : TypeVar, kind: TypeVarKind): Context =
+  def declTypeVar(var_ : TypeVar, kind: TypeVarKind): SubContext =
     val decl = TypeVarDecl(var_, kind, None, ctx.level)
     debugTypeVar(decl)
     ctx.extend(decl)

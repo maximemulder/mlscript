@@ -13,12 +13,12 @@ extension (type_ : Type)
   def containsVar(var_ : TypeVar): Boolean =
     ContainsVar1(type_, ContainsVarParams(var_))
 
-extension (clauses: Clauses)
+extension (clauses: SubClauses)
   /** Check whether a type variable appears in the clauses. */
   def containsVar(var_ : TypeVar): Boolean =
     clauses.elems.exists(_.containsVar(var_))
 
-extension (clause: Clause)
+extension (clause: TypeClause)
   /** Check whether a type variable appears in the clause. */
   def containsVar(var_ : TypeVar): Boolean =
     clause match

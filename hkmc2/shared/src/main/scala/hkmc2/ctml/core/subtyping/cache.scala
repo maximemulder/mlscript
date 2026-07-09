@@ -15,7 +15,7 @@ case class SubtypingCache(
   val univs: Map[(TypeVar, Type), TypeVar] = Map(),
 ):
   /** Check whether two types are in the subtyping cache. */
-  def check(sub: Type, sup: Type)(using ctx: Context): Boolean =
+  def check(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
     if config.debug.cacheCheck then
       output(s"CACHE CHECK ${sub} ${sup}")
 
@@ -30,7 +30,7 @@ case class SubtypingCache(
     result
 
   /** Add two types to the subtyping cache according to the type checker configuration. */
-  def add(sub: Type, sup: Type)(using ctx: Context): SubtypingCache =
+  def add(sub: Type, sup: Type)(using ctx: SubContext): SubtypingCache =
     if config.debug.cacheAdd then
       output(s"CACHE ADD ${sub} ${sup}")
 
@@ -48,7 +48,7 @@ case class SubtypingCache(
 
     SubtypingCache(this.vars, this.types, this.univs + ((var_, type_) -> fresh))
 
-  private def checkInner(sub: Type, sup: Type)(using ctx: Context): Boolean =
+  private def checkInner(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
     if config.cacheVar then
       sub match
         case TVar(var_) if this.vars.contains((this.shadow(var_), Direction.Sub, sup)) =>
@@ -68,7 +68,7 @@ case class SubtypingCache(
 
     false
 
-  private def addInner(sub: Type, sup: Type)(using ctx: Context): SubtypingCache =
+  private def addInner(sub: Type, sup: Type)(using ctx: SubContext): SubtypingCache =
     var cache = this
 
     if config.cacheVar then
@@ -92,7 +92,7 @@ case class SubtypingCache(
 
     cache
 
-  private def shadow(var_ : TypeVar)(using ctx: Context): TypeVar =
+  private def shadow(var_ : TypeVar)(using ctx: SubContext): TypeVar =
     if config.cacheShadow then
       var_.shadow
     else

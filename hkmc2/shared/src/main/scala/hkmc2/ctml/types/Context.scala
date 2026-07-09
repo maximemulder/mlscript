@@ -3,12 +3,12 @@ package hkmc2.ctml.types
 import hkmc2.ctml.utils.*
 import hkmc2.ctml.core.subtyping.SubtypingCache
 
-/** A typing context, which is made of an ordered list of clauses and is usualy taken as an input
- *  by various typing functions.
+/** A subtyping context, which contains the type-level information used by subtyping,
+ *  simplification, and level solving.
  */
-case class Context(
+case class SubContext(
   /** The list of clauses itself. */
-  clauses: List[Clause],
+  clauses: List[SubClause],
   cache: SubtypingCache,
   level: Int,
 ):
@@ -17,8 +17,8 @@ case class Context(
     this.clauses.map(_.show).mkString(", ")
 
   /** Map over the clauses of the context as a single iterator. */
-  def map(f: Iterator[Clause] => Iterator[Clause]): Context =
-    Context(f(this.clauses.iterator).toList, this.cache, this.level)
+  def map(f: Iterator[SubClause] => Iterator[SubClause]): SubContext =
+    SubContext(f(this.clauses.iterator).toList, this.cache, this.level)
 
   /** Iterate over the type variable declarations. */
   def typeVarDecls: Iterator[TypeVarDecl] =
@@ -30,18 +30,32 @@ case class Context(
     )
 
   /** Map over the clauses of the context. */
-  def mapClauses(f: Clause => Clause): Context =
+  def mapClauses(f: SubClause => SubClause): SubContext =
     this.map(_.map(f))
 
   /** Map over the cache of the context.*/
-  def mapCache(f: SubtypingCache => SubtypingCache): Context =
-    Context(this.clauses, f(this.cache), this.level)
+  def mapCache(f: SubtypingCache => SubtypingCache): SubContext =
+    SubContext(this.clauses, f(this.cache), this.level)
 
   /** Map over the level of the context. */
-  def mapLevel(f: Int => Int): Context =
-    Context(this.clauses, this.cache, f(this.level))
+  def mapLevel(f: Int => Int): SubContext =
+    SubContext(this.clauses, this.cache, f(this.level))
 
-object Context:
+object SubContext:
+  /** The empty subtyping context. */
+  def empty =
+    SubContext(Nil, SubtypingCache(), 0)
+
+/** A typing context, which contains the term environment and the current subtyping context. */
+case class TypeContext(
+  sub: SubContext,
+  terms: List[TermVarDecl],
+):
+  /** Get the string representation of the object. */
+  override def toString(): String =
+    (this.terms.map(_.show) ::: this.sub.clauses.map(_.show)).mkString(", ")
+
+object TypeContext:
   /** The empty typing context. */
   def empty =
-    Context(Nil, SubtypingCache(), 0)
+    TypeContext(SubContext.empty, Nil)

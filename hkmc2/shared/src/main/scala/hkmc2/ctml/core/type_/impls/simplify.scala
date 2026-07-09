@@ -15,7 +15,7 @@ import hkmc2.ctml.types.*
 /** Implementation of semantic type simplification. */
 extension (type_ : Type)
   /** Simplify the type based on the information available in a context. */
-  def simplify()(using ctx: Context, noInlineVars: NoInlineVars): Type =
+  def simplify()(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
     type_ match
       case TBot | TTop | TVar(_) | TClass(_) =>
         type_
@@ -67,12 +67,12 @@ def simplifyLambda(param: Type, ret: Type): Type =
   makeLambdaType(param, ret)
 
 /** Simplify a join or meet after both operands have already been simplified. */
-def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: Context): Type =
+def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: SubContext): Type =
   hkmc2.ctml.core.combine.combine(mode, left, right)
 
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */
-def simplifyUniv(univ: TUniv)(using ctx: Context, noInlineVars: NoInlineVars): Type =
+def simplifyUniv(univ: TUniv)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
   if noInlineVars.contains(univ.var_) then
     return univ
 
@@ -87,21 +87,21 @@ def simplifyUniv(univ: TUniv)(using ctx: Context, noInlineVars: NoInlineVars): T
       univ
 
 /** Simplify a constrained type after its body and constraint have already been simplified. */
-def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: Context): Type =
+def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: SubContext): Type =
   if checkConstraint(constraint) then
     body
   else
     makeConstrainedType(body, List(constraint))
 
 /** Simplify a constraining type after its body and constraint have already been simplified. */
-def simplifyConstraining(body: Type, constraint: Constraint)(using ctx: Context): Type =
+def simplifyConstraining(body: Type, constraint: Constraint)(using ctx: SubContext): Type =
   if checkConstraint(constraint) then
     body
   else
     makeConstrainingType(body, List(constraint))
 
 extension (constraint: Constraint)
-  def simplify()(using ctx: Context, noInlineVars: NoInlineVars): Constraint =
+  def simplify()(using ctx: SubContext, noInlineVars: NoInlineVars): Constraint =
     Constraint(
       constraint.left.simplify(),
       constraint.dir,

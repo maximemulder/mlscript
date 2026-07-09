@@ -10,7 +10,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 import hkmc2.ctml.utils.given
 
-extension (ctx: Context)
+extension (ctx: SubContext)
   /** Compare the level of two type variables within a context. */
   def compareVarLevels(left: TypeVar, right: TypeVar): Order =
     // If both variables are the same, their level is equal.

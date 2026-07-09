@@ -2,8 +2,8 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.types.*
 
-def unify(left: Type, right: Type): Clauses =
+def unify(left: Type, right: Type): SubClauses =
   if left == right then
-    Clauses.empty
+    SubClauses.empty
   else
-    Clauses.empty
+    SubClauses.empty

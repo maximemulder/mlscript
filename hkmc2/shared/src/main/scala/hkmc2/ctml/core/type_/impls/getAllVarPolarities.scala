@@ -12,11 +12,11 @@ import hkmc2.ctml.core.clauses.varBound
 
 extension (type_ : Type)
   /** Get the polarities at which a type variable occurs in the type and its variable bounds. */
-  def getAllVarPolarities(var_ : TypeVar)(using ctx: Context): Polarities =
+  def getAllVarPolarities(var_ : TypeVar)(using ctx: SubContext): Polarities =
     GetAllVarPolarities1(type_, GetAllVarPolaritiesParams(var_, Polarity.Positive, ctx, MutSet()))
 
 /** Parameters of the "get all type variable polarities"" operation. */
-private class GetAllVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity, val ctx: Context, val cache: MutSet[(Polarity, TypeVar)]) extends PolarityParams[GetAllVarPolaritiesParams], TypeVarParams[GetAllVarPolaritiesParams]:
+private class GetAllVarPolaritiesParams(val var_ : TypeVar, val pol: Polarity, val ctx: SubContext, val cache: MutSet[(Polarity, TypeVar)]) extends PolarityParams[GetAllVarPolaritiesParams], TypeVarParams[GetAllVarPolaritiesParams]:
   override def setVar(var_ : TypeVar): GetAllVarPolaritiesParams = GetAllVarPolaritiesParams(var_, pol, ctx, cache)
   override def setPolarity(pol: Polarity) = GetAllVarPolaritiesParams(var_, pol, ctx, cache)
 

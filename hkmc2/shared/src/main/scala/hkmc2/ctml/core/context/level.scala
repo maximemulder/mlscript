@@ -6,24 +6,24 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.type_.getDependentVars
 import hkmc2.ctml.config.debug
 
-extension (ctx: Context)
+extension (ctx: SubContext)
   /** Evaluate a function in a new level with a new fresh type variable and solve that level. */
   def withFreshVarLevel[T](
     kind: TypeVarKind,
     decls : List[TypeVarDecl],
-    inner: (List[TypeVar], Context) => (T, Clauses),
-    outer: (Int, T, Clauses) => (T, Clauses),
-  ): (T, Clauses) =
+    inner: (List[TypeVar], SubContext) => (T, SubClauses),
+    outer: (Int, T, SubClauses) => (T, SubClauses),
+  ): (T, SubClauses) =
     // Evaluate the inner function with the type variable in the context.
     val (res, innerOuts) = inner(decls.map(_.var_), ctx.extend(decls))
 
     // Move the type variable to the output clauses.
-    val outs = Clauses(decls).concat(innerOuts)
+    val outs = SubClauses(decls).concat(innerOuts)
 
     // Evaluate the outer function with the type variable in the output clauses.
     outer(decls(0).level, res, outs)
 
-  def withLevel[T](f: (Context) => (T, Clauses)): (T, Clauses) =
+  def withLevel[T](f: (SubContext) => (T, SubClauses)): (T, SubClauses) =
     f(ctx.mapLevel(_ + 1))
 
   /** Get the maximum level of all type variables in the context. */

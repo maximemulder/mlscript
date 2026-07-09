@@ -13,15 +13,13 @@ extension (type_ : Type)
   def prettify(prettyCtx: PrettyContext): Type =
     TypePrettifier1(type_, prettyCtx)
 
-extension (clauses: Clauses)
-  def prettify(prettyCtx: PrettyContext): Clauses =
+extension (clauses: SubClauses)
+  def prettify(prettyCtx: PrettyContext): SubClauses =
     clauses.map(_.prettify(prettyCtx))
 
-extension (clause: Clause)
-  def prettify(prettyCtx: PrettyContext): Clause =
+extension (clause: SubClause)
+  def prettify(prettyCtx: PrettyContext): SubClause =
     clause match
-      case decl: TermVarDecl =>
-        decl.prettify(prettyCtx)
       case decl: ClassDecl =>
         decl
       case decl: TypeVarDecl =>

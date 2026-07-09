@@ -3,7 +3,7 @@ package hkmc2.ctml.core.subtyping
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
 
-extension (var_ : TypeVar)(using ctx: Context, mode: ConstraintMode)
+extension (var_ : TypeVar)(using ctx: SubContext, mode: ConstraintMode)
   /** Check whether this type variable is rigid in the current context and constraining mode. */
   def isRigidMode: Boolean =
     mode match

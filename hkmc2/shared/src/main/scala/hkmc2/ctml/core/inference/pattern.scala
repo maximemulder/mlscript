@@ -5,7 +5,7 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Check whether this type is an acceptable pattern or not. */
-  def isPattern(using ctx: Context): Boolean =
+  def isPattern(using ctx: TypeContext): Boolean =
     type_ match
       case TClass(var_) =>
         true

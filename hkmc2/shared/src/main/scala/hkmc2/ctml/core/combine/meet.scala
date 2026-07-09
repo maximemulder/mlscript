@@ -7,11 +7,11 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.types.*
 
 /** Get the simplified meet of two types. */
-def meet(left: Type, right: Type)(using ctx: Context): Type =
+def meet(left: Type, right: Type)(using ctx: SubContext): Type =
   meetWithDebug(meetImpl)(left, right)
 
 /** Implementation of `meet`. */
-def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
+def meetImpl(left: Type, right: Type)(using ctx: SubContext): Type =
   if checkSubtype(right, left) then
     return right
 
@@ -25,7 +25,7 @@ def meetImpl(left: Type, right: Type)(using ctx: Context): Type =
       TJointType(JointMode.Inter, left, right)
 
 /** Get the meet of two non-subsumed types in a non-intersection shape if there is one. */
-def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
+def meetMerge(left: Type, right: Type)(using ctx: SubContext): Option[Type] =
 
   left match
     case TNeg(left) =>
@@ -52,7 +52,7 @@ def meetMerge(left: Type, right: Type)(using ctx: Context): Option[Type] =
   None
 
 /** Get the meet of two lambdas in a non-intersection shape if there is one. */
-def meetLambdas(left: TLam, right: TLam)(using ctx: Context): Option[Type] =
+def meetLambdas(left: TLam, right: TLam)(using ctx: SubContext): Option[Type] =
   if checkEqual(left.param, right.param) then
     var body = meet(left.ret, right.ret)
     return Some(TLam(left.param, body))
@@ -65,5 +65,5 @@ def meetLambdas(left: TLam, right: TLam)(using ctx: Context): Option[Type] =
 
 extension (types: List[Type])
   /** Get the simplified meet of many types. */
-  def meetMany()(using ctx: Context): Type =
+  def meetMany()(using ctx: SubContext): Type =
     types.foldRight(TTop)(meet)

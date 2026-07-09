@@ -7,14 +7,14 @@ import hkmc2.ctml.core.subtyping.SubtypingCache
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.given
 
-extension (type_ : Type)(using ctx: Context)
+extension (type_ : Type)(using ctx: SubContext)
   /** Find escaped variables within a type. */
   def findEscapedVars(): Set[TypeVar] =
     type_ match
       case TVar(var_) =>
         var_.findEscapedVars()
       case TUniv(var_, body) =>
-        given Context = ctx.declTypeVar(var_, TypeVarKind.Rigid)
+        given SubContext = ctx.declTypeVar(var_, TypeVarKind.Rigid)
         body.findEscapedVars()
       case TConstrained(body, constraint) =>
         var escapedVars = body.findEscapedVars()
@@ -27,17 +27,17 @@ extension (type_ : Type)(using ctx: Context)
       case _ =>
         type_.accumulate(_.findEscapedVars())
 
-extension (bound: Bound)(using ctx: Context)
+extension (bound: Bound)(using ctx: SubContext)
   /** Find escaped variables within a bound. */
   def findEscapedVars(): Set[TypeVar] =
     bound.var_.findEscapedVars() ++ bound.type_.findEscapedVars()
 
-extension (constraint: Constraint)(using ctx: Context)
+extension (constraint: Constraint)(using ctx: SubContext)
   /** Find escaped variables within a constraint. */
   def findEscapedVars(): Set[TypeVar] =
     constraint.left.findEscapedVars() ++ constraint.right.findEscapedVars()
 
-extension (var_ : TypeVar)(using ctx: Context)
+extension (var_ : TypeVar)(using ctx: SubContext)
   /** Find whether a type variable is escaped. */
   def findEscapedVars(): Set[TypeVar] =
     if !ctx.hasVar(var_) then
@@ -45,35 +45,29 @@ extension (var_ : TypeVar)(using ctx: Context)
     else
       Set.empty
 
-extension (ctx: Context)
+extension (ctx: SubContext)
   /** Find escaped variables within a context. */
   def findEscapedVars(): Set[TypeVar] =
     ctx.clauses match
       case (bound: Bound) :: clauses =>
-        given Context = Context(clauses, SubtypingCache(), 0)
-        bound.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
-      case (decl: TermVarDecl) :: clauses =>
-        given Context = Context(clauses, SubtypingCache(), 0)
-        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
+        given SubContext = SubContext(clauses, SubtypingCache(), 0)
+        bound.findEscapedVars() ++ SubContext(clauses, SubtypingCache(), 0).findEscapedVars()
       case _ =>
         Set.empty
 
-extension (clauses: Clauses)(using ctx: Context)
+extension (clauses: SubClauses)(using ctx: SubContext)
   /** Find escaped variables within some clauses. */
   def findEscapedVars(): Set[TypeVar] =
     clauses.elems match
       case (bound: Bound) :: clauses =>
-        given Context = ctx.extend(clauses)
-        bound.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
-      case (decl: TermVarDecl) :: clauses =>
-        given Context = ctx.extend(clauses)
-        decl.type_.findEscapedVars() ++ Context(clauses, SubtypingCache(), 0).findEscapedVars()
+        given SubContext = ctx.extend(clauses)
+        bound.findEscapedVars() ++ SubContext(clauses, SubtypingCache(), 0).findEscapedVars()
       case _ =>
         Set.empty
 
 /** Check whether any variable has escaped a level within this level output. */
-def checkEscapedVars(type_ : Type, outs: Clauses, ctx: Context) =
-  given Context = ctx
+def checkEscapedVars(type_ : Type, outs: SubClauses, ctx: SubContext) =
+  given SubContext = ctx
   val vars = type_.findEscapedVars() ++ ctx.findEscapedVars()
   if vars != Set.empty then
     throw new TypeError(Some(s"Escaped variables: ${vars}"))

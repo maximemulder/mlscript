@@ -5,10 +5,10 @@ import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.types.*
 
 extension (type_ : Type)
-  def structuralInline(var_ : TypeVar)(using ctx: Context): Type =
+  def structuralInline(var_ : TypeVar)(using ctx: SubContext): Type =
     type_.structuralInline(var_, Polarity.Positive)
 
-  def structuralInline(var_ : TypeVar, pol: Polarity)(using ctx: Context): Type =
+  def structuralInline(var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =
     type_ match
       case TVar(typeVar) if typeVar == var_ =>
         var_.bound(pol.dir)
@@ -56,7 +56,7 @@ extension (type_ : Type)
         type_
 
 extension (constraint: Constraint)
-  def structuralInline(var_ : TypeVar)(using ctx: Context, pol: Polarity): Constraint =
+  def structuralInline(var_ : TypeVar)(using ctx: SubContext, pol: Polarity): Constraint =
     Constraint(
       constraint.left.structuralInline(var_, !pol),
       constraint.dir,
@@ -64,7 +64,7 @@ extension (constraint: Constraint)
     )
 
 extension (bound: Bound)
-  def structuralInline(var_ : TypeVar)(using ctx: Context): Bound =
+  def structuralInline(var_ : TypeVar)(using ctx: SubContext): Bound =
     val newUpper = var_.upperBound.removeDirectVar(bound.var_, Polarity.Negative)
     val newLower = var_.lowerBound.removeDirectVar(bound.var_, Polarity.Positive)
     val newBoundType = bound.type_.structuralInline(var_, bound.dir.leftPol)(using

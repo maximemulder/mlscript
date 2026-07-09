@@ -6,7 +6,7 @@ import hkmc2.ctml.types.*
 extension (class_ : ClassVar)
   /** Check whether this class is a sub-class of another class. A class is considered sub-class of
    *  itself. */
-  def isSubClass(other: ClassVar)(using ctx: Context): Boolean =
+  def isSubClass(other: ClassVar)(using ctx: SubContext): Boolean =
     if class_ == other then
       return true
 

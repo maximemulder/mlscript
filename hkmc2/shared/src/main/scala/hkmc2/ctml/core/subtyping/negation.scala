@@ -27,14 +27,14 @@ extension (type_ : Type)
         None
 
   /** Subtract another type from this type. */
-  def subtract(other: Type)(using ctx: Context): Type =
+  def subtract(other: Type)(using ctx: SubContext): Type =
     type_.subtractStep(other) match
       case Some(type_) =>
         type_
       case None =>
         TJointType(JointMode.Inter, type_, TNeg(other))
 
-  def subtractStep(other: Type)(using ctx: Context): Option[Type] =
+  def subtractStep(other: Type)(using ctx: SubContext): Option[Type] =
     if checkSubtype(type_, other) then
       return Some(TBot)
 

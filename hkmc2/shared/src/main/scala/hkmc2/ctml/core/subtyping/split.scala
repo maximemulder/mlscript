@@ -6,11 +6,11 @@ import hkmc2.ctml.types.*
 
 extension (type_ : Type)
   /** Split a type in two if it can be decomposed as an union. */
-  def splitUnion(pol: Polarity)(using ctx: Context): Option[(Type, Type)] =
+  def splitUnion(pol: Polarity)(using ctx: SubContext): Option[(Type, Type)] =
     type_.split(JointMode.Union)(using ctx, pol, Set())
 
   /** Split a type in two if it can be decomposed as an intersection. */
-  def splitInter(pol: Polarity)(using ctx: Context): Option[(Type, Type)] =
+  def splitInter(pol: Polarity)(using ctx: SubContext): Option[(Type, Type)] =
     type_.split(JointMode.Inter)(using ctx, pol, Set())
 
   /** Split a union or intersection in two depending on a type polarity. */
@@ -22,7 +22,7 @@ extension (type_ : Type)
         None
 
   /** Split a union or intersection like type in two depending on a type polarity. */
-  def split(mode: JointMode)(using ctx: Context, pol: Polarity, cache: Set[TypeVar]): Option[(Type, Type)] =
+  def split(mode: JointMode)(using ctx: SubContext, pol: Polarity, cache: Set[TypeVar]): Option[(Type, Type)] =
     type_ match
       case TVar(var_) if var_.isRigid && !cache.contains(var_) =>
         val newCache = cache + var_

@@ -23,11 +23,11 @@ import hkmc2.semantics.Term
 def test(
   term: Term,
   scope: Scope,
-  ctx: Context,
+  ctx: TypeContext,
   import_ : Boolean,
   outputter: (String) => Unit,
   raiser: Raise,
-): (Scope, Context) =
+): (Scope, TypeContext) =
   // Do not output results in import files (such as the CTML prelude).
   val output = if !import_
     then (message: String) => outputter(message.stripLineEnd)
@@ -42,7 +42,7 @@ def test(
 
 class Tester(
   var scope: Scope,
-  var ctx: Context,
+  var ctx: TypeContext,
   output: (String) => Unit,
   raise: (Line, FileName) ?=> (Source, String) => Unit,
   prettyCtx: PrettyContext = PrettyContext()
@@ -94,17 +94,17 @@ class Tester(
 
   /** Add a class to the context. */
   def testClassDecl(name: String, parent: Option[ClassVar]) =
-    this.ctx = this.ctx.declClass(name, parent)
+    this.ctx = this.ctx.mapSub(_.declClass(name, parent))
 
   /** Add a type variable to the context. */
   def testTypeDecl(name: String, kind: TypeVarKind) =
-    this.ctx = this.ctx.declTypeVar(TypeVar(name), kind)
+    this.ctx = this.ctx.mapSub(_.declTypeVar(TypeVar(name), kind))
 
   /** Add a type alias to the context. */
   def testTypeVar(name: String, type_ : Type) =
     this.output(s"${name} = ${type_.prettify(prettyCtx)}")
     val var_ = TypeVar(name)
-    this.ctx = this.ctx.extend(
+    this.ctx = this.ctx.extendSub(
       TypeVarDecl(var_, TypeVarKind.Rigid, None, 0),
       Bound(var_, Direction.Sub,   type_),
       Bound(var_, Direction.Super, type_),
@@ -113,7 +113,7 @@ class Tester(
   /** Add an expression variable to the context. */
   def testExprDecl(name: String, type_ : Type) =
     this.output(s"${name}: ${type_.prettify(prettyCtx)}")
-    this.ctx = this.ctx.extend(TermVarDecl(name, type_))
+    this.ctx = this.ctx.extendTerm(TermVarDecl(name, type_))
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
@@ -121,7 +121,7 @@ class Tester(
     this.output(s"${name}: ${type_.prettify(prettyCtx)}")
     if config.debug.output then
       this.outputClauses(outs)
-    this.ctx = this.ctx.extend(TermVarDecl(name, type_))
+    this.ctx = this.ctx.extendTerm(TermVarDecl(name, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
@@ -147,18 +147,18 @@ class Tester(
     this.output("OK")
 
   /** Test subtyping between two types. */
-  def testSubtyping(sub: Type, sup: Type): Clauses =
-    subtype(sub, sup)(using this.ctx, ConstraintMode.Solve)
+  def testSubtyping(sub: Type, sup: Type): SubClauses =
+    subtype(sub, sup)(using this.ctx.sub, ConstraintMode.Solve)
 
   /** Test supertyping between two types. */
-  def testSupertyping(sup: Type, sub: Type): Clauses =
-    subtype(sub, sup)(using this.ctx, ConstraintMode.Solve)
+  def testSupertyping(sup: Type, sub: Type): SubClauses =
+    subtype(sub, sup)(using this.ctx.sub, ConstraintMode.Solve)
 
   /** Test equivalence between two types. */
-  def testTypeEquivalence(left: Type, right: Type): Clauses =
+  def testTypeEquivalence(left: Type, right: Type): SubClauses =
     try
-      val subClauses = subtype(left, right)(using this.ctx, ConstraintMode.Solve)
-      val supClauses = subtypeSeq(right, left, subClauses)(using this.ctx, ConstraintMode.Solve)
+      val subClauses = subtype(left, right)(using this.ctx.sub, ConstraintMode.Solve)
+      val supClauses = subtypeSeq(right, left, subClauses)(using this.ctx.sub, ConstraintMode.Solve)
       supClauses
     catch
       case error: TypeError =>
@@ -166,19 +166,19 @@ class Tester(
         throw error
 
   /** Test incomparability between two types. */
-  def testTypeIncomparability(left: Type, right: Type): Clauses =
-    if !checkEqual(left, right)(using this.ctx) then
+  def testTypeIncomparability(left: Type, right: Type): SubClauses =
+    if !checkEqual(left, right)(using this.ctx.sub) then
       val error = TypeError()
       error.addStep(TypeIncomparabilityJudgment(left, right))
       throw error
 
-    Clauses.empty
+    SubClauses.empty
 
   /** Output the inferred type. */
   def outputType(type_ : Type) =
     this.output(type_.prettify(this.prettyCtx).show)
 
   /** Output the generated type bounds if there are some. */
-  def outputClauses(clauses: Clauses) =
-    if clauses != Clauses.empty then
+  def outputClauses(clauses: SubClauses) =
+    if clauses != SubClauses.empty then
       this.output(clauses.prettify(this.prettyCtx).show)

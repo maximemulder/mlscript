@@ -1,11 +1,9 @@
 package hkmc2.ctml.core.inference
 
 import hkmc2.ctml.config.*
-import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.subtyping.*
-import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.core.type_.impls.inline.*
@@ -50,52 +48,6 @@ extension (ctx: Context)
 
     (type5, Clauses())
 
-  /** Iteratively collect and simplify the variables in a level until no further simplification is
-   *  possible. */
-  def simplifyLevel(level: Int, type_ : Type, outs: Clauses): (Type, Clauses) =
-    val levelBounds = ctx.extend(outs).getLevelBounds(level)
-    val levelVars = ctx.extend(outs).getLevelVars(level)
-    val actions = levelVars.map((var_) => var_ -> determineVarAction(level, type_, var_, outs)).toMap
-
-    getInlineVars(actions) match
-      case Nil =>
-        (type_, outs)
-      case varsToInline =>
-        val (nextType, nextOuts) = inlineVars(type_, outs, varsToInline)
-        simplifyLevel(level, nextType, nextOuts)
-
-  /** Determine how to process a variable of this level. */
-  def determineVarAction(level: Int, type_ : Type, var_ : TypeVar, outs: Clauses): VarAction =
-    given Context = ctx.extend(outs)
-    if ctx.extend(outs).getTypeVarEffectiveLevel(var_) < level then
-      return debugVarAction(var_, type_, VarAction.Quantify, "bound at lower level")
-
-    type_.getInlinePolarities(var_) match
-      case Some(polarities) =>
-        debugVarAction(var_, type_, VarAction.Inline(polarities), s"polarities ${polarities}")
-      case None =>
-        debugVarAction(var_, type_, VarAction.Quantify, "default")
-
-  /** Inline a list of type variables. */
-  def inlineVars(type_ : Type, outs: Clauses, vars: List[(TypeVar, Polarities)]): (Type, Clauses) =
-    vars.foldLeft((type_, outs))((to, varAction) =>
-      inlineVar(to._1, varAction._1, varAction._2, to._2)(using ctx)
-    )
-
-/** Get the type variables to inline in a mapping of type variable actions. */
-def getInlineVars(actions: Map[TypeVar, VarAction]): List[(TypeVar, Polarities)] =
-  actions.toList.flatMap((var_, action) =>
-    action match
-      case VarAction.Inline(polarities) =>
-        Some(var_ -> polarities)
-      case VarAction.Quantify | VarAction.Skip =>
-        None
-  )
-
-/** Get the type variables to quantify in a mapping of type variable actions. */
-def getQuantifyVars(actions: Map[TypeVar, VarAction]): List[TypeVar] =
-  actions.filter((_, action) => action == VarAction.Quantify).keys.toList
-
 /** Inline a type variable in a type. */
 def inlineVar(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: Clauses)(using ctx: Context) =
   debugInlineVar(inlineVarImpl)(type_, var_, polarities, outs)
@@ -109,25 +61,6 @@ def inlineVarImpl(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: Cl
   (
     type_.inline(var_),
     outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
-  )
-
-def quantifyLevelBounds(type_ : Type, level: Int, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  val levelBounds = ctx.extend(outs).getLevelBounds(level)
-  val newOuts = outs.filterBounds(_.highLevel(using ctx.extend(outs)) < level)
-  (
-    makeConstrainedType(type_, levelBounds.map(_.toConstraint)),
-    newOuts
-  )
-
-/** Quantify a type variable in a type. */
-def quantifyVar(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context): (Type, Clauses) =
-  debugQuantifyVar(quantifyVarImpl)(type_, var_, outs)
-
-/** Implementation of `quantifyVar`. */
-def quantifyVarImpl(type_ : Type, var_ : TypeVar, outs: Clauses)(using ctx: Context) =
-  (
-    TUniv(var_, type_),
-    outs.removeTypeVar(var_),
   )
 
 /** Check whether a type contains outer unsolvable constrained types. */

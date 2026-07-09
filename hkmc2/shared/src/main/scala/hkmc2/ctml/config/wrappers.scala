@@ -183,14 +183,6 @@ def debugInlineVar(impl: (Type, TypeVar, Polarities, Clauses) => (Type, Clauses)
     output(s"= ${newType}")
     (newType, newOuts)
 
-/** Print a variable action as debug information. */
-def debugVarAction(var_ : TypeVar, type_ : Type, action: VarAction, message: String)(using Context): VarAction =
-  if !config.debug.var_ then
-    return action
-
-  outputContext(s"${action} ${var_} (${message}) in ${type_}")
-  action
-
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
   if config.maxStepCount.exists(config.currentStepCount >= _) then

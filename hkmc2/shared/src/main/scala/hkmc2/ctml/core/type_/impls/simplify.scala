@@ -1,16 +1,16 @@
 package hkmc2.ctml.core.type_.impls.simplify
 
+import scala.collection.immutable.LazyList.cons
+
+import hkmc2.ctml.core.*
+import hkmc2.ctml.core.type_.impls.getAllVarPolarities.getAllVarPolarities
+import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.inference.inlineVar
+import hkmc2.ctml.core.structural.isIndirectRecursive
+import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.type_.impls.getAllVarPolarities.getAllVarPolarities
-import scala.collection.immutable.LazyList.cons
-import hkmc2.ctml.core.context.extend
-import hkmc2.ctml.core.structural.isIndirectRecursive
-import hkmc2.ctml.core.subtyping.checkEqual
-import hkmc2.ctml.core.context.lowerBound
-import hkmc2.ctml.core.context.upperBound
-import hkmc2.ctml.core.inference.inlineVar
 
 /** Implementation of semantic type simplification. */
 extension (type_ : Type)
@@ -58,6 +58,20 @@ extension (type_ : Type)
           constraint.simplify(),
         )
 
+/** Simplify a negation after its body has already been simplified. */
+def simplifyNegation(body: Type): Type =
+  makeNegationType(body)
+
+/** Simplify a lambda after its parameter and return type have already been simplified. */
+def simplifyLambda(param: Type, ret: Type): Type =
+  makeLambdaType(param, ret)
+
+/** Simplify a join or meet after both operands have already been simplified. */
+def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: Context): Type =
+  hkmc2.ctml.core.combine.combine(mode, left, right)
+
+
+/** Simplify a universal type after its parameter and return type have already been simplified. */
 def simplifyUniv(univ: TUniv)(using ctx: Context, noInlineVars: NoInlineVars): Type =
   if noInlineVars.contains(univ.var_) then
     return univ
@@ -71,6 +85,20 @@ def simplifyUniv(univ: TUniv)(using ctx: Context, noInlineVars: NoInlineVars): T
       newBody.wrapCtx(newClauses)
     case None =>
       univ
+
+/** Simplify a constrained type after its body and constraint have already been simplified. */
+def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: Context): Type =
+  if checkConstraint(constraint) then
+    body
+  else
+    makeConstrainedType(body, List(constraint))
+
+/** Simplify a constraining type after its body and constraint have already been simplified. */
+def simplifyConstraining(body: Type, constraint: Constraint)(using ctx: Context): Type =
+  if checkConstraint(constraint) then
+    body
+  else
+    makeConstrainingType(body, List(constraint))
 
 extension (constraint: Constraint)
   def simplify()(using ctx: Context, noInlineVars: NoInlineVars): Constraint =

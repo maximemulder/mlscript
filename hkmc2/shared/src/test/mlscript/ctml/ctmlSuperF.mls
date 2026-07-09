@@ -107,7 +107,7 @@ val a8 = choose(id, auto2)
 
 val a9 = f(choose(id), ids)
 //│ java.lang.StackOverflowError
-//│ 	at scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:615)
+//│ 	at scala.collection.Iterator$$anon$10.hasNext(Iterator.scala:614)
 //│ 	at scala.collection.immutable.List.prependedAll(List.scala:156)
 //│ 	at scala.collection.immutable.List$.from(List.scala:681)
 //│ 	at scala.collection.IterableOnceOps.toList(IterableOnce.scala:1470)
@@ -1251,7 +1251,7 @@ val f6 = cons(head(ids), ids)
 // OK
 
 val f7 = head(ids, 3)
-//│ f7: ∀α, β, γ, δ, ε, ζ, η, θ, ι. {ι ≥ Int, ε ≥ Int, δ ≥ Int, γ ≥ Int, ζ ≥ Int, α ≥ Int, η ≥ Int, β ≥ Int, θ ≥ Int} ⟹ α ∨ β
+//│ f7: ∀α, β, γ, δ, ε, ζ, η, θ. {θ ≥ Int, ε ≥ Int, δ ≥ Int, γ ≥ Int, ζ ≥ Int, α ≥ Int, β ≥ Int, η ≥ Int} ⟹ α ∨ β
 // OK
 
 val f8 = choose(head(ids))
@@ -1271,7 +1271,7 @@ val f10 = choose(id, (x) => auto2(x))
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
-//│ toChurch: ∀α, β, γ. {γ ≥ α, γ ≥ α, γ ≥ α, γ ≥ α, γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
+//│ toChurch: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
 // OK
 
 val g1a = z as ChurchInt
@@ -1283,7 +1283,7 @@ val g2 = s
 // OK
 
 val g2a = s as ((ChurchInt) -> ChurchInt)
-//│ java.lang.Exception: Type variable '601' not found in the context.
+//│ java.lang.Exception: Type variable '595' not found in the context.
 //│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:35)
 //│ 	at hkmc2.ctml.core.context.var$package$.decl(var.scala:82)
 //│ 	at hkmc2.ctml.core.context.var$package$.kind(var.scala:86)
@@ -1312,9 +1312,9 @@ val g2a = s as ((ChurchInt) -> ChurchInt)
 //│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplify(simplify.scala:48)
 //│ 	at hkmc2.ctml.core.type_.impls.simplify.simplify$package$.simplify(simplify.scala:48)
 //│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:47)
-//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$2(level.scala:58)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$2(level.scala:61)
 //│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
-//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:54)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:57)
 //│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
 //│ 	at hkmc2.ctml.test.Tester.testExprVar(test.scala:120)
 //│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:89)
@@ -1342,7 +1342,7 @@ val g2a = s as ((ChurchInt) -> ChurchInt)
 //│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
 //│ 	at hkmc2.MainWatcher.main(Watcher.scala)
 //│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '601' not found in the context.
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '595' not found in the context.
 //│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:35)
 //│ 	at: hkmc2.ctml.core.context.var$package$.decl(var.scala:82)
 //│ 	at: hkmc2.ctml.core.context.var$package$.kind(var.scala:86)

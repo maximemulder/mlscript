@@ -46,6 +46,9 @@ extension (ctx: SubContext)
 
     val type5 = type4.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
 
+    if config.checkUnsolvableConstreds then
+      checkUnsolvableConstreds(type5, SubClauses.empty)(using ctx)
+
     (type5, SubClauses())
 
 extension (ctx: TypeContext)

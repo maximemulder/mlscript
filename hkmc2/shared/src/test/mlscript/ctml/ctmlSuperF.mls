@@ -98,11 +98,11 @@ val a6 = id(auto2)
 // OK
 
 val a7 = choose(id, auto)
-//│ a7: ∀A, α. (∀A. A → A) → A → A
+//│ a7: ∀A. (∀A. A → A) → A → A
 // OK
 
 val a8 = choose(id, auto2)
-//│ a8: ∀B, α. (∀A. A → A) → B → B
+//│ a8: ∀B. (∀A. A → A) → B → B
 // OK
 
 // FIXME: This times out.
@@ -189,7 +189,7 @@ val d4 = app(runST, argST)
 // OK
 
 val d5 = revapp(argST, runST)
-//│ d5: ∀α, β, γ, δ, ε, ζ, η. {ε ≥ Int, γ ≥ Int, α ≥ Int, β ≥ Int, δ ≥ Int, ζ ≥ Int} ⟹ δ ∨ γ ∨ β ∨ α
+//│ d5: ∀α, β, γ, δ, ε, ζ. {ε ≥ Int, γ ≥ Int, α ≥ Int, β ≥ Int, δ ≥ Int, ζ ≥ Int} ⟹ δ ∨ γ ∨ β ∨ α
 // OK
 
 declare fun k: [A] -> (A,  List[A]) -> A
@@ -205,11 +205,11 @@ declare fun r: ([A] -> (A) -> [B] -> (B) -> B) -> Int
 //│ r: (∀A. A → (∀B. B → B)) → Int
 
 val e1 = k(h, l)
-//│ e1: ∀A, α. Int → A → A
+//│ e1: ∀A. Int → A → A
 // OK
 
 val e2 = (k((x) => h(x)))(l)
-//│ e2: ∀A, α. Int → A → A
+//│ e2: ∀A. Int → A → A
 // OK
 
 val e3 = r((x, y) => y)
@@ -239,7 +239,7 @@ val f9 =
 // OK
 
 val f10 = choose(id, (x) => auto2(x))
-//│ f10: ∀α, β. (∀A. A → A) → α → α
+//│ f10: ∀α. (∀A. A → A) → α → α
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
@@ -294,7 +294,7 @@ val g10 = ((x) => x(x))((x) => x(x))
 // OK
 
 val g11 = auto(auto2(id))
-//│ g11: ∀α, β, A, γ, δ. {γ ≥ β} ⟹ A → A
+//│ g11: ∀α, A, β. {β ≥ α} ⟹ A → A
 // OK
 
 val g12 = ((y) =>
@@ -312,5 +312,5 @@ val g14 = ((f) =>
     let a = ((u: Unit) => f(id))
     a(unit) as ((Int) -> ([B] -> (B) -> B))
 ) (const(const(id)))
-//│ g14: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, π, ρ. Int → α → α
+//│ g14: ∀α. Int → α → α
 // OK

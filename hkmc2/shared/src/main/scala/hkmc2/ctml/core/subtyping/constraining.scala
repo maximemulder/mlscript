@@ -153,6 +153,26 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       return subtypeFlexVar(sup, sub, Direction.Super)
     case (_, _) =>
 
+  // Expand transparent rigid aliases before structural decomposition, so that rules under the
+  // alias (notably right universal introduction) govern the whole judgment.
+
+  // TODO: Investigate this block.
+
+  (sub, sup) match
+    case (TVar(sub), _) if sub.isRigidMode && sub.lowerBound == sub.upperBound =>
+      return subtype(sub.upperBound, sup)
+    case (_, TVar(sup)) if sup.isRigidMode && sup.lowerBound == sup.upperBound =>
+      return subtype(sub, sup.lowerBound)
+    case (_, _) =>
+
+  // Introduce right universal variables before decomposing the subtype. This keeps a single
+  // arbitrary instance in scope for every conjunctive branch of the same judgment.
+
+  sup match
+    case sup: TUniv =>
+      return subtypeUnivSup(sub, sup)
+    case _ =>
+
   // Subtyping of union and intersection types.
 
   sub.splitUnion(Polarity.Negative) match
@@ -222,11 +242,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
     case _ =>
 
   // Subtyping of universal types.
-
-  sup match
-    case sup: TUniv =>
-      return subtypeUnivSup(sub, sup)
-    case _ =>
 
   sub match
     case sub: TUniv =>

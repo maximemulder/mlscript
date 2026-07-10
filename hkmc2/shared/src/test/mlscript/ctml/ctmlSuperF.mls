@@ -105,6 +105,7 @@ val a8 = choose(id, auto2)
 //│ a8: ∀B, α. (∀A. A → A) → B → B
 // OK
 
+// FIXME: This times out.
 // val a9 = f(choose(id), ids)
 // OK
 
@@ -237,10 +238,8 @@ val f9 =
 //│ f9: ⟨Int, Bool⟩
 // OK
 
-:fixme // FIXME: SuperF expected output is unstable under the current semantic inlining refactor.
 val f10 = choose(id, (x) => auto2(x))
 //│ f10: ∀α, β. (∀A. A → A) → α → α
-//│ FAILURE: Unexpected lack of error to fix
 // OK
 
 val toChurch = (n) => if n == 0 then z else s(toChurch(n - 1))
@@ -270,17 +269,21 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 //│ g5: Int
 // OK
 
-// FIXME: SuperF Church numeral self-application stress case currently times out during semantic simplification.
-// val g7 = (s(s(z)))(s(s(z)))
+// FIXME: This application takes a lot of time.
+val g7 = (s(s(z)))(s(s(z)))
+//│ g7: ∀α, β. {α ≥ β} ⟹ (α → β) → ⊤ → β
 
-// FIXME: SuperF stress case currently blows up during semantic contextual simplification.
-// val g8 = toChurch
+// FIXME: This application takes a lot of time.
+val g8 = toChurch
+//│ g8: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
 
 // FIXME: SuperF ascription variant currently blows up during semantic contextual simplification.
-// val g8a = toChurch as ((Int) -> ChurchInt)
+val g8a = toChurch as ((Int) -> ChurchInt)
+//│ g8a: Int → ChurchInt
 
 // FIXME: SuperF recursive higher-rank stress case currently overflows in subtyping.
-// fun g9(x) = if true then x else g9(g9)(x)
+fun g9(x) = if true then x else g9(g9)(x)
+//│ g9: ∀α, β, γ, δ. {γ ≥ β, β ≥ α, δ ≤ γ → δ, β ≤ γ → δ, γ ≤ γ → δ, α ≥ γ → (δ ∨ γ), δ ≥ γ, α ≤ γ → δ} ⟹ γ → (δ ∨ γ)
 
 :fixme // FIXME: SuperF expected output is unstable under the current semantic inlining refactor.
 val g10 = ((x) => x(x))((x) => x(x))
@@ -301,10 +304,8 @@ val g12 = ((y) =>
 //│ g12: ∀α, β, γ. {γ ≥ ∀A. A → ⊤ → A, α ≥ ∀A. A → ⊤ → A, β ≥ ∀A. A → ⊤ → A} ⟹ (⊤ → α) ∨ (⊤ → β)
 // OK
 
-:fixme // FIXME: SuperF expected output is unstable under the current semantic inlining refactor.
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
 //│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩
-//│ FAILURE: Unexpected lack of error to fix
 // OK
 
 val g14 = ((f) =>

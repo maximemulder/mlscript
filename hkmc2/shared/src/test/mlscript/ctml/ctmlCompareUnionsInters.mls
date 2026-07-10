@@ -133,7 +133,7 @@ A <:< (A & B)
 //│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩.
 //│ Typing error tree:
 //│   ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ∀A, B. ⟨A, B⟩
-//│     ⟨Int, Str⟩ ≤ ∀A, B. ⟨A, B⟩
+//│     ⟨Int, Str⟩ ∨ ⟨Str, Int⟩ ≤ ⟨α, β⟩
 //│       ⟨Int, Str⟩ ≤ ⟨α, β⟩
 //│         Int ≤ α
 //│           Int ≤ ⊥

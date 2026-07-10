@@ -4,6 +4,7 @@ import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.makeConstrainedType
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.subtyping.*
+import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
@@ -29,9 +30,10 @@ extension (type_ : Type)
   def wrapCtx(clauses: SubClauses): Type =
     val constrained = makeConstrainedType(type_, clauses.bounds.map(_.toConstraint))
 
-    clauses.typeVarDecls.foldLeft(constrained)((body, decl) =>
-      TUniv(decl.var_, body)
-    )
+    // Ignore variables that do not appear in the wrapped type.
+    val vars = clauses.typeVarDecls.map(_.var_).filter(constrained.containsVar(_))
+
+    vars.foldLeft(constrained)((body, var_) => TUniv(var_, body))
 
   /** Quantify/wrap contextual information around a type. */
   def quantifyCtx(clauses: SubClauses): Type =

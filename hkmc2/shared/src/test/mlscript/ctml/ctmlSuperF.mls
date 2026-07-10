@@ -293,6 +293,9 @@ val g10 = ((x) => x(x))((x) => x(x))
 //│     ⊤ ≤ α → β
 // OK
 
+// FIXME: The following type contains a constrain that is obviously useless.
+// If the fix comes from wrapCtx, we should try to factorize the "remove unused variables and
+// constraints" operation rather than duplicate it.
 val g11 = auto(auto2(id))
 //│ g11: ∀α, A, β. {β ≥ α} ⟹ A → A
 // OK

@@ -81,7 +81,7 @@ def simplifyUniv(univ: TUniv)(using ctx: SubContext, noInlineVars: NoInlineVars)
 
   body.getInlinePolarities(univ.var_)(using univCtx.extend(clauses)) match
     case Some(polarities) =>
-      val (newBody, newClauses) = inlineVar(body, univ.var_, polarities, clauses)(using univCtx.extend(clauses))
+      val (newBody, newClauses) = inlineVar(body, univ.var_, polarities, clauses)(using univCtx)
       newBody.wrapCtx(newClauses)
     case None =>
       univ

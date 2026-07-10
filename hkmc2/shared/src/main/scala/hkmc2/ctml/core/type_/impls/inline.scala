@@ -38,7 +38,7 @@ extension (bound: Bound)
 private def inlineType(type_ : Type, var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =
   type_ match
     case TVar(typeVar) if typeVar == var_ =>
-      var_.bound(pol.dir)
+      var_.bound(pol.dir).removeDirectVar(var_, pol)
     case neg: TNeg =>
       inlineNegation(neg, var_, pol)
     case tuple: TTuple =>

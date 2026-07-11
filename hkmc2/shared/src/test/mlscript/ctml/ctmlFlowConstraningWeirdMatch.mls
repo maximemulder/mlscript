@@ -13,7 +13,7 @@ fun foo(a, b) =
 // Function overloads
 
 foo as (Int -> Int -> Int) & (Str -> Str -> Str)
-//│ ∀α, β, γ. {β ≤ Str, β ≥ Str, α ≤ Str, α ≥ Str, γ ≥ Str, γ ≤ Str} ⟹ (Int → Int → Int) ∧ (Str → Str → Str)
+//│ (Int → Int → Int) ∧ (Str → Str → Str)
 
 // Function applications
 

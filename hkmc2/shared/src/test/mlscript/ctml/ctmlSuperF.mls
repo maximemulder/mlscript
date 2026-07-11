@@ -189,7 +189,7 @@ val d4 = app(runST, argST)
 // OK
 
 val d5 = revapp(argST, runST)
-//│ d5: ∀α, β, γ, δ, ε, ζ. {ε ≥ Int, γ ≥ Int, α ≥ Int, β ≥ Int, δ ≥ Int, ζ ≥ Int} ⟹ δ ∨ γ ∨ β ∨ α
+//│ d5: ∀α, β, γ, δ. {γ ≥ Int, α ≥ Int, β ≥ Int, δ ≥ Int} ⟹ α ∨ β
 // OK
 
 declare fun k: [A] -> (A,  List[A]) -> A
@@ -293,11 +293,8 @@ val g10 = ((x) => x(x))((x) => x(x))
 //│     ⊤ ≤ α → β
 // OK
 
-// FIXME: The following type contains a constrain that is obviously useless.
-// If the fix comes from wrapCtx, we should try to factorize the "remove unused variables and
-// constraints" operation rather than duplicate it.
 val g11 = auto(auto2(id))
-//│ g11: ∀α, A, β. {β ≥ α} ⟹ A → A
+//│ g11: ∀A. A → A
 // OK
 
 val g12 = ((y) =>

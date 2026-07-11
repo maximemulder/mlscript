@@ -1,13 +1,15 @@
 package hkmc2.ctml.core.structural
 
-import scala.collection.mutable.Set as MutSet
-
-import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.bound
-import hkmc2.ctml.config.debug
+import hkmc2.ctml.types.*
+
+extension (type_ : Type)
+  /** Get the polar dependencies occurring in a type. */
+  def getDeps(pol: Polarity): VarDeps =
+    getTypeDeps(type_, pol, true)
 
 extension (var_ : TypeVar)
-  /** Get the dependencies of a type variable. */
+  /** Get the dependencies of the effective bound of a type variable at a given polarity. */
   def getDeps(pol: Polarity)(using ctx: SubContext): VarDeps =
     getTypeDeps(var_.bound(pol.dir), pol, true)
 
@@ -17,13 +19,20 @@ extension (var_ : TypeVar)
 
   /** Check whether a variable indirectly appears in its bounds. */
   def isIndirectRecursive(pol: Polarity)(using ctx: SubContext): Boolean =
-    var_.getTransDeps(pol).indirect.contains(var_)
+    var_.getTransDeps(pol).indirect.exists(_.var_ == var_)
+
+/** A type variable occurrence together with the polarity selecting its effective bound. */
+case class PolarVar(var_ : TypeVar, pol: Polarity)
 
 /** The dependencies of some type variable. */
 class VarDeps(
-  val direct: Set[TypeVar],
-  val indirect: Set[TypeVar],
+  val direct: Set[PolarVar],
+  val indirect: Set[PolarVar],
 ):
+  /** Get all direct and indirect dependencies. */
+  def all: Set[PolarVar] =
+    direct ++ indirect
+
   /** Concatenate the dependencies with some other ones. */
   def ++(other: VarDeps): VarDeps =
     VarDeps(
@@ -34,8 +43,8 @@ class VarDeps(
   /** Remove a variable from the dependencies. */
   def -(var_ : TypeVar): VarDeps =
     VarDeps(
-      this.direct - var_,
-      this.indirect - var_,
+      this.direct.filterNot(_.var_ == var_),
+      this.indirect.filterNot(_.var_ == var_),
     )
 
   /** Make all dependencies indirect. */
@@ -51,23 +60,25 @@ object VarDeps:
     VarDeps(Set(), Set())
 
   /** Make dependencies from a single type variable. */
-  def single(var_ : TypeVar, direct: Boolean): VarDeps =
+  def single(var_ : TypeVar, pol: Polarity, direct: Boolean): VarDeps =
+    val dep = PolarVar(var_, pol)
     direct match
       case true =>
-        VarDeps(Set(var_), Set())
+        VarDeps(Set(dep), Set())
       case false =>
-        VarDeps(Set(), Set(var_))
+        VarDeps(Set(), Set(dep))
 
-private def getVarTransDeps(var_ : TypeVar, pol: Polarity, cache: Set[TypeVar])(using ctx: SubContext): VarDeps =
-  if cache.contains(var_) then
+private def getVarTransDeps(var_ : TypeVar, pol: Polarity, cache: Set[PolarVar])(using ctx: SubContext): VarDeps =
+  val ref = PolarVar(var_, pol)
+  if cache.contains(ref) then
     return VarDeps.empty
 
   var deps = var_.getDeps(pol)
   for direct <- deps.direct do
-    deps ++= getVarTransDeps(direct, pol, cache + var_)
+    deps ++= getVarTransDeps(direct.var_, direct.pol, cache + ref)
 
   for indirect <- deps.indirect do
-    deps ++= getVarTransDeps(indirect, pol, cache + var_).toIndirect
+    deps ++= getVarTransDeps(indirect.var_, indirect.pol, cache + ref).toIndirect
 
   deps
 
@@ -78,7 +89,7 @@ private def getTypeDeps(type_ : Type, pol: Polarity, direct: Boolean): VarDeps =
     case TNeg(body) =>
       getTypeDeps(body, !pol, false)
     case TVar(var_) =>
-      VarDeps.single(var_, direct)
+      VarDeps.single(var_, pol, direct)
     case TTuple(left, right) =>
       getTypeDeps(left, pol, false) ++ getTypeDeps(right, pol, false)
     case TLam(param, ret) =>
@@ -91,9 +102,10 @@ private def getTypeDeps(type_ : Type, pol: Polarity, direct: Boolean): VarDeps =
     case TUniv(var_, body) =>
       getTypeDeps(body, pol, false) - var_
     case TConstrained(body, constraint) =>
-      getConstraintDeps(constraint, !pol, false) ++ getTypeDeps(body, pol, false)
+      getConstraintDeps(constraint, false) ++ getTypeDeps(body, pol, false)
     case TConstraining(body, constraint) =>
-      getConstraintDeps(constraint, !pol, false) ++ getTypeDeps(body, pol, false)
+      getConstraintDeps(constraint, false) ++ getTypeDeps(body, pol, false)
 
-private def getConstraintDeps(constraint: Constraint, pol: Polarity, direct: Boolean): VarDeps =
-  getTypeDeps(constraint.left, !pol, direct) ++ getTypeDeps(constraint.right, pol, direct)
+private def getConstraintDeps(constraint: Constraint, direct: Boolean): VarDeps =
+  getTypeDeps(constraint.left, constraint.dir.rightPol, direct) ++
+    getTypeDeps(constraint.right, constraint.dir.leftPol, direct)

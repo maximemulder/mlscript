@@ -1,0 +1,116 @@
+:ctml
+
+:ctml-dbg infer constrain
+
+fun fooI(a, b) =
+  let _ = if a is
+    Int then (b as Int)
+    Str then (b as Str)
+  1
+//│ infer ELam(a,ELam(b,EApp(ELam(_,EVar(int)),EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None))))))
+//│   infer ELam(b,EApp(ELam(_,EVar(int)),EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None)))))
+//│     infer EApp(ELam(_,EVar(int)),EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None))))
+//│       infer ELam(_,EVar(int))
+//│         infer EVar(int)
+//│         OK Int ⇝ ∅
+//│       OK ⊤ → Int ⇝ ∅
+//│       infer EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None)))
+//│         infer EVar(a)
+//│         OK 0 ⇝ ∅
+//│         constrain 0 ≤ Int
+//│           constrain ⊥ ≤ Int
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ Int
+//│         infer EAscr(EVar(b),Int)
+//│           infer EVar(b)
+//│           OK 1 ⇝ ∅
+//│           constrain 1 ≤ Int
+//│             constrain ⊥ ≤ Int
+//│             OK ⇝ ∅
+//│           OK ⇝ 1 ≤ Int
+//│         OK Int ⇝ 1 ≤ Int
+//│         constrain Int ≤ 3
+//│           constrain Int ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 3 ≥ Int
+//│         constrain 0 ≤ ¬Int
+//│           constrain ⊥ ≤ ¬Int
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ ¬Int
+//│         infer EMatch(EVar(a),Str,EAscr(EVar(b),Str),None)
+//│           infer EVar(a)
+//│           OK 0 ⇝ ∅
+//│           constrain 0 ≤ Str
+//│             constrain ⊥ ≤ Str
+//│             OK ⇝ ∅
+//│           OK ⇝ 0 ≤ Str
+//│           infer EAscr(EVar(b),Str)
+//│             infer EVar(b)
+//│             OK 1 ⇝ ∅
+//│             constrain 1 ≤ Str
+//│               constrain ⊥ ≤ Str
+//│               OK ⇝ ∅
+//│             OK ⇝ 1 ≤ Str
+//│           OK Str ⇝ 1 ≤ Str
+//│           constrain Str ≤ 4
+//│             constrain Str ≤ ⊤
+//│             OK ⇝ ∅
+//│           OK ⇝ 4 ≥ Str
+//│           constrain 0 ≤ ¬Str
+//│             constrain ⊥ ≤ ¬Str
+//│             OK ⇝ ∅
+//│           OK ⇝ 0 ≤ ¬Int ∧ ¬Str
+//│           constrain 0 ≤ ⊥
+//│             constrain ⊥ ≤ ⊥
+//│             OK ⇝ ∅
+//│           OK ⇝ 0 ≤ ⊥
+//│         OK ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4 ⇝ ∅
+//│         constrain ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4 ≤ 3
+//│           constrain ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4 ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 3 ≥ ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4
+//│         constrain 0 ≤ ¬Int
+//│           constrain ⊥ ≤ ¬Int
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ ¬Int
+//│         constrain 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│           constrain ⊥ ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ ¬Int ∧ ({1 ≤ Str, 4 ≥ Str} ⟹ Str)
+//│         constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 4
+//│           constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
+//│         constrain 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│           constrain ⊥ ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│         constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 4
+//│           constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
+//│         constrain 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│           constrain ⊥ ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│           OK ⇝ ∅
+//│         OK ⇝ 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
+//│         constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 4
+//│           constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
+//│       OK ∀3. {0 ≤ ({1 ≤ Int, 3 ≥ Int} ⟹ Int) ∨ ({3 ≥ {0 ≤ {1 ≤ Str} ⟹ Str} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), 3 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬Int ∧ ({1 ≤ Str} ⟹ Str), 0 ≤ ¬Int} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))} ⟹ 3 ⇝ ∅
+//│       constrain ⊤ → Int ≤ (∀3. {0 ≤ ({1 ≤ Int, 3 ≥ Int} ⟹ Int) ∨ ({3 ≥ {0 ≤ {1 ≤ Str} ⟹ Str} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), 3 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬Int ∧ ({1 ≤ Str} ⟹ Str), 0 ≤ ¬Int} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))} ⟹ 3) → 13
+//│         constrain ∀3. {0 ≤ ({1 ≤ Int, 3 ≥ Int} ⟹ Int) ∨ ({3 ≥ {0 ≤ {1 ≤ Str} ⟹ Str} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), 3 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬Int ∧ ({1 ≤ Str} ⟹ Str), 0 ≤ ¬Int} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))} ⟹ 3 ≤ ⊤
+//│         OK ⇝ ∅
+//│         constrain Int ≤ 13
+//│           constrain Int ≤ ⊤
+//│           OK ⇝ ∅
+//│         OK ⇝ 13 ≥ Int
+//│       OK ⇝ 13 ≥ Int
+//│     OK 13 ⇝ 13 ≥ Int, 13 flex (3)
+//│     constrain Int ≤ 13
+//│       constrain Int ≤ ⊤
+//│       OK ⇝ ∅
+//│     OK ⇝ 13 ≥ Int
+//│   OK ⊤ → Int ⇝ ∅
+//│ OK ⊤ → ⊤ → Int ⇝ ∅
+//│ fooI: ⊤ → ⊤ → Int

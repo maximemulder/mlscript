@@ -112,3 +112,19 @@ fun fooI(a, b) =
     Str then (b as Str)
   1
 //│ fooI: ⊤ → ⊤ → Int
+
+fooI(1, 2)
+//│ Int
+
+:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
+:te
+fooI(1, "World")
+//│ Int
+
+:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
+:te
+fooI("Hello", 2)
+//│ Int
+
+fooI("Hello", "World")
+//│ Int

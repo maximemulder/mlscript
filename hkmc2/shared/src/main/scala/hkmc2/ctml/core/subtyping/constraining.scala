@@ -364,9 +364,14 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Su
   catch
     case error: TypeError =>
       if config.subtypeAbsurdConstreds then
-        // This line is likely too permissive, as the subtype constraining function does not ensure
-        // by itself that two types can never be subtype.
-        return SubClauses.empty
+        // Failure to reconstruct an assumption does not make it absurd when it can still refine
+        // open inference variables. Only an assumption that also fails in solving mode is known
+        // to make the constrained type vacuous.
+        try
+          subtypeConstraint(constrained.constraint)(using ctx, ConstraintMode.Solve)
+        catch
+          case _: TypeError =>
+            return SubClauses.empty
       else
         throw error
 

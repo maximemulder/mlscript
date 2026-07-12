@@ -1,12 +1,13 @@
-package hkmc2.ctml.core.inference
+package hkmc2.ctml.core.simplification
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.impls.*
-import hkmc2.ctml.core.type_.impls.simplify.*
+import hkmc2.ctml.core.validation.validateInferenceState
 import hkmc2.ctml.types.*
+import hkmc2.ctml.core.inference.*
 
 extension (ctx: SubContext)
   /** Eliminate level-local variables disconnected from an open inference result.

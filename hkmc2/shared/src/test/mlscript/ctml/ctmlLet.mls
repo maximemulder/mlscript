@@ -19,38 +19,42 @@ fun baz(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   c
-//│ baz: ⊥ → ⊥ → ⊥
+//│ baz: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
 
-:fixme // FIXME: Semantic variable inlining currently collapses `baz` to bottom.
 baz(1, 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Int → α.
-//│ Typing error tree:
-//│   ⊥ → ⊥ → ⊥ ≤ Int → α
-//│     Int ≤ ⊥
+//│ Int
 
-:fixme // FIXME: Semantic variable inlining currently collapses `baz` to bottom.
 baz("", "")
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Str → α.
-//│ Typing error tree:
-//│   ⊥ → ⊥ → ⊥ ≤ Str → α
-//│     Str ≤ ⊥
+//│ Str
 
 baz(bot, bot)
-//│ ⊥
+//│ ∀α, β. {β ≥ Int ∧ α, α ≥ ({β ≥ Int} ⟹ ⊥) ∧ ({β ≥ α} ⟹ ⊥)} ⟹ β
 
 :te
 baz(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
 //│ Typing error tree:
-//│   ⊥ → ⊥ → ⊥ ≤ Int → α
-//│     Int ≤ ⊥
+//│   Int ≤ Str
 
 :te
 baz(true, false)
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ → ⊥ ≤ Bool → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ ≤ Bool → ε.
 //│ Typing error tree:
-//│   ⊥ → ⊥ → ⊥ ≤ Bool → α
-//│     Bool ≤ ⊥
+//│   ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ ≤ Bool → ε
+//│     {ζ ≤ ({η ≤ Int, θ ≥ Int} ⟹ Int) ∨ ({θ ≥ ι, ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥), η ≤ Str, ι ≥ Str} ⟹ Str), ι ≥ ({ζ ≤ Int, η ≤ Int, θ ≥ Int} ⟹ ⊥) ∧ ({ζ ≤ {η ≤ Str, ι ≥ Str} ⟹ Str, θ ≥ ι} ⟹ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥)), θ ≥ ({ζ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({ζ ≤ {η ≤ Str, ι ≥ Str} ⟹ Str, ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥)} ⟹ ι)} ⟹ ζ → η → θ ≤ Bool → ε
+//│       {ι ≥ ({ζ ≤ Int, η ≤ Int, θ ≥ Int} ⟹ ⊥) ∧ ({ζ ≤ {η ≤ Str, ι ≥ Str} ⟹ Str, θ ≥ ι} ⟹ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥)), θ ≥ ({ζ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({ζ ≤ {η ≤ Str, ι ≥ Str} ⟹ Str, ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥)} ⟹ ι)} ⟹ ζ → η → θ ≤ Bool → ε
+//│         {θ ≥ ({ζ ≤ Int, η ≤ Int} ⟹ Int) ∧ ({ζ ≤ {η ≤ Str, ι ≥ Str} ⟹ Str, ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥)} ⟹ ι)} ⟹ ζ → η → θ ≤ Bool → ε
+//│           ζ → η → θ ≤ Bool → ε
+//│             Bool ≤ ζ
+//│               Bool ≤ ({η ≤ Int, θ ≥ Int} ⟹ Int) ∨ ({θ ≥ ι, ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥), η ≤ Str, ι ≥ Str} ⟹ Str)
+//│                 Bool ≤ {η ≤ Int, θ ≥ Int} ⟹ Int
+//│                   Bool ≤ {θ ≥ Int} ⟹ Int
+//│                     Bool ≤ Int
+//│                 Bool ≤ {θ ≥ ι, ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥), η ≤ Str, ι ≥ Str} ⟹ Str
+//│                   Bool ≤ {ι ≥ ({ζ ≤ Str, η ≤ Str} ⟹ Str) ∧ ({ζ ≤ ⊥} ⟹ ⊥), η ≤ Str, ι ≥ Str} ⟹ Str
+//│                     Bool ≤ {η ≤ Str, ι ≥ Str} ⟹ Str
+//│                       Bool ≤ {ι ≥ Str} ⟹ Str
+//│                         Bool ≤ Str
 
 // FIXME: This block currently times out the CTML diff-test suite.
 // fun bop(a, b) =

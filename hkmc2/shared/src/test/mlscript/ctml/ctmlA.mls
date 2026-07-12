@@ -1,116 +1,139 @@
 :ctml
 
-:ctml-dbg infer constrain
+:ctml-cfg subtype-absurd-constred error-absurd-constred reconstruct-coherence
+
+// Unique parameter
+
+// Function definitions
+
+fun foo(a) =
+  if a is
+    Int then (a as Int)
+    Str then (a as Str)
+//│ foo: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β
+
+// fun bar(a) =
+//   foo(a) as Int
+
+// Function overloads
+
+foo as (Int -> Int) & (Str -> Str)
+//│ (Int → Int) ∧ (Str → Str)
+
+// Function applications
+
+val int_or_string: Int | Str
+//│ int_or_string: Int ∨ Str
+
+foo(1)
+//│ Int
+
+foo("Hello")
+//│ ∀α, β. {α ≥ β, β ≥ {α ≥ β} ⟹ Str} ⟹ α
+
+foo(bot)
+//│ ∀α, β. {α ≥ Int ∧ β, β ≥ ({α ≥ Int} ⟹ ⊥) ∧ ({α ≥ β} ⟹ ⊥)} ⟹ α
+
+foo(int_or_string)
+//│ Int ∨ Str
+
+// Errors
+
+:te
+foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
+//│ Typing error tree:
+//│   ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
+//│     ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β ≤ Bool → Bool
+//│       {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ {ζ ≥ Str} ⟹ Str, ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥)} ⟹ ζ), ζ ≥ ({δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∧ ({δ ≤ {ζ ≥ Str} ⟹ Str, ε ≥ ζ} ⟹ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥)), δ ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ ζ, ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥), ζ ≥ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → Bool
+//│         {ζ ≥ ({δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∧ ({δ ≤ {ζ ≥ Str} ⟹ Str, ε ≥ ζ} ⟹ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥)), δ ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ ζ, ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥), ζ ≥ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → Bool
+//│           {δ ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ ζ, ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥), ζ ≥ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → Bool
+//│             δ → ε ≤ Bool → Bool
+//│               Bool ≤ δ
+//│                 Bool ≤ ({ε ≥ Int} ⟹ Int) ∨ ({ε ≥ ζ, ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥), ζ ≥ Str} ⟹ Str)
+//│                   Bool ≤ {ε ≥ Int} ⟹ Int
+//│                     Bool ≤ Int
+//│                   Bool ≤ {ε ≥ ζ, ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥), ζ ≥ Str} ⟹ Str
+//│                     Bool ≤ {ζ ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ ⊥} ⟹ ⊥), ζ ≥ Str} ⟹ Str
+//│                       Bool ≤ {ζ ≥ Str} ⟹ Str
+//│                         Bool ≤ Str
+
+:te
+foo(true)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β ≤ Bool → δ.
+//│ Typing error tree:
+//│   ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β ≤ Bool → δ
+//│     {ζ ≥ ({ε ≤ Int} ⟹ Int) ∧ ({ε ≤ {η ≥ Str} ⟹ Str, η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ η), η ≥ ({ε ≤ Int, ζ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ {η ≥ Str} ⟹ Str, ζ ≥ η} ⟹ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)), ε ≤ ({ζ ≥ Int} ⟹ Int) ∨ ({ζ ≥ η, η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥), η ≥ Str} ⟹ Str)} ⟹ ε → ζ ≤ Bool → δ
+//│       {η ≥ ({ε ≤ Int, ζ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ {η ≥ Str} ⟹ Str, ζ ≥ η} ⟹ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)), ε ≤ ({ζ ≥ Int} ⟹ Int) ∨ ({ζ ≥ η, η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥), η ≥ Str} ⟹ Str)} ⟹ ε → ζ ≤ Bool → δ
+//│         {ε ≤ ({ζ ≥ Int} ⟹ Int) ∨ ({ζ ≥ η, η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥), η ≥ Str} ⟹ Str)} ⟹ ε → ζ ≤ Bool → δ
+//│           ε → ζ ≤ Bool → δ
+//│             Bool ≤ ε
+//│               Bool ≤ ({ζ ≥ Int} ⟹ Int) ∨ ({ζ ≥ η, η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥), η ≥ Str} ⟹ Str)
+//│                 Bool ≤ {ζ ≥ Int} ⟹ Int
+//│                   Bool ≤ Int
+//│                 Bool ≤ {ζ ≥ η, η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥), η ≥ Str} ⟹ Str
+//│                   Bool ≤ {η ≥ ({ε ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥), η ≥ Str} ⟹ Str
+//│                     Bool ≤ {η ≥ Str} ⟹ Str
+//│                       Bool ≤ Str
+
+// Multiple parameters
+
+// Function definitons
+
+fun foo2(a, b) =
+  if a is
+    Int then (b as Int)
+    Str then (b as Str)
+//│ foo2: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
+
+// fun bar2(a, b) =
+//   foo2(a, b) as Int
+
+// Function overloads
+
+foo2 as (Int -> Int -> Int) & (Str -> Str -> Str)
+//│ (Int → Int → Int) ∧ (Str → Str → Str)
+
+// Function applications
+
+foo2(1, 2)
+//│ Int
+
+foo2("Hello", "World")
+//│ Str
+
+foo2(bot, bot)
+//│ ∀α, β. {β ≥ Int ∧ α, α ≥ ({β ≥ Int} ⟹ ⊥) ∧ ({β ≥ α} ⟹ ⊥)} ⟹ β
+
+// Errors
+
+:te
+foo2(1, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
+//│ Typing error tree:
+//│   Int ≤ Str
+
+// Same return
 
 fun fooI(a, b) =
   let _ = if a is
     Int then (b as Int)
     Str then (b as Str)
   1
-//│ infer ELam(a,ELam(b,EApp(ELam(_,EVar(int)),EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None))))))
-//│   infer ELam(b,EApp(ELam(_,EVar(int)),EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None)))))
-//│     infer EApp(ELam(_,EVar(int)),EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None))))
-//│       infer ELam(_,EVar(int))
-//│         infer EVar(int)
-//│         OK Int ⇝ ∅
-//│       OK ⊤ → Int ⇝ ∅
-//│       infer EMatch(EVar(a),Int,EAscr(EVar(b),Int),Some(EMatch(EVar(a),Str,EAscr(EVar(b),Str),None)))
-//│         infer EVar(a)
-//│         OK 0 ⇝ ∅
-//│         constrain 0 ≤ Int
-//│           constrain ⊥ ≤ Int
-//│           OK ⇝ ∅
-//│         OK ⇝ 0 ≤ Int
-//│         infer EAscr(EVar(b),Int)
-//│           infer EVar(b)
-//│           OK 1 ⇝ ∅
-//│           constrain 1 ≤ Int
-//│             constrain ⊥ ≤ Int
-//│             OK ⇝ ∅
-//│           OK ⇝ 1 ≤ Int
-//│         OK Int ⇝ 1 ≤ Int
-//│         constrain Int ≤ 3
-//│           constrain Int ≤ ⊤
-//│           OK ⇝ ∅
-//│         OK ⇝ 3 ≥ Int
-//│         constrain 0 ≤ ¬Int
-//│           constrain ⊥ ≤ ¬Int
-//│           OK ⇝ ∅
-//│         OK ⇝ 0 ≤ ¬Int
-//│         infer EMatch(EVar(a),Str,EAscr(EVar(b),Str),None)
-//│           infer EVar(a)
-//│           OK 0 ⇝ ∅
-//│           constrain 0 ≤ Str
-//│             constrain ⊥ ≤ Str
-//│             OK ⇝ ∅
-//│           OK ⇝ 0 ≤ Str
-//│           infer EAscr(EVar(b),Str)
-//│             infer EVar(b)
-//│             OK 1 ⇝ ∅
-//│             constrain 1 ≤ Str
-//│               constrain ⊥ ≤ Str
-//│               OK ⇝ ∅
-//│             OK ⇝ 1 ≤ Str
-//│           OK Str ⇝ 1 ≤ Str
-//│           constrain Str ≤ 4
-//│             constrain Str ≤ ⊤
-//│             OK ⇝ ∅
-//│           OK ⇝ 4 ≥ Str
-//│           constrain 0 ≤ ¬Str
-//│             constrain ⊥ ≤ ¬Str
-//│             OK ⇝ ∅
-//│           OK ⇝ 0 ≤ ¬Int ∧ ¬Str
-//│           constrain 0 ≤ ⊥
-//│             constrain ⊥ ≤ ⊥
-//│             OK ⇝ ∅
-//│           OK ⇝ 0 ≤ ⊥
-//│         OK ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4 ⇝ ∅
-//│         constrain ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4 ≤ 3
-//│           constrain ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4 ≤ ⊤
-//│           OK ⇝ ∅
-//│         OK ⇝ 3 ≥ ∀4. {0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str, 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 4
-//│         constrain 0 ≤ ¬Int
-//│           constrain ⊥ ≤ ¬Int
-//│           OK ⇝ ∅
-//│         OK ⇝ 0 ≤ ¬Int
-//│         constrain 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│           constrain ⊥ ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│           OK ⇝ ∅
-//│         OK ⇝ 0 ≤ ¬Int ∧ ({1 ≤ Str, 4 ≥ Str} ⟹ Str)
-//│         constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 4
-//│           constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤
-//│           OK ⇝ ∅
-//│         OK ⇝ 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
-//│         constrain 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│           constrain ⊥ ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│           OK ⇝ ∅
-//│         OK ⇝ 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│         constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 4
-//│           constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤
-//│           OK ⇝ ∅
-//│         OK ⇝ 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
-//│         constrain 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│           constrain ⊥ ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│           OK ⇝ ∅
-//│         OK ⇝ 0 ≤ {1 ≤ Str, 4 ≥ Str} ⟹ Str
-//│         constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 4
-//│           constrain ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤
-//│           OK ⇝ ∅
-//│         OK ⇝ 4 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
-//│       OK ∀3. {0 ≤ ({1 ≤ Int, 3 ≥ Int} ⟹ Int) ∨ ({3 ≥ {0 ≤ {1 ≤ Str} ⟹ Str} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), 3 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬Int ∧ ({1 ≤ Str} ⟹ Str), 0 ≤ ¬Int} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))} ⟹ 3 ⇝ ∅
-//│       constrain ⊤ → Int ≤ (∀3. {0 ≤ ({1 ≤ Int, 3 ≥ Int} ⟹ Int) ∨ ({3 ≥ {0 ≤ {1 ≤ Str} ⟹ Str} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), 3 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬Int ∧ ({1 ≤ Str} ⟹ Str), 0 ≤ ¬Int} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))} ⟹ 3) → 13
-//│         constrain ∀3. {0 ≤ ({1 ≤ Int, 3 ≥ Int} ⟹ Int) ∨ ({3 ≥ {0 ≤ {1 ≤ Str} ⟹ Str} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ ¬Int), 3 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬Int ∧ ({1 ≤ Str} ⟹ Str), 0 ≤ ¬Int} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))} ⟹ 3 ≤ ⊤
-//│         OK ⇝ ∅
-//│         constrain Int ≤ 13
-//│           constrain Int ≤ ⊤
-//│           OK ⇝ ∅
-//│         OK ⇝ 13 ≥ Int
-//│       OK ⇝ 13 ≥ Int
-//│     OK 13 ⇝ 13 ≥ Int, 13 flex (3)
-//│     constrain Int ≤ 13
-//│       constrain Int ≤ ⊤
-//│       OK ⇝ ∅
-//│     OK ⇝ 13 ≥ Int
-//│   OK ⊤ → Int ⇝ ∅
-//│ OK ⊤ → ⊤ → Int ⇝ ∅
-//│ fooI: ⊤ → ⊤ → Int
+//│ fooI: ∀α. (({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str)) → α → Int
+
+fooI(1, 2)
+//│ Int
+
+:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
+:te
+fooI(1, "World")
+//│ Int
+
+:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
+:te
+fooI("Hello", 2)
+//│ Int
+
+fooI("Hello", "World")
+//│ Int

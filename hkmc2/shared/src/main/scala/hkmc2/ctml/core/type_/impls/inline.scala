@@ -2,8 +2,8 @@ package hkmc2.ctml.core.type_.impls.inline
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.simplification.*
 import hkmc2.ctml.core.structural.*
-import hkmc2.ctml.core.type_.impls.simplify.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*

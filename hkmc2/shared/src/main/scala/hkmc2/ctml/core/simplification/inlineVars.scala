@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.type_.impls.simplify
+package hkmc2.ctml.core.simplification
 
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.structural.*
@@ -15,7 +15,7 @@ object NoInlineVars:
     NoInlineVars(Set.empty)
 
 extension (type_ : Type)
-  /** Get the relevant polarities if a variable can be simplified by inlining it. */
+  /** Get the polarities at which a variable can be inlined in a type. */
   def getInlinePolarities(var_ : TypeVar)(using ctx: SubContext): Option[Polarities] =
     val polarities = type_.getAllVarPolarities(var_)
 

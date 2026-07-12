@@ -70,7 +70,7 @@ def inferMatch(match_ : EMatch)(using ctx: TypeContext): (Type, SubClauses) =
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
   ctx.seq(
-    summon[TypeContext].withInferLevel((ctx) =>
+    {
       val matchVarDecl = ctx.sub.declInferVar()
       val matchType = TVar(matchVarDecl.var_)
       val matchCtx = ctx.extendSub(matchVarDecl)
@@ -91,7 +91,29 @@ def inferMatch(match_ : EMatch)(using ctx: TypeContext): (Type, SubClauses) =
             val realElseClauses = typingSubtypeSeq(scrutineeType, TBot, elsePatternClauses)
             (matchType, SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses)))
       (a, SubClauses.single(matchVarDecl).concat(b))
-    ),
+    },
+    //summon[TypeContext].withInferLevel((ctx) =>
+    //  val matchVarDecl = ctx.sub.declInferVar()
+    //  val matchType = TVar(matchVarDecl.var_)
+    //  val matchCtx = ctx.extendSub(matchVarDecl)
+    //  val (a, b) =
+    //    given TypeContext = matchCtx
+    //    val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+    //    val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+    //    val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
+//
+    //    match_.else_ match
+    //      case Some(else_) =>
+    //        val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+    //        val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+    //        val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+    //        (matchType, SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses)))
+    //      case None =>
+    //        val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
+    //        val realElseClauses = typingSubtypeSeq(scrutineeType, TBot, elsePatternClauses)
+    //        (matchType, SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses)))
+    //  (a, SubClauses.single(matchVarDecl).concat(b))
+    //),
     scrutineeClauses,
   )
 

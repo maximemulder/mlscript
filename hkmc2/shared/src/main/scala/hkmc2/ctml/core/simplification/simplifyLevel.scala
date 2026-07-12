@@ -10,16 +10,25 @@ import hkmc2.ctml.core.context.getTypeVarEffectiveLevel
 
 extension (ctx: SubContext)
   // Simplify the type and output clauses at a given level without closing that level.
-  def simplifyLevel(type_ : Type, level: Int, outs: SubClauses): (Type, SubClauses) =
-    val levelVars = outs.levelVars(level)(using ctx)
+  def simplifyLevel(type1 : Type, level: Int, outs1: SubClauses): (Type, SubClauses) =
+    val levelVars = outs1.levelVars(level)(using ctx)
 
-    levelVars.foldRight(type_, outs)((levelVar, to) =>
+    val (type2, outs2) = levelVars.foldRight(type1, outs1)((levelVar, to) =>
       simplifyVar(levelVar, to._1, level, to._2)
     )
+
+    val type3 = type2.simplify()(using ctx.extend(outs2), NoInlineVars(Set()))
+    val outs3 = outs2
+
+    (type3, outs2)
 
   def simplifyVar(var_ : TypeVar, type_ : Type, level: Int, outs: SubClauses): (Type, SubClauses) =
     type_.getInlinePolarities(var_)(using ctx.extend(outs)) match
       case Some(inlinePols) =>
+        // // TODO: Try to remove this check.
+        // if !canEliminateDisconnectedVar(var_)(using ctx.extend(outs)) then
+        //   return (type_, outs)
+
         inlineVar(type_, var_, inlinePols, outs)(using ctx)
       case None =>
         (type_, outs)

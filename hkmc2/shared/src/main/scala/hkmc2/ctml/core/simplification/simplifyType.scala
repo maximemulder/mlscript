@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.type_.impls.simplify
+package hkmc2.ctml.core.simplification
 
 import scala.collection.immutable.LazyList.cons
 
@@ -69,7 +69,6 @@ def simplifyLambda(param: Type, ret: Type): Type =
 /** Simplify a join or meet after both operands have already been simplified. */
 def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: SubContext): Type =
   hkmc2.ctml.core.combine.combine(mode, left, right)
-
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */
 def simplifyUniv(univ: TUniv)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =

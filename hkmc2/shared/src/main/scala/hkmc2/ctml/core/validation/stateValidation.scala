@@ -1,4 +1,4 @@
-package hkmc2.ctml.core.inference
+package hkmc2.ctml.core.validation
 
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.structural.*

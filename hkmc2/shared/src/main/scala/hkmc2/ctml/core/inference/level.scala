@@ -7,7 +7,7 @@ import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.core.type_.impls.inline.*
-import hkmc2.ctml.core.type_.impls.simplify.*
+import hkmc2.ctml.core.simplification.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
@@ -30,7 +30,8 @@ extension (ctx: SubContext)
   def processLevel(level: Int, type_ : Type, outs: SubClauses): (Type, SubClauses) =
     val (type1, outs1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
 
-    val (type2, outs2) = ctx.simplifyClauses(type1, level, outs.concat(outs1))
+    // val (type2, outs2) = ctx.simplifyClauses(type1, level, outs.concat(outs1))
+    val (type2, outs2) = ctx.simplifyLevel(type1, level, outs.concat(outs1))
 
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type2, outs2)(using ctx)
@@ -44,6 +45,8 @@ extension (ctx: SubContext)
     val type4 = type2.wrapCtx(outs2)
 
     val type5 = type4.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
+
+
 
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type5, SubClauses.empty)(using ctx)

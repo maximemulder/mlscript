@@ -42,11 +42,9 @@ extension (ctx: SubContext)
       .filter(levelCtx.getTypeVarEffectiveLevel(_) < level)
       .toSet
 
-    val type4 = type2.wrapCtx(outs2)
+    val type5 = type2.wrapCtx(outs2)
 
-    val type5 = type4.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
-
-
+    // val type5 = type4.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
 
     if config.checkUnsolvableConstreds then
       checkUnsolvableConstreds(type5, SubClauses.empty)(using ctx)

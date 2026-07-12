@@ -1,0 +1,38 @@
+:ctml
+
+:ctml-cfg subtype-absurd-constred error-absurd-constred reconstruct-coherence
+
+fun foo(a) =
+  let b = a
+  let c = b
+  c
+//│ foo: ∀α. α → α
+
+fun bar(a) =
+  let b = 1
+  let c = 1
+  b + c
+//│ bar: ∀α. {α ≥ Int → Int, α ≤ ⊥ → ⊤} ⟹ ⊤ → Int
+
+fun baz(a, b) =
+  let c = if a is
+    Int then (b as Int)
+    Str then (b as Str)
+  c
+//│ baz: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
+
+baz(1, 1)
+//│ ∀α, β, γ. {α ≤ Int → ⊤, α ≥ ⊤ → γ, β ≥ Int, γ ≥ {β ≤ Int} ⟹ Int, β ≤ {Int ≤ Str} ⟹ Str, β ≤ Int} ⟹ Int
+
+baz("", "")
+//│ ∀α, β, γ, δ, ε. {α ≤ Str → ε, γ ≤ ε, ε ≥ {β ≤ {δ ≥ Str} ⟹ Str} ⟹ δ, α ≥ ⊤ → γ, β ≥ Str, γ ≥ {β ≤ {δ ≥ Str} ⟹ Str} ⟹ δ, δ ≥ {β ≤ {δ ≥ Str} ⟹ Str, γ ≥ δ, β ≤ Str} ⟹ Str, β ≤ {Str ≤ Int, γ ≥ Int} ⟹ Int} ⟹ ε
+
+baz(bot, bot)
+//│ ∀α, β, γ, δ, ε. {α ≤ ⊥ → ε, γ ≤ ε, ε ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ {δ ≥ Str} ⟹ Str, δ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ ⊥} ⟹ ⊥)} ⟹ δ), α ≥ ⊤ → γ, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ {δ ≥ Str} ⟹ Str, δ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ ⊥} ⟹ ⊥)} ⟹ δ), δ ≥ ({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({β ≤ {δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ ⊥} ⟹ ⊥)), β ≤ ({γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ ⊥} ⟹ ⊥), δ ≥ Str} ⟹ Str)} ⟹ ε
+
+:te
+baz(1, "")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str

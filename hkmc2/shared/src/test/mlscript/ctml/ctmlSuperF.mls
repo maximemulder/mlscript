@@ -283,7 +283,7 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 
 // FIXME: SuperF recursive higher-rank stress case currently overflows in subtyping.
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), γ ≤ γ → δ, β ≤ γ → δ, δ ≤ γ → δ, γ ≥ β, β ≥ α, α ≤ β → γ → δ, β ≤ β → γ → δ} ⟹ γ → (δ ∨ γ)
+//│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), γ ≤ γ → δ, β ≤ γ → δ, δ ≤ γ → δ, γ ≥ β, β ≥ α, α ≤ β → γ → δ, β ≤ β → γ → δ} ⟹ γ → γ
 
 :fixme // FIXME: SuperF expected output is unstable under the current semantic inlining refactor.
 val g10 = ((x) => x(x))((x) => x(x))

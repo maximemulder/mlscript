@@ -1,5 +1,7 @@
 package hkmc2.ctml.core.simplification
 
+import scala.annotation.tailrec
+
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.inference.*
@@ -10,20 +12,25 @@ import hkmc2.ctml.core.validation.validateInferenceState
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)
-  def simplifyClauses2(type_ : Type, level: Int, outs: SubClauses): (Type, SubClauses) =
+  @tailrec
+  def simplifyClauses2(type_ : Type, level: Int, outs: SubClauses)(using noInlineVars: NoInlineVars): (Type, SubClauses) =
     val typeVars = type_
       .getDeps(Polarity.Positive).all
       .flatMap((dep) => Iterator.single(dep).concat(dep.var_.getTransDeps(dep.pol)(using ctx.extend(outs)).all))
       .map(_.var_)
 
     val inlinings = outs.typeVars
+      .filterNot(noInlineVars.contains)
       .filter(ctx.extend(outs).getTypeVarEffectiveLevel(_) >= level)
       .map((var_) => type_.getInlinePolarities(var_)(using ctx.extend(outs)).map((var_, _)))
       .flatten
 
-    inlinings.foldRight((type_, outs))((inlining, to) => (
-      inlineVar(to._1, inlining._1, inlining._2, to._2)(using ctx)
-    ))
+    inlinings.lastOption match
+      case None =>
+        (type_, outs)
+      case Some((var_, polarities)) =>
+        val (newType, newOuts) = inlineVar(type_, var_, polarities, outs)(using ctx)
+        ctx.simplifyClauses2(newType, level, newOuts)
 
   /** Eliminate level-local variables disconnected from an open inference result.
     *

@@ -25,9 +25,6 @@ fun foo2(a, b) =
 //│ 1 flex level 2
 //│ 2 flex level 2
 //│ 3 flex level 2
-//│ 3 flex level 2
-//│ 2 flex level 2
-//│ 1 flex level 2
 //│ LEVEL SIMPLIFY ∀1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2 OUT 0 flex (2)
 //│ LEVEL RESULT ∀0, 1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2
 //│ LEVEL CLAUSES (1) ∀0, 1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2 OUT ∅
@@ -38,10 +35,6 @@ fun foo2(a, b) =
 //│ 1 flex level 1
 //│ 2 flex level 1
 //│ 3 flex level 1
-//│ 3 flex level 1
-//│ 2 flex level 1
-//│ 1 flex level 1
-//│ 0 flex level 1
 //│ LEVEL SIMPLIFY ∀0, 1, 2, 3. {0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 0 → 1 → 2 OUT ∅
 //│ LEVEL RESULT ∀0, 1, 2, 3. {0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 0 → 1 → 2
 //│ foo2: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
@@ -68,7 +61,69 @@ foo2(1, "World")
 //│ = 9
 //│ inline 8 in 9 in 9 ≥ {Int ≤ {8 ≥ Str} ⟹ Str} ⟹ 8, 9 flex (1), 8 ≥ {Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 8 flex (2)
 //│ = 9
-//│ LEVEL SIMPLIFY 9 OUT 9 ≥ {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 9 flex (1)
-//│ LEVEL RESULT ∀9. {9 ≥ {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥} ⟹ 9
-//│ ∀α. {α ≥ {Int ≤ Str, Int ≤ {β ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥} ⟹ α
-//│ FAILURE: Unexpected lack of type error
+//│ inline 9 in 9 in 9 ≥ {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 9 flex (1)
+//│ = {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥
+//│ java.lang.Exception: Type variable '8' not found in the context.
+//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:35)
+//│ 	at hkmc2.ctml.core.context.var$package$.decl(var.scala:82)
+//│ 	at hkmc2.ctml.core.context.var$package$.kind(var.scala:86)
+//│ 	at hkmc2.ctml.core.context.var$package$.isRigid(var.scala:94)
+//│ 	at hkmc2.ctml.core.subtyping.mode$package$.isFlexMode(mode.scala:21)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:152)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:62)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:50)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:50)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:449)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstrainedSup(constraining.scala:363)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:236)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:62)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:50)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:50)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:39)
+//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeConstraint(constraining.scala:449)
+//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplify(simplifyType.scala:53)
+//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplify(simplifyType.scala:59)
+//│ 	at hkmc2.ctml.core.simplification.simplifyLevel$package$.simplifyLevel(simplifyLevel.scala:17)
+//│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:56)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$2(level.scala:76)
+//│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
+//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:72)
+//│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
+//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
+//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
+//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
+//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
+//│ 	at scala.collection.immutable.List.foreach(List.scala:327)
+//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
+//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
+//│ 	at hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:65)
+//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:448)
+//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:413)
+//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:253)
+//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:377)
+//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:407)
+//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:301)
+//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:80)
+//│ 	at hkmc2.Watcher.go(Watcher.scala:124)
+//│ 	at hkmc2.Watcher.onModify(Watcher.scala:139)
+//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:76)
+//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
+//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
+//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
+//│ 	at hkmc2.Watcher.run(Watcher.scala:89)
+//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
+//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '8' not found in the context.
+//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:35)
+//│ 	at: hkmc2.ctml.core.context.var$package$.decl(var.scala:82)
+//│ 	at: hkmc2.ctml.core.context.var$package$.kind(var.scala:86)
+//│ 	at: hkmc2.ctml.core.context.var$package$.isRigid(var.scala:94)
+//│ 	at: hkmc2.ctml.core.subtyping.mode$package$.isFlexMode(mode.scala:21)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:152)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:62)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:50)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:50)
+//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeDir(constraining.scala:41)

@@ -97,7 +97,7 @@ private def inlineApp(app: TApp, var_ : TypeVar, pol: Polarity)(using ctx: SubCo
 
 private def inlineUniv(univ: TUniv, var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =
   val newBody = inlineType(univ.body, var_, pol)(using ctx.declTypeVar(univ.var_, TypeVarKind.Rigid))
-  simplifyUniv(TUniv(univ.var_, newBody))
+  simplifyUniv(univ.var_, newBody)
 
 private def inlineConstrained(constrained: TConstrained, var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =
   val newBody = inlineType(constrained.body, var_, pol)

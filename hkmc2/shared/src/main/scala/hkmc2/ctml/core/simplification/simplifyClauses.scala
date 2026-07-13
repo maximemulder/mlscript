@@ -10,6 +10,21 @@ import hkmc2.ctml.core.validation.validateInferenceState
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)
+  def simplifyClauses2(type_ : Type, level: Int, outs: SubClauses): (Type, SubClauses) =
+    val typeVars = type_
+      .getDeps(Polarity.Positive).all
+      .flatMap((dep) => Iterator.single(dep).concat(dep.var_.getTransDeps(dep.pol)(using ctx.extend(outs)).all))
+      .map(_.var_)
+
+    val inlinings = outs.typeVars
+      .filter(ctx.extend(outs).getTypeVarEffectiveLevel(_) >= level)
+      .map((var_) => type_.getInlinePolarities(var_)(using ctx.extend(outs)).map((var_, _)))
+      .flatten
+
+    inlinings.foldRight((type_, outs))((inlining, to) => (
+      inlineVar(to._1, inlining._1, inlining._2, to._2)(using ctx)
+    ))
+
   /** Eliminate level-local variables disconnected from an open inference result.
     *
     * Dependencies are followed polarly through effective bounds. Variables with distinct lower

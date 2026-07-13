@@ -12,17 +12,28 @@ fun foo2(a, b) =
 //│ 1 flex infer level 3
 //│ 2 flex infer level 3
 //│ 3 flex infer level 3
-//│ 1 flex level 3
-//│ 2 flex level 3
-//│ 3 flex level 3
-//│ 0 flex level 2
+//│ LEVEL CLAUSES (3) 1 → 2 OUT 1 ≤ {0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 0 ≤ ⊥} ⟹ ⊤, 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 flex (3), 2 flex (3), 1 flex (3)
+//│ LEVEL UNWRAP 1 → 2 OUT ∅
+//│ LEVEL SIMPLIFY TYPE 1 → 2 OUT ∅
+//│ LEVEL WRAP TYPE 1 → 2
+//│ LEVEL SIMPLIFY 1 → 2 OUT 1 ≤ {0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 0 ≤ ⊥} ⟹ ⊤, 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 flex (3), 2 flex (3), 1 flex (3)
+//│ LEVEL RESULT ∀1, 2, 3. {1 ≤ {0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 0 ≤ ⊥} ⟹ ⊤, 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 1 → 2
+//│ LEVEL CLAUSES (2) 0 → (∀1, 2, 3. {1 ≤ {0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 0 ≤ ⊥} ⟹ ⊤, 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 1 → 2) OUT 0 flex (2)
+//│ LEVEL UNWRAP 0 → 1 → 2 OUT 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 flex (2), 2 flex (2), 1 flex (2)
+//│ LEVEL SIMPLIFY TYPE 0 → 1 → 2 OUT 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 flex (2), 2 flex (2), 1 flex (2)
+//│ LEVEL WRAP TYPE ∀1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2
 //│ 1 flex level 2
 //│ 2 flex level 2
 //│ 3 flex level 2
 //│ 3 flex level 2
 //│ 2 flex level 2
 //│ 1 flex level 2
-//│ 0 flex level 2
+//│ LEVEL SIMPLIFY ∀1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2 OUT 0 flex (2)
+//│ LEVEL RESULT ∀0, 1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2
+//│ LEVEL CLAUSES (1) ∀0, 1, 2, 3. {2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str)} ⟹ 0 → 1 → 2 OUT ∅
+//│ LEVEL UNWRAP 0 → 1 → 2 OUT 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 flex (1), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ LEVEL SIMPLIFY TYPE 0 → 1 → 2 OUT 0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3), 3 flex (1), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ LEVEL WRAP TYPE ∀0, 1, 2, 3. {0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 0 → 1 → 2
 //│ 0 flex level 1
 //│ 1 flex level 1
 //│ 2 flex level 1
@@ -31,6 +42,8 @@ fun foo2(a, b) =
 //│ 2 flex level 1
 //│ 1 flex level 1
 //│ 0 flex level 1
+//│ LEVEL SIMPLIFY ∀0, 1, 2, 3. {0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 0 → 1 → 2 OUT ∅
+//│ LEVEL RESULT ∀0, 1, 2, 3. {0 ≤ ({1 ≤ Int, 2 ≥ Int} ⟹ Int) ∨ ({2 ≥ 3, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≤ Str, 3 ≥ Str} ⟹ Str), 3 ≥ ({0 ≤ Int, 1 ≤ Int, 2 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 2 ≥ 3} ⟹ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 2 ≥ ({0 ≤ Int, 1 ≤ Int} ⟹ Int) ∧ ({0 ≤ {1 ≤ Str, 3 ≥ Str} ⟹ Str, 3 ≥ ({0 ≤ Str, 1 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 3)} ⟹ 0 → 1 → 2
 //│ foo2: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
 
 :te
@@ -41,21 +54,21 @@ foo2(1, "World")
 //│ 7 flex freshen 2 level 2
 //│ 8 flex freshen 3 level 2
 //│ 9 flex infer level 1
-//│ 4 flex level 1
-//│ 5 flex level 1
-//│ 6 flex level 1
-//│ 7 flex level 1
-//│ 8 flex level 1
-//│ 9 flex level 1
-//│ 9 flex level 1
-//│ inline 9 in 9 in 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 5 ≥ Int, 4 ≥ 6 → 7, 9 ≥ 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8)), 6 ≥ Str, 9 ≥ 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8)), 9 ≥ 7, 4 ≤ Str → 9, 9 flex (1), 8 flex (1), 7 flex (1), 6 flex (1), 5 flex (1), 4 flex (1)
-//│ = 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8))
-//│ 8 flex level 1
-//│ inline 8 in 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8)) in 4 ≤ Str → ⊤, 6 ≥ Str, 4 ≥ 6 → 7, 5 ≥ Int, 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 8 flex (1), 7 flex (1), 6 flex (1), 5 flex (1), 4 flex (1)
-//│ = {5 ≤ {6 ≤ Str} ⟹ Str} ⟹ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥))
-//│ 7 flex level 1
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ {β ≤ Str} ⟹ Str.
-//│ Typing error tree:
-//│   α ≤ {β ≤ Str} ⟹ Str
-//│     Int ≤ {β ≤ Str} ⟹ Str
-//│       Int ≤ Str
+//│ LEVEL CLAUSES (1) 9 OUT 4 ≤ Str → 9, 7 ≤ 9, 9 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 6 ≥ Str, 9 flex (1), 4 ≥ 6 → 7, 5 ≥ Int, 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 5 ≤ ({6 ≤ Int, 7 ≥ Int} ⟹ Int) ∨ ({7 ≥ 8, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥), 6 ≤ Str, 8 ≥ Str} ⟹ Str), 8 flex (2), 7 flex (2), 6 flex (2), 5 flex (2), 4 flex (1)
+//│ LEVEL UNWRAP 9 OUT ∅
+//│ LEVEL SIMPLIFY TYPE 9 OUT ∅
+//│ LEVEL WRAP TYPE 9
+//│ inline 4 in 9 in 4 ≤ Str → 9, 7 ≤ 9, 9 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 6 ≥ Str, 9 flex (1), 4 ≥ 6 → 7, 5 ≥ Int, 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 5 ≤ ({6 ≤ Int, 7 ≥ Int} ⟹ Int) ∨ ({7 ≥ 8, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥), 6 ≤ Str, 8 ≥ Str} ⟹ Str), 8 flex (2), 7 flex (2), 6 flex (2), 5 flex (2), 4 flex (1)
+//│ = 9
+//│ inline 5 in 9 in 7 ≤ 9, 9 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 6 ≥ Str, 9 flex (1), 5 ≥ Int, 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 5 ≤ ({6 ≤ Int, 7 ≥ Int} ⟹ Int) ∨ ({7 ≥ 8, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥), 6 ≤ Str, 8 ≥ Str} ⟹ Str), 8 flex (2), 7 flex (2), 6 flex (2), 5 flex (2)
+//│ = 9
+//│ inline 6 in 9 in 7 ≤ 9, 9 ≥ {Int ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str} ⟹ 8, 6 ≥ Str, 9 flex (1), 7 ≥ {Int ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str} ⟹ 8, 8 ≥ {Int ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 8 flex (2), 7 flex (2), 6 flex (2)
+//│ = 9
+//│ inline 7 in 9 in 7 ≤ 9, 9 ≥ {Int ≤ {8 ≥ Str} ⟹ Str} ⟹ 8, 9 flex (1), 7 ≥ {Int ≤ {8 ≥ Str} ⟹ Str} ⟹ 8, 8 ≥ {Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 8 flex (2), 7 flex (2)
+//│ = 9
+//│ inline 8 in 9 in 9 ≥ {Int ≤ {8 ≥ Str} ⟹ Str} ⟹ 8, 9 flex (1), 8 ≥ {Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 8 flex (2)
+//│ = 9
+//│ LEVEL SIMPLIFY 9 OUT 9 ≥ {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥, 9 flex (1)
+//│ LEVEL RESULT ∀9. {9 ≥ {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥} ⟹ 9
+//│ ∀α. {α ≥ {Int ≤ Str, Int ≤ {β ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥} ⟹ α
+//│ FAILURE: Unexpected lack of type error

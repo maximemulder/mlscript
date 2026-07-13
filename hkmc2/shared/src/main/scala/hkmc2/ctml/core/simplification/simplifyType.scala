@@ -9,6 +9,7 @@ import hkmc2.ctml.core.inference.inlineVar
 import hkmc2.ctml.core.structural.isIndirectRecursive
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
@@ -48,8 +49,14 @@ extension (type_ : Type)
         val newBody = body.simplify()(using ctx.declTypeVar(var_, TypeVarKind.Flex), noInlineVars)
         simplifyUniv(var_, newBody)
       case TConstrained(body, constraint) =>
+        val constraintClauses = try
+          subtypeConstraint(constraint)(using ctx, ConstraintMode.Solve)
+        catch
+          case _: TypeError =>
+            SubClauses.empty
+
         simplifyConstrained(
-          body.simplify(),
+          body.simplify()(using ctx.extend(constraintClauses)),
           constraint.simplify(),
         )
       case TConstraining(body, constraint) =>
@@ -75,13 +82,9 @@ def simplifyUniv(var_ : TypeVar, body: Type)(using ctx: SubContext, noInlineVars
   if noInlineVars.contains(var_) then
     return TUniv(var_, body)
 
-  val univCtx = ctx.declTypeVar(var_, TypeVarKind.Flex)
-  val (newBody, clauses) = body.unwrapCtx(using univCtx)
-
-  body.getInlinePolarities(var_)(using univCtx.extend(clauses)) match
+  body.getInlinePolarities(var_) match
     case Some(polarities) =>
-      val (newNewBody, newClauses) = inlineVar(body, var_, polarities, clauses)(using univCtx)
-      newNewBody.wrapCtx(newClauses)
+      body.inline(var_)
     case None =>
       TUniv(var_, body)
 

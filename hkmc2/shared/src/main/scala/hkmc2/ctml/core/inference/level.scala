@@ -58,7 +58,7 @@ extension (ctx: SubContext)
     debug(s"LEVEL SIMPLIFY ${type4} OUT ${outs4}")
 
     if config.checkUnsolvableConstreds then
-      checkUnsolvableConstreds(type2, outs4)(using ctx)
+      checkUnsolvableConstreds(type4, outs4)(using ctx)
 
     val type5 = type4.wrapCtx(outs4)
 

@@ -44,12 +44,12 @@ extension (ctx: SubContext)
 
     val type5 = type2.wrapCtx(outs2)
 
-    // val type5 = type4.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
+    val type6 = type5.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
 
     if config.checkUnsolvableConstreds then
-      checkUnsolvableConstreds(type5, SubClauses.empty)(using ctx)
+      checkUnsolvableConstreds(type6, SubClauses.empty)(using ctx)
 
-    (type5, SubClauses())
+    (type6, SubClauses())
 
 extension (ctx: TypeContext)
   /** Evaluate a type inference function in a new subtyping level and solve that level. */

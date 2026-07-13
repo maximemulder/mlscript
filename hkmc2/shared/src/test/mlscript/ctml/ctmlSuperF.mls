@@ -153,7 +153,7 @@ val c5 = cons(id, ids)
 // OK
 
 val c6 = cons((x) => x, ids)
-//│ c6: List[∀α. α → α]
+//│ c6: List[∀A. A → A]
 // OK
 
 val c7 = append(single(inc), single(id))
@@ -189,7 +189,7 @@ val d4 = app(runST, argST)
 // OK
 
 val d5 = revapp(argST, runST)
-//│ d5: Int
+//│ d5: ∀α, β, γ, δ. {γ ≥ Int, α ≥ Int, β ≥ Int, δ ≥ Int} ⟹ α ∨ β
 // OK
 
 declare fun k: [A] -> (A,  List[A]) -> A
@@ -225,7 +225,7 @@ val f6 = cons(head(ids), ids)
 // OK
 
 val f7 = head(ids, 3)
-//│ f7: Int
+//│ f7: ∀α, β, γ, δ, ε, ζ, η, θ. {θ ≥ Int, ε ≥ Int, δ ≥ Int, γ ≥ Int, ζ ≥ Int, α ≥ Int, β ≥ Int, η ≥ Int} ⟹ α ∨ β
 // OK
 
 val f8 = choose(head(ids))
@@ -271,7 +271,7 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 
 // FIXME: This application takes a lot of time.
 val g7 = (s(s(z)))(s(s(z)))
-//│ g7: ⊤ → ⊤ → ⊥
+//│ g7: ∀α, β. {α ≥ β} ⟹ (α → β) → ⊤ → β
 
 // FIXME: This application takes a lot of time.
 val g8 = toChurch
@@ -281,9 +281,9 @@ val g8 = toChurch
 val g8a = toChurch as ((Int) -> ChurchInt)
 //│ g8a: Int → ChurchInt
 
-// FIXME: SuperF recursive higher-rank stress case currently overflows in subtyping.
+// FIXME: SuperF recursive higher-rank stre1ss case currently overflows in subtyping.
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), γ ≤ γ → δ, β ≤ γ → δ, δ ≤ γ → δ, γ ≥ β, β ≥ α, α ≤ β → γ → δ, β ≤ β → γ → δ} ⟹ γ → γ
+//│ g9: ∀α, β, γ, δ. {γ ≥ β, β ≥ α, δ ≤ γ → δ, β ≤ γ → δ, γ ≤ γ → δ, α ≥ γ → (δ ∨ γ), δ ≥ γ, α ≤ γ → δ} ⟹ γ → (δ ∨ γ)
 
 :fixme // FIXME: SuperF expected output is unstable under the current semantic inlining refactor.
 val g10 = ((x) => x(x))((x) => x(x))
@@ -301,7 +301,7 @@ val g12 = ((y) =>
     let tmp = y(id)
     y(const)
 ) ((x) => x(x))
-//│ g12: ∀A. ⊤ → A → ⊤ → A
+//│ g12: ∀α, β, γ. {γ ≥ ∀A. A → ⊤ → A, α ≥ ∀A. A → ⊤ → A, β ≥ ∀A. A → ⊤ → A} ⟹ (⊤ → α) ∨ (⊤ → β)
 // OK
 
 val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))

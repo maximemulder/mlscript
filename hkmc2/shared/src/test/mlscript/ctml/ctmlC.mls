@@ -12,6 +12,25 @@ fun foo2(a, b) =
 //│ 1 flex infer level 3
 //│ 2 flex infer level 3
 //│ 3 flex infer level 3
+//│ 1 flex level 3
+//│ 2 flex level 3
+//│ 3 flex level 3
+//│ 0 flex level 2
+//│ 1 flex level 2
+//│ 2 flex level 2
+//│ 3 flex level 2
+//│ 3 flex level 2
+//│ 2 flex level 2
+//│ 1 flex level 2
+//│ 0 flex level 2
+//│ 0 flex level 1
+//│ 1 flex level 1
+//│ 2 flex level 1
+//│ 3 flex level 1
+//│ 3 flex level 1
+//│ 2 flex level 1
+//│ 1 flex level 1
+//│ 0 flex level 1
 //│ foo2: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
 
 :te
@@ -22,78 +41,21 @@ foo2(1, "World")
 //│ 7 flex freshen 2 level 2
 //│ 8 flex freshen 3 level 2
 //│ 9 flex infer level 1
-//│ inline 4 in 9 in 
-//│ = 9
-//│ inline 5 in 9 in 
-//│ = 9
-//│ inline 6 in 9 in 
-//│ = 9
-//│ inline 7 in 9 in 
-//│ = 9
-//│ inline 8 in 9 in 
-//│ = 9
-//│ inline 9 in 9 in 
-//│ = {Int ≤ Str, Int ≤ {8 ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥
-//│ java.lang.Exception: Type variable '8' not found in the context.
-//│ 	at hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:35)
-//│ 	at hkmc2.ctml.core.context.var$package$.decl(var.scala:82)
-//│ 	at hkmc2.ctml.core.context.var$package$.kind(var.scala:86)
-//│ 	at hkmc2.ctml.core.context.var$package$.isFlex(var.scala:90)
-//│ 	at hkmc2.ctml.core.subtyping.mode$package$.isFlexMode(mode.scala:19)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:152)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:62)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:50)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:50)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkSubtype$$anonfun$1(constraining.scala:417)
-//│ 	at hkmc2.ctml.config.wrappers$package$.withCheckingMode(wrappers.scala:57)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkSubtype(constraining.scala:417)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkSubtypeDir(constraining.scala:429)
-//│ 	at hkmc2.ctml.core.subtyping.constraining$package$.checkConstraint(constraining.scala:446)
-//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplifyConstrained(simplifyType.scala:90)
-//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplify(simplifyType.scala:54)
-//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplify(simplifyType.scala:107)
-//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplify(simplifyType.scala:53)
-//│ 	at hkmc2.ctml.core.simplification.simplifyType$package$.simplify(simplifyType.scala:52)
-//│ 	at hkmc2.ctml.core.simplification.simplifyLevel$package$.simplifyLevel(simplifyLevel.scala:20)
-//│ 	at hkmc2.ctml.core.inference.level$package$.processLevel(level.scala:34)
-//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel$$anonfun$2(level.scala:61)
-//│ 	at hkmc2.ctml.core.context.level$package$.withLevel(level.scala:27)
-//│ 	at hkmc2.ctml.core.inference.level$package$.withInferLevel(level.scala:57)
-//│ 	at hkmc2.ctml.core.inference.infer$package$.inferTopLevel(infer.scala:16)
-//│ 	at hkmc2.ctml.test.Tester.testExpr(test.scala:128)
-//│ 	at hkmc2.ctml.test.Tester.testStatement(test.scala:91)
-//│ 	at hkmc2.ctml.test.Tester.test$$anonfun$2(test.scala:68)
-//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:15)
-//│ 	at scala.runtime.function.JProcedure1.apply(JProcedure1.java:10)
-//│ 	at scala.collection.immutable.List.foreach(List.scala:327)
-//│ 	at hkmc2.ctml.test.Tester.test(test.scala:67)
-//│ 	at hkmc2.ctml.test.test$package$.test(test.scala:40)
-//│ 	at hkmc2.InvalMLDiffMaker.processTerm(InvalmlDiffMaker.scala:65)
-//│ 	at hkmc2.MLsDiffMaker.processTrees(MLsDiffMaker.scala:448)
-//│ 	at hkmc2.MLsDiffMaker.processOrigin(MLsDiffMaker.scala:413)
-//│ 	at hkmc2.DiffMaker.processBlock(DiffMaker.scala:253)
-//│ 	at hkmc2.DiffMaker.rec(DiffMaker.scala:377)
-//│ 	at hkmc2.DiffMaker.run(DiffMaker.scala:407)
-//│ 	at hkmc2.MLsDiffMaker.run(MLsDiffMaker.scala:301)
-//│ 	at hkmc2.JSBackendDiffMaker.run(JSBackendDiffMaker.scala:80)
-//│ 	at hkmc2.Watcher.go(Watcher.scala:124)
-//│ 	at hkmc2.Watcher.onModify(Watcher.scala:139)
-//│ 	at hkmc2.Watcher$$anon$1.onEvent(Watcher.scala:76)
-//│ 	at io.methvin.watcher.DirectoryWatcher.onEvent(DirectoryWatcher.java:425)
-//│ 	at io.methvin.watcher.DirectoryWatcher.runEventLoop(DirectoryWatcher.java:356)
-//│ 	at io.methvin.watcher.DirectoryWatcher.watch(DirectoryWatcher.java:250)
-//│ 	at hkmc2.Watcher.run(Watcher.scala:89)
-//│ 	at hkmc2.MainWatcher$.main(Watcher.scala:25)
-//│ 	at hkmc2.MainWatcher.main(Watcher.scala)
-//│ FAILURE: Unexpected exception
-//│ /!!!\ Uncaught error: java.lang.Exception: Type variable '8' not found in the context.
-//│ 	at: hkmc2.ctml.core.context.var$package$.getTypeVarDecl(var.scala:35)
-//│ 	at: hkmc2.ctml.core.context.var$package$.decl(var.scala:82)
-//│ 	at: hkmc2.ctml.core.context.var$package$.kind(var.scala:86)
-//│ 	at: hkmc2.ctml.core.context.var$package$.isFlex(var.scala:90)
-//│ 	at: hkmc2.ctml.core.subtyping.mode$package$.isFlexMode(mode.scala:19)
-//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeImpl(constraining.scala:152)
-//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtypeCache(constraining.scala:62)
-//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtype$$anonfun$1(constraining.scala:50)
-//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.subtype(constraining.scala:50)
-//│ 	at: hkmc2.ctml.core.subtyping.constraining$package$.checkSubtype$$anonfun$1(constraining.scala:417)
+//│ 4 flex level 1
+//│ 5 flex level 1
+//│ 6 flex level 1
+//│ 7 flex level 1
+//│ 8 flex level 1
+//│ 9 flex level 1
+//│ 9 flex level 1
+//│ inline 9 in 9 in 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 5 ≥ Int, 4 ≥ 6 → 7, 9 ≥ 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8)), 6 ≥ Str, 9 ≥ 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8)), 9 ≥ 7, 4 ≤ Str → 9, 9 flex (1), 8 flex (1), 7 flex (1), 6 flex (1), 5 flex (1), 4 flex (1)
+//│ = 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8))
+//│ 8 flex level 1
+//│ inline 8 in 7 ∨ (({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8)) in 4 ≤ Str → ⊤, 6 ≥ Str, 4 ≥ 6 → 7, 5 ≥ Int, 7 ≥ ({5 ≤ Int, 6 ≤ Int} ⟹ Int) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 8 ≥ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)} ⟹ 8), 8 ≥ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥)), 8 flex (1), 7 flex (1), 6 flex (1), 5 flex (1), 4 flex (1)
+//│ = {5 ≤ {6 ≤ Str} ⟹ Str} ⟹ ({5 ≤ Int, 6 ≤ Int, 7 ≥ Int} ⟹ ⊥) ∧ ({5 ≤ {6 ≤ Str, 8 ≥ Str} ⟹ Str, 7 ≥ 8} ⟹ ({5 ≤ Str, 6 ≤ Str} ⟹ Str) ∧ ({5 ≤ ⊥} ⟹ ⊥))
+//│ 7 flex level 1
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ {β ≤ Str} ⟹ Str.
+//│ Typing error tree:
+//│   α ≤ {β ≤ Str} ⟹ Str
+//│     Int ≤ {β ≤ Str} ⟹ Str
+//│       Int ≤ Str

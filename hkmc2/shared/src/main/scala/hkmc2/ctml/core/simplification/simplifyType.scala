@@ -46,7 +46,7 @@ extension (type_ : Type)
         )
       case TUniv(var_, body) =>
         val newBody = body.simplify()(using ctx.declTypeVar(var_, TypeVarKind.Flex), noInlineVars)
-        simplifyUniv(TUniv(var_, newBody))
+        simplifyUniv(var_, newBody)
       case TConstrained(body, constraint) =>
         simplifyConstrained(
           body.simplify(),
@@ -71,19 +71,19 @@ def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: SubContex
   hkmc2.ctml.core.combine.combine(mode, left, right)
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */
-def simplifyUniv(univ: TUniv)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
-  if noInlineVars.contains(univ.var_) then
-    return univ
+def simplifyUniv(var_ : TypeVar, body: Type)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
+  if noInlineVars.contains(var_) then
+    return TUniv(var_, body)
 
-  val univCtx = ctx.declTypeVar(univ.var_, TypeVarKind.Flex)
-  val (body, clauses) = univ.body.unwrapCtx(using univCtx)
+  val univCtx = ctx.declTypeVar(var_, TypeVarKind.Flex)
+  val (newBody, clauses) = body.unwrapCtx(using univCtx)
 
-  body.getInlinePolarities(univ.var_)(using univCtx.extend(clauses)) match
+  body.getInlinePolarities(var_)(using univCtx.extend(clauses)) match
     case Some(polarities) =>
-      val (newBody, newClauses) = inlineVar(body, univ.var_, polarities, clauses)(using univCtx)
-      newBody.wrapCtx(newClauses)
+      val (newNewBody, newClauses) = inlineVar(body, var_, polarities, clauses)(using univCtx)
+      newNewBody.wrapCtx(newClauses)
     case None =>
-      univ
+      TUniv(var_, body)
 
 /** Simplify a constrained type after its body and constraint have already been simplified. */
 def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: SubContext): Type =

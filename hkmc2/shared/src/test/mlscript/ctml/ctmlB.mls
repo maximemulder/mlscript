@@ -22,18 +22,15 @@ fun baz(a, b) =
 //│ baz: ∀α, β, γ, δ. {α ≤ ({β ≤ Int, γ ≥ Int} ⟹ Int) ∨ ({γ ≥ δ, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), β ≤ Str, δ ≥ Str} ⟹ Str), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, γ ≥ δ} ⟹ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ {β ≤ Str, δ ≥ Str} ⟹ Str, δ ≥ ({α ≤ Str, β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
 
 baz(1, 1)
-//│ ∀α, β. {α ≥ Int, β ≥ {α ≥ Int} ⟹ ⊥} ⟹ α
+//│ ∀α. {α ≥ Int} ⟹ α
 
 baz("", "")
-//│ ∀α, β. {α ≥ β, β ≥ {α ≥ β} ⟹ Str} ⟹ α ∨ β
+//│ ∀α, β. {β ≥ α, α ≥ Str} ⟹ β
 
 baz(bot, bot)
-//│ ∀α, β. {α ≥ Int ∧ β, β ≥ ({α ≥ Int} ⟹ ⊥) ∧ ({α ≥ β} ⟹ ⊥)} ⟹ α ∨ (Int ∧ β)
+//│ ∀α, β. {β ≥ Int ∧ α, α ≥ ({β ≥ Int} ⟹ ⊥) ∧ ({β ≥ α} ⟹ ⊥)} ⟹ β
 
 :te
 baz(1, "")
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ {β ≤ Str} ⟹ Str.
-//│ Typing error tree:
-//│   α ≤ {β ≤ Str} ⟹ Str
-//│     Int ≤ {β ≤ Str} ⟹ Str
-//│       Int ≤ Str
+//│ ∀α. {α ≥ {Int ≤ Str, Int ≤ {β ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥} ⟹ α
+//│ FAILURE: Unexpected lack of type error

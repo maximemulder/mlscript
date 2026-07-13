@@ -28,28 +28,43 @@ extension (ctx: SubContext)
   /** Process the type, variables, and constraints generated in a level. Quantifying and
    *  simplifying then if possible. */
   def processLevel(level: Int, type_ : Type, outs: SubClauses): (Type, SubClauses) =
-    val (type1, outs1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
+    // NOTE: unwrapCtx currently solves clauses, which may need to be moved somewhere else.
 
-    // val (type2, outs2) = ctx.simplifyClauses(type1, level, outs.concat(outs1))
-    val (type2, outs2) = ctx.simplifyLevel(type1, level, outs.concat(outs1))
+    debug(s"LEVEL CLAUSES (${level}) ${type_} OUT ${outs}")
+
+    val (type1, typeOuts1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
+
+    debug(s"LEVEL UNWRAP ${type1} OUT ${typeOuts1}")
+
+    // Variables extruded through an outer variable have an effective level below their declaration
+    // level. Keep them quantified: eliminating them by polarity would lose that outer dependency.
+    val levelCtx = ctx.extend(outs.concat(typeOuts1))
+    val noInlineVars = NoInlineVars(
+      levelCtx.getLevelVars(level)
+        .filter(levelCtx.getTypeVarEffectiveLevel(_) < level)
+        .toSet
+    )
+
+    val (type2, typeOuts2) = ctx.extend(outs).simplifyLevel(type1, level, typeOuts1)(using noInlineVars)
+
+    debug(s"LEVEL SIMPLIFY TYPE ${type2} OUT ${typeOuts2}")
+
+    val type3 = type2.wrapCtx(typeOuts2)
+
+    debug(s"LEVEL WRAP TYPE ${type3}")
+
+    val (type4, outs4) = ctx.simplifyLevel(type3, level, outs)(using noInlineVars)
+
+    debug(s"LEVEL SIMPLIFY ${type4} OUT ${outs4}")
 
     if config.checkUnsolvableConstreds then
-      checkUnsolvableConstreds(type2, outs2)(using ctx)
+      checkUnsolvableConstreds(type2, outs4)(using ctx)
 
-    val levelCtx = ctx.extend(outs2)
-    val levelVars = levelCtx.getLevelVars(level)
-    val noSimplifyInlineVars = levelVars
-      .filter(levelCtx.getTypeVarEffectiveLevel(_) < level)
-      .toSet
+    val type5 = type4.wrapCtx(outs4)
 
-    val type5 = type2.wrapCtx(outs2)
+    debug(s"LEVEL RESULT ${type5}")
 
-    val type6 = type5.simplify()(using ctx, NoInlineVars(noSimplifyInlineVars))
-
-    if config.checkUnsolvableConstreds then
-      checkUnsolvableConstreds(type6, SubClauses.empty)(using ctx)
-
-    (type6, SubClauses())
+    (type5, SubClauses(List()))
 
 extension (ctx: TypeContext)
   /** Evaluate a type inference function in a new subtyping level and solve that level. */

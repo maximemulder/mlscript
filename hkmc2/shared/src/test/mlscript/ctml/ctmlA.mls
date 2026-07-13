@@ -29,13 +29,13 @@ foo(1)
 //│ ∀α. {α ≥ Int} ⟹ α
 
 foo("Hello")
-//│ ∀α, β. {β ≥ {α ≥ β} ⟹ Str, α ≥ β} ⟹ α ∨ β
+//│ ∀α, β. {α ≥ β, β ≥ {α ≥ β} ⟹ Str} ⟹ α
 
 foo(bot)
-//│ ∀α, β. {β ≥ ({α ≥ Int} ⟹ ⊥) ∧ ({α ≥ β} ⟹ ⊥), α ≥ Int ∧ β} ⟹ α ∨ (Int ∧ β)
+//│ ∀α, β. {α ≥ Int ∧ β, β ≥ ({α ≥ Int} ⟹ ⊥) ∧ ({α ≥ β} ⟹ ⊥)} ⟹ α
 
 foo(int_or_string)
-//│ ∀α, β, γ, δ. {α ≥ Int, β ≥ {α ≥ Int} ⟹ ⊥, γ ≥ δ, δ ≥ {γ ≥ δ} ⟹ Str} ⟹ α ∨ γ ∨ Int ∨ δ
+//│ ∀α, β. {α ≥ Int ∨ β, β ≥ Str, α ≥ Int} ⟹ α
 
 // Errors
 
@@ -97,23 +97,20 @@ foo2 as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo2(1, 2)
-//│ ∀α, β. {α ≥ Int, β ≥ {α ≥ Int} ⟹ ⊥} ⟹ α
+//│ ∀α. {α ≥ Int} ⟹ α
 
 foo2("Hello", "World")
-//│ ∀α, β. {α ≥ β, β ≥ {α ≥ β} ⟹ Str} ⟹ α ∨ β
+//│ ∀α, β. {β ≥ α, α ≥ Str} ⟹ β
 
 foo2(bot, bot)
-//│ ∀α, β. {α ≥ Int ∧ β, β ≥ ({α ≥ Int} ⟹ ⊥) ∧ ({α ≥ β} ⟹ ⊥)} ⟹ α ∨ (Int ∧ β)
+//│ ∀α, β. {β ≥ Int ∧ α, α ≥ ({β ≥ Int} ⟹ ⊥) ∧ ({β ≥ α} ⟹ ⊥)} ⟹ β
 
 // Errors
 
 :te
 foo2(1, "World")
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ {β ≤ Str} ⟹ Str.
-//│ Typing error tree:
-//│   α ≤ {β ≤ Str} ⟹ Str
-//│     Int ≤ {β ≤ Str} ⟹ Str
-//│       Int ≤ Str
+//│ ∀α. {α ≥ {Int ≤ Str, Int ≤ {β ≥ Str} ⟹ Str, Int ≤ ⊥} ⟹ ⊥} ⟹ α
+//│ FAILURE: Unexpected lack of type error
 
 // Same return
 

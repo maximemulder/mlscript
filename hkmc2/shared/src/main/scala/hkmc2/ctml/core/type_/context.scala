@@ -16,15 +16,16 @@ extension (type_ : Type)
 
   /** Unwrap the contextual information (quantified variables and constraints) in the top level of
    *  a type. */
-  def unwrapCtx(using ctx: SubContext): (Type, SubClauses) =
-    val (vars, univBody) = type_.getUnivComponents
-    val (constrainedBody, constraints) = univBody.getConstrainedComponents
-    val univOuts = SubClauses(vars.reverse.map(TypeVarDecl(_, TypeVarKind.Flex, None, ctx.level)))
-    val constrainedOuts = constraints.foldLeft(univOuts)((outs, constraint) =>
-      subtypeConstraintSeq(constraint, outs)(using ctx, ConstraintMode.Solve)
-    )
-
-    (constrainedBody, constrainedOuts)
+  def unwrapCtx: (Type, UnsolvedClauses) =
+    type_ match
+      case TUniv(var_, body) =>
+        val (recBody, recClauses) = body.unwrapCtx
+        (recBody, UnsolvedClause.Var(var_) :: recClauses)
+      case TConstrained(body, constraint) =>
+        val (recBody, recClauses) = body.unwrapCtx
+        (recBody, UnsolvedClause.Constr(constraint) :: recClauses)
+      case _ =>
+        (type_, UnsolvedClauses.empty)
 
   /** Wrap contextual information around a type using universal and constrained types. */
   def wrapCtx(clauses: SubClauses): Type =

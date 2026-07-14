@@ -451,6 +451,43 @@ def subtypeConstraint(constraint: Constraint)(using ctx: SubContext, mode: Const
 def subtypeConstraintSeq(constraint: Constraint, ins: SubClauses)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
   ctx.seqUnit(subtypeConstraint(constraint), ins)
 
+/** Solve an unsolved constraint, raising an error if an error is found. */
+def solve(clause: UnsolvedClause)(using ctx: SubContext): SubClauses =
+  clause match
+    case UnsolvedClause.Var(var_) =>
+      SubClauses.single(TypeVarDecl(var_, TypeVarKind.Flex, None, ctx.level))
+    case UnsolvedClause.Constr(constraint) =>
+      subtypeConstraint(constraint)(using ctx, ConstraintMode.Solve)
+
+/** Try to solve an unsolved constraint, returning `None` an error if an error is found. */
+def trySolve(clause: UnsolvedClause)(using SubContext): Option[SubClauses] =
+  try
+    Some(solve(clause))
+  catch
+    case _: TypeError =>
+      None
+
+/** Solve an unsolved constraint, raising an error if an error is found. */
+def solve(clauses: UnsolvedClauses)(using ctx: SubContext): SubClauses =
+  clauses.elems.foldLeft(SubClauses.empty)((outs, clause) =>
+    val outs2 = solve(clause)(using ctx.extend(outs))
+    outs.concat(outs2)
+  )
+
+/** Try to solve some unsolved constraints, returning `None` an error if an error is found. */
+def trySolve(clauses: UnsolvedClauses)(using ctx: SubContext): Option[SubClauses] =
+  clauses.elems.foldLeft(Some(SubClauses.empty) : Option[SubClauses])((outs, clause) =>
+    outs match
+      case Some(outs) =>
+        trySolve(clause)(using ctx.extend(outs)) match
+          case Some(outs2) =>
+            Some(outs.concat(outs2))
+          case None =>
+            None
+      case None =>
+        None
+  )
+
 /** Instantiate the quantified variables of a universal type at the given level, using fresh
  *  variables or approximations from the cache. */
 def instantiateUniv(vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: SubContext): (Type, SubtypingCache, SubClauses) =

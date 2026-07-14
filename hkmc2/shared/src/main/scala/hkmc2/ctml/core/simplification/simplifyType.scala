@@ -109,14 +109,3 @@ extension (constraint: Constraint)
       constraint.dir,
       constraint.right.simplify(),
     )
-
-// Debug function. Should be eventually removed.
-extension (constraint: Constraint)
-  def asBound: Bound =
-    constraint match
-      case Constraint(TVar(var_), dir, type_) =>
-        Bound(var_, dir, type_)
-      case Constraint(type_, dir, TVar(var_)) =>
-        Bound(var_, !dir, type_)
-      case Constraint(_, _, _) =>
-        throw Exception(s"Found unsupported non-bound constraint ${constraint}")

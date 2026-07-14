@@ -12,22 +12,9 @@ import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)
-  /** Evaluate a type inference function in a new level with a new fresh type variable and solve
-   *  that level. */
-  def withInferenceLevel2(f: (TypeVar, SubContext) => (Type, SubClauses)): (Type, SubClauses) =
-    val decl = ctx.declInferVar()
-    ctx.withFreshVarLevel(TypeVarKind.Flex, List(decl), (a, b) => f(a(0), b), (a, b, c) => ctx.processLevel(a, b, c))
-
-  def withInferLevel(f: (SubContext) => (Type, SubClauses)): (Type, SubClauses) =
-    ctx.withLevel((ctx) =>
-      val level = ctx.level
-      val (type_, outs) = f(ctx)
-      ctx.processLevel(level, type_, outs)
-    )
-
   /** Process the type, variables, and constraints generated in a level. Quantifying and
    *  simplifying then if possible. */
-  def processLevel(level: Int, type_ : Type, outs: SubClauses): (Type, SubClauses) =
+  def processLevel(level: Int, type_ : Type, outs: SubClauses): Type =
     // NOTE: unwrapCtx currently solves clauses, which may need to be moved somewhere else.
 
     debug(s"LEVEL CLAUSES (${level}) ${type_} OUT ${outs}")
@@ -64,11 +51,11 @@ extension (ctx: SubContext)
 
     debug(s"LEVEL RESULT ${type5}")
 
-    (type5, SubClauses(List()))
+    type5
 
 extension (ctx: TypeContext)
   /** Evaluate a type inference function in a new subtyping level and solve that level. */
-  def withInferLevel(f: (TypeContext) => (Type, SubClauses)): (Type, SubClauses) =
+  def withInferLevel(f: (TypeContext) => (Type, SubClauses)): Type =
     ctx.sub.withLevel((subCtx) =>
       val level = subCtx.level
       val innerCtx = ctx.copy(sub = subCtx)

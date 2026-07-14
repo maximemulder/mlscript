@@ -19,7 +19,9 @@ extension (ctx: SubContext)
 
     debug(s"LEVEL CLAUSES (${level}) ${type_} OUT ${outs}")
 
-    val (type1, typeOuts1) = type_.hoistCtx.unwrapCtx(using ctx.extend(outs))
+    val (type1, typeOuts0) = type_.hoistCtx.unwrapCtx
+
+    val typeOuts1 = solve(typeOuts0)(using ctx.extend(outs))
 
     debug(s"LEVEL UNWRAP ${type1} OUT ${typeOuts1}")
 

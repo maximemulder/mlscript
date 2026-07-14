@@ -177,3 +177,16 @@ given Show[TypeVarKind] with
     kind match
       case TypeVarKind.Rigid => "rigid"
       case TypeVarKind.Flex  => "flex"
+
+/** An unsolved clause. */
+enum UnsolvedClause:
+  case Var(val var_ : TypeVar)
+  case Constr(val constraint: Constraint)
+
+/** A list of unsolved clause. */
+class UnsolvedClauses(val elems: List[UnsolvedClause]):
+  def ::(clause: UnsolvedClause): UnsolvedClauses =
+    UnsolvedClauses(clause :: this.elems)
+
+object UnsolvedClauses:
+  def empty = UnsolvedClauses(List())

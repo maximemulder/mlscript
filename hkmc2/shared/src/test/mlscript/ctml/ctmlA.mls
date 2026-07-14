@@ -115,25 +115,25 @@ foo2(1, "World")
 
 // Same return
 
-fun fooI(a, b) =
+fun fooB(a, b) =
   let _ = if a is
     Int then (b as Int)
     Str then (b as Str)
-  1
-//│ fooI: ∀α. (({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str)) → α → Int
+  true
+//│ fooB: ∀α. (({α ≤ Int} ⟹ Int) ∨ ({α ≤ Str} ⟹ Str)) → α → Bool
 
-fooI(1, 2)
-//│ Int
-
-:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
-:te
-fooI(1, "World")
-//│ Int
+fooB(1, 2)
+//│ Bool
 
 :breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
 :te
-fooI("Hello", 2)
-//│ Int
+fooB(1, "World")
+//│ Bool
 
-fooI("Hello", "World")
-//│ Int
+:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
+:te
+fooB("Hello", 2)
+//│ Bool
+
+fooB("Hello", "World")
+//│ Bool

@@ -23,7 +23,7 @@ extension (ctx: SubContext)
     // Evaluate the outer function with the type variable in the output clauses.
     outer(decls(0).level, res, outs)
 
-  def withLevel[T](f: (SubContext) => (T, SubClauses)): (T, SubClauses) =
+  def withLevel[T](f: (SubContext) => T): T =
     f(ctx.mapLevel(_ + 1))
 
   /** Get the maximum level of all type variables in the context. */

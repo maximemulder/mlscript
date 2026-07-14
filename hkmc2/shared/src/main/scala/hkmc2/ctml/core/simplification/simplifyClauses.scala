@@ -8,12 +8,13 @@ import hkmc2.ctml.core.inference.*
 import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.impls.*
+import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.validation.validateInferenceState
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)
   @tailrec
-  def simplifyClauses2(type_ : Type, level: Int, outs: SubClauses)(using noInlineVars: NoInlineVars): (Type, SubClauses) =
+  def simplifyClauses(type_ : Type, level: Int, outs: SubClauses)(using noInlineVars: NoInlineVars): (Type, SubClauses) =
     val typeVars = type_
       .getDeps(Polarity.Positive).all
       .flatMap((dep) => Iterator.single(dep).concat(dep.var_.getTransDeps(dep.pol)(using ctx.extend(outs)).all))
@@ -22,6 +23,7 @@ extension (ctx: SubContext)
     val inlinings = outs.typeVars
       .filterNot(noInlineVars.contains)
       .filter(ctx.extend(outs).getTypeVarEffectiveLevel(_) >= level)
+      .filter(canInlineOpenState(type_, outs, _)(using ctx.extend(outs)))
       .map((var_) => type_.getInlinePolarities(var_)(using ctx.extend(outs)).map((var_, _)))
       .flatten
 
@@ -30,42 +32,24 @@ extension (ctx: SubContext)
         (type_, outs)
       case Some((var_, polarities)) =>
         val (newType, newOuts) = inlineVar(type_, var_, polarities, outs)(using ctx)
-        ctx.simplifyClauses2(newType, level, newOuts)
+        validateInferenceState(s"inlining ${var_}", newType, newOuts)(using ctx)
+        ctx.simplifyClauses(newType, level, newOuts)
 
-  /** Eliminate level-local variables disconnected from an open inference result.
-    *
-    * Dependencies are followed polarly through effective bounds. Variables with distinct lower
-    * and upper bounds are retained until clause projection can preserve their implied sandwich
-    * constraint instead of silently discarding it.
-    */
-  def simplifyClauses(type_ : Type, level: Int, outs: SubClauses): (Type, SubClauses) =
-    validateInferenceState("entering clause simplification", type_, outs)(using ctx)
+/** Check that every surviving occurrence of a variable can be replaced without retaining a
+  * recursive occurrence of that variable in the selected effective bound. */
+private def canInlineOpenState(type_ : Type, outs: SubClauses, var_ : TypeVar)(using ctx: SubContext): Boolean =
+  val typePolarities = type_.getVarPolarities(var_)
+  val boundPolarities = outs.bounds.iterator
+    .filterNot(_.var_ == var_)
+    .map((bound) =>
+      val polarities = bound.type_.getVarPolarities(var_)
+      if bound.dir.leftPol == Polarity.Positive then polarities else polarities.invert
+    )
+    .foldLeft(Polarities.empty)(Polarities.join)
+  val polarities = Polarities.join(typePolarities, boundPolarities)
 
-    val levelCtx = ctx.extend(outs)
-    val localVars = levelCtx.getLevelVars(level).filter(outs.hasVar)
-    val localVarSet = localVars.toSet
-    val resultDeps = type_.getDeps(Polarity.Positive).all
-    val requiredVars = resultDeps.iterator
-      .flatMap((dep) => Iterator.single(dep).concat(dep.var_.getTransDeps(dep.pol)(using levelCtx).all))
-      .map(_.var_)
-      .filter(localVarSet.contains)
-      .toSet
-
-    val action = localVars.iterator
-      .filterNot(requiredVars.contains)
-      .filter(levelCtx.getTypeVarEffectiveLevel(_) >= level)
-      .filter(hasNoLocalDeps(_, localVarSet)(using levelCtx))
-      .filter(canEliminateDisconnectedVar(_)(using levelCtx))
-      .flatMap((var_) => type_.getInlinePolarities(var_)(using levelCtx).map((var_, _)))
-      .nextOption()
-
-    action match
-      case None =>
-        (type_, outs)
-      case Some((var_, polarities)) =>
-        val (nextType, nextOuts) = inlineVar(type_, var_, polarities, outs)(using levelCtx)
-        validateInferenceState(s"inlining ${var_}", nextType, nextOuts)(using ctx)
-        ctx.simplifyClauses(nextType, level, nextOuts)
+  (!polarities.negative || !var_.isIndirectRecursive(Polarity.Negative)) &&
+    (!polarities.positive || !var_.isIndirectRecursive(Polarity.Positive))
 
 private def hasNoLocalDeps(var_ : TypeVar, localVars: Set[TypeVar])(using ctx: SubContext): Boolean =
   Iterator(Polarity.Negative, Polarity.Positive)

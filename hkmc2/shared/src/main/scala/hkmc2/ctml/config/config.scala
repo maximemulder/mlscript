@@ -4,7 +4,7 @@ package hkmc2.ctml.config
 enum MergeMode:
   /** Merge using constrained types. */
   case Constrained
-  /** Merge using constraining types. */
+  /** Merge using constraining types, encoded as negated constrained types `¬({c} ⟹ ¬τ)`. */
   case Constraining
 
 /** The mode used to make subtyping assumption. */

@@ -59,11 +59,6 @@ extension (type_ : Type)
           body.simplify()(using ctx.extend(constraintClauses)),
           constraint.simplify(),
         )
-      case TConstraining(body, constraint) =>
-        simplifyConstraining(
-          body.simplify(),
-          constraint.simplify(),
-        )
 
 /** Simplify a negation after its body has already been simplified. */
 def simplifyNegation(body: Type): Type =
@@ -94,13 +89,6 @@ def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: SubContex
     body
   else
     makeConstrainedType(body, List(constraint))
-
-/** Simplify a constraining type after its body and constraint have already been simplified. */
-def simplifyConstraining(body: Type, constraint: Constraint)(using ctx: SubContext): Type =
-  if checkConstraint(constraint) then
-    body
-  else
-    makeConstrainingType(body, List(constraint))
 
 extension (constraint: Constraint)
   def simplify()(using ctx: SubContext, noInlineVars: NoInlineVars): Constraint =

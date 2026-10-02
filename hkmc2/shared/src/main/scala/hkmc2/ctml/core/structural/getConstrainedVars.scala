@@ -22,8 +22,6 @@ extension (type_ : Type)
         body.getConstrainedVars - var_
       case TConstrained(body, constraint) =>
         body.getConstrainedVars ++ constraint.getVars
-      case TConstraining(body, constraint) =>
-        body.getConstrainedVars ++ constraint.getVars
       case TBot | TTop | TVar(_) | TClass(_) =>
         Set.empty
 

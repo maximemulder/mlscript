@@ -60,12 +60,6 @@ final class TypeLazyDispatcher[P](
         if newBody == body && newConstraint == constraint then
           return type_
         last.constrained(newBody, newConstraint, p)
-      case TConstraining(body, constraint) =>
-        val newBody = first.apply(body, p);
-        val newConstraint = first.apply(constraint, p);
-        if newBody == body && newConstraint == constraint then
-          return type_
-        last.constraining(newBody, newConstraint, p)
 
   override def apply(constraint: Constraint, p: P)(using first: TypeApplicator[Const[Type], Const[Constraint], P]): Constraint =
     last.constraint(

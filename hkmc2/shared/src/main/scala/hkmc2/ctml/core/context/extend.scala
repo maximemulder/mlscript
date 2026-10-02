@@ -6,7 +6,6 @@ import hkmc2.ctml.config.*
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.clauses.typeVarDecls
 import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.type_.isConstraining
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)

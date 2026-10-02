@@ -47,11 +47,6 @@ extension (type_ : Type)
           body.shadow,
           constraint.shadow,
         )
-      case TConstraining(body, constraint) =>
-        TConstraining(
-          body.shadow,
-          constraint.shadow,
-        )
 
 extension (var_ : TypeVar)
   def shadow(using ctx: SubContext): TypeVar =

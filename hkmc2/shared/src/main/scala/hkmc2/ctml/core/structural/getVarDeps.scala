@@ -103,8 +103,6 @@ private def getTypeDeps(type_ : Type, pol: Polarity, direct: Boolean): VarDeps =
       getTypeDeps(body, pol, false) - var_
     case TConstrained(body, constraint) =>
       getConstraintDeps(constraint, false) ++ getTypeDeps(body, pol, false)
-    case TConstraining(body, constraint) =>
-      getConstraintDeps(constraint, false) ++ getTypeDeps(body, pol, false)
 
 private def getConstraintDeps(constraint: Constraint, direct: Boolean): VarDeps =
   getTypeDeps(constraint.left, constraint.dir.rightPol, direct) ++

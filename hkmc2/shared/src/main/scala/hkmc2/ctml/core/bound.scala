@@ -24,8 +24,3 @@ extension (bounds: List[Bound])
   /** Check whether a type variable is constrained in a given direction. */
   def isTypeVarBounded(var_ : TypeVar, dir: Direction): Boolean =
     bounds.exists((bound) => bound.var_ == var_ && bound.dir == dir)
-
-  def filterVarDir(var_ : TypeVar, dir: Direction): List[Type] =
-    bounds
-      .filter((bound) => bound.var_ == var_ && bound.dir == dir)
-      .map(_.type_)

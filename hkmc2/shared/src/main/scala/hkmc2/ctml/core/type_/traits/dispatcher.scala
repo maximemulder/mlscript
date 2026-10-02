@@ -60,12 +60,6 @@ final class TypeDispatcher[T[+_], B[+_], P](
           first.apply(constraint, p),
           p,
         )
-      case TConstraining(body, constraint) =>
-        last.constraining(
-          first.apply(body, p),
-          first.apply(constraint, p),
-          p,
-        )
 
   override def apply(constraint: Constraint, p: P)(using first: TypeApplicator[T, B, P]): B[Constraint] =
     last.constraint(

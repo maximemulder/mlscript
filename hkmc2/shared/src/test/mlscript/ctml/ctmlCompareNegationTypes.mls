@@ -104,3 +104,80 @@ Nat <:< (~Nat & Int)
 //│ Typing error tree:
 //│   ¬Int ∨ Nat ≤ Int
 //│     ¬Int ≤ Int
+
+// Negated binder types
+
+type T
+
+// Constraining types, encoded as negated constrained types
+
+Int <:< ~([Bot <:< Int] => ~Int)
+//│ OK
+
+:te
+Int <:< ~([T <:< Int] => ~Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬({T ≤ Int} ⟹ ¬Int).
+//│ Typing error tree:
+//│   Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
+//│     {T ≤ Int} ⟹ ¬Int ≤ ¬Int
+//│       T ≤ Int
+//│         ⊤ ≤ Int
+
+~([T <:< Int] => ~Int) <:< Int
+//│ OK
+
+:te
+~([T <:< Int] => ~Int) <:< Str
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬({T ≤ Int} ⟹ ¬Int) ≤ Str.
+//│ Typing error tree:
+//│   ¬({T ≤ Int} ⟹ ¬Int) ≤ Str
+//│     ¬Str ≤ {T ≤ Int} ⟹ ¬Int
+//│       ¬Str ≤ ¬Int
+//│         Int ≤ Str
+
+~([T <:< Int] => ~Nat) <:< ~([T <:< Int] => ~Int)
+//│ OK
+
+~([T <:< Nat] => ~Int) <:< ~([T <:< Int] => ~Int)
+//│ OK
+
+:te
+~([T <:< Int] => ~Int) <:< ~([T <:< Nat] => ~Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬({T ≤ Int} ⟹ ¬Int) ≤ ¬({T ≤ Nat} ⟹ ¬Int).
+//│ Typing error tree:
+//│   ¬({T ≤ Int} ⟹ ¬Int) ≤ ¬({T ≤ Nat} ⟹ ¬Int)
+//│     {T ≤ Nat} ⟹ ¬Int ≤ {T ≤ Int} ⟹ ¬Int
+//│       {T ≤ Nat} ⟹ ¬Int ≤ ¬Int
+//│         T ≤ Nat
+//│           Int ≤ Nat
+
+// Constraining types against constrained types
+
+~([T <:< Int] => ~Int) <:< ([Bot <:< Top] => Int)
+//│ OK
+
+:te
+([Bot <:< Top] => Int) <:< ~([T <:< Int] => ~Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊥ ≤ ⊤} ⟹ Int ≤ ¬({T ≤ Int} ⟹ ¬Int).
+//│ Typing error tree:
+//│   {⊥ ≤ ⊤} ⟹ Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
+//│     Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
+//│       {T ≤ Int} ⟹ ¬Int ≤ ¬Int
+//│         T ≤ Int
+//│           ⊤ ≤ Int
+
+// Negated universal types
+
+Top <:< ~([X] -> X)
+//│ OK
+
+Int <:< ~([X] -> X -> X)
+//│ OK
+
+:te
+~([X] -> X -> X) <:< (Int -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬(∀X. X → X) ≤ Int → Int.
+//│ Typing error tree:
+//│   ¬(∀X. X → X) ≤ Int → Int
+//│     ¬(Int → Int) ≤ ∀X. X → X
+//│       ¬(Int → Int) ≤ α → α

@@ -38,8 +38,5 @@ final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P], Constra
   def constrained(body: Type, constraint: Constraint, p: P): TConstrained =
     TConstrained(body, constraint)
 
-  def constraining(body: Type, constraint: Constraint, p: P): TConstraining =
-    TConstraining(body, constraint)
-
   def constraint(left: Type, dir: Direction, right: Type, p: P): Constraint =
     Constraint(left, dir, right)

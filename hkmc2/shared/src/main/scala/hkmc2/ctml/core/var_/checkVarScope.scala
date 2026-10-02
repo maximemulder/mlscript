@@ -20,10 +20,6 @@ extension (type_ : Type)(using ctx: SubContext)
         var escapedVars = body.findEscapedVars()
         escapedVars ++= constraint.findEscapedVars()
         escapedVars
-      case TConstraining(body, constraint) =>
-        var escapedVars = body.findEscapedVars()
-        escapedVars ++= constraint.findEscapedVars()
-        escapedVars
       case _ =>
         type_.accumulate(_.findEscapedVars())
 

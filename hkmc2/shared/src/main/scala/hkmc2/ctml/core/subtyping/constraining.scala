@@ -3,7 +3,7 @@ package hkmc2.ctml.core.subtyping
 import scala.collection.immutable.Set as Set
 
 import hkmc2.ctml.config.*
-import hkmc2.ctml.core.{filterVarDir, is, isSubClass}
+import hkmc2.ctml.core.{is, isSubClass}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
@@ -99,31 +99,47 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       return SubClauses.empty
     case _ =>
 
-  // Subtyping of constraining types.
+  // A negation on one side only is moved to the other side by contraposition: `σ ≤ ¬τ` iff
+  // `τ ≤ ¬σ`, and `¬τ ≤ σ` iff `¬σ ≤ τ`, both derivable from the negation and double negation
+  // rules. Contraposition is applied when the negated type is a binder type (a universal or
+  // constrained type), which the binder rules below only decompose when it is not negated: after
+  // contraposition, the binder is decomposed and its negation disappears.
 
-  if sub.is[TConstraining] && sup.is[TConstraining] then
-    val (subBody, subConstraints) = sub.getConstrainingComponents
-    val (supBody, supConstraints) = sup.getConstrainingComponents
-    val subClauses = subConstraints.foldLeft(SubClauses.empty)((clauses, constraint) =>
-      ctx.seqUnit(subtypeConstraint(constraint), clauses)
-    )
-    val supClauses = supConstraints.foldLeft(SubClauses.empty)((clauses, constraint) =>
-      ctx.seqUnit(subtypeConstraint(constraint), clauses)
-    )
+  // Contraposition is not applied to any negation, as it alone would loop between `σ ≤ ¬τ` and
+  // `τ ≤ ¬σ`. For the same reason, if the other side is itself a binder type, it is decomposed
+  // first rather than turned into a negated binder type by contraposition.
 
-    val boundsClauses = subtypeBounds(subClauses.bounds, supClauses.bounds)
-    val bodyClauses = subtype(subBody, supBody)
-    return SubClauses.empty
+  // Notably, these rules derive the rules of constraining types, which are encoded as negated
+  // constrained types `¬({c} ⟹ ¬τ)` (see `makeConstrainingType`):
+  // - `σ ≤ ¬({c} ⟹ ¬τ)` iff `({c} ⟹ ¬τ) ≤ ¬σ`, that is, `c` is solved and `σ ≤ τ`.
+  // - `¬({c} ⟹ ¬τ) ≤ σ` iff `¬σ ≤ ({c} ⟹ ¬τ)`, that is, `τ ≤ σ` assuming `c`.
+
+  // These rules come before the flexible variable rules, where the rules of the former primitive
+  // constraining types were, so that the constraining type in a flexible variable bound is
+  // decomposed rather than kept whole. Placing them after the flexible variable rules, with the
+  // constrained type rules, was tried: it made inferred types larger, and did not avoid the
+  // time-outs of `ctmlFlowConstraningWeirdMatch.mls`.
 
   sub match
-    case TConstraining(subBody, subConstraint) =>
-      val bodyClauses = subtype(subBody, sup)
-      return subtypeConstraintSeq(subConstraint, bodyClauses)
+    case TNeg(subBody @ (_: TUniv | _: TConstrained)) =>
+      return sup match
+        case sup: TUniv =>
+          subtypeUnivSup(sub, sup)
+        case sup: TConstrained =>
+          subtypeConstrainedSup(sup, sub)
+        case _ =>
+          subtype(sup.negate(), subBody)
     case _ =>
+
   sup match
-    case TConstraining(supBody, supConstraint) =>
-      val bodyClauses = subtype(sub, supBody)
-      return subtypeConstraintSeq(supConstraint, bodyClauses)
+    case TNeg(supBody @ (_: TUniv | _: TConstrained)) =>
+      return sub match
+        case sub: TUniv =>
+          subtypeUnivSub(sub, sup)
+        case sub: TConstrained =>
+          subtypeConstrainedSub(sub, sup)
+        case _ =>
+          subtype(supBody, sub.negate())
     case _ =>
 
   // Subtyping of top and bottom types.
@@ -401,15 +417,6 @@ def subtypeApp(sub: TApp, sup: TApp)(using ctx: SubContext, mode: ConstraintMode
     // Arguments are covariant for now.
     subtype(sub.arg, sup.arg),
   )
-
-/** Constrain a set of bounds to be subsumed by another set of bounds. */
-def subtypeBounds(subs: List[Bound], sups: List[Bound])(using ctx: SubContext, mode: ConstraintMode): SubClauses =
-  sups
-    .foldRight(SubClauses.empty)((sup, clauses) =>
-      val subTypes = subs.filterVarDir(sup.var_, sup.dir)
-      val subType = subTypes.combineMany(sup.dir.jointMode)
-      subtype(subType, sup.type_)
-    )
 
 /** Check whether a type is a subtype of another type without requiring any additional constraint. */
 def checkSubtype(sub: Type, sup: Type)(using ctx: SubContext): Boolean =

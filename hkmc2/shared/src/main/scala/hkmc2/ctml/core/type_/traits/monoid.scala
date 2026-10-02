@@ -38,8 +38,5 @@ final class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Cons
   def constrained(body: T, bounds: T, p: P): T =
     m.combine(body, bounds)
 
-  def constraining(body: T, bounds: T, p: P): T =
-    m.combine(body, bounds)
-
   def constraint(left: T, dir: Direction, right: T, p: P): T =
     m.combine(left, right)

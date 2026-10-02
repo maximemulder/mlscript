@@ -11,7 +11,18 @@ import hkmc2.ctml.types.*
 def makeNegationType(body: Type): Type =
   body.negate()
 
-/** Make a constraining type, simplifying it if possible. */
+/** Make a constraining type, simplifying it if possible.
+ *
+ *  A constraining type is the dual of a constrained type: it pairs a type with constraints that
+ *  must be established to introduce it, and that may be assumed to eliminate it. It is not a
+ *  primitive type, but is encoded as a negated constrained type `¬({c} ⟹ ¬τ)`, from which its
+ *  subtyping rules are derived (see the contraposition of negated binder types in `subtypeImpl`).
+ *
+ *  This encoding replaced an earlier primitive constraining type constructor, whose ad-hoc
+ *  subtyping rules required the constraints when eliminating a constraining type.
+ *
+ *  Nested constraining types are flattened by `makeConstrainedType`, since the negation of the
+ *  inner constraining type `¬¬({c'} ⟹ ¬τ)` simplifies to the inner constrained type. */
 def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
   type_ match
     case TUniv(var_, body) =>
@@ -20,16 +31,7 @@ def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
         makeConstrainingType(body, constraints)
       )
     case _ =>
-      val (body, nestedConstraints) = type_.getConstrainingComponents
-      val constraints2 = (constraints ::: nestedConstraints).distinct
-      constraints2 match
-        case Nil =>
-          body
-        case constraint :: constraints =>
-          TConstraining(
-            makeConstrainingType(body, constraints),
-            constraint
-          )
+      makeNegationType(makeConstrainedType(makeNegationType(type_), constraints))
 
 /** Make a constrained type, simplifying it if possible. */
 def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =

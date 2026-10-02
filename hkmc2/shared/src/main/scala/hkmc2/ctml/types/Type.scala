@@ -42,9 +42,6 @@ case class TUniv(val var_ : TypeVar, val body: Type) extends Type
 /** A constrained type. */
 case class TConstrained(val body: Type, val constraint: Constraint) extends Type
 
-/** A constraining type. */
-case class TConstraining(val body: Type, val constraint: Constraint) extends Type
-
 /** The top type type alias. */
 type TBot = TBot.type
 
@@ -70,8 +67,6 @@ extension (type_ : Type)
       case TUniv(_, body) =>
         List(body)
       case TConstrained(body, constraint) =>
-        List(constraint.left, constraint.right, body)
-      case TConstraining(body, constraint) =>
         List(constraint.left, constraint.right, body)
 
 /** Implementation of the `Tree` trait for `Type`. */
@@ -111,9 +106,6 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
     case constrained: TConstrained =>
       val (body, bounds) = constrained.getConstrainedComponents
       (s"{${bounds.map(_.show).mkString(", ")}} ⟹ ${showType(body)}", true)
-    case constraining: TConstraining =>
-      val (body, bounds) = constraining.getConstrainingComponents
-      (s"${body} ⟹ {${bounds.map(_.show).mkString(", ")}}", true)
 
   // If the type is surrounded by spaces in its parent, and has spaces itself, add parentheses
   // around it.
@@ -177,15 +169,6 @@ extension (type_ : Type)
     type_ match
       case TConstrained(body, constraint) =>
         val (nestedBody, nestedConstraints) = body.getConstrainedComponents
-        (nestedBody, constraint :: nestedConstraints)
-      case _ =>
-        (type_, Nil)
-
-  /** Get the nested constraining type constraints of the type. */
-  def getConstrainingComponents: (Type, List[Constraint]) =
-    type_ match
-      case TConstraining(body, constraint) =>
-        val (nestedBody, nestedConstraints) = body.getConstrainingComponents
         (nestedBody, constraint :: nestedConstraints)
       case _ =>
         (type_, Nil)

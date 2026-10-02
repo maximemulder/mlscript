@@ -74,9 +74,6 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: SubContext, level: Int, pol
     case TConstrained(body, constraint) =>
       val (newBody, bodyOuts) = extrudeType(body)
       (TConstrained(newBody, constraint), bodyOuts)
-    case TConstraining(body, constraint) =>
-      val (newBody, bodyOuts) = extrudeType(body)
-      (TConstraining(newBody, constraint), bodyOuts)
 
 /** Extrude the type variables of a type variable bound. */
 private def extrudeConstraint(constraint: Constraint)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Constraint, SubClauses) =

@@ -55,8 +55,6 @@ private def inlineType(type_ : Type, var_ : TypeVar, pol: Polarity)(using ctx: S
       inlineUniv(univ, var_, pol)
     case constrained: TConstrained =>
       inlineConstrained(constrained, var_, pol)
-    case constraining: TConstraining =>
-      inlineConstraining(constraining, var_, pol)
     case TBot | TTop | TVar(_) | TClass(_) =>
       type_
 
@@ -106,14 +104,6 @@ private def inlineConstrained(constrained: TConstrained, var_ : TypeVar, pol: Po
     constrained
   else
     simplifyConstrained(newBody, newConstraint)
-
-private def inlineConstraining(constraining: TConstraining, var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =
-  val newBody = inlineType(constraining.body, var_, pol)
-  val newConstraint = inlineConstraint(constraining.constraint, var_)
-  if newBody == constraining.body && newConstraint == constraining.constraint then
-    constraining
-  else
-    simplifyConstraining(newBody, newConstraint)
 
 /** Inline a variable in a constraint using the current direction-based polarity convention. */
 private def inlineConstraint(constraint: Constraint, var_ : TypeVar)(using ctx: SubContext): Constraint =

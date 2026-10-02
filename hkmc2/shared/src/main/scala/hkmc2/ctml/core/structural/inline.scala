@@ -47,11 +47,6 @@ extension (type_ : Type)
           body.structuralInline(var_, pol),
           constraint.structuralInline(var_)(using ctx, !pol),
         )
-      case TConstraining(body, constraint) =>
-        TConstraining(
-          body.structuralInline(var_, pol),
-          constraint.structuralInline(var_)(using ctx, !pol),
-        )
       case TBot | TTop | TVar(_) | TClass(_) | TUniv(_, _) =>
         type_
 

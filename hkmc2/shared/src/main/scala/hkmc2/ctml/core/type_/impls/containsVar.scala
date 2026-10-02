@@ -61,8 +61,6 @@ private object ContainsVar2 extends TypeChainApplicator[Const[Boolean], Const[Bo
         false
       case TConstrained(body, constraint) =>
         first.apply(body, p) || constraint.containsVar(p.var_)
-      case TConstraining(body, constraint) =>
-        first.apply(body, p) || constraint.containsVar(p.var_)
       case _ =>
         next.apply(type_, p)
 

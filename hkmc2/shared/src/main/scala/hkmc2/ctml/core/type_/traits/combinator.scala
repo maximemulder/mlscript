@@ -38,9 +38,6 @@ trait TypeCombinator[T[_], B[_], P]:
   /** Get a constrained type combination. */
   def constrained(body: T[Type], constraint: B[Constraint], p: P): T[TConstrained]
 
-  /** Get a constraining type combination. */
-  def constraining(body: T[Type], constraint: B[Constraint], p: P): T[TConstraining]
-
 /** Trait that describes the combination of some possibly transformed constraint components. */
 trait ConstraintCombinator[T[_], B[_], P]:
   /** Get a constraint combination. */

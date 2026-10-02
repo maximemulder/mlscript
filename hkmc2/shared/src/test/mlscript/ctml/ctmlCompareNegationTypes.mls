@@ -181,3 +181,33 @@ Int <:< ~([X] -> X -> X)
 //│   ¬(∀X. X → X) ≤ Int → Int
 //│     ¬(Int → Int) ≤ ∀X. X → X
 //│       ¬(Int → Int) ≤ α → α
+
+// Negated flexible variables
+
+declare type Y1
+declare type Y2
+declare type Y3
+declare type Y4
+declare type Y5
+
+~Y1 <:< Int
+//│ OK
+
+Int <:< ~Y2
+//│ OK
+
+~([Bot <:< Top] => Bot) <:< Y3
+//│ OK
+
+(~Y4 -> ~Y4) <:< (Int -> Int)
+//│ OK
+
+:te
+(~Y5 -> ~Y5) <:< (Int -> Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬Y5 → ¬Y5 ≤ Int → Str.
+//│ Typing error tree:
+//│   ¬Y5 → ¬Y5 ≤ Int → Str
+//│     ¬Y5 ≤ Str
+//│       ¬Str ≤ Y5
+//│         ¬Str ≤ ¬Int
+//│           Int ≤ Str

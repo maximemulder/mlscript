@@ -123,6 +123,15 @@ private def showBounds(bounds: List[Bound]): String =
   bounds.reverse.map(_.show).mkString(", ")
 
 extension (type_ : Type)
+  /** Check whether the type is a binder type, that is, a universal or constrained type, whose body
+   *  is under a quantified type variable or an assumed constraint. */
+  def isBinder: Boolean =
+    type_ match
+      case TUniv(_, _) | TConstrained(_, _) =>
+        true
+      case _ =>
+        false
+
   /** Get the right-recursive nested lambda components of the type. */
   def getLambdaComponents: List[Type] =
     type_ match

@@ -121,7 +121,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
   // time-outs of `ctmlFlowConstraningWeirdMatch.mls`.
 
   sub match
-    case TNeg(subBody @ (_: TUniv | _: TConstrained)) =>
+    case TNeg(subBody) if subBody.isBinder =>
       return sup match
         case sup: TUniv =>
           subtypeUnivSup(sub, sup)
@@ -132,7 +132,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
     case _ =>
 
   sup match
-    case TNeg(supBody @ (_: TUniv | _: TConstrained)) =>
+    case TNeg(supBody) if supBody.isBinder =>
       return sub match
         case sub: TUniv =>
           subtypeUnivSub(sub, sup)
@@ -140,6 +140,24 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
           subtypeConstrainedSub(sub, sup)
         case _ =>
           subtype(supBody, sub.negate())
+    case _ =>
+
+  // A negated flexible variable on one side only is also moved to the other side by
+  // contraposition, so that the variable is bounded by the flexible variable rules below:
+  // `¬α ≤ τ` iff `¬τ ≤ α`, and `τ ≤ ¬α` iff `α ≤ ¬τ`.
+
+  // This rule does not apply when the other side is a binder type, which the binder rules below
+  // decompose first, since contraposition would turn it into a negated binder type, which the
+  // rules above would then contrapose back. It does not apply either when the other side is a
+  // flexible variable, which the flexible variable rules below bound by the negated variable,
+  // since contraposition would turn it into a negated flexible variable, which this rule would
+  // then contrapose back.
+
+  (sub, sup) match
+    case (TNeg(TVar(subVar)), _) if subVar.isFlexMode && !sup.isBinder && !sup.isFlexModeVar =>
+      return subtype(sup.negate(), TVar(subVar))
+    case (_, TNeg(TVar(supVar))) if supVar.isFlexMode && !sub.isBinder && !sub.isFlexModeVar =>
+      return subtype(TVar(supVar), sub.negate())
     case _ =>
 
   // Subtyping of top and bottom types.

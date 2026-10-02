@@ -70,13 +70,22 @@ extension (ctx: SubContext)
       .removeDuplicateBounds()
       .sortBounds()(using rightCtx)
       .map(_.toConstraint)
-    val (leftType, rightType) = config.mergeMode match
-      case MergeMode.Constrained =>
+    // In constraining mode, upper bounds are guarded by constraining types and lower bounds by
+    // constrained types. When the guard of a branch does not hold, its guarded bound should act as
+    // the identity of the joint that combines the branch bounds, so that only the other branch
+    // remains. A constraining type then acts as `⊥`, the identity of the union of upper bounds,
+    // and a constrained type as `⊤`, the identity of the intersection of lower bounds.
+    // Constraining types used to guard lower bounds as well, but since they are encoded as negated
+    // constrained types, they can be eliminated without proving their guard, so that a lower bound
+    // `¬({Δl} ⟹ ¬Int) ∧ ¬({Δr} ⟹ ¬Str)` let a variable be used as `Int` even when `Δl` does not
+    // hold (see the paper's context join soundness notes).
+    val (leftType, rightType) = (config.mergeMode, dir) match
+      case (MergeMode.Constrained, _) | (MergeMode.Constraining, Direction.Super) =>
         (
           makeConstrainedType(leftBound, filteredLefts),
           makeConstrainedType(rightBound, filteredRights),
         )
-      case MergeMode.Constraining =>
+      case (MergeMode.Constraining, Direction.Sub) =>
         (
           makeConstrainingType(leftBound, filteredLefts),
           makeConstrainingType(rightBound, filteredRights),

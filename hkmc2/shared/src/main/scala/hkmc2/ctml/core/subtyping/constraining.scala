@@ -3,7 +3,7 @@ package hkmc2.ctml.core.subtyping
 import scala.collection.immutable.Set as Set
 
 import hkmc2.ctml.config.*
-import hkmc2.ctml.core.{is, isSubClass}
+import hkmc2.ctml.core.{is, isSubClass, makeJointType}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
@@ -345,12 +345,30 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)
   val clauses = subtypeDirSeq(oppositeBound, extrudedType, dir, outs)
-  if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
-    // Do not return a new bound if it is already satisfied in the context.
-    clauses
-  else
-    val newBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
-    SubClauses(Bound(var_, dir, newBound) :: clauses.elems)
+  mode match
+    // In solving mode, the new bound is part of the solution, so it is kept as simple as possible:
+    // it is not returned if it is already satisfied in the context, and is otherwise simplified
+    // with the current bound.
+    case ConstraintMode.Solve =>
+      if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
+        clauses
+      else
+        val newBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
+        SubClauses(Bound(var_, dir, newBound) :: clauses.elems)
+    // In reconstruction mode, the new bound is an assumption of a constrained type, which is
+    // discarded once the body of the constrained type has been constrained (see
+    // `subtypeConstrainedSup`), so it is only simplified syntactically. Simplifying it as in solving
+    // mode requires subtyping checks, which reconstruct the assumptions of the constrained types
+    // they meet, and so on: since upper bounds are joined using constraining types, whose guards
+    // contain the other bounds of their branch, these nested checks made up most of the type
+    // checking time of matches (e.g. it took minutes to infer the type of the two-parameter match
+    // function of `ctmlFlow.mls`, and now takes a fraction of a second).
+    case ConstraintMode.Reconstruct =>
+      val newBound = makeJointType(dir.jointMode, extrudedType, bound)
+      if newBound == bound then
+        clauses
+      else
+        SubClauses(Bound(var_, dir, newBound) :: clauses.elems)
 
 // Rigid type variables.
 

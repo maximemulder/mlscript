@@ -28,7 +28,7 @@ extension (ctx: SubContext)
 
   /** Get the declaration of a type variable in the context. */
   def getTypeVarDecl(var_ : TypeVar): TypeVarDecl =
-    ctx.clauses.typeVarDecls.find(_.var_ == var_) match
+    ctx.clauses.iterator.typeVars.find(_.var_ == var_) match
       case Some(decl) =>
         decl
       case None =>
@@ -99,7 +99,7 @@ extension (var_ : TypeVar)(using ctx: SubContext)
 
   /** Get the origin of the type variable in the context. */
   def origin: Option[TypeVar] =
-    ctx.clauses.typeVarDecls.find(_.var_ == var_).flatMap(_.origin)
+    ctx.clauses.iterator.typeVars.find(_.var_ == var_).flatMap(_.origin)
 
   /** Get the bound of a type variable in a given direction. */
   def bound(dir: Direction) =

@@ -28,7 +28,7 @@ extension (clauses: AsSubClauses)
 
   /** Check if a type variable declaration appears in the clauses. */
   def hasVar(var_ : TypeVar): Boolean =
-    clauses.typeVars.exists(_ == var_)
+    clauses.iterator.typeVars.exists(_.var_ == var_)
 
   /** Get the bounds defined in the clauses. */
   def bounds: List[Bound] =
@@ -40,7 +40,7 @@ extension (clauses: AsSubClauses)
 
   /** Get the rightmost bound of a type variable in a type direction defined in the clauses. */
   def varBound(var_ : TypeVar, dir: Direction): Option[Type] =
-    clauses.bounds
+    clauses.iterator.bounds
       .find(bound => bound.var_ == var_ && bound.dir == dir)
       .map(_.type_)
 

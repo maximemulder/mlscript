@@ -62,132 +62,170 @@ fun foo(a) =
 //│         constrain ⊥ ≤ ⊥ in 0 ≤ ¬Int ∧ ¬Str, 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
 //│         OK ⇝ ∅
 //│       OK ⇝ 0 ≤ ⊥
-//│     OK 2 ⇝ 0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2)
-//│     constrain 2 ≤ 1 in 0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
-//│       constrain 2 ≤ ⊤ in 0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
+//│     OK 2 ⇝ 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2)
+//│     constrain 2 ≤ 1 in 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
+//│       constrain 2 ≤ ⊤ in 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
 //│       OK ⇝ ∅
-//│       constrain ⊥ ≤ ⊤ in 1 ≥ 2, 0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
+//│       constrain ⊥ ≤ ⊤ in 1 ≥ 2, 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 flex (2), 0 ≤ ¬Int, 1 flex (2), 0 flex (2)
 //│       OK ⇝ ∅
 //│     OK ⇝ 1 ≥ 2
-//│   OK 1 ⇝ 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (2), 1 flex (2)
-//│   LEVEL CLAUSES (2) 0 → 1 OUT 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (2), 1 flex (2), 0 flex (2)
+//│   OK 1 ⇝ 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (2), 1 flex (2)
+//│   LEVEL CLAUSES (2) 0 → 1 OUT 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (2), 1 flex (2), 0 flex (2)
 //│   LEVEL UNWRAP 0 → 1 OUT ∅
 //│   LEVEL SIMPLIFY TYPE 0 → 1 OUT ∅
 //│   LEVEL WRAP TYPE 0 → 1
-//│   LEVEL SIMPLIFY 0 → 1 OUT 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (2), 1 flex (2), 0 flex (2)
-//│   LEVEL RESULT ∀0, 1, 2. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)} ⟹ 0 → 1
-//│ OK ∀0, 1, 2. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)} ⟹ 0 → 1 ⇝ ∅
-//│ LEVEL CLAUSES (1) ∀0, 1, 2. {0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)} ⟹ 0 → 1 OUT ∅
-//│ constrain 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str) in 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str) in 2 flex (1), 1 flex (1), 0 flex (1)
+//│   LEVEL SIMPLIFY 0 → 1 OUT 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (2), 1 flex (2), 0 flex (2)
+//│   LEVEL RESULT ∀0, 1, 2. {0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)} ⟹ 0 → 1
+//│ OK ∀0, 1, 2. {0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)} ⟹ 0 → 1 ⇝ ∅
+//│ LEVEL CLAUSES (1) ∀0, 1, 2. {0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)} ⟹ 0 → 1 OUT ∅
+//│ constrain 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str) in 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str) in 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str)
-//│ constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ 2 in 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ ⊤ in 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str)
+//│ constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ 2 in 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ ⊤ in 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))
-//│ constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ 1 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))
+//│ constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ 1 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)
-//│ LEVEL UNWRAP 0 → 1 OUT 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 flex (1), 1 flex (1), 0 flex (1)
-//│ LEVEL SIMPLIFY TYPE 0 → 1 OUT 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str), 2 flex (1), 1 flex (1), 0 flex (1)
-//│ LEVEL WRAP TYPE ∀0, 1, 2. {1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str)} ⟹ 0 → 1
+//│ OK ⇝ 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)
+//│ LEVEL UNWRAP 0 → 1 OUT 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ LEVEL SIMPLIFY TYPE 0 → 1 OUT 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ LEVEL WRAP TYPE ∀0, 1, 2. {1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str)} ⟹ 0 → 1
 //│ 0 flex level 1
 //│ 1 flex level 1
 //│ 2 flex level 1
-//│ constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ 1 in 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 2 flex (1), 1 flex (1), 0 flex (1)
+//│ constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ 1 in 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)
-//│ constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ 2 in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ ⊤ in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)
+//│ constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ 2 in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ≤ ⊤ in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))
-//│ constrain 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str) in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str) in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))
+//│ constrain 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str) in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str) in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str)
-//│ constrain Int ≤ 1 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain Int ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ ¬Str)
+//│ constrain Int ≤ 1 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain Int ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 1 ≥ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)) ∨ Int
-//│ constrain 2 ≤ 1 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain 2 ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 1 ≥ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)) ∨ Int
+//│ constrain 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str) in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain {2 ≥ Str} ⟹ ¬Str ≤ ¬0 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│     constrain Str ≤ 2 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│       constrain Str ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│       OK ⇝ ∅
+//│     OK ⇝ 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str
+//│     constrain ¬Str ≤ ¬0 in 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│       constrain 0 ≤ Str in 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│         constrain ⊥ ≤ Str in 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│         OK ⇝ ∅
+//│       OK ⇝ 0 ≤ Str
+//│     OK ⇝ 0 ≤ Str
+//│   OK ⇝ 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str
+//│ OK ⇝ 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str
+//│ constrain 2 ≤ 1 in 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain 2 ≤ ⊤ in 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2))
-//│ constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 2 in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2))
+//│ constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 2 in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
-//│ constrain Str ≤ 2 in 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain Str ≤ ⊤ in 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ ∅
+//│ constrain Str ≤ 2 in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain Str ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 2 ≥ (({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)) ∨ Str
-//│ constrain 0 ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ ∅
+//│ constrain 0 ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ Str
-//│ constrain 0 ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ ∅
+//│ constrain 0 ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str, 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 0 ≤ ⊥
-//│ constrain 0 ≤ Int in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ Int in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ constrain Str ≤ 2 in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain Str ≤ ⊤ in 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   OK ⇝ ∅
+//│ OK ⇝ 2 ≥ (({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥))) ∨ Str
+//│ constrain 0 ≤ Int in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ Int in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 0 ≤ Int
-//│ constrain Int ≤ 1 in 0 ≤ Int, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain Int ≤ ⊤ in 0 ≤ Int, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ constrain Int ≤ 1 in 0 ≤ Int, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain Int ≤ ⊤ in 0 ≤ Int, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 1 ≥ Int
-//│ constrain 0 ≤ {2 ≥ Str} ⟹ Str in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ {2 ≥ Str} ⟹ Str in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ constrain 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str) in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain {2 ≥ Str} ⟹ ¬Str ≤ ¬0 in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│     constrain Str ≤ 2 in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│       constrain Str ≤ ⊤ in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│       OK ⇝ ∅
+//│     OK ⇝ 2 ≥ Str
+//│     constrain ¬Str ≤ ¬0 in 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│       constrain 0 ≤ Str in 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│         constrain ⊥ ≤ Str in 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│         OK ⇝ ∅
+//│       OK ⇝ 0 ≤ Str
+//│     OK ⇝ 0 ≤ Str
+//│   OK ⇝ 0 ≤ Str, 2 ≥ Str
+//│ OK ⇝ 0 ≤ Str, 2 ≥ Str
+//│ constrain 2 ≤ 1 in 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain 2 ≤ ⊤ in 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ {2 ≥ Str} ⟹ Str
-//│ constrain 2 ≤ 1 in 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain 2 ≤ ⊤ in 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│   constrain ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2) ≤ ⊤ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2))
+//│ constrain 0 ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2))
-//│ constrain 0 ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ Str in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ Str
-//│ constrain 0 ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ ∅
+//│ constrain 0 ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ ⊥ in 1 ≥ 2 ∨ (({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2)), 0 ≤ Str, 2 ≥ Str, 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 0 ≤ ⊥
-//│ constrain Str ≤ 2 in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain Str ≤ ⊤ in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│ constrain Str ≤ 2 in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain Str ≤ ⊤ in 1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 2 ≥ Str
 //│ constrain 0 ≤ Int in 2 flex (1), 1 flex (1), 0 flex (1)
 //│   constrain ⊥ ≤ Int in 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 0 ≤ Int
-//│ constrain 0 ≤ {2 ≥ Str} ⟹ Str in 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ {2 ≥ Str} ⟹ Str in 2 flex (1), 1 flex (1), 0 flex (1)
+//│ constrain 0 ≤ ¬({2 ≥ Str} ⟹ ¬Str) in 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain {2 ≥ Str} ⟹ ¬Str ≤ ¬0 in 2 flex (1), 1 flex (1), 0 flex (1)
+//│     constrain Str ≤ 2 in 2 flex (1), 1 flex (1), 0 flex (1)
+//│       constrain Str ≤ ⊤ in 2 flex (1), 1 flex (1), 0 flex (1)
+//│       OK ⇝ ∅
+//│     OK ⇝ 2 ≥ Str
+//│     constrain ¬Str ≤ ¬0 in 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│       constrain 0 ≤ Str in 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│         constrain ⊥ ≤ Str in 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│         OK ⇝ ∅
+//│       OK ⇝ 0 ≤ Str
+//│     OK ⇝ 0 ≤ Str
+//│   OK ⇝ 0 ≤ Str, 2 ≥ Str
+//│ OK ⇝ 0 ≤ Str, 2 ≥ Str
+//│ constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 2 in 0 ≤ Str, 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤ in 0 ≤ Str, 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ {2 ≥ Str} ⟹ Str
-//│ constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ 2 in 0 ≤ {2 ≥ Str} ⟹ Str, 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥) ≤ ⊤ in 0 ≤ {2 ≥ Str} ⟹ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ ∅
+//│ constrain 0 ≤ Str in 0 ≤ Str, 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ Str in 0 ≤ Str, 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
-//│ OK ⇝ 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)
-//│ constrain 0 ≤ Str in 0 ≤ {2 ≥ Str} ⟹ Str, 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ Str in 0 ≤ {2 ≥ Str} ⟹ Str, 2 flex (1), 1 flex (1), 0 flex (1)
-//│   OK ⇝ ∅
-//│ OK ⇝ 0 ≤ Str
-//│ constrain 0 ≤ ⊥ in 0 ≤ {2 ≥ Str} ⟹ Str, 2 flex (1), 1 flex (1), 0 flex (1)
-//│   constrain ⊥ ≤ ⊥ in 0 ≤ {2 ≥ Str} ⟹ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│ OK ⇝ ∅
+//│ constrain 0 ≤ ⊥ in 0 ≤ Str, 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
+//│   constrain ⊥ ≤ ⊥ in 0 ≤ Str, 2 ≥ Str, 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 0 ≤ ⊥
 //│ constrain Str ≤ 2 in 2 flex (1), 1 flex (1), 0 flex (1)
 //│   constrain Str ≤ ⊤ in 2 flex (1), 1 flex (1), 0 flex (1)
 //│   OK ⇝ ∅
 //│ OK ⇝ 2 ≥ Str
-//│ LEVEL SIMPLIFY ∀0, 1, 2. {1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str)} ⟹ 0 → 1 OUT ∅
-//│ LEVEL RESULT ∀0, 1, 2. {1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ {2 ≥ Str} ⟹ Str, 1 ≥ 2} ⟹ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ({1 ≥ Int} ⟹ Int) ∨ ({1 ≥ 2, 2 ≥ ({0 ≤ Str} ⟹ Str) ∧ ({0 ≤ ⊥} ⟹ ⊥), 2 ≥ Str} ⟹ Str)} ⟹ 0 → 1
-//│ foo: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ {γ ≥ Str} ⟹ Str, β ≥ γ} ⟹ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ({β ≥ Int} ⟹ Int) ∨ ({β ≥ γ, γ ≥ ({α ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥), γ ≥ Str} ⟹ Str)} ⟹ α → β
+//│ LEVEL SIMPLIFY ∀0, 1, 2. {1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ Str ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ¬Str)} ⟹ 0 → 1 OUT ∅
+//│ LEVEL RESULT ∀0, 1, 2. {1 ≥ ({0 ≤ Int} ⟹ Int) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str)} ⟹ 2), 2 ≥ ({0 ≤ Int, 1 ≥ Int} ⟹ ⊥) ∧ ({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ Str ∧ ({0 ≤ ⊥} ⟹ ⊥)), 0 ≤ ¬({1 ≥ Int} ⟹ ¬Int) ∨ ¬({0 ≤ ¬({2 ≥ Str} ⟹ ¬Str), 1 ≥ 2} ⟹ ¬Str)} ⟹ 0 → 1
+//│ foo: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬({γ ≥ Str} ⟹ ¬Str)} ⟹ γ), γ ≥ ({α ≤ Int, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ ¬({γ ≥ Str} ⟹ ¬Str), β ≥ γ} ⟹ Str ∧ ({α ≤ ⊥} ⟹ ⊥)), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬({γ ≥ Str} ⟹ ¬Str), β ≥ γ} ⟹ ¬Str)} ⟹ α → β

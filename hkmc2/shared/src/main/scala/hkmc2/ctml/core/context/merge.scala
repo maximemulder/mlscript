@@ -1,6 +1,5 @@
 package hkmc2.ctml.core.context
 
-import hkmc2.ctml.config.*
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.clauses.*
@@ -70,25 +69,34 @@ extension (ctx: SubContext)
       .removeDuplicateBounds()
       .sortBounds()(using rightCtx)
       .map(_.toConstraint)
-    // In constraining mode, upper bounds are guarded by constraining types and lower bounds by
-    // constrained types. When the guard of a branch does not hold, its guarded bound should act as
-    // the identity of the joint that combines the branch bounds, so that only the other branch
-    // remains. A constraining type then acts as `⊥`, the identity of the union of upper bounds,
-    // and a constrained type as `⊤`, the identity of the intersection of lower bounds.
-    // Constraining types used to guard lower bounds as well, but since they are encoded as negated
-    // constrained types, they can be eliminated without proving their guard, so that a lower bound
-    // `¬({Δl} ⟹ ¬Int) ∧ ¬({Δr} ⟹ ¬Str)` let a variable be used as `Int` even when `Δl` does not
-    // hold (see the paper's context join soundness notes).
-    val (leftType, rightType) = (config.mergeMode, dir) match
-      case (MergeMode.Constrained, _) | (MergeMode.Constraining, Direction.Super) =>
-        (
-          makeConstrainedType(leftBound, filteredLefts),
-          makeConstrainedType(rightBound, filteredRights),
-        )
-      case (MergeMode.Constraining, Direction.Sub) =>
+    // The bound of each branch is guarded by the other constraints of the branch. When the guard of
+    // a branch does not hold, its guarded bound should act as the identity of the joint that
+    // combines the branch bounds, so that only the other branch remains. Upper bounds are thus
+    // guarded by constraining types, which act as `⊥`, the identity of their union, and lower bounds
+    // by constrained types, which act as `⊤`, the identity of their intersection (this corresponds
+    // to the paper's dual context join).
+    // Both choices are forced, since the other kind of guarded type acts as the absorbing element of
+    // the joint, and so erases the bounds of the other branch. This was the case of two merge modes
+    // that used to be configurable:
+    // - The constrained mode guarded upper bounds by constrained types as well. An upper bound
+    //   `({Δl} ⟹ Int) ∨ ({Δr} ⟹ Str)` was then `⊤` as soon as either guard did not hold. Notably, a
+    //   branch that did not bound a variable from above contributed `{Δ} ⟹ ⊤`, which is `⊤` whatever
+    //   `Δ`, so that the variable was not bounded from above at all. This was the default mode, in
+    //   which e.g. the parameter `b` of `baz` in `ctmlLet.mls` had no upper bound.
+    // - The constraining mode used to guard lower bounds by constraining types as well. Since they
+    //   are encoded as negated constrained types, they can be eliminated without proving their guard,
+    //   so that a lower bound `¬({Δl} ⟹ ¬Int) ∧ ¬({Δr} ⟹ ¬Str)` let a variable be used as `Int` even
+    //   when `Δl` does not hold.
+    val (leftType, rightType) = dir match
+      case Direction.Sub =>
         (
           makeConstrainingType(leftBound, filteredLefts),
           makeConstrainingType(rightBound, filteredRights),
+        )
+      case Direction.Super =>
+        (
+          makeConstrainedType(leftBound, filteredLefts),
+          makeConstrainedType(rightBound, filteredRights),
         )
 
     hkmc2.ctml.core.combine.combine(!dir.jointMode, leftType, rightType)

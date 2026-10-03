@@ -53,6 +53,23 @@ def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
             constraint
           )
 
+/** Make a joint type, simplifying it syntactically, that is, without any subtyping check: the
+ *  identity of the joint is dropped, its absorbing element absorbs the other operand, and the left
+ *  operand is dropped if it is already a component of the right operand. Unlike `combine`, this
+ *  does not detect subsumed operands, but is cheap. */
+def makeJointType(mode: JointMode, left: Type, right: Type): Type =
+  val (identity, absorbing) = mode match
+    case JointMode.Union =>
+      (TBot, TTop)
+    case JointMode.Inter =>
+      (TTop, TBot)
+  if left == identity || right == absorbing || right.getJointComponents(mode).contains(left) then
+    right
+  else if right == identity || left == absorbing then
+    left
+  else
+    TJointType(mode, left, right)
+
 /** Make a lambda type, simplifying it if possible. */
 def makeLambdaType(param: Type, ret: Type): Type =
   ret match

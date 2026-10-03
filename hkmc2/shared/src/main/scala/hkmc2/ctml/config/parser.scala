@@ -11,10 +11,6 @@ def applyConfigArguments(arguments: List[String]): Unit =
       buffer.remove(0) match
         case "" =>
           ()
-        case "merge-constred" =>
-          config.mergeMode = MergeMode.Constrained
-        case "merge-constring" =>
-          config.mergeMode = MergeMode.Constraining
         case "assumption-reconstruct" =>
           config.assumptionMode = AssumptionMode.Reconstruct
         case "assumption-flexify" =>

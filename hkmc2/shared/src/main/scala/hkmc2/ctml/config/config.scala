@@ -1,13 +1,5 @@
 package hkmc2.ctml.config
 
-/** The mode used to merge clauses. */
-enum MergeMode:
-  /** Merge using constrained types. */
-  case Constrained
-  /** Merge upper bounds using constraining types, encoded as negated constrained types
-   *  `¬({c} ⟹ ¬τ)`, and lower bounds using constrained types. */
-  case Constraining
-
 /** The mode used to make subtyping assumption. */
 enum AssumptionMode:
   /** Flexify the context type variable. */
@@ -26,9 +18,6 @@ enum CacheMode:
 class Config:
   /** The global debug print function. */
   var output: String => Unit = (message) => print(message)
-
-  /** Whether to use constrained types or constraing types to merge disjunctive clauses. */
-  var mergeMode = MergeMode.Constrained
 
   /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
   var assumptionMode = AssumptionMode.Reconstruct

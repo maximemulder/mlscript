@@ -45,10 +45,9 @@ extension (decl: TypeVarDecl)
 
 extension (bound: Bound)
   def prettify(prettyCtx: PrettyContext): Bound =
-    Bound(
-      bound.var_.prettify(prettyCtx),
-      bound.dir,
-      bound.type_.prettify(prettyCtx)
+    bound.copy(
+      var_ = bound.var_.prettify(prettyCtx),
+      type_ = bound.type_.prettify(prettyCtx),
     )
 
 extension (constraint: Constraint)

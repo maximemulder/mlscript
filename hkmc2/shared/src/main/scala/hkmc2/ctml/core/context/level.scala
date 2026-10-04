@@ -40,14 +40,6 @@ extension (ctx: SubContext)
       .sortWith((a, b) => ctx.compareVarLevels(a, b).lt)
       .toList
 
-  /** Get the bounds with a high level equal or higher than this level. */
-  def getLevelBounds(level: Int): List[Bound] =
-    ctx.clauses.bounds
-      .filter(_.highLevel(using ctx) >= level)
-      .removeDuplicateBounds()
-      .sortWith((a, b) => ctx.compareVarLevels(a.var_, b.var_).lt)
-      .toList
-
   /** Get the type variable with the highest declaration level in the context. */
   def getHighestLevelVar(): Option[TypeVar] =
     ctx.clauses.typeVars

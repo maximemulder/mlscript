@@ -4,14 +4,22 @@ import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.types.*
 
 extension (bounds: List[Bound])
-  /** Get the type of the leftmost bound of a given type variable in a given direction, or the
+  /** Get the combination of the bounds of a given type variable in a given direction, or the
    *  extremal type of that direction if the variable is not bounded in these bounds. */
   def getVarDirType(var_ : TypeVar, dir: Direction): Type =
-    bounds.find(bound => bound.var_ == var_ && bound.dir == dir) match
-      case Some(bound) =>
-        bound.type_
-      case None =>
-        getExtremalType(dir)
+    bounds
+      .filter(_.isTypeVarDirBound(var_, dir))
+      .map(_.type_)
+      .reduceRightOption(makeJointType(dir.jointMode, _, _))
+      .getOrElse(getExtremalType(dir))
+
+  /** Combine the bounds of each type variable in each direction into a single bound, which takes
+   *  the place of the leftmost of these bounds. */
+  def combineVarBounds(): List[Bound] =
+    bounds
+      .map(bound => (bound.var_, bound.dir))
+      .distinct
+      .map((var_, dir) => Bound(var_, dir, bounds.getVarDirType(var_, dir), BoundKind.Asserted))
 
   /** Remove the bounds of a variable from the list of bounds. */
   def removeVar(var_ : TypeVar): List[Bound] =
@@ -23,4 +31,9 @@ extension (bounds: List[Bound])
 
   /** Check whether a type variable is constrained in a given direction. */
   def isTypeVarBounded(var_ : TypeVar, dir: Direction): Boolean =
-    bounds.exists((bound) => bound.var_ == var_ && bound.dir == dir)
+    bounds.exists(_.isTypeVarDirBound(var_, dir))
+
+extension (bound: Bound)
+  /** Check whether the bound bounds a given type variable in a given direction. */
+  def isTypeVarDirBound(var_ : TypeVar, dir: Direction): Boolean =
+    bound.var_ == var_ && bound.dir == dir

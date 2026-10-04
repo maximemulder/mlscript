@@ -284,7 +284,7 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 
 // FIXME: SuperF recursive higher-rank stre1ss case currently overflows in subtyping.
 fun g9(x) = if true then x else g9(g9)(x)
-//│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), γ ≤ γ → δ, β ≤ γ → δ, δ ≤ γ → δ, γ ≥ β, β ≥ α, α ≤ β → γ → δ, β ≤ β → γ → δ} ⟹ γ → γ
+//│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), γ ≤ γ → δ, β ≤ γ → δ, δ ≤ γ → δ, γ ≥ β, β ≥ α} ⟹ γ → γ
 
 val g10 = ((x) => x(x))((x) => x(x))
 //│ g10: ⊥

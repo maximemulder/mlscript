@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.type_.impls.inline
 
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.simplification.*
 import hkmc2.ctml.core.structural.*
@@ -20,19 +21,13 @@ extension (bound: Bound)
   def inline(var_ : TypeVar)(using ctx: SubContext): Bound =
     val newUpper = var_.upperBound.removeDirectVar(bound.var_, Polarity.Negative)
     val newLower = var_.lowerBound.removeDirectVar(bound.var_, Polarity.Positive)
+    // The bounds of the inlined variable without the bounded variable override its bounds.
     val newBoundType = inlineType(bound.type_, var_, bound.dir.leftPol)(using
-      ctx.extend(
-        Bound(var_, Direction.Sub, newUpper),
-        Bound(var_, Direction.Super, newLower),
-      )
+      ctx.overrideVarBounds(var_, newUpper, newLower)
     )
       .removeDirectVar(bound.var_, bound.dir.leftPol)
 
-    Bound(
-      bound.var_,
-      bound.dir,
-      newBoundType,
-    )
+    bound.copy(type_ = newBoundType)
 
 /** Implementation of semantic type variable inlining. */
 private def inlineType(type_ : Type, var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =

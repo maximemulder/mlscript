@@ -27,11 +27,13 @@ extension (ctx: SubContext)
     val leftTypeDecls = leftClauses.typeVarDecls
     val rightTypeDecls = rightClauses.typeVarDecls
     val fullCtx = ctx.extend(leftTypeDecls.asSubClauses, rightTypeDecls.asSubClauses)
-    val lefts = leftClauses.bounds.removeDuplicateBounds()
-    val rights = rightClauses.bounds.removeDuplicateBounds()
-    val lowerBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Sub)
-    val upperBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Super)
-    lowerBounds ::: upperBounds ::: leftTypeDecls ::: rightTypeDecls
+    // Only the asserted bounds of the branches are joined, since their effective bounds may rely
+    // on the assumptions of their branch (see `BoundKind`).
+    val lefts = leftClauses.assertedBounds
+    val rights = rightClauses.assertedBounds
+    val upperBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Sub)
+    val lowerBounds = fullCtx.joinBoundsDir(lefts, rights, Direction.Super)
+    upperBounds ::: lowerBounds ::: leftTypeDecls ::: rightTypeDecls
 
   /** Join two lists of bounds in a given typing direction. */
   def joinBoundsDir(lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
@@ -49,26 +51,14 @@ extension (ctx: SubContext)
   def joinVarsBoundsDir(vars: List[TypeVar], lefts: List[Bound], rights: List[Bound], dir: Direction): List[Bound] =
     vars.map(var_ =>
       val type_ = ctx.joinVarBounds(var_, lefts, rights, dir)
-      Bound(var_, dir, type_)
+      Bound(var_, dir, type_, BoundKind.Asserted)
     )
 
   /** Get the join of the bounds of a variable in two lists of constraints. */
   def joinVarBounds(var_ : TypeVar, lefts: List[Bound], rights: List[Bound], dir: Direction) =
     given SubContext = ctx
-    val leftBound  = lefts.getVarDirType(var_, dir)
-    val rightBound = rights.getVarDirType(var_, dir)
-    val leftCtx  = ctx.extend(Bound(var_, dir, leftBound))
-    val rightCtx = ctx.extend(Bound(var_, dir, rightBound))
-    val filteredLefts  = leftCtx
-      .removeSatisfiedBounds(lefts)
-      .removeDuplicateBounds()
-      .sortBounds()(using leftCtx)
-      .map(_.toConstraint)
-    val filteredRights = rightCtx
-      .removeSatisfiedBounds(rights)
-      .removeDuplicateBounds()
-      .sortBounds()(using rightCtx)
-      .map(_.toConstraint)
+    val (leftBound, filteredLefts) = ctx.getBranchVarBound(var_, lefts, dir)
+    val (rightBound, filteredRights) = ctx.getBranchVarBound(var_, rights, dir)
     // The bound of each branch is guarded by the other constraints of the branch. When the guard of
     // a branch does not hold, its guarded bound should act as the identity of the joint that
     // combines the branch bounds, so that only the other branch remains. Upper bounds are thus
@@ -100,3 +90,23 @@ extension (ctx: SubContext)
         )
 
     hkmc2.ctml.core.combine.combine(!dir.jointMode, leftType, rightType)
+
+  /** Get the bound of a variable in the bounds of a branch, and the constraints of the branch that
+   *  guard it. */
+  def getBranchVarBound(var_ : TypeVar, bounds: List[Bound], dir: Direction): (Type, List[Constraint]) =
+    // A variable may have several bounds in the same direction in a branch, e.g. the bound of the
+    // pattern of a match and the bound of a nested match, which must all be kept, both in the bound
+    // of the variable and in the guards of the other variables. Taking only one of them, as was
+    // done before (each variable used to have a single relevant bound), lost the other ones.
+    val bound = bounds.getVarDirType(var_, dir)
+    val boundCtx = ctx.extend(Bound(var_, dir, bound, BoundKind.Asserted))
+    // The guard is made of the other bounds of the branch, except those that hold given the bound of
+    // the variable. The bound of the variable itself is removed syntactically, rather than by
+    // checking that it holds, which may fail: e.g. a rigid variable is not compared to a
+    // constraining type using its bound, since the constraining type is contraposed first, so that
+    // the guard of a variable used to contain its own bound.
+    val guard = boundCtx
+      .removeSatisfiedBounds(bounds.combineVarBounds().filterNot(_.isTypeVarDirBound(var_, dir)))
+      .sortBounds()(using boundCtx)
+      .map(_.toConstraint)
+    (bound, guard)

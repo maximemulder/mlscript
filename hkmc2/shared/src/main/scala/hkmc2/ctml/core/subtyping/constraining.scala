@@ -16,7 +16,8 @@ import hkmc2.ctml.utils.*
 
 /** Constrain a set clauses to hold in the context. */
 def constrainClauses(clauses: SubClauses)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
-  clauses.elems.foldRight(SubClauses.empty)((clause, clauses) => ctx.seqUnit(constrainClause(clause), clauses))
+  // Effective bounds are combinations of asserted bounds, which are constrained themselves.
+  clauses.removeEffectiveBounds().elems.foldRight(SubClauses.empty)((clause, clauses) => ctx.seqUnit(constrainClause(clause), clauses))
 
 /** Constrain a clause to hold in the context. */
 def constrainClause(clause: SubClause)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
@@ -25,7 +26,7 @@ def constrainClause(clause: SubClause)(using ctx: SubContext, mode: ConstraintMo
       SubClauses.single(decl)
     case decl: TypeVarDecl =>
       SubClauses.single(decl)
-    case Bound(var_, dir, type_) =>
+    case Bound(var_, dir, type_, _) =>
       subtypeDir(TVar(var_), type_, dir)
 
 /** Sequentially constrain a type to be a subtype of another type in a context. */
@@ -329,11 +330,11 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext, mode: Con
     case (Order.Lesser | Order.Equal, _) =>
       val y = subtype(TVar(sub), sup.upperBound)
       val supLowerBound = join(TVar(sub), sup.lowerBound)
-      subtypeSeq(sup.lowerBound, sub.upperBound, y.concat(SubClauses(List(Bound(sup, Direction.Super, supLowerBound)))))
+      subtypeSeq(sup.lowerBound, sub.upperBound, y.concat(makeBoundClauses(sup, Direction.Super, TVar(sub), supLowerBound)))
     case (Order.Greater, _) =>
       val x = subtype(sub.lowerBound, TVar(sup))
       val subUpperBound = meet(TVar(sup), sub.upperBound)
-      subtypeSeq(sup.lowerBound, sub.upperBound, x.concat(SubClauses(List(Bound(sub, Direction.Sub, subUpperBound)))))
+      subtypeSeq(sup.lowerBound, sub.upperBound, x.concat(makeBoundClauses(sub, Direction.Sub, TVar(sup), subUpperBound)))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
@@ -345,30 +346,32 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)
   val clauses = subtypeDirSeq(oppositeBound, extrudedType, dir, outs)
-  mode match
+  // The new type is asserted as a bound of the variable, and its combination with the current bound
+  // becomes the effective bound of the variable, so that it does not need to be recomputed whenever
+  // the variable is used (see `BoundKind`).
+  val effectiveBound = mode match
     // In solving mode, the new bound is part of the solution, so it is kept as simple as possible:
-    // it is not returned if it is already satisfied in the context, and is otherwise simplified
-    // with the current bound.
+    // it is not asserted if it is already satisfied in the context, and the effective bound is
+    // otherwise simplified using subtyping checks.
     case ConstraintMode.Solve =>
       if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
-        clauses
-      else
-        val newBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
-        SubClauses(Bound(var_, dir, newBound) :: clauses.elems)
+        return clauses
+      combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
     // In reconstruction mode, the new bound is an assumption of a constrained type, which is
     // discarded once the body of the constrained type has been constrained (see
-    // `subtypeConstrainedSup`), so it is only simplified syntactically. Simplifying it as in solving
-    // mode requires subtyping checks, which reconstruct the assumptions of the constrained types
-    // they meet, and so on: since upper bounds are joined using constraining types, whose guards
-    // contain the other bounds of their branch, these nested checks made up most of the type
-    // checking time of matches (e.g. it took minutes to infer the type of the two-parameter match
-    // function of `ctmlFlow.mls`, and now takes a fraction of a second).
+    // `subtypeConstrainedSup`), so the effective bound is only simplified syntactically. Simplifying
+    // it as in solving mode requires subtyping checks, which reconstruct the assumptions of the
+    // constrained types they meet, and so on: since upper bounds are joined using constraining
+    // types, whose guards contain the other bounds of their branch, these nested checks made up most
+    // of the type checking time of matches (e.g. it took minutes to infer the type of the
+    // two-parameter match function of `ctmlFlow.mls`, and now takes a fraction of a second).
     case ConstraintMode.Reconstruct =>
-      val newBound = makeJointType(dir.jointMode, extrudedType, bound)
-      if newBound == bound then
-        clauses
-      else
-        SubClauses(Bound(var_, dir, newBound) :: clauses.elems)
+      val effectiveBound = makeJointType(dir.jointMode, extrudedType, bound)
+      if effectiveBound == bound then
+        return clauses
+      effectiveBound
+
+  clauses.concat(makeBoundClauses(var_, dir, extrudedType, effectiveBound))
 
 // Rigid type variables.
 
@@ -430,7 +433,9 @@ def subtypeConstrainedSup(constrained: TConstrained, type_ : Type)(using ctx: Su
   // TODO: While it makes sense to return new variables that may have been created in the constraints,
   // the only case where that happens currently results in infinite recursion.
   val bodyClauses = subtype(type_, constrained.body)(using ctx.extend(constraintClauses), mode)
-  SubClauses(constraintClauses.typeVarDecls).concat(bodyClauses)
+  // The effective bounds of the body may rely on the assumed constraint, so they are removed when
+  // leaving its scope, unlike the asserted bounds of the body (see `BoundKind`).
+  SubClauses(constraintClauses.typeVarDecls).concat(bodyClauses.removeEffectiveBounds())
 
 /** Constrain a tuple type to he a subtype of another tuple type. */
 def subtypeTuple(sub: TTuple, sup: TTuple)(using ctx: SubContext, mode: ConstraintMode): SubClauses =

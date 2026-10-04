@@ -34,11 +34,11 @@ extension (ctx: SubContext)
       case None =>
         throw new Exception(s"Type variable '${var_}' not found in the context.")
 
-  /** Get all the bounds of a type variable in a given typing direction. */
+  /** Get all the asserted bounds of a type variable in a given typing direction. */
   def getAllVarBounds(var_ : TypeVar, dir: Direction): List[Type] =
     ctx
       .clauses
-      .varBounds(var_)
+      .varAssertedBounds(var_)
       .filter(_.dir == dir)
       .map(_.type_)
       .toList

@@ -14,14 +14,20 @@ import hkmc2.ctml.types.*
 extension (ctx: SubContext)
   /** Process the type, variables, and constraints generated in a level. Quantifying and
    *  simplifying then if possible. */
-  def processLevel(level: Int, type_ : Type, outs: SubClauses): Type =
+  def processLevel(level: Int, type_ : Type, levelOuts: SubClauses): Type =
     // NOTE: unwrapCtx currently solves clauses, which may need to be moved somewhere else.
+
+    // The clauses of the level are simplified and quantified with a single bound per variable and
+    // direction, which summarizes its asserted and effective bounds. Effective bounds hold in the
+    // scope of the level, since those computed under further assumptions have already been removed
+    // when leaving the scope of these assumptions (see `BoundKind`).
+    val outs = levelOuts.summarizeBounds()
 
     debug(s"LEVEL CLAUSES (${level}) ${type_} OUT ${outs}")
 
     val (type1, typeOuts0) = type_.hoistCtx.unwrapCtx
 
-    val typeOuts1 = solve(typeOuts0)(using ctx.extend(outs))
+    val typeOuts1 = solve(typeOuts0)(using ctx.extend(outs)).summarizeBounds()
 
     debug(s"LEVEL UNWRAP ${type1} OUT ${typeOuts1}")
 

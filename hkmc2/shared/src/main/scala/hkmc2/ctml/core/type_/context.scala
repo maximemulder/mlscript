@@ -29,7 +29,7 @@ extension (type_ : Type)
 
   /** Wrap contextual information around a type using universal and constrained types. */
   def wrapCtx(clauses: SubClauses): Type =
-    val constrained = makeConstrainedType(type_, clauses.bounds.map(_.toConstraint))
+    val constrained = makeConstrainedType(type_, clauses.assertedBounds.map(_.toConstraint))
 
     // Ignore variables that do not appear in the wrapped type.
     val vars = clauses.typeVarDecls.map(_.var_).filter(constrained.containsVar(_))

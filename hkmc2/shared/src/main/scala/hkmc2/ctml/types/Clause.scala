@@ -90,7 +90,12 @@ case class TypeVarDecl(
   override def toString: String =
     this.show
 
-/** A type variable bound. */
+/** A type variable bound.
+ *
+ *  A type variable may have several bounds in a given direction, whose kinds determine how they
+ *  combine into the bound of the variable (see `BoundKind`). Only the operations on bounds defined
+ *  in `core/clauses/bounds.scala` depend on the kind of a bound, so that the other operations handle
+ *  all bounds uniformly. */
 case class Bound(
   /** The type variable being bound. */
   val var_ : TypeVar,
@@ -98,6 +103,8 @@ case class Bound(
   val dir: Direction,
   /** The type that bounds the type variable. */
   val type_ : Type,
+  /** The kind of the bound. */
+  val kind: BoundKind,
 ) extends SubClause:
   /** Get the string representation of the object. */
   override def toString: String =
@@ -106,6 +113,41 @@ case class Bound(
   /** Convert this bound to a constraint. */
   def toConstraint: Constraint =
     Constraint(TVar(var_), dir, type_)
+
+/** The kind of a type variable bound. */
+enum BoundKind:
+  /** An asserted bound, which holds because of the constraint it originates from.
+   *
+   *  All the asserted bounds of a variable in a given direction hold, so that its bound in that
+   *  direction is their combination (see `varBound`). Asserted bounds are never replaced, which
+   *  makes them independent of the scope they are computed in: they are the bounds that are output
+   *  by constraint solving and joined by context joins. */
+  case Asserted
+
+  /** An effective bound, which subsumes the bounds of its variable in the same direction that
+   *  precede it, in the scope in which it is computed.
+   *
+   *  When reading the bound of a type variable, the bounds that precede its most recent effective
+   *  bound are thus ignored (see `varBound`). This allows the bound of a variable to be simplified
+   *  in a scope without losing the asserted bounds it is computed from. Notably, the combination of
+   *  the current bound of a variable with a new bound is recorded as an effective bound (see
+   *  `subtypeFlexVar`), so that it does not need to be recomputed whenever the variable is used.
+   *
+   *  Since an effective bound may rely on the assumptions of the scope in which it is computed (the
+   *  guard of a constrained type, the branch of a match...), effective bounds are removed from the
+   *  clauses output by a computation when they leave that scope (see `removeEffectiveBounds`), which
+   *  leaves the asserted bounds. Losing an effective bound is harmless: the bound of the variable is
+   *  then read as the combination of its asserted bounds.
+   *
+   *  History: the bounds of a variable used to be replaced by their combination with each new
+   *  bound, so that only the most recent bound of a variable in each direction was read. This
+   *  required every new bound to subsume the previous ones, which was not the case of the bounds
+   *  produced by context joins, so that e.g. the join of nested matches silently lost the bound of
+   *  the outer pattern (`foo(1, "World")` was accepted in `ctmlFlowWeirdMatch.mls`). Moreover,
+   *  combinations computed using scoped assumptions remained after these assumptions were dropped.
+   *  Effective bounds were first introduced as a separate kind of clause, which was replaced by this
+   *  kind of bounds so that the operations that do not depend on it handle all bounds uniformly. */
+  case Effective
 
 /** A type variable kind. */
 enum TypeVarKind:
@@ -169,7 +211,11 @@ given Show[TypeVarDecl] with
 /** Implementation of the `Show` trait for `Bound`. */
 given Show[Bound] with
   override def show(bound: Bound): String =
-    s"${bound.var_} ${bound.dir} ${bound.type_}"
+    bound.kind match
+      case BoundKind.Asserted =>
+        s"${bound.var_} ${bound.dir} ${bound.type_}"
+      case BoundKind.Effective =>
+        s"eff ${bound.var_} ${bound.dir} ${bound.type_}"
 
 /** Implementation of the `Show` trait for `TypeVarKind`. */
 given Show[TypeVarKind] with

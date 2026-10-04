@@ -39,7 +39,7 @@ extension (ctx: SubContext)
   * recursive occurrence of that variable in the selected effective bound. */
 private def canInlineOpenState(type_ : Type, outs: SubClauses, var_ : TypeVar)(using ctx: SubContext): Boolean =
   val typePolarities = type_.getVarPolarities(var_)
-  val boundPolarities = outs.bounds.iterator
+  val boundPolarities = outs.assertedBounds.iterator
     .filterNot(_.var_ == var_)
     .map((bound) =>
       val polarities = bound.type_.getVarPolarities(var_)
@@ -66,9 +66,6 @@ private def canEliminateDisconnectedVar(var_ : TypeVar)(using ctx: SubContext): 
     false
   else
     val comparisonCtx = ctx
-      .map(_.filter(_ match
-        case Bound(boundVar, _, _) => boundVar != var_
-        case _ => true
-      ))
+      .map(_.filter(!_.isTypeVarBound(var_)))
       .mapCache(_ => SubtypingCache())
     checkEqual(lower, upper)(using comparisonCtx)

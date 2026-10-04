@@ -20,7 +20,7 @@ extension (ctx: SubContext)
   /** Get the list of type variables that directly depend on another type variable in the clause. */
   def getDependentVarsInner(var_ : TypeVar, clause: SubClause)(using cache: MutSet[(TypeVar, Direction)]): Set[TypeVar] =
     clause match
-      case Bound(boundVar, dir, boundType) if boundVar != var_ && boundType.containsVar(var_) && !cache.contains((boundVar, dir)) =>
+      case Bound(boundVar, dir, boundType, _) if boundVar != var_ && boundType.containsVar(var_) && !cache.contains((boundVar, dir)) =>
         cache.add((boundVar, dir))
         Set(boundVar) ++ ctx.getDependentVarsInner(boundVar)
       case _ =>

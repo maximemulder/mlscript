@@ -106,8 +106,8 @@ class Tester(
     val var_ = TypeVar(name)
     this.ctx = this.ctx.extendSub(
       TypeVarDecl(var_, TypeVarKind.Rigid, None, 0),
-      Bound(var_, Direction.Sub,   type_),
-      Bound(var_, Direction.Super, type_),
+      Bound(var_, Direction.Sub,   type_, BoundKind.Asserted),
+      Bound(var_, Direction.Super, type_, BoundKind.Asserted),
     )
 
   /** Add an expression variable to the context. */

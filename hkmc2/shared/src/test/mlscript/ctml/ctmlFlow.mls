@@ -135,13 +135,12 @@ foo2(1, "World")
 //│     γ → δ ≤ Str → β
 //│       Str ≤ γ
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
-//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ Int
+//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
 //│               {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                   ¬Int ≤ ¬Str
 //│                     Str ≤ Int
-//│           Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Int
 //│             Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│               {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                 ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str)
@@ -160,13 +159,12 @@ foo2(1, int_or_string)
 //│       γ → δ ≤ Str → β
 //│         Str ≤ γ
 //│           Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
-//│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ Int
+//│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│               Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
 //│                 {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                   {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                     ¬Int ≤ ¬Str
 //│                       Str ≤ Int
-//│             Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Int
 //│               Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│                 {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                   ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str)
@@ -215,13 +213,12 @@ foo2 as ((Int | Str) -> (Int | Str) -> (Int | Str))
 //│                   ζ → η ≤ Str → (Int ∨ Str)
 //│                     Str ≤ ζ
 //│                       Str ≤ (¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ¬Str), η ≥ θ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
-//│                         Str ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∧ Int
+//│                         Str ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ¬Str), η ≥ θ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│                           Str ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int)
 //│                             {ε ≤ Int, η ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                               {η ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                                 ¬Int ≤ ¬Str
 //│                                   Str ≤ Int
-//│                         Str ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ¬Str), η ≥ θ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Int
 //│                           Str ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ¬Str), η ≥ θ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│                             {ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ¬Str), η ≥ θ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                               ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ¬Str)
@@ -276,12 +273,11 @@ fooI(1, "World")
 //│     γ → Int ≤ Str → β
 //│       Str ≤ γ
 //│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))) ∧ Int
-//│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∧ Int
+//│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))
 //│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
 //│               {δ ≤ Int} ⟹ ¬Int ≤ ¬Str
 //│                 ¬Int ≤ ¬Str
 //│                   Str ≤ Int
-//│           Str ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ Int
 //│             Str ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))
 //│               {δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                 δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)
@@ -299,42 +295,21 @@ fooI("Hello", 2)
 //│     γ → Int ≤ Int → β
 //│       Int ≤ γ
 //│         Int ≤ ((¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))) ∧ (¬({δ ≤ Str} ⟹ ¬Str) ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│           Int ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∧ (¬({δ ≤ Str} ⟹ ¬Str) ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│             Int ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∧ ¬({δ ≤ Str} ⟹ ¬Str)) ∧ Str
-//│               Int ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∧ ¬({δ ≤ Str} ⟹ ¬Str)
-//│                 Int ≤ ¬({δ ≤ Int} ⟹ ¬Int)
-//│                   {δ ≤ Int} ⟹ ¬Int ≤ ¬Int
-//│                     δ ≤ Int
-//│                       Str ≤ Int
-//│             Int ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∧ ¬({δ ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│               Int ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∧ ¬({δ ≤ ⊥} ⟹ ⊥)
-//│                 Int ≤ ¬({δ ≤ Int} ⟹ ¬Int)
-//│                   {δ ≤ Int} ⟹ ¬Int ≤ ¬Int
-//│                     δ ≤ Int
-//│                       Str ≤ Int
-//│           Int ≤ (¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ (¬({δ ≤ Str} ⟹ ¬Str) ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│             Int ≤ (¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ ¬({δ ≤ Str} ⟹ ¬Str)) ∧ Str
-//│               Int ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ ¬({δ ≤ Str} ⟹ ¬Str)
-//│                 Int ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))
-//│                   {δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                     ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                       Int ≤ Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)
-//│                         Int ≤ Str
-//│                         Int ≤ ¬({δ ≤ ⊥} ⟹ ⊥)
-//│                           {δ ≤ ⊥} ⟹ ⊥ ≤ ¬Int
-//│                             δ ≤ ⊥
-//│                               Str ≤ ⊥
-//│             Int ≤ (¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ ¬({δ ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│               Int ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥))) ∧ ¬({δ ≤ ⊥} ⟹ ⊥)
-//│                 Int ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))
-//│                   {δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                     ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                       Int ≤ Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)
-//│                         Int ≤ Str
-//│                         Int ≤ ¬({δ ≤ ⊥} ⟹ ⊥)
-//│                           {δ ≤ ⊥} ⟹ ⊥ ≤ ¬Int
-//│                             δ ≤ ⊥
-//│                               Str ≤ ⊥
+//│           Int ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))) ∧ (¬({δ ≤ Str} ⟹ ¬Str) ∨ ¬({δ ≤ ⊥} ⟹ ⊥))
+//│             Int ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))
+//│               Int ≤ ¬({δ ≤ Int} ⟹ ¬Int)
+//│                 {δ ≤ Int} ⟹ ¬Int ≤ ¬Int
+//│                   δ ≤ Int
+//│                     Str ≤ Int
+//│               Int ≤ ¬({δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))
+//│                 {δ ≤ ¬({γ ≤ Str} ⟹ ¬Str)} ⟹ ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
+//│                   ¬(Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
+//│                     Int ≤ Str ∨ ¬({δ ≤ ⊥} ⟹ ⊥)
+//│                       Int ≤ Str
+//│                       Int ≤ ¬({δ ≤ ⊥} ⟹ ⊥)
+//│                         {δ ≤ ⊥} ⟹ ⊥ ≤ ¬Int
+//│                           δ ≤ ⊥
+//│                             Str ≤ ⊥
 
 fooI("Hello", "World")
 //│ Int

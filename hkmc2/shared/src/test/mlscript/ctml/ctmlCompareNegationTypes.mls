@@ -51,6 +51,14 @@ A <:< ~B
 (~B | (A & B)) == ~B
 //│ OK
 
+// Excluded middle under intersections
+
+Top <:< ((A | ~A) & (B | ~B))
+//│ OK
+
+Top <:< ~((A & ~A) | (B & ~B))
+//│ OK
+
 :te
 ~A <:< B
 //│ ═══[TYPE ERROR] Cannot solve judgment ¬A ≤ B.

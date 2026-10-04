@@ -218,6 +218,26 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       )
     case _ =>
 
+  // Outer right intersections are decomposed before right unions. The right intersection rule is
+  // invertible (`τ ≤ σ₁ ∧ σ₂` iff `τ ≤ σ₁` and `τ ≤ σ₂`), so applying it first loses no derivation.
+
+  // Right unions used to be split first, which distributed them over the outer intersection:
+  // `τ ≤ (σ₁ ∨ σ₂) ∧ σ₃` was explored as `τ ≤ σ₁ ∧ σ₃` or `τ ≤ σ₂ ∧ σ₃`. This was exponential in
+  // the number of unions of the intersection, which notably made checks against intersections of
+  // unions of constraining types time out (e.g. `foo(1, 1) as Int` in `ctmlFlowWeirdMatch.mls`). It
+  // also prevented `joinMerge` from merging the unions, so that `⊤ ≤ (A ∨ ¬A) ∧ (B ∨ ¬B)` failed.
+
+  // The other intersection shapes of `splitInter` (e.g. through rigid variable bounds or lambda
+  // types) are still decomposed after right unions, by the rule below.
+
+  sup.splitOuterInter match
+    case Some(supLeft, supRight) =>
+      return ctx.all(
+        subtype(sub, supLeft),
+        subtype(sub, supRight),
+      )
+    case _ =>
+
   sup.splitUnion(Polarity.Positive) match
     case Some(supLeft, supRight) =>
       return joinMerge(supLeft, supRight) match

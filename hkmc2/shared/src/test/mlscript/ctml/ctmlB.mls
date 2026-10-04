@@ -38,13 +38,12 @@ baz(1, "")
 //│     γ → δ ≤ Str → β
 //│       Str ≤ γ
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
-//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ Int
+//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
 //│               {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                   ¬Int ≤ ¬Str
 //│                     Str ≤ Int
-//│           Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Int
 //│             Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│               {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                 ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str)

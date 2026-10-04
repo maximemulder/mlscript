@@ -13,6 +13,15 @@ extension (type_ : Type)
   def splitInter(pol: Polarity)(using ctx: SubContext): Option[(Type, Type)] =
     type_.split(JointMode.Inter)(using ctx, pol, Set())
 
+  /** Split a type in two if it is an outer intersection (including a negated union), without
+    * distributing it over the unions it contains, unlike `splitInter`. */
+  def splitOuterInter: Option[(Type, Type)] =
+    type_ match
+      case TNeg(body) =>
+        body.splitStructure(JointMode.Union).map((left, right) => (TNeg(left), TNeg(right)))
+      case _ =>
+        type_.splitStructure(JointMode.Inter)
+
   /** Split a union or intersection in two depending on a type polarity. */
   def splitStructure(mode: JointMode): Option[(Type, Type)] =
     type_ match

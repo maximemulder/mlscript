@@ -10,12 +10,16 @@ fun foo(a, b) =
     Top then b as Str
 //│ foo: ∀α, β, γ, δ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬({β ≤ Str, δ ≥ Str} ⟹ ⊥) ∧ ¬Int, γ ≥ δ, δ ≥ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({δ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥))), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬({δ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥), γ ≥ δ, δ ≥ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({β ≤ Str, δ ≥ Str} ⟹ ⊥) ∧ ¬Int)), δ ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ ¬({β ≤ Str, δ ≥ Str} ⟹ ⊥) ∧ ¬Int, β ≤ ¬({δ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥), γ ≥ δ} ⟹ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬({β ≤ Str, δ ≥ Str} ⟹ ⊥) ∧ ¬Int, β ≤ ¬({δ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥), δ ≥ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ δ)} ⟹ α → β → γ
 
-// FIXME: Does not finish within minutes: the simplification of the level of `bar` checks
+// FIXME: Does not finish within a minute: the simplification of the level of `bar` checks
 // intersections of constrained types, and each check explores every alternative of the unions
-// of constraining types in their guards, which nest deeply. This took about 13 s when the joins
-// of nested matches lost bounds, which made the guards smaller (and `foo(1, "World")` well
-// typed). When lower bounds were guarded by constraining types as well, this was inferred in a
-// few seconds, but with the unsound type `⊤ → ⊤ → Int`.
+// of constraining types in their guards, which nest deeply. Splitting right intersections before
+// right unions (see `subtypeImpl`) made this exploration linear in the number of unions of an
+// intersection, but the rules of left intersections and right unions also run subtyping checks
+// of their own (in `meetMerge`, `subtractStep` and `joinMerge`), which nest in each other (6 to
+// 11 levels deep in stack samples) and explore these alternatives again. This took about 13 s
+// when the joins of nested matches lost bounds, which made the guards smaller (and
+// `foo(1, "World")` well typed). When lower bounds were guarded by constraining types as well,
+// this was inferred in a few seconds, but with the unsound type `⊤ → ⊤ → Int`.
 // fun bar(a, b) =
 //   foo(a, b) as Int
 // //│ bar: Int → Int → Int
@@ -28,6 +32,10 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 // Function applications
 
 foo(1, 1)
+//│ Int
+
+// Timed out when right unions were split before right intersections (see `subtypeImpl`).
+foo(1, 1) as Int
 //│ Int
 
 foo("Hello", "World")
@@ -54,52 +62,26 @@ foo as (Bool -> Bool -> Bool)
 //│               ζ → η ≤ Bool → Bool
 //│                 Bool ≤ ζ
 //│                   Bool ≤ ((¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ (¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│                     Bool ≤ (¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∧ (¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│                       Bool ≤ (¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∧ ¬({θ ≥ Str} ⟹ ¬Str)) ∧ Str
-//│                         Bool ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∧ ¬({θ ≥ Str} ⟹ ¬Str)
-//│                           Bool ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int)
-//│                             {ε ≤ Int, η ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│                               ε ≤ Int
-//│                                 Bool ≤ Int
-//│                       Bool ≤ (¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│                         Bool ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                           Bool ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int)
-//│                             {ε ≤ Int, η ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│                               ε ≤ Int
-//│                                 Bool ≤ Int
-//│                     Bool ≤ (¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ (¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│                       Bool ≤ (¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({θ ≥ Str} ⟹ ¬Str)) ∧ Str
-//│                         Bool ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({θ ≥ Str} ⟹ ¬Str)
-//│                           Bool ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
-//│                             {ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                               {η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                                 {θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                                   ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                                     Bool ≤ ¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                                       Bool ≤ ¬({θ ≥ Str} ⟹ ¬Str)
-//│                                         {θ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                                           ¬Str ≤ ¬Bool
-//│                                             Bool ≤ Str
-//│                                       Bool ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                                         {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Bool
-//│                                           ε ≤ ⊥
-//│                                             Bool ≤ ⊥
-//│                       Bool ≤ (¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│                         Bool ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                           Bool ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
-//│                             {ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                               {η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                                 {θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                                   ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                                     Bool ≤ ¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                                       Bool ≤ ¬({θ ≥ Str} ⟹ ¬Str)
-//│                                         {θ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                                           ¬Str ≤ ¬Bool
-//│                                             Bool ≤ Str
-//│                                       Bool ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                                         {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Bool
-//│                                           ε ≤ ⊥
-//│                                             Bool ≤ ⊥
+//│                     Bool ≤ (¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ (¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))
+//│                       Bool ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
+//│                         Bool ≤ ¬({ε ≤ Int, η ≥ Int} ⟹ ¬Int)
+//│                           {ε ≤ Int, η ≥ Int} ⟹ ¬Int ≤ ¬Bool
+//│                             ε ≤ Int
+//│                               Bool ≤ Int
+//│                         Bool ≤ ¬({ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
+//│                           {ε ≤ ¬({ζ ≤ Str, θ ≥ Str} ⟹ ⊥) ∧ ¬Int, η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                             {η ≥ θ, θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                               {θ ≥ ({ζ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                                 ¬(¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                                   Bool ≤ ¬({θ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
+//│                                     Bool ≤ ¬({θ ≥ Str} ⟹ ¬Str)
+//│                                       {θ ≥ Str} ⟹ ¬Str ≤ ¬Bool
+//│                                         ¬Str ≤ ¬Bool
+//│                                           Bool ≤ Str
+//│                                     Bool ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
+//│                                       {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Bool
+//│                                         ε ≤ ⊥
+//│                                           Bool ≤ ⊥
 
 :te
 foo(true, 1)
@@ -109,52 +91,26 @@ foo(true, 1)
 //│     γ → δ ≤ Int → β
 //│       Int ≤ γ
 //│         Int ≤ ((¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│           Int ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│             Int ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)) ∧ Str
-//│               Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                 Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                   {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Int
-//│                     ε ≤ Int
-//│                       Bool ≤ Int
-//│             Int ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│               Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                 Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                   {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Int
-//│                     ε ≤ Int
-//│                       Bool ≤ Int
-//│           Int ≤ (¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│             Int ≤ (¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)) ∧ Str
-//│               Int ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                 Int ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
-//│                   {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                     {δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                       {ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                         ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                           Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                             Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                               {ζ ≥ Str} ⟹ ¬Str ≤ ¬Int
-//│                                 ¬Str ≤ ¬Int
-//│                                   Int ≤ Str
-//│                             Int ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                               {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Int
-//│                                 ε ≤ ⊥
-//│                                   Bool ≤ ⊥
-//│             Int ≤ (¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│               Int ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                 Int ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
-//│                   {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                     {δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                       {ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                         ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
-//│                           Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                             Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                               {ζ ≥ Str} ⟹ ¬Str ≤ ¬Int
-//│                                 ¬Str ≤ ¬Int
-//│                                   Int ≤ Str
-//│                             Int ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                               {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Int
-//│                                 ε ≤ ⊥
-//│                                   Bool ≤ ⊥
+//│           Int ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))
+//│             Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
+//│               Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
+//│                 {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Int
+//│                   ε ≤ Int
+//│                     Bool ≤ Int
+//│               Int ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
+//│                 {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
+//│                   {δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
+//│                     {ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
+//│                       ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Int
+//│                         Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
+//│                           Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
+//│                             {ζ ≥ Str} ⟹ ¬Str ≤ ¬Int
+//│                               ¬Str ≤ ¬Int
+//│                                 Int ≤ Str
+//│                           Int ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
+//│                             {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Int
+//│                               ε ≤ ⊥
+//│                                 Bool ≤ ⊥
 
 :te
 foo(true, true)
@@ -164,52 +120,26 @@ foo(true, true)
 //│     γ → δ ≤ Bool → β
 //│       Bool ≤ γ
 //│         Bool ≤ ((¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│           Bool ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│             Bool ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)) ∧ Str
-//│               Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                 Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                   {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│                     ε ≤ Int
-//│                       Bool ≤ Int
-//│             Bool ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│               Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                 Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                   {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│                     ε ≤ Int
-//│                       Bool ≤ Int
-//│           Bool ≤ (¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Str
-//│             Bool ≤ (¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)) ∧ Str
-//│               Bool ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                 Bool ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
-//│                   {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                     {δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                       {ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                         ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                           Bool ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                             Bool ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                               {ζ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                                 ¬Str ≤ ¬Bool
-//│                                   Bool ≤ Str
-//│                             Bool ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                               {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Bool
-//│                                 ε ≤ ⊥
-//│                                   Bool ≤ ⊥
-//│             Bool ≤ (¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)) ∧ Str
-//│               Bool ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                 Bool ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
-//│                   {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                     {δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                       {ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                         ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
-//│                           Bool ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                             Bool ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
-//│                               {ζ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                                 ¬Str ≤ ¬Bool
-//│                                   Bool ≤ Str
-//│                             Bool ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
-//│                               {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Bool
-//│                                 ε ≤ ⊥
-//│                                   Bool ≤ ⊥
+//│           Bool ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ (¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))
+//│             Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
+//│               Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
+//│                 {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Bool
+//│                   ε ≤ Int
+//│                     Bool ≤ Int
+//│               Bool ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
+//│                 {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                   {δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                     {ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                       ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Bool
+//│                         Bool ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)
+//│                           Bool ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
+//│                             {ζ ≥ Str} ⟹ ¬Str ≤ ¬Bool
+//│                               ¬Str ≤ ¬Bool
+//│                                 Bool ≤ Str
+//│                           Bool ≤ ¬({ε ≤ ⊥} ⟹ ⊥)
+//│                             {ε ≤ ⊥} ⟹ ⊥ ≤ ¬Bool
+//│                               ε ≤ ⊥
+//│                                 Bool ≤ ⊥
 
 :te
 foo(1, "World")
@@ -219,13 +149,12 @@ foo(1, "World")
 //│     γ → δ ≤ Str → β
 //│       Str ≤ γ
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
-//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ Int
+//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
 //│               {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
 //│                   ¬Int ≤ ¬Str
 //│                     Str ≤ Int
-//│           Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥))) ∧ Int
 //│             Str ≤ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│               {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int, δ ≥ ζ, ζ ≥ ({γ ≤ Str} ⟹ Str) ∧ ({ε ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                 ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ⊥) ∧ ¬Int

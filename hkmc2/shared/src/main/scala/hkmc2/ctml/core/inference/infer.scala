@@ -65,38 +65,45 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
     case match_ : EMatch =>
       inferMatch(match_)
 
-/** Infer the type of a match expression. */
+/** Infer the type of a match expression.
+ *
+ *  A match with an else branch types each branch under the bound of the scrutinee by the pattern
+ *  or by its negation, and joins the clauses of the two branches (see `joinBounds`). A match
+ *  without an else branch must be exhaustive: the scrutinee is bounded by the pattern in the
+ *  enclosing context, under which the then branch alone is typed (the paper's `I-IfThen`). The
+ *  missing else branch is dead, so typing it as a branch that bounds the scrutinee by `⊥` and
+ *  joining it with the then branch only adds the solutions where the scrutinee is `⊥`, which are
+ *  vacuous for a parameter, while its guard `{α ≤ ⊥} ⟹ ⊥` would be nested in the joined bound of
+ *  every variable of the then branch, and these bounds in the guards of every enclosing join. */
 def inferMatch(match_ : EMatch)(using ctx: TypeContext): (Type, SubClauses) =
   // Infer the type and bounds of the scrutinee.
   val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee)
   if !config.arbitraryPatterns && !match_.pattern.isPattern then
     throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
 
-  ctx.seq(
-    {
-      val matchVarDecl = ctx.sub.declInferVar()
-      val matchType = TVar(matchVarDecl.var_)
-      val matchCtx = ctx.extendSub(matchVarDecl)
-      val (a, b) =
-        given TypeContext = matchCtx
-        val patternClauses = typingSubtype(scrutineeType, match_.pattern)
-        val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
-        val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
-
-        match_.else_ match
-          case Some(else_) =>
+  match_.else_ match
+    case Some(else_) =>
+      ctx.seq(
+        {
+          val matchVarDecl = ctx.sub.declInferVar()
+          val matchType = TVar(matchVarDecl.var_)
+          val matchCtx = ctx.extendSub(matchVarDecl)
+          val clauses =
+            given TypeContext = matchCtx
+            val patternClauses = typingSubtype(scrutineeType, match_.pattern)
+            val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
+            val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
             val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
             val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
             val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
-            (matchType, SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses)))
-          case None =>
-            val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
-            val realElseClauses = typingSubtypeSeq(scrutineeType, TBot, elsePatternClauses)
-            (matchType, SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses)))
-      (a, SubClauses.single(matchVarDecl).concat(b))
-    },
-    scrutineeClauses,
-  )
+            SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses))
+          (matchType, SubClauses.single(matchVarDecl).concat(clauses))
+        },
+        scrutineeClauses,
+      )
+    case None =>
+      val patternClauses = typingSubtypeSeq(scrutineeType, match_.pattern, scrutineeClauses)
+      inferSeq(match_.then_, patternClauses)
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: TypeContext) =
   subtype(sub, sup)(using ctx.sub, ConstraintMode.Solve)

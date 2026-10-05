@@ -17,19 +17,17 @@ import hkmc2.ctml.types.*
 //   Either judgment may hold, and each of them forgets an operand, so that these rules are not
 //   invertible (see `splitAny`).
 
-// These two operations replace a single `split` function, which took the mode of the joint type to
-// expose independently of the polarity, and so accepted combinations that are not rules:
-// - It distributed intersections over unions to expose a union at the positive polarity, which was
-//   explored by the choice rule, in a time exponential in the number of unions. This used to be
-//   worked around by a separate split of outer intersections (`splitOuterInter`), applied before
-//   the choice rule.
-// - It split lambda types into intersections at the negative polarity, where the choice rule then
-//   kept a single one of them: `(A ∨ B) → C ≤ α → C` was not derived from `α ≤ A ∨ B`, since it was
+// Selecting these rules by the polarity alone matters, since decomposing a joint type whatever its
+// polarity accepts combinations that are not rules:
+// - Distributing intersections over unions to expose a union at the positive polarity, for the
+//   choice rule to explore, takes a time exponential in the number of unions.
+// - Splitting lambda types into intersections at the negative polarity lets the choice rule keep a
+//   single one of them: `(A ∨ B) → C ≤ α → C` is then not derived from `α ≤ A ∨ B`, since it is
 //   explored as `A → C ≤ α → C` or `B → C ≤ α → C`.
-// - It kept the same polarity under negations and in lambda parameters, and so replaced the
-//   variables that occur there by their bound of the wrong direction, which is unsound: e.g.
-//   `C ≤ ¬α` was derived from a lower bound `(A → A) ∧ (B → B)` of `α`, and `α → C ≤ A → C` from an
-//   upper bound `A ∨ B` of `α`.
+// - Keeping the same polarity under negations and in lambda parameters replaces the variables that
+//   occur there by their bound of the wrong direction, which is unsound: e.g. `C ≤ ¬α` is then
+//   derived from a lower bound `(A → A) ∧ (B → B)` of `α`, and `α → C ≤ A → C` from an upper bound
+//   `A ∨ B` of `α`.
 
 /** The kind of rule that decomposes a joint type in a subtyping judgment. */
 private enum SplitRule:
@@ -49,12 +47,11 @@ private enum SplitRule:
  *  the supertype: e.g. `τ ∧ σ ≤ τ ∨ ρ`.
  *
  *  This is checked before any other rule, since the other rules may turn such a judgment into
- *  judgments that are not derived. Only the two sides as a whole used to be compared, which relied
- *  on the choice rules to reach their operands, and so on the rules that are applied before the
- *  choice rules to keep these operands as they are: e.g. `({c} ⟹ α) ∧ τ ≤ {c} ⟹ α` held by choosing
- *  the left operand of the subtype, which no longer happens before the right constrained type is
- *  opened (see `subtypeImpl`). It then requires `{c} ⟹ α ≤ α`, which is not derived when `α` is
- *  rigid: `α` is replaced by its lower bound before the left constrained type is opened. */
+ *  judgments that are not derived. Comparing only the two sides as a whole is not enough, since the
+ *  rules that are applied before the choice rules may not keep their operands as they are: e.g.
+ *  `({c} ⟹ α) ∧ τ ≤ {c} ⟹ α` opens the right constrained type before choosing the left operand of
+ *  the subtype (see `subtypeImpl`), and then requires `{c} ⟹ α ≤ α`, which is not derived when `α`
+ *  is rigid: `α` is replaced by its lower bound before the left constrained type is opened. */
 def isReflexive(sub: Type, sup: Type): Boolean =
   sup.hasJointOperand(JointMode.Union, sub) || (sub match
     case TJointType(JointMode.Inter, left, right) =>
@@ -140,10 +137,10 @@ extension (type_ : Type)
    *  This is the case on the left of a judgment, which is normalised towards a union of
    *  intersections. It is not the case on the right, whose unions are left to the choice rule: once
    *  the left of a judgment is an intersection of types that are not unions, it is compared to the
-   *  operands of the unions and intersections of the right as they are. Normalising the right towards
-   *  an intersection of unions as well was tried, and made the CTML tests time out: it is exponential
-   *  in the number of intersections of the unions of the right, which is the shape of the lower
-   *  bounds joined by `joinBounds`.
+   *  operands of the unions and intersections of the right as they are. The right is not normalised
+   *  towards an intersection of unions, since this is exponential in the number of intersections of
+   *  the unions of the right, which is the shape of the lower bounds joined by `joinBounds` (the
+   *  CTML tests then time out).
    *
    *  It is however the case inside the lambda types of both sides. An intersection of lambda types
    *  on the left is compared to a lambda type on the right one lambda type at a time, by the choice
@@ -161,11 +158,10 @@ extension (type_ : Type)
       // A rigid variable is replaced by its bound. Unlike the other cases, this is not an
       // equivalence in general, since the variable itself is forgotten.
       // - The invertible rules only replace a variable when this loses no derivation, which is
-      //   mainly when it occurs nowhere else in the judgment (see `isBoundExact`). They used to
-      //   replace any variable, which made them lose the derivations that relate its occurrences:
-      //   e.g. given an upper bound `A ∨ B` of `α`, `∀β. β → β ≤ α → α` was explored as
-      //   `∀β. β → β ≤ A → α` and `∀β. β → β ≤ B → α`, and `α ∧ A ≤ α` as `A ∧ A ≤ α` and
-      //   `B ∧ A ≤ α`, which all fail.
+      //   mainly when it occurs nowhere else in the judgment (see `isBoundExact`). Replacing any
+      //   variable loses the derivations that relate its occurrences: e.g. given an upper bound
+      //   `A ∨ B` of `α`, `∀β. β → β ≤ α → α` would be explored as `∀β. β → β ≤ A → α` and
+      //   `∀β. β → β ≤ B → α`, and `α ∧ A ≤ α` as `A ∧ A ≤ α` and `B ∧ A ≤ α`, which all fail.
       // - The choice rules replace any variable, since they forget an operand anyway.
 
       // A variable that occurs elsewhere is thus not analysed by cases by the invertible rules:
@@ -174,10 +170,10 @@ extension (type_ : Type)
       // variable has already been met with its bound, since it could otherwise be split forever.
 
       // The variables are those that are rigid in the constraining mode (see `isRigidMode`), as for
-      // the rules of rigid variables in `subtypeImpl`. The variables that are rigid in the context
-      // used to be replaced whatever the mode, including in reconstruction mode, where they are the
-      // variables being bounded. Flipping the polarity under negations without fixing this broke the
-      // inference of matches (e.g. `foo(int_or_string)` was inferred as `Str` in `ctmlFlow.mls`).
+      // the rules of rigid variables in `subtypeImpl`, rather than all the variables that are rigid
+      // in the context: in reconstruction mode, these are the variables being bounded, and
+      // replacing them breaks the inference of matches (e.g. `foo(int_or_string)` in `ctmlFlow.mls`
+      // would be inferred as `Str`).
       case TVar(var_) if var_.isRigidMode && !visited.contains(var_) && (rule == SplitRule.Any || var_.isBoundExact(rest)) =>
         val newVisited = visited + var_
         var_.splitBound(pol, newVisited).split(rule, distribute, rest)(using ctx, mode, pol, newVisited)

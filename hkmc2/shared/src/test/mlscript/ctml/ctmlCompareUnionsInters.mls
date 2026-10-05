@@ -184,8 +184,8 @@ type T3 = Int & Str
 // Unions and intersections across the bounds of rigid variables
 
 // A variable under a negation or in a lambda parameter is replaced by its bound of the opposite
-// direction. Both of these used to be accepted, although they do not hold for `X = ⊤` and `X = ⊥`
-// respectively.
+// direction. The first two judgments below are thus rejected: they do not hold for `X = ⊤` and
+// `X = ⊥` respectively.
 
 :te
 (Top -> C) <:< ([X restricts (A -> A) & (B -> B)] -> Top -> ~X)
@@ -220,9 +220,9 @@ type T3 = Int & Str
 //│ OK
 
 // A variable that occurs elsewhere in the judgment is not replaced by its bound to decompose a
-// union or an intersection, since its other occurrences would no longer be related to it. These
-// used to be explored with `A` and `B` in place of the leftmost `X`, or with `A -> A` and `B -> B`
-// in place of the rightmost one.
+// union or an intersection, since its other occurrences would no longer be related to it: these
+// would otherwise be explored with `A` and `B` in place of the leftmost `X`, or with `A -> A` and
+// `B -> B` in place of the rightmost one.
 
 ([X] -> X -> X) <:< ([X extends A | B] -> X -> X)
 //│ OK
@@ -282,7 +282,7 @@ type V
 //│             C ≤ B
 
 // Two lambda types are compared as they are, so that a flexible variable of the subtype is bounded
-// by the variable itself rather than by its bound. This used to require `A | B <:< Y <:< X`.
+// by the variable itself rather than by its bound, which would require `A | B <:< Y <:< X`.
 
 ([Y] -> [Y -> C, Y]) <:< ([X extends A | B] -> [X -> C, X])
 //│ OK

@@ -115,11 +115,9 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
   // - `σ ≤ ¬({c} ⟹ ¬τ)` iff `({c} ⟹ ¬τ) ≤ ¬σ`, that is, `c` is solved and `σ ≤ τ`.
   // - `¬({c} ⟹ ¬τ) ≤ σ` iff `¬σ ≤ ({c} ⟹ ¬τ)`, that is, `τ ≤ σ` assuming `c`.
 
-  // These rules come before the flexible variable rules, where the rules of the former primitive
-  // constraining types were, so that the constraining type in a flexible variable bound is
-  // decomposed rather than kept whole. Placing them after the flexible variable rules, with the
-  // constrained type rules, was tried: it made inferred types larger, and did not avoid the
-  // time-outs of `ctmlFlowConstraningWeirdMatch.mls`.
+  // These rules come before the flexible variable rules, so that the constraining type in a
+  // flexible variable bound is decomposed rather than kept whole. Placing them after the flexible
+  // variable rules, with the constrained type rules, makes inferred types larger.
 
   sub match
     case TNeg(subBody) if subBody.isBinder =>
@@ -212,17 +210,16 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
   // `τ ≤ {c} ⟹ σ` iff `τ ≤ σ` assuming `c`, which loses no derivation, so that the constraint is
   // assumed once for every branch of the same judgment.
 
-  // This rule used to come after the choice rules and the rules of rigid variables, with the rule of
-  // left constrained types. An operand of the subtype was then chosen, or a rigid subtype replaced
-  // by its upper bound, before the constraint was assumed, although neither of these rules is
-  // invertible, and both depend on the assumed bounds: e.g. `(A → C) ∧ (B → C) ≤ {α ≤ A ∨ B} ⟹ α → C`
-  // was explored as `A → C ≤ {α ≤ A ∨ B} ⟹ α → C` or `B → C ≤ {α ≤ A ∨ B} ⟹ α → C`, which both
-  // fail, and `α ≤ {α ≤ Int} ⟹ Int` as `⊤ ≤ {α ≤ Int} ⟹ Int`. This is also the order of the paper,
-  // in which `C-ConstredR` is attempted with `C-ForallR`, before `C-VarBound` and `C-JointAny`.
+  // This rule comes before the choice rules and the rules of rigid variables, which are not
+  // invertible, and depend on the assumed bounds: choosing an operand of the subtype first explores
+  // `(A → C) ∧ (B → C) ≤ {α ≤ A ∨ B} ⟹ α → C` as `A → C ≤ {α ≤ A ∨ B} ⟹ α → C` or
+  // `B → C ≤ {α ≤ A ∨ B} ⟹ α → C`, which both fail, and replacing a rigid subtype by its upper
+  // bound first explores `α ≤ {α ≤ Int} ⟹ Int` as `⊤ ≤ {α ≤ Int} ⟹ Int`. This is also the order of
+  // the paper, in which `C-ConstredR` is attempted with `C-ForallR`, before `C-VarBound` and
+  // `C-JointAny`.
 
-  // The previous order did let an operand of the subtype that is equal to the constrained type be
-  // chosen before the constraint is assumed, and so be compared to it by reflexivity. This is now
-  // done by the reflexion case (see `isReflexive`).
+  // An operand of the subtype that is equal to the constrained type is thus not compared to it after
+  // a choice rule, but by the reflexivity check that precedes all the rules (see `isReflexive`).
 
   sup match
     case sup: TConstrained =>
@@ -247,11 +244,10 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
   // is only useful to a subtype that may use a different operand or instance for each of its parts,
   // which a single lambda type cannot: `τ → σ ≤ (τ₁ ∨ τ₂) → ρ` iff `τ₁ ∨ τ₂ ≤ τ` and `σ ≤ ρ`.
 
-  // This rule used to come last, with the rules of the other type constructors. The supertype was
-  // then decomposed first, which compared the other components of the lambda types once per part,
-  // and replaced the rigid variables that it was decomposed through by their bound: e.g. given an
-  // upper bound `A ∨ B` of `α`, `β → C ≤ α → C` required `A ∨ B ≤ β` rather than `α ≤ β` from a
-  // flexible variable `β`.
+  // Decomposing the supertype first would compare the other components of the lambda types once
+  // per part, and replace the rigid variables that it is decomposed through by their bound: e.g.
+  // given an upper bound `A ∨ B` of `α`, `β → C ≤ α → C` would require `A ∨ B ≤ β` rather than
+  // `α ≤ β` from a flexible variable `β`.
 
   (sub, sup) match
     case (sub: TLam, sup: TLam) =>
@@ -270,12 +266,12 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
   // and a left intersection are each decomposed in two judgments of which either may hold, and which
   // forget the other operand (see `splitAny`).
 
-  // Right unions used to be split before right intersections, which distributed them over the
-  // intersection: `τ ≤ (σ₁ ∨ σ₂) ∧ σ₃` was explored as `τ ≤ σ₁ ∧ σ₃` or `τ ≤ σ₂ ∧ σ₃`. This was
-  // exponential in the number of unions of the intersection, which notably made checks against
-  // intersections of unions of constraining types time out (e.g. `foo(1, 1) as Int` in
-  // `ctmlFlowWeirdMatch.mls`). It also prevented `joinMerge` from merging the unions, so that
-  // `⊤ ≤ (A ∨ ¬A) ∧ (B ∨ ¬B)` failed.
+  // Right intersections are thus split before right unions. Splitting right unions first would
+  // distribute them over the intersection: `τ ≤ (σ₁ ∨ σ₂) ∧ σ₃` would be explored as `τ ≤ σ₁ ∧ σ₃`
+  // or `τ ≤ σ₂ ∧ σ₃`. This is exponential in the number of unions of the intersection, which
+  // notably makes checks against intersections of unions of constraining types time out (e.g.
+  // `foo(1, 1) as Int` in `ctmlFlowWeirdMatch.mls`). It also prevents `joinMerge` from merging the
+  // unions, so that `⊤ ≤ (A ∨ ¬A) ∧ (B ∨ ¬B)` fails.
 
   sup.splitAny(Polarity.Positive) match
     case Some(supLeft, supRight) =>
@@ -402,9 +398,9 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
     // `subtypeConstrainedSup`), so the effective bound is only simplified syntactically. Simplifying
     // it as in solving mode requires subtyping checks, which reconstruct the assumptions of the
     // constrained types they meet, and so on: since upper bounds are joined using constraining
-    // types, whose guards contain the other bounds of their branch, these nested checks made up most
-    // of the type checking time of matches (e.g. it took minutes to infer the type of the
-    // two-parameter match function of `ctmlFlow.mls`, and now takes a fraction of a second).
+    // types, whose guards contain the other bounds of their branch, these nested checks would make
+    // up most of the type checking time of matches (e.g. inferring the type of the two-parameter
+    // match function of `ctmlFlow.mls` would take minutes rather than a fraction of a second).
     case ConstraintMode.Reconstruct =>
       val effectiveBound = makeJointType(dir.jointMode, extrudedType, bound)
       if effectiveBound == bound then

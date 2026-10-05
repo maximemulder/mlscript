@@ -66,17 +66,16 @@ extension (ctx: SubContext)
     // by constrained types, which act as `⊤`, the identity of their intersection (this corresponds
     // to the paper's dual context join).
     // Both choices are forced, since the other kind of guarded type acts as the absorbing element of
-    // the joint, and so erases the bounds of the other branch. This was the case of two merge modes
-    // that used to be configurable:
-    // - The constrained mode guarded upper bounds by constrained types as well. An upper bound
-    //   `({Δl} ⟹ Int) ∨ ({Δr} ⟹ Str)` was then `⊤` as soon as either guard did not hold. Notably, a
-    //   branch that did not bound a variable from above contributed `{Δ} ⟹ ⊤`, which is `⊤` whatever
-    //   `Δ`, so that the variable was not bounded from above at all. This was the default mode, in
-    //   which e.g. the parameter `b` of `baz` in `ctmlLet.mls` had no upper bound.
-    // - The constraining mode used to guard lower bounds by constraining types as well. Since they
-    //   are encoded as negated constrained types, they can be eliminated without proving their guard,
-    //   so that a lower bound `¬({Δl} ⟹ ¬Int) ∧ ¬({Δr} ⟹ ¬Str)` let a variable be used as `Int` even
-    //   when `Δl` does not hold.
+    // the joint, and so erases the bounds of the other branch:
+    // - Guarding upper bounds by constrained types as well turns an upper bound
+    //   `({Δl} ⟹ Int) ∨ ({Δr} ⟹ Str)` into `⊤` as soon as either guard does not hold. Notably, a
+    //   branch that does not bound a variable from above contributes `{Δ} ⟹ ⊤`, which is `⊤`
+    //   whatever `Δ`, so that the variable is not bounded from above at all (e.g. the parameter `b`
+    //   of `baz` in `ctmlLet.mls`).
+    // - Guarding lower bounds by constraining types as well lets them be eliminated without proving
+    //   their guard, since they are encoded as negated constrained types: a lower bound
+    //   `¬({Δl} ⟹ ¬Int) ∧ ¬({Δr} ⟹ ¬Str)` lets a variable be used as `Int` even when `Δl` does not
+    //   hold.
     val (leftType, rightType) = dir match
       case Direction.Sub =>
         (
@@ -96,15 +95,14 @@ extension (ctx: SubContext)
   def getBranchVarBound(var_ : TypeVar, bounds: List[Bound], dir: Direction): (Type, List[Constraint]) =
     // A variable may have several bounds in the same direction in a branch, e.g. the bound of the
     // pattern of a match and the bound of a nested match, which must all be kept, both in the bound
-    // of the variable and in the guards of the other variables. Taking only one of them, as was
-    // done before (each variable used to have a single relevant bound), lost the other ones.
+    // of the variable and in the guards of the other variables.
     val bound = bounds.getVarDirType(var_, dir)
     val boundCtx = ctx.extend(Bound(var_, dir, bound, BoundKind.Asserted))
     // The guard is made of the other bounds of the branch, except those that hold given the bound of
     // the variable. The bound of the variable itself is removed syntactically, rather than by
     // checking that it holds, which may fail: e.g. a rigid variable is not compared to a
     // constraining type using its bound, since the constraining type is contraposed first, so that
-    // the guard of a variable used to contain its own bound.
+    // the guard of a variable would otherwise contain its own bound.
     val guard = boundCtx
       .removeSatisfiedBounds(bounds.combineVarBounds().filterNot(_.isTypeVarDirBound(var_, dir)))
       .sortBounds()(using boundCtx)

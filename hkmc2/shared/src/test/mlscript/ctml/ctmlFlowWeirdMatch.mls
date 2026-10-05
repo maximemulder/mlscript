@@ -13,13 +13,10 @@ fun foo(a, b) =
 // FIXME: Does not finish within a minute: the simplification of the level of `bar` checks
 // intersections of constrained types, and each check explores every alternative of the unions
 // of constraining types in their guards, which nest deeply. Splitting right intersections before
-// right unions (see `subtypeImpl`) made this exploration linear in the number of unions of an
+// right unions (see `subtypeImpl`) makes this exploration linear in the number of unions of an
 // intersection, but the rules of left intersections and right unions also run subtyping checks
 // of their own (in `meetMerge`, `subtractStep` and `joinMerge`), which nest in each other (6 to
-// 11 levels deep in stack samples) and explore these alternatives again. This took about 13 s
-// when the joins of nested matches lost bounds, which made the guards smaller (and
-// `foo(1, "World")` well typed). When lower bounds were guarded by constraining types as well,
-// this was inferred in a few seconds, but with the unsound type `⊤ → ⊤ → Int`.
+// 11 levels deep in stack samples) and explore these alternatives again.
 // fun bar(a, b) =
 //   foo(a, b) as Int
 // //│ bar: Int → Int → Int
@@ -34,7 +31,7 @@ foo as (Int -> Int -> Int) & (Str -> Str -> Str)
 foo(1, 1)
 //│ Int
 
-// Timed out when right unions were split before right intersections (see `subtypeImpl`).
+// Times out if right unions are split before right intersections (see `subtypeImpl`).
 foo(1, 1) as Int
 //│ Int
 

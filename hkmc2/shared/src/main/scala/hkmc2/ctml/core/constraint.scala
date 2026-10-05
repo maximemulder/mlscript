@@ -18,9 +18,6 @@ def makeNegationType(body: Type): Type =
  *  primitive type, but is encoded as a negated constrained type `¬({c} ⟹ ¬τ)`, from which its
  *  subtyping rules are derived (see the contraposition of negated binder types in `subtypeImpl`).
  *
- *  This encoding replaced an earlier primitive constraining type constructor, whose ad-hoc
- *  subtyping rules required the constraints when eliminating a constraining type.
- *
  *  Nested constraining types are flattened by `makeConstrainedType`, since the negation of the
  *  inner constraining type `¬¬({c'} ⟹ ¬τ)` simplifies to the inner constrained type. */
 def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =

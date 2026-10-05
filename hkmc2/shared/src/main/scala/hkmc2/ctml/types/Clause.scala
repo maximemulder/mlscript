@@ -139,14 +139,11 @@ enum BoundKind:
    *  leaves the asserted bounds. Losing an effective bound is harmless: the bound of the variable is
    *  then read as the combination of its asserted bounds.
    *
-   *  History: the bounds of a variable used to be replaced by their combination with each new
-   *  bound, so that only the most recent bound of a variable in each direction was read. This
-   *  required every new bound to subsume the previous ones, which was not the case of the bounds
-   *  produced by context joins, so that e.g. the join of nested matches silently lost the bound of
-   *  the outer pattern (`foo(1, "World")` was accepted in `ctmlFlowWeirdMatch.mls`). Moreover,
-   *  combinations computed using scoped assumptions remained after these assumptions were dropped.
-   *  Effective bounds were first introduced as a separate kind of clause, which was replaced by this
-   *  kind of bounds so that the operations that do not depend on it handle all bounds uniformly. */
+   *  The asserted bounds of a variable are kept alongside its effective bounds rather than replaced
+   *  by them. Replacing them requires every new bound to subsume the previous ones, which the
+   *  bounds produced by context joins do not: e.g. the join of nested matches would then lose the
+   *  bound of the outer pattern, so that `foo(1, "World")` would be accepted in
+   *  `ctmlFlowWeirdMatch.mls`. */
   case Effective
 
 /** A type variable kind. */

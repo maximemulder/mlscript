@@ -48,3 +48,49 @@ foo((++), 1)
 //│     (Int → δ → ε) → δ → ε ≤ (Str → Str → Str) → γ
 //│       Str → Str → Str ≤ Int → δ → ε
 //│         Int ≤ Str
+
+// A polymorphic function used at two different types in the same expression is typed with two
+// instances, whose bounds must be kept apart. Here, `double(double)` applies its argument four
+// times, so `double(double)(single, 1)` nests `1` in four lists.
+
+class List[A]
+declare fun single: [A] -> A -> List[A]
+declare fun head: [A] -> List[A] -> A
+//│ single: ∀A. A → List[A]
+//│ head: ∀A. List[A] → A
+
+val quadruple = double(double)
+//│ quadruple: ∀α, β, γ. (((β ∨ γ) → α) ∧ (α → β)) → γ → β
+
+quadruple(idInt, 1)
+//│ Int
+
+:te
+head(head(quadruple(single, 1))) + 1
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ α → β.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ α → β
+//│     α ≤ Int
+//│       γ ∨ δ ≤ Int
+//│         δ ≤ Int
+//│           List[ε] ≤ Int
+
+// Similarly, the Church numeral two applied to itself is the Church numeral four.
+
+val zero = (f, x) => x
+val succ = (n, f, x) => f(n(f, x))
+//│ zero: ∀α. ⊤ → α → α
+//│ succ: ∀β, γ, δ, ε. {β ≤ δ → ε} ⟹ (β → γ → δ) → β → γ → ε
+
+val four = (succ(succ(zero)))(succ(succ(zero)))
+//│ four: ∀α, β, γ. {α ≥ γ} ⟹ ((α → γ) ∧ (β → α)) → β → γ
+
+four(idInt, 1)
+//│ Int
+
+:te
+four(idInt, 1)(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int → β.
+//│ Typing error tree:
+//│   α ≤ Int → β
+//│     Int ≤ Int → β

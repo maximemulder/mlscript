@@ -97,10 +97,6 @@ extension (var_ : TypeVar)(using ctx: SubContext)
   def level: Int =
     var_.decl.level
 
-  /** Get the origin of the type variable in the context. */
-  def origin: Option[TypeVar] =
-    ctx.clauses.iterator.typeVars.find(_.var_ == var_).flatMap(_.origin)
-
   /** Get the bound of a type variable in a given direction. */
   def bound(dir: Direction) =
     ctx.getVarBound(var_, dir)

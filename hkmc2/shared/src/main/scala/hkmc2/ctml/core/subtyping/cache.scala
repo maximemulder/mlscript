@@ -1,9 +1,7 @@
 package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.*
-import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
-import hkmc2.ctml.core.clauses.typeVarDecls
 
 /** Cache used to store, detect, and solve recursive subtyping queries. */
 case class SubtypingCache(
@@ -15,7 +13,7 @@ case class SubtypingCache(
   val univs: Map[(TypeVar, Type), TypeVar] = Map(),
 ):
   /** Check whether two types are in the subtyping cache. */
-  def check(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
+  def check(sub: Type, sup: Type): Boolean =
     if config.debug.cacheCheck then
       output(s"CACHE CHECK ${sub} ${sup}")
 
@@ -30,7 +28,7 @@ case class SubtypingCache(
     result
 
   /** Add two types to the subtyping cache according to the type checker configuration. */
-  def add(sub: Type, sup: Type)(using ctx: SubContext): SubtypingCache =
+  def add(sub: Type, sup: Type): SubtypingCache =
     if config.debug.cacheAdd then
       output(s"CACHE ADD ${sub} ${sup}")
 
@@ -48,16 +46,16 @@ case class SubtypingCache(
 
     SubtypingCache(this.vars, this.types, this.univs + ((var_, type_) -> fresh))
 
-  private def checkInner(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
+  private def checkInner(sub: Type, sup: Type): Boolean =
     if config.cacheVar then
       sub match
-        case TVar(var_) if this.vars.contains((this.shadow(var_), Direction.Sub, sup)) =>
+        case TVar(var_) if this.vars.contains((var_, Direction.Sub, sup)) =>
           return true
         case _ =>
           ()
 
       sup match
-        case TVar(var_) if this.vars.contains((this.shadow(var_), Direction.Super, sub)) =>
+        case TVar(var_) if this.vars.contains((var_, Direction.Super, sub)) =>
           return true
         case _ =>
           ()
@@ -68,20 +66,20 @@ case class SubtypingCache(
 
     false
 
-  private def addInner(sub: Type, sup: Type)(using ctx: SubContext): SubtypingCache =
+  private def addInner(sub: Type, sup: Type): SubtypingCache =
     var cache = this
 
     if config.cacheVar then
 
         sub match
           case TVar(var_) =>
-            cache = SubtypingCache(this.vars + ((this.shadow(var_), Direction.Sub, sup)), this.types, this.univs)
+            cache = SubtypingCache(this.vars + ((var_, Direction.Sub, sup)), this.types, this.univs)
           case _ =>
             ()
 
         sup match
           case TVar(var_) =>
-            cache = SubtypingCache(this.vars + ((this.shadow(var_), Direction.Super, sub)), this.types, this.univs)
+            cache = SubtypingCache(this.vars + ((var_, Direction.Super, sub)), this.types, this.univs)
           case _ =>
             ()
 
@@ -91,9 +89,3 @@ case class SubtypingCache(
       cache = SubtypingCache(this.vars, this.types + ((sub, sup)), this.univs)
 
     cache
-
-  private def shadow(var_ : TypeVar)(using ctx: SubContext): TypeVar =
-    if config.cacheShadow then
-      var_.shadow
-    else
-      var_

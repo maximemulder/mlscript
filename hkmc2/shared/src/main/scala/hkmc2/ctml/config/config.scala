@@ -31,9 +31,6 @@ class Config:
   /** Whether to cache type variable instantiations. */
   var cacheUniv = false
 
-  /** Whether to use type variable shadows in the cache. */
-  var cacheShadow = true
-
   /** Whether to extrude type variable bounds. */
   var extrudeVar = false
 

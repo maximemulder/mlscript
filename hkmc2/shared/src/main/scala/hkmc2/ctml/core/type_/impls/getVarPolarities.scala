@@ -8,9 +8,10 @@ import hkmc2.ctml.utils.*
 import hkmc2.ctml.utils.given
 
 extension (type_ : Type)
-  /** Get the polarities at which a type variable occurs in the type. */
-  def getVarPolarities(var_ : TypeVar): Polarities =
-    GetVarPolarities1(type_, GetVarPolaritiesParams(var_, Polarity.Positive))
+  /** Get the polarities at which a type variable occurs in the type, which is itself at a given
+   *  polarity. */
+  def getVarPolarities(var_ : TypeVar, pol: Polarity = Polarity.Positive): Polarities =
+    GetVarPolarities1(type_, GetVarPolaritiesParams(var_, pol))
 
 extension (constraint: Constraint)
   /** Get the polarities at which a type variable occurs in the subtyping constraint. */

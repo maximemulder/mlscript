@@ -48,10 +48,16 @@ private def hoistTypeCtx(type_ : Type, parent: (Type) => Type): Type =
       TConstrained(hoistTypeCtx(body, parent), constraint)
     case TLam(param, ret) =>
       hoistTypeCtx(ret, (ret) => parent(TLam(param, ret)))
-    case TJointType(mode, left, right) =>
+    // Hoisting a constrained type out of a type gives a supertype of that type, which is equal to it
+    // when the guard holds. Out of an intersection, this loses the other operand when the guard does
+    // not hold: `τ ∧ ({c} ⟹ σ)` is then `τ`, while `{c} ⟹ τ ∧ σ` is `⊤`. Constrained types are thus
+    // not hoisted out of intersections, which would notably require the guards of all the conjuncts
+    // of a joined lower bound to hold at once (see `joinVarBounds`): the result of `bop` in
+    // `ctmlLet.mls` would be `⊥`.
+    case TJointType(JointMode.Union, left, right) =>
       hoistTypeCtx(left, (left) =>
         hoistTypeCtx(right, (right) =>
-          parent(TJointType(mode, left, right))
+          parent(TJointType(JointMode.Union, left, right))
         )
       )
     case _ =>

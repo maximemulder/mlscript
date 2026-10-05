@@ -2,6 +2,7 @@ package hkmc2.ctml.core.context
 
 import hkmc2.ctml.core.*
 import hkmc2.ctml.core.subtyping.*
+import hkmc2.ctml.core.simplification.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
@@ -23,7 +24,12 @@ extension (ctx: SubContext)
     filteredLefts ::: filteredRights
 
   /** Merge two lists of bounds such that either of those must be satisfied. */
-  def joinBounds(leftClauses: SubClauses, rightClauses: SubClauses): List[SubClause] =
+  def joinBounds(leftBranch: SubClauses, rightBranch: SubClauses): List[SubClause] =
+    // The variables declared in a branch are local to it, and are eliminated before the join when
+    // possible, since the join nests the remaining ones in the guards of the joined bounds, where
+    // they can no longer be eliminated (see `eliminateLocalVars`).
+    val leftClauses = ctx.eliminateLocalVars(leftBranch)
+    val rightClauses = ctx.eliminateLocalVars(rightBranch)
     val leftTypeDecls = leftClauses.typeVarDecls
     val rightTypeDecls = rightClauses.typeVarDecls
     val fullCtx = ctx.extend(leftTypeDecls.asSubClauses, rightTypeDecls.asSubClauses)

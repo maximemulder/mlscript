@@ -44,6 +44,35 @@ private enum SplitRule:
       case All => !mode.isNaturalPol(pol)
       case Any => mode.isNaturalPol(pol)
 
+/** Check whether a judgment holds by reflexivity alone, up to the choice rules, that is, whether an
+ *  operand of the nested intersections of the subtype is also an operand of the nested unions of
+ *  the supertype: e.g. `τ ∧ σ ≤ τ ∨ ρ`.
+ *
+ *  This is checked before any other rule, since the other rules may turn such a judgment into
+ *  judgments that are not derived. Only the two sides as a whole used to be compared, which relied
+ *  on the choice rules to reach their operands, and so on the rules that are applied before the
+ *  choice rules to keep these operands as they are: e.g. `({c} ⟹ α) ∧ τ ≤ {c} ⟹ α` held by choosing
+ *  the left operand of the subtype, which no longer happens before the right constrained type is
+ *  opened (see `subtypeImpl`). It then requires `{c} ⟹ α ≤ α`, which is not derived when `α` is
+ *  rigid: `α` is replaced by its lower bound before the left constrained type is opened. */
+def isReflexive(sub: Type, sup: Type): Boolean =
+  sup.hasJointOperand(JointMode.Union, sub) || (sub match
+    case TJointType(JointMode.Inter, left, right) =>
+      isReflexive(left, sup) || isReflexive(right, sup)
+    case _ =>
+      false
+  )
+
+extension (type_ : Type)
+  /** Check whether a type is this type, or an operand of its nested joint types of a given mode. */
+  private def hasJointOperand(mode: JointMode, operand: Type): Boolean =
+    type_ == operand || (type_ match
+      case TJointType(typeMode, left, right) if typeMode == mode =>
+        left.hasJointOperand(mode, operand) || right.hasJointOperand(mode, operand)
+      case _ =>
+        false
+    )
+
 extension (var_ : TypeVar)
   /** Get the bound that replaces a rigid variable at a polarity when splitting a type, which is its
    *  upper bound at the negative polarity, and its lower bound at the positive polarity.
@@ -52,6 +81,28 @@ extension (var_ : TypeVar)
    *  this one, whose direct occurrences are removed from the bound. */
   private def splitBound(pol: Polarity, visited: Set[TypeVar])(using ctx: SubContext): Type =
     var_.bound(pol.dir).removeDirectVars(visited, pol)
+
+  /** Check whether replacing an occurrence of a rigid variable by its bound loses no derivation,
+   *  given the other types of the judgment.
+   *
+   *  This is the case when the variable occurs in none of them. The judgment is then monotone in the
+   *  variable, so that it holds for every type between the bounds of the variable iff it holds for
+   *  the bound. Otherwise, the judgment may rely on the occurrences of the variable being the same
+   *  type: e.g. `α ≤ α ∨ C` does not hold once its left `α` is replaced by an upper bound `A ∨ B`.
+   *
+   *  This is also the case when the bounds of the variable are equal, since it is then equal to its
+   *  bound, whatever its other occurrences.
+   *
+   *  This is only an approximation in two cases, in which a derivation may still be lost:
+   *  - The occurrences of the variable in the bounds of the other variables of the judgment are not
+   *    considered.
+   *  - A flexible variable of the judgment may be solved by a type that mentions the variable, which
+   *    the replacement prevents: e.g. `β → C ≤ α → C` is solved by `β ≥ α`, but by `β ≥ A ∨ B` once
+   *    `α` is replaced by an upper bound `A ∨ B`. Flexible variables do not prevent the replacement,
+   *    since flow-sensitive inference relies on the case analysis that it enables, on judgments that
+   *    do contain flexible variables. */
+  private def isBoundExact(rest: List[Type])(using ctx: SubContext): Boolean =
+    !rest.exists(_.hasVar(var_)) || var_.lowerBound == var_.upperBound
 
 extension (type_ : Type)
   /** Split a type in two types by the invertible rule of its polarity, if it can be decomposed as a
@@ -64,9 +115,10 @@ extension (type_ : Type)
    *  - The distributivity of joint types over the joint types of the other mode, but only at the
    *    negative polarity and inside lambda types (see `split`).
    *
-   *  The type is also decomposed through the bounds of its rigid variables (see `split`). */
-  def splitAll(pol: Polarity)(using ctx: SubContext, mode: ConstraintMode): Option[(Type, Type)] =
-    type_.split(SplitRule.All, pol == Polarity.Negative)(using ctx, mode, pol, Set())
+   *  The type is also decomposed through the bounds of its rigid variables, as long as this is an
+   *  equivalence as well given the other side of the judgment, `other` (see `split`). */
+  def splitAll(pol: Polarity, other: Type)(using ctx: SubContext, mode: ConstraintMode): Option[(Type, Type)] =
+    type_.split(SplitRule.All, pol == Polarity.Negative, List(other))(using ctx, mode, pol, Set())
 
   /** Split a type in two types by the choice rule of its polarity, if it is an intersection at the
    *  negative polarity, or a union at the positive polarity.
@@ -78,7 +130,7 @@ extension (type_ : Type)
    *
    *  The type is also decomposed through the bounds of its rigid variables (see `split`). */
   def splitAny(pol: Polarity)(using ctx: SubContext, mode: ConstraintMode): Option[(Type, Type)] =
-    type_.split(SplitRule.Any, false)(using ctx, mode, pol, Set())
+    type_.split(SplitRule.Any, false, Nil)(using ctx, mode, pol, Set())
 
   /** Split a type in two types by a rule at a polarity (see `splitAll` and `splitAny`).
    *
@@ -98,53 +150,69 @@ extension (type_ : Type)
    *  rule, so that the lambda type on the right must first be decomposed as much as possible: e.g.
    *  `(A → B) ∧ (A → C) ≤ A → (D ∨ (B ∧ C))` is only derived from `A → (D ∨ B)` and `A → (D ∨ C)`.
    *
+   *  `rest` are the other types of the judgment, which are the other side of the judgment and the
+   *  operands of the joint types and lambda types that the type is nested in. They tell whether a
+   *  rigid variable may be replaced by its bound by the invertible rules (see below), and are not
+   *  used by the choice rules.
+   *
    *  `visited` are the rigid variables that have already been replaced by their bound. */
-  private def split(rule: SplitRule, distribute: Boolean)(using ctx: SubContext, mode: ConstraintMode, pol: Polarity, visited: Set[TypeVar]): Option[(Type, Type)] =
+  private def split(rule: SplitRule, distribute: Boolean, rest: List[Type])(using ctx: SubContext, mode: ConstraintMode, pol: Polarity, visited: Set[TypeVar]): Option[(Type, Type)] =
     type_ match
       // A rigid variable is replaced by its bound. Unlike the other cases, this is not an
-      // equivalence, since the variable itself is forgotten: e.g. `α ∧ A ≤ α` is not derived when
-      // the upper bound `A ∨ B` of `α` is split.
+      // equivalence in general, since the variable itself is forgotten.
+      // - The invertible rules only replace a variable when this loses no derivation, which is
+      //   mainly when it occurs nowhere else in the judgment (see `isBoundExact`). They used to
+      //   replace any variable, which made them lose the derivations that relate its occurrences:
+      //   e.g. given an upper bound `A ∨ B` of `α`, `∀β. β → β ≤ α → α` was explored as
+      //   `∀β. β → β ≤ A → α` and `∀β. β → β ≤ B → α`, and `α ∧ A ≤ α` as `A ∧ A ≤ α` and
+      //   `B ∧ A ≤ α`, which all fail.
+      // - The choice rules replace any variable, since they forget an operand anyway.
+
+      // A variable that occurs elsewhere is thus not analysed by cases by the invertible rules:
+      // e.g. `(A → C) ∧ (B → C) ≤ α → (α ∨ C)` is not derived. This would require each case to keep
+      // the variable, as in `(α ∧ A) → (α ∨ C)` and `(α ∧ B) → (α ∨ C)`, and so to remember that the
+      // variable has already been met with its bound, since it could otherwise be split forever.
 
       // The variables are those that are rigid in the constraining mode (see `isRigidMode`), as for
       // the rules of rigid variables in `subtypeImpl`. The variables that are rigid in the context
       // used to be replaced whatever the mode, including in reconstruction mode, where they are the
       // variables being bounded. Flipping the polarity under negations without fixing this broke the
       // inference of matches (e.g. `foo(int_or_string)` was inferred as `Str` in `ctmlFlow.mls`).
-      case TVar(var_) if var_.isRigidMode && !visited.contains(var_) =>
+      case TVar(var_) if var_.isRigidMode && !visited.contains(var_) && (rule == SplitRule.Any || var_.isBoundExact(rest)) =>
         val newVisited = visited + var_
-        var_.splitBound(pol, newVisited).split(rule, distribute)(using ctx, mode, pol, newVisited)
+        var_.splitBound(pol, newVisited).split(rule, distribute, rest)(using ctx, mode, pol, newVisited)
 
       // A negated rigid variable is replaced by the negation of its bound at the opposite polarity:
       // e.g. `¬α` is at least `¬τ` when `α` is at most `τ`.
-      case TNeg(TVar(var_)) if var_.isRigidMode && !visited.contains(var_) =>
+      case TNeg(TVar(var_)) if var_.isRigidMode && !visited.contains(var_) && (rule == SplitRule.Any || var_.isBoundExact(rest)) =>
         val newVisited = visited + var_
-        TNeg(var_.splitBound(!pol, newVisited)).split(rule, distribute)(using ctx, mode, pol, newVisited)
+        TNeg(var_.splitBound(!pol, newVisited)).split(rule, distribute, rest)(using ctx, mode, pol, newVisited)
 
       case TNeg(TNeg(body)) =>
-        body.split(rule, distribute)
+        body.split(rule, distribute, rest)
 
       // A negated joint type is the joint type of the dual mode by the De Morgan laws.
       case TNeg(TJointType(jointMode, left, right)) =>
-        TJointType(!jointMode, TNeg(left), TNeg(right)).split(rule, distribute)
+        TJointType(!jointMode, TNeg(left), TNeg(right)).split(rule, distribute, rest)
 
       // A negated lambda type is split as the negation of the split of the lambda type, which is at
       // the opposite polarity.
       case TNeg(lam: TLam) =>
-        lam.split(rule, distribute)(using ctx, mode, !pol, visited).map((left, right) => (TNeg(left), TNeg(right)))
+        lam.split(rule, distribute, rest)(using ctx, mode, !pol, visited).map((left, right) => (TNeg(left), TNeg(right)))
 
       case TJointType(jointMode, left, right) if rule.decomposes(jointMode, pol) =>
         Some(left, right)
 
       // Distribute a joint type over the joint types of the other mode that its operands expose.
       case TJointType(jointMode, left, right) if rule == SplitRule.All && distribute =>
-        left.split(rule, distribute) match
+        left.split(rule, distribute, right :: rest) match
           case Some(innerLeft, innerRight) =>
             Some(
               structuralCombine(jointMode, innerLeft,  right),
               structuralCombine(jointMode, innerRight, right),
             )
           case None =>
-            right.split(rule, distribute).map((innerLeft, innerRight) =>
+            right.split(rule, distribute, left :: rest).map((innerLeft, innerRight) =>
               (
                 structuralCombine(jointMode, left, innerLeft),
                 structuralCombine(jointMode, left, innerRight),
@@ -154,14 +222,14 @@ extension (type_ : Type)
       // Distribute a lambda type over the unions of its parameter, which is at the opposite
       // polarity, and over the intersections of its return type.
       case TLam(param, ret) if rule == SplitRule.All && pol == Polarity.Positive =>
-        param.split(rule, true)(using ctx, mode, !pol, visited) match
+        param.split(rule, true, ret :: rest)(using ctx, mode, !pol, visited) match
           case Some(left, right) =>
             Some(
               TLam(left,  ret),
               TLam(right, ret),
             )
           case None =>
-            ret.split(rule, true).map((left, right) =>
+            ret.split(rule, true, param :: rest).map((left, right) =>
               (
                 TLam(param, left),
                 TLam(param, right),

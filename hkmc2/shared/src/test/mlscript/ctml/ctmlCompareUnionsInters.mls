@@ -219,33 +219,114 @@ type T3 = Int & Str
 ((A | B) -> C) <:< ([X extends A | B] -> X -> C)
 //│ OK
 
-:fixme // FIXME: A variable is forgotten when it is replaced by its bound to split a type.
-([X] -> X -> X) <:< ([X extends A | B] -> (X & A) -> X)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀X. X → X ≤ ∀X. {X ≤ A ∨ B} ⟹ (X ∧ A) → X.
-//│ Typing error tree:
-//│   ∀X. X → X ≤ ∀X. {X ≤ A ∨ B} ⟹ (X ∧ A) → X
-//│     ∀X. X → X ≤ {α ≤ A ∨ B} ⟹ (α ∧ A) → α
-//│       ∀X. X → X ≤ (α ∧ A) → α
-//│         ∀X. X → X ≤ (A ∧ A) → α
-//│           β → β ≤ (A ∧ A) → α
-//│             β ≤ α
-//│               A ∧ A ≤ α
-//│                 A ≤ α
-//│                   A ≤ ⊥
-//│                 A ≤ α
-//│                   A ≤ ⊥
+// A variable that occurs elsewhere in the judgment is not replaced by its bound to decompose a
+// union or an intersection, since its other occurrences would no longer be related to it. These
+// used to be explored with `A` and `B` in place of the leftmost `X`, or with `A -> A` and `B -> B`
+// in place of the rightmost one.
 
-:fixme // FIXME: The left intersection is decomposed by the choice rule before the right constrained type is opened, when the bound of the variable is not known yet.
-((A -> C) & (B -> C)) <:< ([X extends A | B] -> X -> C)
-//│ ═══[TYPE ERROR] Cannot solve judgment (A → C) ∧ (B → C) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → C.
+([X] -> X -> X) <:< ([X extends A | B] -> X -> X)
+//│ OK
+
+([X] -> X -> X) <:< ([X extends A | B] -> (X & A) -> X)
+//│ OK
+
+([X] -> X -> X) <:< ([X extends A | B] -> X -> (X | C))
+//│ OK
+
+([X] -> X -> X) <:< ([X restricts (A -> A) & (B -> B)] -> (X & C) -> (X | D))
+//│ OK
+
+:te
+([X] -> X -> X) <:< ([X extends A | B] -> (X & A) -> B)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀X. X → X ≤ ∀X. {X ≤ A ∨ B} ⟹ (X ∧ A) → B.
 //│ Typing error tree:
-//│   (A → C) ∧ (B → C) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → C
-//│     (A → C) ∧ (B → C) ≤ {α ≤ A ∨ B} ⟹ α → C
-//│       A → C ≤ {α ≤ A ∨ B} ⟹ α → C
-//│         A → C ≤ α → C
+//│   ∀X. X → X ≤ ∀X. {X ≤ A ∨ B} ⟹ (X ∧ A) → B
+//│     ∀X. X → X ≤ {α ≤ A ∨ B} ⟹ (α ∧ A) → B
+//│       ∀X. X → X ≤ (α ∧ A) → B
+//│         ∀X. X → X ≤ (A ∧ A) → B
+//│           β → β ≤ (A ∧ A) → B
+//│             β ≤ B
+//│               A ∧ A ≤ B
+//│                 A ≤ B
+//│                 A ≤ B
+
+:te
+(A -> A) <:< ([X extends A | B] -> X -> X)
+//│ ═══[TYPE ERROR] Cannot solve judgment A → A ≤ ∀X. {X ≤ A ∨ B} ⟹ X → X.
+//│ Typing error tree:
+//│   A → A ≤ ∀X. {X ≤ A ∨ B} ⟹ X → X
+//│     A → A ≤ {α ≤ A ∨ B} ⟹ α → α
+//│       A → A ≤ α → α
+//│         α ≤ A
+//│           B ≤ A
+
+// A variable that occurs once is still replaced by its bound, which loses nothing.
+
+type V
+
+(((A & V) | (B & V)) -> D) <:< ([X extends A | B] -> (X & V) -> D)
+//│ OK
+
+(B -> B) <:< ([X extends A | B] -> (X & ~A) -> B)
+//│ OK
+
+:te
+(B -> B) <:< ([X extends A | B | C] -> (X & ~A) -> B)
+//│ ═══[TYPE ERROR] Cannot solve judgment B → B ≤ ∀X. {X ≤ (A ∨ B) ∨ C} ⟹ (X ∧ ¬A) → B.
+//│ Typing error tree:
+//│   B → B ≤ ∀X. {X ≤ (A ∨ B) ∨ C} ⟹ (X ∧ ¬A) → B
+//│     B → B ≤ {α ≤ (A ∨ B) ∨ C} ⟹ (α ∧ ¬A) → B
+//│       B → B ≤ (α ∧ ¬A) → B
+//│         α ∧ ¬A ≤ B
+//│           C ∧ ¬A ≤ B
+//│             C ≤ B
+
+// Two lambda types are compared as they are, so that a flexible variable of the subtype is bounded
+// by the variable itself rather than by its bound. This used to require `A | B <:< Y <:< X`.
+
+([Y] -> [Y -> C, Y]) <:< ([X extends A | B] -> [X -> C, X])
+//│ OK
+
+// The constraint of a constrained type is assumed before an operand of an intersection is chosen,
+// so that the bound of the variable is known when the supertype is decomposed.
+
+((A -> C) & (B -> C)) <:< ([X extends A | B] -> X -> C)
+//│ OK
+
+((A -> C) & (B -> D)) <:< ([X extends A | B] -> X -> (C | D))
+//│ OK
+
+:te
+((A -> C) & (B -> D)) <:< ([X extends A | B] -> X -> C)
+//│ ═══[TYPE ERROR] Cannot solve judgment (A → C) ∧ (B → D) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → C.
+//│ Typing error tree:
+//│   (A → C) ∧ (B → D) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → C
+//│     (A → C) ∧ (B → D) ≤ {α ≤ A ∨ B} ⟹ α → C
+//│       (A → C) ∧ (B → D) ≤ α → C
+//│         (A → C) ∧ (B → D) ≤ B → C
 //│           A → C ≤ B → C
 //│             B ≤ A
-//│       B → C ≤ {α ≤ A ∨ B} ⟹ α → C
-//│         B → C ≤ α → C
-//│           B → C ≤ A → C
+//│           B → D ≤ B → C
+//│             D ≤ C
+
+:fixme // FIXME: A variable that occurs elsewhere in the judgment is not analysed by cases, which requires to keep it in each case.
+((A -> C) & (B -> C)) <:< ([X extends A | B] -> X -> (X | C))
+//│ ═══[TYPE ERROR] Cannot solve judgment (A → C) ∧ (B → C) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → (X ∨ C).
+//│ Typing error tree:
+//│   (A → C) ∧ (B → C) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → (X ∨ C)
+//│     (A → C) ∧ (B → C) ≤ {α ≤ A ∨ B} ⟹ α → (α ∨ C)
+//│       (A → C) ∧ (B → C) ≤ α → (α ∨ C)
+//│         A → C ≤ α → (α ∨ C)
+//│           α ≤ A
+//│             B ≤ A
+//│         B → C ≤ α → (α ∨ C)
+//│           α ≤ B
 //│             A ≤ B
+
+// Reflexivity up to the choice rules
+
+(V & A) <:< (B | V)
+//│ OK
+
+((A -> B) & V) <:< (A -> B)
+//│ OK

@@ -112,3 +112,37 @@ L <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 
 L <:< R
 //│ OK
+
+// Constrained types and rigid variables
+
+// The constraint of a right constrained type is assumed before a rigid variable on the left is
+// replaced by its bound, or an operand of an intersection is chosen.
+
+A <:< ([A <:< Int] => Int)
+//│ OK
+
+(A & B) <:< ([A <:< Int] => Int)
+//│ OK
+
+:te
+A <:< ([B <:< Int] => Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ {B ≤ Int} ⟹ Int.
+//│ Typing error tree:
+//│   A ≤ {B ≤ Int} ⟹ Int
+//│     A ≤ Int
+//│       ⊤ ≤ Int
+
+// A constrained type is a subtype of itself under an intersection, without solving its constraint.
+
+(([A <:< Int] => A) & B) <:< ([A <:< Int] => A)
+//│ OK
+
+:fixme // FIXME: A rigid variable on the right is replaced by its lower bound before the left constrained type is opened.
+([A <:< Int] => A) <:< ([A <:< Nat] => A)
+//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A ≤ {A ≤ Nat} ⟹ A.
+//│ Typing error tree:
+//│   {A ≤ Int} ⟹ A ≤ {A ≤ Nat} ⟹ A
+//│     {A ≤ Int} ⟹ A ≤ A
+//│       {A ≤ Int} ⟹ A ≤ ⊥
+//│         A ≤ ⊥
+//│           Nat ≤ ⊥

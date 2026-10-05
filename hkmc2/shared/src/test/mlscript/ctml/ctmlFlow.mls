@@ -156,8 +156,8 @@ foo2(1, int_or_string)
 //│ Typing error tree:
 //│   α ≤ (Int ∨ Str) → β
 //│     γ → δ ≤ (Int ∨ Str) → β
-//│       γ → δ ≤ Str → β
-//│         Str ≤ γ
+//│       Int ∨ Str ≤ γ
+//│         Int ∨ Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
 //│           Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))) ∧ Int
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)))
 //│               Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
@@ -169,8 +169,10 @@ foo2(1, int_or_string)
 //│                 {ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≥ ζ} ⟹ ¬(Str ∨ ¬({ε ≤ ⊥} ⟹ ⊥)) ≤ ¬Str
 //│                   ε ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str)
 //│                     {γ ≤ Str, ζ ≥ Str} ⟹ ¬Str ≤ ¬ε
-//│                       γ ≤ Str
-//│                         Int ≤ Str
+//│                       {ζ ≥ Str} ⟹ ¬Str ≤ ¬ε
+//│                         ¬Str ≤ ¬ε
+//│                           ε ≤ Str
+//│                             Int ≤ Str
 
 :te
 foo2 as (Bool -> Bool -> Bool)

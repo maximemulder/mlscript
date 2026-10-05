@@ -65,9 +65,9 @@ def subtypeCache(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMo
 /** Implementation of `constrainSub`. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
 
-  // Handle the reflexion case.
+  // Handle the reflexion case, up to the choice rules (see `isReflexive`).
 
-  if sub == sup then
+  if isReflexive(sub, sup) then
     return SubClauses.empty
 
   // Normalize negation types.
@@ -208,13 +208,34 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       return subtypeUnivSup(sub, sup)
     case _ =>
 
+  // Assume the constraint of a right constrained type before decomposing the subtype as well:
+  // `τ ≤ {c} ⟹ σ` iff `τ ≤ σ` assuming `c`, which loses no derivation, so that the constraint is
+  // assumed once for every branch of the same judgment.
+
+  // This rule used to come after the choice rules and the rules of rigid variables, with the rule of
+  // left constrained types. An operand of the subtype was then chosen, or a rigid subtype replaced
+  // by its upper bound, before the constraint was assumed, although neither of these rules is
+  // invertible, and both depend on the assumed bounds: e.g. `(A → C) ∧ (B → C) ≤ {α ≤ A ∨ B} ⟹ α → C`
+  // was explored as `A → C ≤ {α ≤ A ∨ B} ⟹ α → C` or `B → C ≤ {α ≤ A ∨ B} ⟹ α → C`, which both
+  // fail, and `α ≤ {α ≤ Int} ⟹ Int` as `⊤ ≤ {α ≤ Int} ⟹ Int`. This is also the order of the paper,
+  // in which `C-ConstredR` is attempted with `C-ForallR`, before `C-VarBound` and `C-JointAny`.
+
+  // The previous order did let an operand of the subtype that is equal to the constrained type be
+  // chosen before the constraint is assumed, and so be compared to it by reflexivity. This is now
+  // done by the reflexion case (see `isReflexive`).
+
+  sup match
+    case sup: TConstrained =>
+      return subtypeConstrainedSup(sup, sub)
+    case _ =>
+
   // Subtyping of union and intersection types.
 
   // The invertible rules are applied first, on both sides: a left union and a right intersection
   // are each decomposed in two judgments that must both hold, which loses no derivation (see
   // `splitAll`).
 
-  sub.splitAll(Polarity.Negative) match
+  sub.splitAll(Polarity.Negative, sup) match
     case Some(subLeft, subRight) =>
       return ctx.all(
         subtype(subLeft,  sup),
@@ -222,7 +243,22 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       )
     case _ =>
 
-  sup.splitAll(Polarity.Positive) match
+  // Two lambda types are compared as they are, before the supertype is decomposed. Decomposing it
+  // is only useful to a subtype that may use a different operand or instance for each of its parts,
+  // which a single lambda type cannot: `τ → σ ≤ (τ₁ ∨ τ₂) → ρ` iff `τ₁ ∨ τ₂ ≤ τ` and `σ ≤ ρ`.
+
+  // This rule used to come last, with the rules of the other type constructors. The supertype was
+  // then decomposed first, which compared the other components of the lambda types once per part,
+  // and replaced the rigid variables that it was decomposed through by their bound: e.g. given an
+  // upper bound `A ∨ B` of `α`, `β → C ≤ α → C` required `A ∨ B ≤ β` rather than `α ≤ β` from a
+  // flexible variable `β`.
+
+  (sub, sup) match
+    case (sub: TLam, sup: TLam) =>
+      return subtypeLam(sub, sup)
+    case _ =>
+
+  sup.splitAll(Polarity.Positive, sub) match
     case Some(supLeft, supRight) =>
       return ctx.all(
         subtype(sub, supLeft),
@@ -276,15 +312,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       return subtype(sub, sup.lowerBound)
     case (_, _) =>
 
-  // Subtyping of constrained types.
+  // Subtyping of left constrained types.
 
-  // The right constrained type comes first so that the left constraint (which must be solvable)
-  // may be solved using the assumptions of the right constraint (which may not be solvable).
-
-  sup match
-    case sup: TConstrained =>
-      return subtypeConstrainedSup(sup, sub)
-    case _ =>
+  // The right constrained types are decomposed first (see above), so that the left constraint
+  // (which must be solvable) may be solved using the assumptions of the right constraint (which may
+  // not be solvable).
 
   sub match
     case sub: TConstrained =>
@@ -310,13 +342,6 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
   (sub, sup) match
     case (sub: TTuple, sup: TTuple) =>
       return subtypeTuple(sub, sup)
-    case _ =>
-
-  // Subtyping of lambda types.
-
-  (sub, sup) match
-    case (sub: TLam, sup: TLam) =>
-      return subtypeLam(sub, sup)
     case _ =>
 
   // Subtyping of type applications.

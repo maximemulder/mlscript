@@ -10,7 +10,7 @@ val zs: Z | S
 //│ zs: Z ∨ S
 
 wf(zs, zs)
-//│ S ∨ Z
+//│ Z ∨ S
 
 type A
 type B
@@ -57,14 +57,9 @@ type D
 //│ Typing error tree:
 //│   (A ∨ B) → (C ∨ D) ≤ (A → C) ∧ (B → D)
 //│     (A ∨ B) → (C ∨ D) ≤ A → C
-//│       A → (C ∨ D) ≤ A → C
-//│         C ∨ D ≤ C
-//│           D ≤ C
-//│             D ≤ ⊥
-//│               ⊤ ≤ ⊥
-//│       B → (C ∨ D) ≤ A → C
-//│         A ≤ B
-//│           A ≤ ⊥
+//│       C ∨ D ≤ C
+//│         D ≤ C
+//│           D ≤ ⊥
 //│             ⊤ ≤ ⊥
 
 :te
@@ -84,13 +79,7 @@ type D
 //│ Typing error tree:
 //│   (A ∧ B) → (C ∧ D) ≤ (A → C) ∧ (B → D)
 //│     (A ∧ B) → (C ∧ D) ≤ A → C
-//│       (A ∧ B) → C ≤ A → C
-//│         A ≤ A ∧ B
-//│           A ≤ B
-//│             A ≤ ⊥
-//│               ⊤ ≤ ⊥
-//│       (A ∧ B) → D ≤ A → C
-//│         A ≤ A ∧ B
-//│           A ≤ B
-//│             A ≤ ⊥
-//│               ⊤ ≤ ⊥
+//│       A ≤ A ∧ B
+//│         A ≤ B
+//│           A ≤ ⊥
+//│             ⊤ ≤ ⊥

@@ -82,10 +82,10 @@ baz(true, false)
 fun bop(a, b) =
   let x = baz(a, b)
   x
-//│ bop: ∀α, β. {α ≥ Int ∧ β, β ≥ ({α ≥ Int} ⟹ ⊥) ∧ ({α ≥ β} ⟹ ⊥)} ⟹ (¬({α ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β, β ≥ Str} ⟹ ¬Str)) → (¬({α ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β} ⟹ ⊥)) → α
+//│ bop: ∀α, β, γ, δ, ε, ζ. {δ ≥ β, β ≤ ¬({γ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), ε ≥ ζ} ⟹ ¬(Str ∨ ¬({γ ≤ ⊥} ⟹ ⊥))), γ ≥ α, α ≤ ¬({δ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≤ ⊥} ⟹ ⊥), ε ≥ ζ, ζ ≥ ({γ ≤ Str, δ ≤ Str} ⟹ Str) ∧ ({γ ≤ ⊥} ⟹ ⊥), δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), ε ≥ ({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ ζ), ζ ≥ ({γ ≤ Int, δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), ε ≥ ζ} ⟹ Str ∧ ({γ ≤ ⊥} ⟹ ⊥)), γ ≤ ¬({δ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬({γ ≤ Str, ζ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≤ ⊥} ⟹ ⊥), ε ≥ ζ, ζ ≥ ({γ ≤ Str, δ ≤ Str} ⟹ Str) ∧ ({γ ≤ ⊥} ⟹ ⊥), δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≤ ¬({γ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), ε ≥ ζ} ⟹ ¬(Str ∨ ¬({γ ≤ ⊥} ⟹ ⊥)))} ⟹ α → β → ε
 
 bop(0, 1)
-//│ ∀α, β, γ, δ. {α ≤ Int → δ, β ≤ ¬({δ ≥ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ)} ⟹ ¬δ) ∨ ¬({β ≥ γ, δ ≥ γ ∨ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ)} ⟹ ¬δ), β ≥ (({β ≤ δ, δ ≥ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ)} ⟹ ⊥) ∧ ({β ≤ δ, δ ≥ γ ∨ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ)} ⟹ γ)) ∨ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ), δ ≥ ({β ≤ δ} ⟹ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ)) ∧ ({β ≤ δ, β ≥ γ} ⟹ γ ∨ (({α ≥ ¬({β ≥ Int} ⟹ ¬Int) → β} ⟹ Int) ∧ ({α ≥ ¬({β ≥ γ} ⟹ ⊥) → β} ⟹ Int)) ∨ (Int ∧ γ)), α ≥ ({β ≥ Int} ⟹ ¬({β ≥ Int} ⟹ ¬Int) → β) ∧ ({β ≥ Int} ⟹ ¬({β ≥ γ} ⟹ ⊥) → β), γ ≥ ({β ≥ Int} ⟹ ⊥) ∧ ({β ≥ γ} ⟹ ⊥)} ⟹ δ
+//│ Int
 
 // FIXME: Does not terminate since upper bounds are joined using constraining types. The bounds of
 // the instantiated type variables refer to each other through the guards of constrained types, and

@@ -210,7 +210,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
 
   // Subtyping of union and intersection types.
 
-  sub.splitUnion(Polarity.Negative) match
+  // The invertible rules are applied first, on both sides: a left union and a right intersection
+  // are each decomposed in two judgments that must both hold, which loses no derivation (see
+  // `splitAll`).
+
+  sub.splitAll(Polarity.Negative) match
     case Some(subLeft, subRight) =>
       return ctx.all(
         subtype(subLeft,  sup),
@@ -218,19 +222,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       )
     case _ =>
 
-  // Outer right intersections are decomposed before right unions. The right intersection rule is
-  // invertible (`τ ≤ σ₁ ∧ σ₂` iff `τ ≤ σ₁` and `τ ≤ σ₂`), so applying it first loses no derivation.
-
-  // Right unions used to be split first, which distributed them over the outer intersection:
-  // `τ ≤ (σ₁ ∨ σ₂) ∧ σ₃` was explored as `τ ≤ σ₁ ∧ σ₃` or `τ ≤ σ₂ ∧ σ₃`. This was exponential in
-  // the number of unions of the intersection, which notably made checks against intersections of
-  // unions of constraining types time out (e.g. `foo(1, 1) as Int` in `ctmlFlowWeirdMatch.mls`). It
-  // also prevented `joinMerge` from merging the unions, so that `⊤ ≤ (A ∨ ¬A) ∧ (B ∨ ¬B)` failed.
-
-  // The other intersection shapes of `splitInter` (e.g. through rigid variable bounds or lambda
-  // types) are still decomposed after right unions, by the rule below.
-
-  sup.splitOuterInter match
+  sup.splitAll(Polarity.Positive) match
     case Some(supLeft, supRight) =>
       return ctx.all(
         subtype(sub, supLeft),
@@ -238,7 +230,18 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
       )
     case _ =>
 
-  sup.splitUnion(Polarity.Positive) match
+  // The choice rules are applied last, on what the invertible rules cannot decompose: a right union
+  // and a left intersection are each decomposed in two judgments of which either may hold, and which
+  // forget the other operand (see `splitAny`).
+
+  // Right unions used to be split before right intersections, which distributed them over the
+  // intersection: `τ ≤ (σ₁ ∨ σ₂) ∧ σ₃` was explored as `τ ≤ σ₁ ∧ σ₃` or `τ ≤ σ₂ ∧ σ₃`. This was
+  // exponential in the number of unions of the intersection, which notably made checks against
+  // intersections of unions of constraining types time out (e.g. `foo(1, 1) as Int` in
+  // `ctmlFlowWeirdMatch.mls`). It also prevented `joinMerge` from merging the unions, so that
+  // `⊤ ≤ (A ∨ ¬A) ∧ (B ∨ ¬B)` failed.
+
+  sup.splitAny(Polarity.Positive) match
     case Some(supLeft, supRight) =>
       return joinMerge(supLeft, supRight) match
         case Some(sup) =>
@@ -250,15 +253,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
           )
     case _ =>
 
-  sup.splitInter(Polarity.Positive) match
-    case Some(supLeft, supRight) =>
-      return ctx.all(
-        subtype(sub, supLeft),
-        subtype(sub, supRight),
-      )
-    case _ =>
-
-  sub.splitInter(Polarity.Negative) match
+  sub.splitAny(Polarity.Negative) match
     case Some(subLeft, subRight) =>
       return meetMerge(subLeft, subRight) match
         case Some(sub) =>

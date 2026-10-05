@@ -15,9 +15,6 @@ repository and regularly rebased on it.
 CTML is a research type checker: it does not need to be production-grade, but it must be correct
 and easily maintainable.
 
-The implementation evolves incrementally: prefer small, staged changes over rewrites of the
-checker core.
-
 The paper (`/media/Data/HKUST/Research/ctml/latex`) and the Lean mechanization
 (`/media/Data/HKUST/Research/ctml/lean`) are on the main development machine, outside of this
 repository. Use them as references for the direction of the system, not as specifications to

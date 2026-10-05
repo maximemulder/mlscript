@@ -359,18 +359,24 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMod
 
 /** Constrain a type variable to be subtype of another type variable. */
 def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
+  // The constraint `α ≤ β` is recorded as a bound of the variable of the higher level, so that the
+  // bound does not mention a variable above the level of its own variable. It is checked by
+  // constraining the other variable against the opposite bound of this variable: `α ≤ U_β` for a
+  // new lower bound `α` of `β`, and `L_α ≤ β` for a new upper bound `β` of `α`. Both check
+  // `L_α ≤ U_β` and propagate the bound to the other variable (see `subtypeFlexVar`). No other
+  // constraint follows from `α ≤ β`, which notably does not relate `L_β` and `U_α`.
   (Order.compare(sub.level, sup.level), ctx.compareVarLevels(sub, sup)) match
     // If both variables are equal then they are subtype.
     case (Order.Equal, Order.Equal) =>
       SubClauses.empty
     case (Order.Lesser | Order.Equal, _) =>
-      val y = subtype(TVar(sub), sup.upperBound)
+      val clauses = subtype(TVar(sub), sup.upperBound)
       val supLowerBound = join(TVar(sub), sup.lowerBound)
-      subtypeSeq(sup.lowerBound, sub.upperBound, y.concat(makeBoundClauses(sup, Direction.Super, TVar(sub), supLowerBound)))
+      clauses.concat(makeBoundClauses(sup, Direction.Super, TVar(sub), supLowerBound))
     case (Order.Greater, _) =>
-      val x = subtype(sub.lowerBound, TVar(sup))
+      val clauses = subtype(sub.lowerBound, TVar(sup))
       val subUpperBound = meet(TVar(sup), sub.upperBound)
-      subtypeSeq(sup.lowerBound, sub.upperBound, x.concat(makeBoundClauses(sub, Direction.Sub, TVar(sup), subUpperBound)))
+      clauses.concat(makeBoundClauses(sub, Direction.Sub, TVar(sup), subUpperBound))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubContext, mode: ConstraintMode): SubClauses =

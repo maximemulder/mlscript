@@ -22,11 +22,11 @@ enum Order:
     this == Order.Greater
 
 object Order:
-  /** Compare the order of two integers, */
+  /** Compare the order of two integers. */
   def compare(a: Int, b: Int): Order =
     if a < b then
-      Order.Equal
-    else if a == b then
       Order.Lesser
+    else if a == b then
+      Order.Equal
     else
       Order.Greater

@@ -29,3 +29,32 @@ baz(1, top)
 //│   α ≤ ⊤ → β
 //│     Int → Int ≤ ⊤ → β
 //│       ⊤ ≤ Int
+
+// Type variable subtyping
+
+// Constraining a parameter to be a subtype of a type variable that already has a lower bound of
+// its own only relates the lower bound of the parameter to the upper bound of the variable: the
+// lower bound `Str` of the result does not flow into the upper bound `Int` of the parameter, in
+// either branch order.
+fun foo(a) =
+  a as Int
+  if true then "hi" else a
+//│ foo: ∀α. {α ≤ Int} ⟹ α → ⟨Int, α ∨ Str⟩
+
+fun bar(a) =
+  a as Int
+  if true then a else "hi"
+//│ bar: ∀α. {α ≤ Int} ⟹ α → ⟨Int, α ∨ Str⟩
+
+foo(1)
+//│ ⟨Int, Int ∨ Str⟩
+
+:te
+foo("hi")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → ⟨Int, α ∨ Str⟩ ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → ⟨Int, α ∨ Str⟩ ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → ⟨Int, γ ∨ Str⟩ ≤ Str → β
+//│       γ → ⟨Int, γ ∨ Str⟩ ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int

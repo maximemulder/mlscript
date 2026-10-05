@@ -10,16 +10,16 @@ fun foo(a, b) =
     Top then b as Str
 //│ foo: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬({β ≤ Str, γ ≥ Str} ⟹ ⊥) ∧ ¬Int, γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥))), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥)} ⟹ ¬(¬({β ≤ Str, γ ≥ Str} ⟹ ⊥) ∧ ¬Int)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬({β ≤ Str, γ ≥ Str} ⟹ ⊥) ∧ ¬Int, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({α ≤ ⊥} ⟹ ⊥)} ⟹ ({β ≤ Str} ⟹ Str) ∧ ({α ≤ ⊥} ⟹ ⊥))} ⟹ α → β → γ
 
-// FIXME: Does not finish within a minute: the simplification of the level of `bar` checks
-// intersections of constrained types, and each check explores every alternative of the unions
-// of constraining types in their guards, which nest deeply. Splitting right intersections before
-// right unions (see `subtypeImpl`) makes this exploration linear in the number of unions of an
-// intersection, but the rules of left intersections and right unions also run subtyping checks
-// of their own (in `meetMerge`, `subtractStep` and `joinMerge`), which nest in each other (6 to
-// 11 levels deep in stack samples) and explore these alternatives again.
-// fun bar(a, b) =
-//   foo(a, b) as Int
-// //│ bar: Int → Int → Int
+// FIXME: The inferred type is not simplified to `Int → Int → Int`, and the block takes several
+// seconds: the simplification of the level of `bar` checks intersections of constrained types,
+// and each check explores every alternative of the unions of constraining types in their guards,
+// which nest deeply. Splitting right intersections before right unions (see `subtypeImpl`) makes
+// this exploration linear in the number of unions of an intersection, but the rules of left
+// intersections and right unions also run subtyping checks of their own (in `meetMerge`,
+// `subtractStep` and `joinMerge`), which nest in each other and explore these alternatives again.
+fun bar(a, b) =
+  foo(a, b) as Int
+//│ bar: ∀α, β, γ, δ. {δ ≤ Int, α ≤ ¬({γ ≤ Int, δ ≥ Int} ⟹ ¬Int) ∧ ¬({β ≤ Int, γ ≤ Int} ⟹ ¬Int), γ ≤ (¬({β ≤ Int} ⟹ ¬Int) ∧ ¬({δ ≥ Int} ⟹ ¬Int)) ∨ (¬({α ≤ ⊥} ⟹ ⊥) ∧ ¬({δ ≥ Int} ⟹ ¬Int)), β ≤ (¬({γ ≤ Int} ⟹ ¬Int) ∧ ¬({δ ≥ Int} ⟹ ¬Int)) ∨ (¬({α ≤ ⊥} ⟹ ⊥) ∧ ¬({δ ≥ Int} ⟹ ¬Int)), γ ≥ β, δ ≥ {γ ≤ Int} ⟹ Int} ⟹ α → β → Int
 
 // Function overloads
 

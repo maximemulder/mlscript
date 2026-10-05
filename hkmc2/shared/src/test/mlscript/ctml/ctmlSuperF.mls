@@ -270,11 +270,9 @@ val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
 //│ g5: Int
 // OK
 
-// FIXME: This application takes a lot of time.
 val g7 = (s(s(z)))(s(s(z)))
 //│ g7: ⊤ → ⊤ → ⊥
 
-// FIXME: This application takes a lot of time.
 val g8 = toChurch
 //│ g8: ∀α, β, γ. {γ ≥ α} ⟹ Int → ((((γ ∨ β) → β) → α → β) ∨ (⊤ → γ → γ))
 
@@ -282,7 +280,6 @@ val g8a = toChurch as ((Int) -> ChurchInt)
 //│ g8a: Int → ChurchInt
 // OK
 
-// FIXME: SuperF recursive higher-rank stre1ss case currently overflows in subtyping.
 fun g9(x) = if true then x else g9(g9)(x)
 //│ g9: ∀α, β, γ, δ. {α ≤ γ → δ, α ≥ γ → (δ ∨ γ), γ ≤ γ → δ, β ≤ γ → δ, δ ≤ γ → δ, γ ≥ β, β ≥ α} ⟹ γ → γ
 

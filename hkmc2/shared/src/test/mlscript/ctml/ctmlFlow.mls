@@ -266,7 +266,6 @@ fun fooI(a, b) =
 fooI(1, 2)
 //│ Int
 
-:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
 :te
 fooI(1, "World")
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
@@ -288,7 +287,6 @@ fooI(1, "World")
 //│                       δ ≤ Str
 //│                         Int ≤ Str
 
-:breakme // FIXME: Discarded match constraints do not escape into the enclosing function type.
 :te
 fooI("Hello", 2)
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int → β.

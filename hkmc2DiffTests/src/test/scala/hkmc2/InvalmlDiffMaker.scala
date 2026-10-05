@@ -34,7 +34,7 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
       if file =/= ctmlPreludeFilePath then
         curCtx = Elaborator.State.init
         given Config = mkConfig
-        importFile(ctmlPreludeFilePath, verbose = false)
+        importFile(ctmlPreludeFilePath, verbose = false, includeDirectives = false)
 
   /** The CTML configuration command. */
   val ctmlMergeModeCommand = new Command("ctml-cfg")(line =>

@@ -1,7 +1,7 @@
 package hkmc2.ctml.types
 
 import hkmc2.ctml.utils.*
-import hkmc2.ctml.core.subtyping.SubtypingCache
+import hkmc2.ctml.core.subtyping.SubtypingTrail
 
 /** A subtyping context, which contains the type-level information used by subtyping,
  *  simplification, and level solving.
@@ -9,7 +9,9 @@ import hkmc2.ctml.core.subtyping.SubtypingCache
 case class SubContext(
   /** The list of clauses itself. */
   clauses: List[SubClause],
-  cache: SubtypingCache,
+  /** The judgments in progress on the current path of the subtyping search. */
+  trail: SubtypingTrail,
+  /** The current polymorphism level. */
   level: Int,
 ):
   /** Get the string representation of the object. */
@@ -18,7 +20,7 @@ case class SubContext(
 
   /** Map over the clauses of the context as a single iterator. */
   def map(f: Iterator[SubClause] => Iterator[SubClause]): SubContext =
-    SubContext(f(this.clauses.iterator).toList, this.cache, this.level)
+    SubContext(f(this.clauses.iterator).toList, this.trail, this.level)
 
   /** Iterate over the type variable declarations. */
   def typeVarDecls: Iterator[TypeVarDecl] =
@@ -33,18 +35,18 @@ case class SubContext(
   def mapClauses(f: SubClause => SubClause): SubContext =
     this.map(_.map(f))
 
-  /** Map over the cache of the context.*/
-  def mapCache(f: SubtypingCache => SubtypingCache): SubContext =
-    SubContext(this.clauses, f(this.cache), this.level)
+  /** Map over the trail of the context. */
+  def mapTrail(f: SubtypingTrail => SubtypingTrail): SubContext =
+    SubContext(this.clauses, f(this.trail), this.level)
 
   /** Map over the level of the context. */
   def mapLevel(f: Int => Int): SubContext =
-    SubContext(this.clauses, this.cache, f(this.level))
+    SubContext(this.clauses, this.trail, f(this.level))
 
 object SubContext:
   /** The empty subtyping context. */
   def empty =
-    SubContext(Nil, SubtypingCache(), 0)
+    SubContext(Nil, SubtypingTrail(), 0)
 
 /** A typing context, which contains the term environment and the current subtyping context. */
 case class TypeContext(

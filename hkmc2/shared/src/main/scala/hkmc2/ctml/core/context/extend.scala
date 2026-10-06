@@ -21,7 +21,7 @@ extension (ctx: SubContext)
 
   /** Append a clause at the end of the clauses. */
   def extendOne(clause: SubClause): SubContext =
-    SubContext(clause :: ctx.clauses, ctx.cache, ctx.level)
+    SubContext(clause :: ctx.clauses, ctx.trail, ctx.level)
 
 extension (ctx: TypeContext)
   /** Map over the subtyping context of this typing context. */

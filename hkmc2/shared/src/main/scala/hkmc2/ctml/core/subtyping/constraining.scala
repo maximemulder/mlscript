@@ -48,21 +48,44 @@ def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: SubClauses)(usin
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
   try
-    subtypeWithDebug(subtypeCache)(sub, sup)
+    subtypeWithDebug(subtypeTrail)(sub, sup)
   catch
     case error: TypeError =>
       error.addStep(SubtypingJudgment(sub, sup))
       throw error
 
-/** Implementation of `constrainSub` with query cache. */
-def subtypeCache(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
-  if ctx.cache.check(sub, sup) then
+/** Implementation of `subtype` with the trail of the judgments in progress (see `SubtypingTrail`).
+ *
+ *  A judgment that repeats a judgment in progress is answered according to the rule that resolves
+ *  the judgment in progress:
+ *  - A judgment whose side is a variable, or a negated variable, that is flexible in the
+ *    constraining mode is a bound of that variable, which is checked against the opposite bounds
+ *    of the variable before being recorded (see `subtypeFlexVar`). The repeated judgment is
+ *    satisfied by that bound, as by the hypothesis rule of the paper (`C-Hyp`), so it is
+ *    discharged.
+ *  - In reconstruction mode, the judgment in progress derives bounds from an assumed constraint,
+ *    and every repeated judgment is discharged as well, since reconstruction accepts the judgments
+ *    that it derives no bound from (see `subtypeImpl`).
+ *  - Otherwise, the judgment in progress is resolved through the bounds of rigid variables, and
+ *    repeats because these bounds form a cycle. Discharging it would assume the judgment in order
+ *    to derive it, which is unsound: `A ≤ Str` does not follow from `A ≤ B ∨ Str` and
+ *    `B ≤ A ∨ Str`, which `A = B = Int` satisfies. No derivation goes through the cycle, so the
+ *    repeated judgment fails, and the search goes on to its next alternative, as the Lean
+ *    mechanization does on the exact repeats of its trail. */
+def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
+  if ctx.trail.contains(sub, sup) then
+    val discharged = mode == ConstraintMode.Reconstruct ||
+      sub.lookupVar.exists(_.isFlexMode) || sup.lookupVar.exists(_.isFlexMode)
+    debugTrail(sub, sup, discharged)
+    if !discharged then
+      throw TypeError(Some(
+        s"Judgment ${sub} ≤ ${sup} repeats a judgment in progress through a cycle of bounds."
+      ))
     return SubClauses.empty
 
-  given SubContext = ctx.mapCache(_.add(sub, sup))
-  subtypeImpl(sub, sup)
+  subtypeImpl(sub, sup)(using ctx.mapTrail(_.add(sub, sup)), mode)
 
-/** Implementation of `constrainSub`. */
+/** Implementation of `subtype` by the subtyping rules. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
 
   // Handle the reflexion case, up to the choice rules (see `isReflexive`).
@@ -431,18 +454,16 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext, mode: Co
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
   val (univVars, univBody) = sub.getUnivComponents
   ctx.withSubtypingLevel((ctx) =>
-    given SubContext = ctx
-    val (instanceBody, cache, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)
-    subtypeSeq(instanceBody, sup, outs)(using ctx.mapCache((_) => cache), mode)
+    val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)(using ctx)
+    subtypeSeq(instanceBody, sup, outs)(using ctx, mode)
   )
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: SubContext, mode: ConstraintMode): SubClauses =
   val (univVars, univBody) = sup.getUnivComponents
   ctx.withSubtypingLevel((ctx) =>
-    given SubContext = ctx
-    val (instanceBody, cache, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Rigid)
-    subtypeSeq(sub, instanceBody, outs)(using ctx.mapCache((_) => cache), mode)
+    val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Rigid)(using ctx)
+    subtypeSeq(sub, instanceBody, outs)(using ctx, mode)
   )
 
 /** Constrain a constrained type to be a subtype of another type. */
@@ -578,22 +599,11 @@ def trySolve(clauses: UnsolvedClauses)(using ctx: SubContext): Option[SubClauses
         None
   )
 
-/** Instantiate the quantified variables of a universal type at the given level, using fresh
- *  variables or approximations from the cache. */
-def instantiateUniv(vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: SubContext): (Type, SubtypingCache, SubClauses) =
-  var instanceBody = body
-  var cache = ctx.cache
-  var outs = SubClauses.empty
-  for var_ <- vars do
-    val decl = ctx.cache.checkUniv(var_, body) match
-      case Some(instanceVar) =>
-        instanceVar.decl(using ctx)
-      case None =>
-        val decl = ctx.declFreshVar(kind, var_)
-        cache = cache.addUniv(var_, body, decl.var_)
-        outs = outs.concat(decl.asSubClauses)
-        decl
-
-    instanceBody = instanceBody.substitute(var_, decl.var_)
-
-  (instanceBody, cache, outs)
+/** Instantiate the quantified variables of a universal type with fresh variables of a given kind
+ *  at the current level, and return the instance and the declarations of the fresh variables. */
+def instantiateUniv(vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: SubContext): (Type, SubClauses) =
+  val decls = ctx.declFreshVars(vars, kind)
+  val instanceBody = vars.zip(decls).foldLeft(body)((body, pair) =>
+    body.substitute(pair(0), pair(1).var_)
+  )
+  (instanceBody, SubClauses(decls.reverse))

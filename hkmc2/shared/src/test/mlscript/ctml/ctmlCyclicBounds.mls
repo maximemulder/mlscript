@@ -1,0 +1,146 @@
+:ctml
+
+type A
+type B
+type C
+type D
+
+// A judgment resolved through a cycle of bounds repeats itself: `A ≤ Str` is resolved as `B ≤ Str`
+// given `A ≤ B ∨ Str`, and back as `A ≤ Str` given `B ≤ A ∨ Str`. The repeated judgment fails
+// rather than being discharged (see `SubtypingTrail`), since the bounds do not imply it:
+// `A = B = Int` satisfies both.
+
+:te
+A <:< ([A <:< (B | Str), B <:< (A | Str)] => Str)
+//│ ═══[TYPE ERROR] Judgment A ≤ Str repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   A ≤ {A ≤ B ∨ Str, B ≤ A ∨ Str} ⟹ Str
+//│     A ≤ {B ≤ A ∨ Str} ⟹ Str
+//│       A ≤ Str
+//│         B ≤ Str
+//│           A ≤ Str
+
+:te
+(Int -> A) <:< ([A <:< (B | Str), B <:< (A | Str)] => (Int -> Str))
+//│ ═══[TYPE ERROR] Judgment A ≤ Str repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   Int → A ≤ {A ≤ B ∨ Str, B ≤ A ∨ Str} ⟹ Int → Str
+//│     Int → A ≤ {B ≤ A ∨ Str} ⟹ Int → Str
+//│       Int → A ≤ Int → Str
+//│         A ≤ Str
+//│           B ≤ Str
+//│             A ≤ Str
+
+// The judgments that the bounds do imply are derived without going through the cycle.
+
+A <:< ([A <:< (B | Str), B <:< (A | Str)] => (B | Str))
+//│ OK
+
+(A | B) <:< ([A <:< (B | Str), B <:< (A | Str)] => (A | B | Str))
+//│ OK
+
+// A cycle through a negated variable: `¬A ≤ Str` is resolved as `¬¬B ≤ Str`, that is `B ≤ Str`,
+// given `A ≥ ¬B`, and back as `¬A ≤ Str` given `B ≤ ¬A ∨ Str`. `A = ¬Int` and `B = Int` satisfy
+// both bounds.
+
+:te
+~A <:< ([A >:> ~B, B <:< (~A | Str)] => Str)
+//│ ═══[TYPE ERROR] Judgment ¬A ≤ Str repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   ¬A ≤ {A ≥ ¬B, B ≤ ¬A ∨ Str} ⟹ Str
+//│     ¬A ≤ {B ≤ ¬A ∨ Str} ⟹ Str
+//│       ¬A ≤ Str
+//│         ¬A ≤ Str
+
+// A cycle through the operands of an intersection: `B ∧ Int ≤ Str` would be resolved as
+// `(B ∧ Int) ∧ Int ≤ Str` given `B ≤ A ∧ Int` and `A ≤ B ∨ Str`, and so on, without ever
+// repeating. An operand whose bounds lead back to it is thus not replaced by its bound (see
+// `split`), and the judgment is resolved through the variable itself. `A = B = Int` satisfies both
+// bounds.
+
+:te
+A <:< ([A <:< (B | Str), B <:< (A & Int)] => Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ {A ≤ B ∨ Str, B ≤ A ∧ Int} ⟹ Str.
+//│ Typing error tree:
+//│   A ≤ {A ≤ B ∨ Str, B ≤ A ∧ Int} ⟹ Str
+//│     A ≤ {B ≤ A ∧ Int} ⟹ Str
+//│       A ≤ Str
+//│         B ≤ Str
+//│           A ≤ Str
+//│           Int ≤ Str
+
+:te
+(A & D) <:< ([A <:< (B | C), B <:< (A & D)] => C)
+//│ ═══[TYPE ERROR] Cannot solve judgment A ∧ D ≤ {A ≤ B ∨ C, B ≤ A ∧ D} ⟹ C.
+//│ Typing error tree:
+//│   A ∧ D ≤ {A ≤ B ∨ C, B ≤ A ∧ D} ⟹ C
+//│     A ∧ D ≤ {B ≤ A ∧ D} ⟹ C
+//│       A ∧ D ≤ C
+//│         A ≤ C
+//│           B ≤ C
+//│             A ≤ C
+//│             D ≤ C
+//│               D ≤ ⊥
+//│                 ⊤ ≤ ⊥
+//│         D ≤ C
+//│           D ≤ ⊥
+//│             ⊤ ≤ ⊥
+
+// An operand whose bounds do not lead back to it is replaced by its bound.
+
+(A & D) <:< ([A <:< (B | C), B <:< Int] => (B | C))
+//│ OK
+
+// An operand whose bounds lead back to it is kept, and the other operands may still derive the
+// judgment.
+
+(A & Nat) <:< ([A <:< (B | Str), B <:< (A | Str)] => Int)
+//│ OK
+
+// A cycle through lower bounds is cut the same way: `Str ≤ A` is resolved as `Str ≤ B` given
+// `A ≥ B ∧ Int`, and back as `Str ≤ A` given `B ≥ A ∧ Int`. `A = B = ⊥` satisfies both bounds.
+
+:te
+Str <:< ([A >:> (B & Int), B >:> (A & Int)] => A)
+//│ ═══[TYPE ERROR] Judgment Str ≤ A repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   Str ≤ {A ≥ B ∧ Int, B ≥ A ∧ Int} ⟹ A
+//│     Str ≤ {B ≥ A ∧ Int} ⟹ A
+//│       Str ≤ A
+//│         Str ≤ B
+//│           Str ≤ A
+
+Int <:< ([A >:> (B & Int), B >:> (A & Int), B >:> Int] => A)
+//│ OK
+
+// A cycle through three variables.
+
+:te
+A <:< ([A <:< (B | Str), B <:< (C | Str), C <:< (A | Str)] => Str)
+//│ ═══[TYPE ERROR] Judgment A ≤ Str repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   A ≤ {A ≤ B ∨ Str, B ≤ C ∨ Str, C ≤ A ∨ Str} ⟹ Str
+//│     A ≤ {B ≤ C ∨ Str, C ≤ A ∨ Str} ⟹ Str
+//│       A ≤ {C ≤ A ∨ Str} ⟹ Str
+//│         A ≤ Str
+//│           B ≤ Str
+//│             C ≤ Str
+//│               A ≤ Str
+
+A <:< ([A <:< (B | Str), B <:< (C | Str), C <:< (A | Str)] => (C | Str))
+//│ OK
+
+// The repeated judgments are shown by the `trail` debug flag.
+
+:ctml-dbg trail
+
+:te
+A <:< ([A <:< (B | Str), B <:< (A | Str)] => Str)
+//│ REPEAT A ≤ Str ⇝ FAIL
+//│ ═══[TYPE ERROR] Judgment A ≤ Str repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   A ≤ {A ≤ B ∨ Str, B ≤ A ∨ Str} ⟹ Str
+//│     A ≤ {B ≤ A ∨ Str} ⟹ Str
+//│       A ≤ Str
+//│         B ≤ Str
+//│           A ≤ Str

@@ -67,5 +67,5 @@ private def canEliminateDisconnectedVar(var_ : TypeVar)(using ctx: SubContext): 
   else
     val comparisonCtx = ctx
       .map(_.filter(!_.isTypeVarBound(var_)))
-      .mapCache(_ => SubtypingCache())
+      .mapTrail(_ => SubtypingTrail())
     checkEqual(lower, upper)(using comparisonCtx)

@@ -21,6 +21,13 @@ extension (var_ : TypeVar)
   def isIndirectRecursive(pol: Polarity)(using ctx: SubContext): Boolean =
     var_.getTransDeps(pol).indirect.exists(_.var_ == var_)
 
+  /** Check whether the lookup of the bound of a type variable at a polarity is acyclic, that is,
+   *  whether replacing the variable by that bound, then the variables of that bound by their bound
+   *  at the polarity of their occurrence, and so on, never meets the variable at that polarity
+   *  again. */
+  def isAcyclicLookup(pol: Polarity)(using ctx: SubContext): Boolean =
+    !var_.getTransDeps(pol).all.contains(PolarVar(var_, pol))
+
 /** A type variable occurrence together with the polarity selecting its effective bound. */
 case class PolarVar(var_ : TypeVar, pol: Polarity)
 

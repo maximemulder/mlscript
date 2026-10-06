@@ -7,13 +7,6 @@ enum AssumptionMode:
   /** Use subtyping reconstruction. */
   case Reconstruct
 
-/** The mode used to cache subtyping relations. */
-enum CacheMode:
-  /** Cache only variable bounds. */
-  case Var
-  /** Cache all subtyping relations. */
-  case All
-
 /** Debugging information. */
 class Config:
   /** The global debug print function. */
@@ -21,15 +14,6 @@ class Config:
 
   /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
   var assumptionMode = AssumptionMode.Reconstruct
-
-  /** Whether to cache type variable bounds. */
-  var cacheVar = true
-
-  /** Whether to cache all subttyping constraints. */
-  var cacheType = false
-
-  /** Whether to cache type variable instantiations. */
-  var cacheUniv = false
 
   /** Whether to extrude type variable bounds. */
   var extrudeVar = false
@@ -99,17 +83,8 @@ class Debug:
   /** Show output clauses debug flag. */
   var output = false
 
-  /** Show subtyping cache add debug flag. */
-  var cacheAdd = false
-
-  /** Show subtyping cache check debug flag. */
-  var cacheCheck = false
-
-  /** Show subtyping cache hit debug flag. */
-  var cacheHit = false
-
-  /** Show subtyping cache miss debug flag. */
-  var cacheMiss = false
+  /** Show the judgments that repeat a judgment in progress of the subtyping trail debug flag. */
+  var trail = false
 
   /** Maximum show depth debug flag. */
   var depth: Option[Int] = None

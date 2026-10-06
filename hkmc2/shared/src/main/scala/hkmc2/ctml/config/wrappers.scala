@@ -183,6 +183,14 @@ def debugInlineVar(impl: (Type, TypeVar, Polarities, SubClauses) => (Type, SubCl
     output(s"= ${newType}")
     (newType, newOuts)
 
+/** Print a judgment that repeats a judgment in progress of the subtyping trail, and whether it is
+ *  discharged or failed, as a debug information. */
+def debugTrail(sub: Type, sup: Type, discharged: Boolean): Unit =
+  if !config.debug.trail then
+    return
+
+  output(s"REPEAT ${sub} ≤ ${sup} ⇝ ${if discharged then "∅" else "FAIL"}")
+
 /** Register and call a function in the debug environment. */
 def debugCall[T](f: () => T): T =
   if config.maxStepCount.exists(config.currentStepCount >= _) then

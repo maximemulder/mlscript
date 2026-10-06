@@ -41,7 +41,7 @@ def meetMerge(left: Type, right: Type)(using ctx: SubContext): Option[Type] =
 
   (left, right) match
     case (left: TLam, right: TLam) =>
-      meetLambdas(left, right)
+      return meetLambdas(left, right)
     case _ =>
 
   // Meet disjoint types.

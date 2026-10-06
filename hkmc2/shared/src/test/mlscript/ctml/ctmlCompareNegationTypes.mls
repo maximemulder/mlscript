@@ -82,6 +82,12 @@ Top <:< ~((A & ~A) | (B & ~B))
 (Int | ~Nat) == Top
 //│ OK
 
+:te
+Nat <:< ~Int
+//│ ═══[TYPE ERROR] Cannot solve judgment Nat ≤ ¬Int.
+//│ Typing error tree:
+//│   Nat ≤ ¬Int
+
 Nat <:< (~Int | Nat)
 //│ OK
 
@@ -219,3 +225,108 @@ Int <:< ~Y2
 //│       ¬Str ≤ Y5
 //│         ¬Str ≤ ¬Int
 //│           Int ≤ Str
+
+// Complement on the decided fragment
+
+// Excluded middle and non-contradiction only apply to closed Boolean combinations of classes,
+// which the shape of every value decides (see `isDecided`).
+
+Top <:< ((A | B) | ~A)
+//│ OK
+
+(~(A | B) & A) <:< Bot
+//│ OK
+
+// The negated operand is matched syntactically against the other operand of the union.
+
+:te
+Top <:< (A | (B | ~A))
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ A ∨ B ∨ ¬A.
+//│ Typing error tree:
+//│   ⊤ ≤ A ∨ B ∨ ¬A
+//│     ⊤ ≤ A
+//│     ⊤ ≤ B ∨ ¬A
+//│       ⊤ ≤ B
+//│       ⊤ ≤ ¬A
+
+:te
+Top <:< ((Int -> Int) | ~(Int -> Int))
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ (Int → Int) ∨ ¬(Int → Int).
+//│ Typing error tree:
+//│   ⊤ ≤ (Int → Int) ∨ ¬(Int → Int)
+//│     ⊤ ≤ Int → Int
+//│     ⊤ ≤ ¬(Int → Int)
+
+:te
+((Int -> Int) & ~(Int -> Int)) <:< Bot
+//│ ═══[TYPE ERROR] Cannot solve judgment (Int → Int) ∧ ¬(Int → Int) ≤ ⊥.
+//│ Typing error tree:
+//│   (Int → Int) ∧ ¬(Int → Int) ≤ ⊥
+//│     Int → Int ≤ ⊥
+//│     ¬(Int → Int) ≤ ⊥
+
+:te
+Top <:< (T | ~T)
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ T ∨ ¬T.
+//│ Typing error tree:
+//│   ⊤ ≤ T ∨ ¬T
+//│     ⊤ ≤ T
+//│       ⊤ ≤ ⊥
+//│     ⊤ ≤ ¬T
+
+:te
+(T & ~T) <:< Bot
+//│ ═══[TYPE ERROR] Cannot solve judgment T ∧ ¬T ≤ ⊥.
+//│ Typing error tree:
+//│   T ∧ ¬T ≤ ⊥
+//│     T ≤ ⊥
+//│       ⊤ ≤ ⊥
+//│     ¬T ≤ ⊥
+
+:te
+Top <:< (([T <:< Int] => ~Int) | ~([T <:< Int] => ~Int))
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ ({T ≤ Int} ⟹ ¬Int) ∨ ¬({T ≤ Int} ⟹ ¬Int).
+//│ Typing error tree:
+//│   ⊤ ≤ ({T ≤ Int} ⟹ ¬Int) ∨ ¬({T ≤ Int} ⟹ ¬Int)
+//│     ⊤ ≤ {T ≤ Int} ⟹ ¬Int
+//│       ⊤ ≤ ¬Int
+//│     ⊤ ≤ ¬({T ≤ Int} ⟹ ¬Int)
+//│       {T ≤ Int} ⟹ ¬Int ≤ ⊥
+//│         T ≤ Int
+//│           ⊤ ≤ Int
+
+// Functions are typed at the negation of every class, so that excluded middle at a class is
+// preserved through the distribution of lambda types over their parameters.
+
+((Int -> Str) & (~Int -> Str)) <:< (Top -> Str)
+//│ OK
+
+:te
+(((Int -> Int) -> Str) & (~(Int -> Int) -> Str)) <:< (Top -> Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment ((Int → Int) → Str) ∧ (¬(Int → Int) → Str) ≤ ⊤ → Str.
+//│ Typing error tree:
+//│   ((Int → Int) → Str) ∧ (¬(Int → Int) → Str) ≤ ⊤ → Str
+//│     ((Int → Int) ∨ ¬(Int → Int)) → Str ≤ ⊤ → Str
+//│       ⊤ ≤ (Int → Int) ∨ ¬(Int → Int)
+//│         ⊤ ≤ Int → Int
+//│         ⊤ ≤ ¬(Int → Int)
+
+// The general complement applies excluded middle and non-contradiction to every type, which is
+// sound for the safety of programs but not for the preservation of types (see `admitsComplement`).
+
+:ctml-cfg general-complement
+
+Top <:< ((Int -> Int) | ~(Int -> Int))
+//│ OK
+
+((Int -> Int) & ~(Int -> Int)) <:< Bot
+//│ OK
+
+Top <:< (T | ~T)
+//│ OK
+
+Top <:< (([T <:< Int] => ~Int) | ~([T <:< Int] => ~Int))
+//│ OK
+
+(((Int -> Int) -> Str) & (~(Int -> Int) -> Str)) <:< (Top -> Str)
+//│ OK

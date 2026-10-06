@@ -17,14 +17,15 @@ extension (type_ : Type)
       case _ =>
         false
 
-/** Check if two types are disjoint constructor types. */
+/** Check if two types are disjoint constructor types: two classes are disjoint unless one inherits
+ *  from the other, and classes, tuples and lambda types are disjoint from each other. */
 def areDisjointConstructors(left: Type, right: Type)(using ctx: SubContext): Boolean =
   (left, right) match
     case (TLam(_, _), TLam(_, _)) =>
       false
     case (TTuple(_, _), TTuple(_, _)) =>
       false
-    case (TClass(left), TClass(right)) if right.isSubClass(left) =>
+    case (TClass(left), TClass(right)) if left.isSubClass(right) || right.isSubClass(left) =>
       false
     case _ =>
       left.isConstructor && right.isConstructor

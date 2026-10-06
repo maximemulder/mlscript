@@ -24,3 +24,17 @@
 //│ Typing error tree:
 //│   Int ≤ ¬¬¬Int
 //│     Int ≤ ¬Int
+
+// Functions are typed at the negation of every class.
+
+((x) => x) as ~Int
+//│ ¬Int
+
+// A function typed at both `Int → τ` and `¬Int → τ` is typed at `⊤ → τ`, by distribution over its
+// parameter and excluded middle at `Int`.
+
+fun k(x) = (y) => x
+//│ k: ∀α. α → ⊤ → α
+
+(k as ((Int -> ((Top -> Int) | (Top -> ~Int))) & (~Int -> ((Top -> Int) | (Top -> ~Int))))) as (Top -> ((Top -> Int) | (Top -> ~Int)))
+//│ ⊤ → ((⊤ → Int) ∨ (⊤ → ¬Int))

@@ -30,6 +30,10 @@ class Config:
   /** Whether to allow arbitrary (non-class) patterns or not. */
   var arbitraryPatterns = false
 
+  /** Whether to apply the complement rules to every type rather than to the decided types only
+   *  (see `admitsComplement`). */
+  var generalComplement = false
+
   /** The current call depth. */
   var currentCallDepth = 0
 

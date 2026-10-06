@@ -309,19 +309,8 @@ type V
 //│           B → D ≤ B → C
 //│             D ≤ C
 
-:fixme // FIXME: A variable that occurs elsewhere in the judgment is not analysed by cases, which requires to keep it in each case.
 ((A -> C) & (B -> C)) <:< ([X extends A | B] -> X -> (X | C))
-//│ ═══[TYPE ERROR] Cannot solve judgment (A → C) ∧ (B → C) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → (X ∨ C).
-//│ Typing error tree:
-//│   (A → C) ∧ (B → C) ≤ ∀X. {X ≤ A ∨ B} ⟹ X → (X ∨ C)
-//│     (A → C) ∧ (B → C) ≤ {α ≤ A ∨ B} ⟹ α → (α ∨ C)
-//│       (A → C) ∧ (B → C) ≤ α → (α ∨ C)
-//│         A → C ≤ α → (α ∨ C)
-//│           α ≤ A
-//│             B ≤ A
-//│         B → C ≤ α → (α ∨ C)
-//│           α ≤ B
-//│             A ≤ B
+//│ OK
 
 // Reflexivity up to the choice rules
 

@@ -14,12 +14,3 @@ extension (ctx: SubContext)
           clause
     )
 
-  /** Flexify the subtyping context by replacing all rigid type variables with flexible type
-   *  variables. */
-  def flexify(): SubContext =
-    ctx.mapClauses(_ match
-      case TypeVarDecl(var_, TypeVarKind.Rigid, original, level) =>
-        TypeVarDecl(var_, TypeVarKind.Flex, original, level)
-      case clause =>
-        clause
-    )

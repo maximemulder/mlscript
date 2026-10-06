@@ -3,7 +3,7 @@ package hkmc2.ctml.core.var_
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.subtyping.SubtypingTrail
+import hkmc2.ctml.core.subtyping.{Hypotheses, SubtypingTrail}
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.given
 
@@ -46,8 +46,8 @@ extension (ctx: SubContext)
   def findEscapedVars(): Set[TypeVar] =
     ctx.clauses match
       case (bound: Bound) :: clauses =>
-        given SubContext = SubContext(clauses, SubtypingTrail(), 0)
-        bound.findEscapedVars() ++ SubContext(clauses, SubtypingTrail(), 0).findEscapedVars()
+        given SubContext = SubContext(clauses, SubtypingTrail(), Hypotheses(), 0)
+        bound.findEscapedVars() ++ SubContext(clauses, SubtypingTrail(), Hypotheses(), 0).findEscapedVars()
       case _ =>
         Set.empty
 
@@ -57,7 +57,7 @@ extension (clauses: SubClauses)(using ctx: SubContext)
     clauses.elems match
       case (bound: Bound) :: clauses =>
         given SubContext = ctx.extend(clauses)
-        bound.findEscapedVars() ++ SubContext(clauses, SubtypingTrail(), 0).findEscapedVars()
+        bound.findEscapedVars() ++ SubContext(clauses, SubtypingTrail(), Hypotheses(), 0).findEscapedVars()
       case _ =>
         Set.empty
 

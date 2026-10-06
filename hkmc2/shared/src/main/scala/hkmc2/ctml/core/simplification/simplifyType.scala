@@ -50,7 +50,7 @@ extension (type_ : Type)
         simplifyUniv(var_, newBody)
       case TConstrained(body, constraint) =>
         val constraintClauses = try
-          subtypeConstraint(constraint)(using ctx, ConstraintMode.Solve)
+          subtypeConstraint(constraint)(using ctx)
         catch
           case _: TypeError =>
             SubClauses.empty

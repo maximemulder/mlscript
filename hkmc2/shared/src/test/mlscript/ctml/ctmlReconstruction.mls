@@ -1,0 +1,194 @@
+:ctml
+
+// The constraint of a right constrained type is assumed by decomposing it with the invertible
+// subtyping rules into bounds of its variables and hypotheses (see `assume`).
+
+type S1
+type S2
+
+// A constraint that is a bound, and a constraint that the invertible rules decompose into bounds,
+// are assumed as bounds.
+
+(S1 -> S1) <:< ([S1 <:< Int] => S1 -> Int)
+//│ OK
+
+(S1 -> S1) <:< ([(S1 | S2) <:< Int] => S1 -> Int)
+//│ OK
+
+(S1 -> S1) <:< ([~S1 >:> ~Int] => S1 -> Int)
+//│ OK
+
+// The other rules would decompose a constraint into bounds that it does not entail, so their
+// judgments are assumed as hypotheses instead.
+
+// `S1 ∧ S2 ≤ Int` holds for `S1 = Str` and `S2 = Bool`, while neither `S1 ≤ Int` nor `S2 ≤ Int`
+// holds.
+
+:te
+(S1 -> S1) <:< ([(S1 & S2) <:< Int] => S1 -> (Int | ~([S2 <:< Int] => Bot)))
+//│ ═══[TYPE ERROR] Cannot solve judgment S1 → S1 ≤ {S1 ∧ S2 ≤ Int} ⟹ S1 → (Int ∨ ¬({S2 ≤ Int} ⟹ ⊥)).
+//│ Typing error tree:
+//│   S1 → S1 ≤ {S1 ∧ S2 ≤ Int} ⟹ S1 → (Int ∨ ¬({S2 ≤ Int} ⟹ ⊥))
+//│     S1 → S1 ≤ S1 → (Int ∨ ¬({S2 ≤ Int} ⟹ ⊥))
+//│       S1 ≤ Int ∨ ¬({S2 ≤ Int} ⟹ ⊥)
+//│         S1 ≤ Int
+//│           ⊤ ≤ Int
+//│         S1 ≤ ¬({S2 ≤ Int} ⟹ ⊥)
+//│           {S2 ≤ Int} ⟹ ⊥ ≤ ¬S1
+//│             S2 ≤ Int
+//│               ⊤ ≤ Int
+
+// `⊤ → S1 ≤ S2 → Int` holds for `S2 = ⊥` whatever `S1` is, since `⊥ → Int` is the type of all
+// functions.
+
+:te
+(S1 -> S1) <:< ([(Top -> S1) <:< (S2 -> Int)] => S1 -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment S1 → S1 ≤ {⊤ → S1 ≤ S2 → Int} ⟹ S1 → Int.
+//│ Typing error tree:
+//│   S1 → S1 ≤ {⊤ → S1 ≤ S2 → Int} ⟹ S1 → Int
+//│     S1 → S1 ≤ S1 → Int
+//│       S1 ≤ Int
+//│         ⊤ ≤ Int
+
+// `⟨S1, S2⟩ ≤ ⟨Int, Int⟩` holds for `S2 = ⊥` whatever `S1` is, since `⟨S1, ⊥⟩` is empty.
+
+:te
+(S1 -> S1) <:< ([[S1, S2] <:< [Int, Int]] => S1 -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment S1 → S1 ≤ {⟨S1, S2⟩ ≤ ⟨Int, Int⟩} ⟹ S1 → Int.
+//│ Typing error tree:
+//│   S1 → S1 ≤ {⟨S1, S2⟩ ≤ ⟨Int, Int⟩} ⟹ S1 → Int
+//│     S1 → S1 ≤ S1 → Int
+//│       S1 ≤ Int
+//│         ⊤ ≤ Int
+
+// `({S1 ≤ Int} ⟹ Bool) ≤ (Int → Int) ∨ ¬(Int → Int)` holds whatever `S1` is, since its supertype
+// is `⊤`.
+
+:te
+(S1 -> S1) <:< ([([S1 <:< Int] => Bool) <:< ((Int -> Int) | ~(Int -> Int))] => S1 -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment S1 → S1 ≤ {{S1 ≤ Int} ⟹ Bool ≤ (Int → Int) ∨ ¬(Int → Int)} ⟹ S1 → Int.
+//│ Typing error tree:
+//│   S1 → S1 ≤ {{S1 ≤ Int} ⟹ Bool ≤ (Int → Int) ∨ ¬(Int → Int)} ⟹ S1 → Int
+//│     S1 → S1 ≤ S1 → Int
+//│       S1 ≤ Int
+//│         ⊤ ≤ Int
+
+// The parameter part of the lambda rule, `S1 ≤ Int` from `Int → Int ≤ S1 → Int`, is valid in the
+// model, in which a function of `Int → Int` may go wrong outside of `Int`, but is not derivable in
+// the declarative system, so it is not assumed either.
+
+:te
+S1 <:< ([(Int -> Int) <:< (S1 -> Int)] => Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment S1 ≤ {Int → Int ≤ S1 → Int} ⟹ Int.
+//│ Typing error tree:
+//│   S1 ≤ {Int → Int ≤ S1 → Int} ⟹ Int
+//│     S1 ≤ Int
+//│       ⊤ ≤ Int
+
+// The hypothesis rule
+
+// A hypothesis derives the judgment that it is, and only that judgment.
+
+((Str -> Int) -> Bool) <:< ([(S1 -> Int) <:< (Str -> Int)] => (S1 -> Int) -> Bool)
+//│ OK
+
+((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Int) -> Bool)
+//│ OK
+
+:te
+((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Nat) -> Bool)
+//│ ═══[TYPE ERROR] Cannot solve judgment (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Nat) → Bool.
+//│ Typing error tree:
+//│   (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Nat) → Bool
+//│     (S2 → Int) → Bool ≤ (S1 → Nat) → Bool
+//│       S1 → Nat ≤ S2 → Int
+//│         S2 ≤ S1
+//│           S2 ≤ ⊥
+//│             ⊤ ≤ ⊥
+
+// A hypothesis is normalized as the judgments are.
+
+((S2 -> Int) -> Bool) <:< ([~(~(S1 -> Int)) <:< (S2 -> Int)] => (S1 -> Int) -> Bool)
+//│ OK
+
+// Ex falso
+
+// Without the `ex-falso` option, a refuted constraint is assumed like any other one, so that the
+// body of the constrained type must hold under it.
+
+(Str -> Str) <:< ([Str <:< Int] => Str -> Int)
+//│ OK
+
+:te
+(Str -> Str) <:< ([Str <:< Int] => Str -> Bool)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ {Str ≤ Int} ⟹ Str → Bool.
+//│ Typing error tree:
+//│   Str → Str ≤ {Str ≤ Int} ⟹ Str → Bool
+//│     Str → Str ≤ Str → Bool
+//│       Str ≤ Bool
+
+:ctml-cfg ex-falso
+
+// With the option, a constrained type whose constraint is refuted is a supertype of every type. A
+// constraint is refuted when it does not hold between decided types, either directly or through
+// the opposite bound of the variable that it bounds.
+
+(Str -> Str) <:< ([Str <:< Int] => Str -> Bool)
+//│ OK
+
+type S3 = Str
+//│ S3 = Str
+
+(S3 -> S3) <:< ([S3 <:< Int] => S3 -> Bool)
+//│ OK
+
+(S3 -> S3) <:< ([S3 >:> Int] => S3 -> Bool)
+//│ OK
+
+// A constraint that is not derived between types that are not decided is not refuted, since it
+// may hold: `Str ∧ Bool ≤ Int` holds, and `Int → Int ≤ ⊥ → Str` holds in the model.
+
+type S4 = Bool
+type S5 = Int -> Int
+//│ S4 = Bool
+//│ S5 = Int → Int
+
+:te
+(S3 -> S3) <:< ([(S3 & S4) <:< Int] => S3 -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment S3 → S3 ≤ {S3 ∧ S4 ≤ Int} ⟹ S3 → Int.
+//│ Typing error tree:
+//│   S3 → S3 ≤ {S3 ∧ S4 ≤ Int} ⟹ S3 → Int
+//│     S3 → S3 ≤ S3 → Int
+//│       S3 ≤ Int
+//│         Str ≤ Int
+
+:te
+(Str -> Str) <:< ([S5 <:< (Bot -> Str)] => Str -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ {S5 ≤ ⊥ → Str} ⟹ Str → Int.
+//│ Typing error tree:
+//│   Str → Str ≤ {S5 ≤ ⊥ → Str} ⟹ Str → Int
+//│     Str → Str ≤ Str → Int
+//│       Str ≤ Int
+
+:te
+(Str -> Str) <:< ([(Int -> Int) <:< (Bot -> Str)] => Str -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ {Int → Int ≤ ⊥ → Str} ⟹ Str → Int.
+//│ Typing error tree:
+//│   Str → Str ≤ {Int → Int ≤ ⊥ → Str} ⟹ Str → Int
+//│     Str → Str ≤ Str → Int
+//│       Str ≤ Int
+
+// Without the hypothesis rule, a hypothesis is not used.
+
+:ctml-cfg no-hypothesis
+
+:te
+((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Int) -> Bool)
+//│ ═══[TYPE ERROR] Cannot solve judgment (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Int) → Bool.
+//│ Typing error tree:
+//│   (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Int) → Bool
+//│     (S2 → Int) → Bool ≤ (S1 → Int) → Bool
+//│       S1 → Int ≤ S2 → Int
+//│         S2 ≤ S1
+//│           S2 ≤ ⊥
+//│             ⊤ ≤ ⊥

@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg subtype-absurd-constred error-absurd-constred reconstruct-coherence
+:ctml-cfg error-absurd-constred
 
 // Unique parameter
 

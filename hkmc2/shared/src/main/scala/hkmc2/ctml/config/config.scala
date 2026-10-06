@@ -1,28 +1,19 @@
 package hkmc2.ctml.config
 
-/** The mode used to make subtyping assumption. */
-enum AssumptionMode:
-  /** Flexify the context type variable. */
-  case Flexify
-  /** Use subtyping reconstruction. */
-  case Reconstruct
-
 /** Debugging information. */
 class Config:
   /** The global debug print function. */
   var output: String => Unit = (message) => print(message)
 
-  /** Whether to use flexification or subtyping reconstruction to process subtyping assumptions. */
-  var assumptionMode = AssumptionMode.Reconstruct
-
   /** Whether to extrude type variable bounds. */
   var extrudeVar = false
 
-  /** Whether to check constraint coherence during subtyping reconstruction. */
-  var reconstructCoherence = false
+  /** Whether to derive the judgments assumed as hypotheses by the hypothesis rule (see `assume`). */
+  var hypothesis = true
 
-  /** Whether to allow absurd constrained types in subtyping or not. */
-  var subtypeAbsurdConstreds = false
+  /** Whether a constrained type whose constraint is refuted is a supertype of every type (see
+   *  `assume`). */
+  var exFalso = false
 
   /** Whether to check for absurd constrained types during type inference or not. */
   var checkUnsolvableConstreds = false

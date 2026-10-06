@@ -19,19 +19,3 @@ given Show[RefineMode] with
       case RefineMode.Constrain => "constrain"
       case RefineMode.Check     => "check"
 
-/** The subtyping constraint mode. */
-enum ConstraintMode:
-  /** Solve the subtyping constraint in the context. */
-  case Solve
-  /** Propagate the subtyping information in the context without solving it. */
-  case Reconstruct
-
-  override def toString: String =
-    this.show
-
-/** Implementation of the `Show` trait for `ConstraintMode`. */
-given Show[ConstraintMode] with
-  override def show(mode: ConstraintMode): String =
-    mode match
-      case ConstraintMode.Solve       => "solve"
-      case ConstraintMode.Reconstruct => "reconstruct"

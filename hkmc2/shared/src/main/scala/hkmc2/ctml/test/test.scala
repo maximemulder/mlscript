@@ -148,17 +148,17 @@ class Tester(
 
   /** Test subtyping between two types. */
   def testSubtyping(sub: Type, sup: Type): SubClauses =
-    subtype(sub, sup)(using this.ctx.sub, ConstraintMode.Solve)
+    subtype(sub, sup)(using this.ctx.sub)
 
   /** Test supertyping between two types. */
   def testSupertyping(sup: Type, sub: Type): SubClauses =
-    subtype(sub, sup)(using this.ctx.sub, ConstraintMode.Solve)
+    subtype(sub, sup)(using this.ctx.sub)
 
   /** Test equivalence between two types. */
   def testTypeEquivalence(left: Type, right: Type): SubClauses =
     try
-      val subClauses = subtype(left, right)(using this.ctx.sub, ConstraintMode.Solve)
-      val supClauses = subtypeSeq(right, left, subClauses)(using this.ctx.sub, ConstraintMode.Solve)
+      val subClauses = subtype(left, right)(using this.ctx.sub)
+      val supClauses = subtypeSeq(right, left, subClauses)(using this.ctx.sub)
       supClauses
     catch
       case error: TypeError =>

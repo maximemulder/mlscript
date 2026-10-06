@@ -106,7 +106,7 @@ def inferMatch(match_ : EMatch)(using ctx: TypeContext): (Type, SubClauses) =
       inferSeq(match_.then_, patternClauses)
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: TypeContext) =
-  subtype(sub, sup)(using ctx.sub, ConstraintMode.Solve)
+  subtype(sub, sup)(using ctx.sub)
 
 def typingSubtypeSeq(sub: Type, sup: Type, ins: SubClauses)(using ctx: TypeContext) =
-  subtypeSeq(sub, sup, ins)(using ctx.sub, ConstraintMode.Solve)
+  subtypeSeq(sub, sup, ins)(using ctx.sub)

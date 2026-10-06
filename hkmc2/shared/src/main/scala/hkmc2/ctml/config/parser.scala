@@ -11,16 +11,12 @@ def applyConfigArguments(arguments: List[String]): Unit =
       buffer.remove(0) match
         case "" =>
           ()
-        case "assumption-reconstruct" =>
-          config.assumptionMode = AssumptionMode.Reconstruct
-        case "assumption-flexify" =>
-          config.assumptionMode = AssumptionMode.Flexify
         case "extrude-var" =>
           config.extrudeVar = true
-        case "reconstruct-coherence" =>
-          config.reconstructCoherence = true
-        case "subtype-absurd-constred" =>
-          config.subtypeAbsurdConstreds = true
+        case "no-hypothesis" =>
+          config.hypothesis = false
+        case "ex-falso" =>
+          config.exFalso = true
         case "error-absurd-constred" =>
           config.checkUnsolvableConstreds = true
         case "arbitrary-patterns" =>

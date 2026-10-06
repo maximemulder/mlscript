@@ -1,6 +1,6 @@
 :ctml
 
-:ctml-cfg subtype-absurd-constred error-absurd-constred reconstruct-coherence arbitrary-patterns
+:ctml-cfg error-absurd-constred arbitrary-patterns
 
 // Function definitions
 

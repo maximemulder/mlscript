@@ -91,4 +91,4 @@ def checkUnsolvableConstreds(type_ : Type, outs: SubClauses)(using ctx: SubConte
   val (_, constraints) = type_.getConstrainedComponents
   var clauses = outs
   for constraint <- constraints do
-    clauses = subtypeConstraintSeq(constraint, clauses)(using ctx, ConstraintMode.Solve)
+    clauses = subtypeConstraintSeq(constraint, clauses)(using ctx)

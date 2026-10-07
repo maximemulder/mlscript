@@ -1,0 +1,36 @@
+:ctml
+
+:ctml-cfg error-absurd-constred
+
+// A recursive call passes its argument to the parameter of the function itself, which is not
+// generalized in the body of the function: the argument `1` of the recursive call bounds the
+// parameter from below by `Int` in the else branch, where it is bounded from above by `¬Int`, so
+// that the else branch is absurd and the parameter is bounded by `Int`.
+
+fun r1(a) = if a is Int then a else r1(1)
+//│ r1: ∀α, β, γ, δ. {α ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ)), α ≥ γ → δ, δ ≥ ({γ ≤ Int} ⟹ γ) ∧ ({β ≤ Int → δ, γ ≤ ¬Int} ⟹ ⊥), γ ≤ (¬({δ ≥ γ} ⟹ ¬Int) ∨ ¬({β ≤ Int → δ} ⟹ Int)) ∧ Int, β ≥ α, β ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ))} ⟹ γ → δ
+
+// FIXME: The result is `Int`, but keeps the refuted guards of the absurd else branch.
+r1(1)
+//│ ∀α, β, γ, δ. {δ ≤ α, α ≥ Int ∧ ({γ ≤ Int → δ, Int ≤ ¬Int} ⟹ ⊥), δ ≥ Int ∧ ({γ ≤ Int → δ, Int ≤ ¬Int} ⟹ ⊥), γ ≥ β, β ≥ Int → δ, β ≤ ¬({δ ≥ Int} ⟹ ⊥) ∨ ¬({Int ≤ ¬Int} ⟹ ¬(Int → δ))} ⟹ α
+
+:fixme // FIXME: The else branch is absurd.
+r1("Hello")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ. {α ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ)), α ≥ γ → δ, δ ≥ ({γ ≤ Int} ⟹ γ) ∧ ({β ≤ Int → δ, γ ≤ ¬Int} ⟹ ⊥), γ ≤ (¬({δ ≥ γ} ⟹ ¬Int) ∨ ¬({β ≤ Int → δ} ⟹ Int)) ∧ Int, β ≥ α, β ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ))} ⟹ γ → δ ≤ Str → ε.
+//│ Typing error tree:
+//│   ∀α, β, γ, δ. {α ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ)), α ≥ γ → δ, δ ≥ ({γ ≤ Int} ⟹ γ) ∧ ({β ≤ Int → δ, γ ≤ ¬Int} ⟹ ⊥), γ ≤ (¬({δ ≥ γ} ⟹ ¬Int) ∨ ¬({β ≤ Int → δ} ⟹ Int)) ∧ Int, β ≥ α, β ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ))} ⟹ γ → δ ≤ Str → ε
+//│     {ι ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η)), ι ≥ ζ → η, η ≥ ({ζ ≤ Int} ⟹ ζ) ∧ ({θ ≤ Int → η, ζ ≤ ¬Int} ⟹ ⊥), ζ ≤ (¬({η ≥ ζ} ⟹ ¬Int) ∨ ¬({θ ≤ Int → η} ⟹ Int)) ∧ Int, θ ≥ ι, θ ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η))} ⟹ ζ → η ≤ Str → ε
+//│       {ι ≥ ζ → η, η ≥ ({ζ ≤ Int} ⟹ ζ) ∧ ({θ ≤ Int → η, ζ ≤ ¬Int} ⟹ ⊥), ζ ≤ (¬({η ≥ ζ} ⟹ ¬Int) ∨ ¬({θ ≤ Int → η} ⟹ Int)) ∧ Int, θ ≥ ι, θ ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η))} ⟹ ζ → η ≤ Str → ε
+//│         {η ≥ ({ζ ≤ Int} ⟹ ζ) ∧ ({θ ≤ Int → η, ζ ≤ ¬Int} ⟹ ⊥), ζ ≤ (¬({η ≥ ζ} ⟹ ¬Int) ∨ ¬({θ ≤ Int → η} ⟹ Int)) ∧ Int, θ ≥ ι, θ ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η))} ⟹ ζ → η ≤ Str → ε
+//│           {ζ ≤ (¬({η ≥ ζ} ⟹ ¬Int) ∨ ¬({θ ≤ Int → η} ⟹ Int)) ∧ Int, θ ≥ ι, θ ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η))} ⟹ ζ → η ≤ Str → ε
+//│             {θ ≥ ι, θ ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η))} ⟹ ζ → η ≤ Str → ε
+//│               {θ ≤ ¬({ζ ≤ Int, η ≥ ζ} ⟹ ⊥) ∨ ¬({ζ ≤ ¬Int} ⟹ ¬(Int → η))} ⟹ ζ → η ≤ Str → ε
+//│                 ζ → η ≤ Str → ε
+//│                   Str ≤ ζ
+//│                     Str ≤ Int
+
+fun r2(a, n) = if a is Int then a + n else r2(n, n)
+//│ r2: ∀α, β, γ, δ, ε. {α ≤ ¬({γ ≤ Int, δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(δ → δ → ε)), α ≥ γ → δ → ε, δ ≤ (¬({γ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ δ, γ ≤ ¬Int} ⟹ ¬(¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int))) ∧ (¬({γ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥)), γ ≤ (¬({δ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ δ, δ ≤ ¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int} ⟹ Int)) ∧ (¬({δ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ δ → δ → ε} ⟹ Int)), γ ≥ ({γ ≤ Int, δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, δ ≤ ¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int} ⟹ δ), ε ≥ (({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({γ ≥ δ, γ ≤ ¬Int, δ ≤ ¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int} ⟹ ⊥)) ∨ (({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥)), β ≥ α, β ≤ ¬({γ ≤ Int, δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(δ → δ → ε))} ⟹ γ → δ → ε
+
+// FIXME: Times out.
+// r2(1, 1)

@@ -76,6 +76,36 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│       {A ≤ Int} ⟹ Int ∨ Str ≤ Str
 //│         A ≤ Int
 //│           Str ≤ Int
+//│     ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│       ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ {A ≤ Int} ⟹ Int
+//│         ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
+//│           {A ≤ Int} ⟹ Int ∨ Str ≤ Int
+//│             Int ∨ Str ≤ Int
+//│               Str ≤ Int
+//│           ¬Int ≤ Int
+//│       ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ {A ≤ Str} ⟹ Str
+//│         ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
+//│           {A ≤ Int} ⟹ Int ∨ Str ≤ Str
+//│             A ≤ Int
+//│               Str ≤ Int
+//│           ¬Int ≤ Str
+//│       (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
+//│         (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ {A ≤ Int} ⟹ Int
+//│           (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Int
+//│             ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
+//│               {A ≤ Int} ⟹ Int ∨ Str ≤ Int
+//│                 Int ∨ Str ≤ Int
+//│                   Str ≤ Int
+//│               ¬Int ≤ Int
+//│             ¬Str ≤ Int
+//│         (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ {A ≤ Str} ⟹ Str
+//│           (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Str
+//│             ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
+//│               {A ≤ Int} ⟹ Int ∨ Str ≤ Str
+//│                 A ≤ Int
+//│                   Str ≤ Int
+//│               ¬Int ≤ Str
+//│             ¬Str ≤ Str
 
 // Opposite bounds
 

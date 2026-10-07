@@ -1,0 +1,290 @@
+:ctml
+
+:ctml-cfg error-absurd-constred
+
+val int_or_string: Int | Str
+//│ int_or_string: Int ∨ Str
+
+fun foo(a) =
+  if a is
+    Int then (a as Int)
+    Str then (a as Str)
+//│ foo: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β
+
+// Flow functions as arguments
+
+fun twoCalls(x, y) = (foo(x), foo(y))
+//│ twoCalls: ∀α, β, γ, δ. {δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str), β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str), α ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β → ⟨γ, δ⟩
+
+twoCalls(1, "Hello")
+//│ ⟨Int, Str⟩
+
+fun apply(f, x) = f(x)
+//│ apply: ∀α, β. (α → β) → α → β
+
+apply(foo, 1)
+//│ Int
+
+apply(foo, "Hello")
+//│ Str
+
+:fixme // FIXME: The union argument is not split, so that the guards of the result do not hold.
+apply(foo, int_or_string) as (Int | Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int ∨ Str.
+//│ Typing error tree:
+//│   α ≤ Int ∨ Str
+//│     ((({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∨ Int) ∨ Str ≤ Int ∨ Str
+//│       (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∨ Int ≤ Int ∨ Str
+//│         ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Int ∨ Str
+//│           ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Int
+//│             {β ≤ Int} ⟹ Int ≤ Int
+//│               β ≤ Int
+//│                 γ ≤ Int
+//│                   Int ∨ Str ≤ Int
+//│                     Str ≤ Int
+//│             {β ≤ Str} ⟹ Str ≤ Int
+//│               β ≤ Str
+//│                 γ ≤ Str
+//│                   Int ∨ Str ≤ Str
+//│                     Int ≤ Str
+//│           ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Str
+//│             {β ≤ Int} ⟹ Int ≤ Str
+//│               β ≤ Int
+//│                 γ ≤ Int
+//│                   Int ∨ Str ≤ Int
+//│                     Str ≤ Int
+//│             {β ≤ Str} ⟹ Str ≤ Str
+//│               β ≤ Str
+//│                 γ ≤ Str
+//│                   Int ∨ Str ≤ Str
+//│                     Int ≤ Str
+//│           (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int ≤ Int ∨ Str
+//│             (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int ≤ Int
+//│               ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Int
+//│                 {β ≤ Int} ⟹ Int ≤ Int
+//│                   β ≤ Int
+//│                     γ ≤ Int
+//│                       Int ∨ Str ≤ Int
+//│                         Str ≤ Int
+//│                 {β ≤ Str} ⟹ Str ≤ Int
+//│                   β ≤ Str
+//│                     γ ≤ Str
+//│                       Int ∨ Str ≤ Str
+//│                         Int ≤ Str
+//│               ¬Int ≤ Int
+//│             (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int ≤ Str
+//│               ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Str
+//│                 {β ≤ Int} ⟹ Int ≤ Str
+//│                   β ≤ Int
+//│                     γ ≤ Int
+//│                       Int ∨ Str ≤ Int
+//│                         Str ≤ Int
+//│                 {β ≤ Str} ⟹ Str ≤ Str
+//│                   β ≤ Str
+//│                     γ ≤ Str
+//│                       Int ∨ Str ≤ Str
+//│                         Int ≤ Str
+//│               ¬Int ≤ Str
+//│             ((({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int) ∧ ¬Str ≤ Int ∨ Str
+//│               ((({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int) ∧ ¬Str ≤ Int
+//│                 (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int ≤ Int
+//│                   ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Int
+//│                     {β ≤ Int} ⟹ Int ≤ Int
+//│                       β ≤ Int
+//│                         γ ≤ Int
+//│                           Int ∨ Str ≤ Int
+//│                             Str ≤ Int
+//│                     {β ≤ Str} ⟹ Str ≤ Int
+//│                       β ≤ Str
+//│                         γ ≤ Str
+//│                           Int ∨ Str ≤ Str
+//│                             Int ≤ Str
+//│                   ¬Int ≤ Int
+//│                 ¬Str ≤ Int
+//│               ((({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int) ∧ ¬Str ≤ Str
+//│                 (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)) ∧ ¬Int ≤ Str
+//│                   ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str) ≤ Str
+//│                     {β ≤ Int} ⟹ Int ≤ Str
+//│                       β ≤ Int
+//│                         γ ≤ Int
+//│                           Int ∨ Str ≤ Int
+//│                             Str ≤ Int
+//│                     {β ≤ Str} ⟹ Str ≤ Str
+//│                       β ≤ Str
+//│                         γ ≤ Str
+//│                           Int ∨ Str ≤ Str
+//│                             Int ≤ Str
+//│                   ¬Int ≤ Str
+//│                 ¬Str ≤ Str
+
+fun twice(f, x) = f(f(x))
+//│ twice: ∀α, β, γ. ((α → β) ∧ (β → γ)) → α → γ
+
+twice(foo, 1)
+//│ Int
+
+twice(foo, "Hello")
+//│ Str
+
+declare fun takesOverload: ((Int -> Int) & (Str -> Str)) -> Int
+//│ takesOverload: ((Int → Int) ∧ (Str → Str)) → Int
+
+takesOverload(foo)
+//│ Int
+
+fun bothTypes(f) = (f(1), f("Hello"))
+//│ bothTypes: ∀α, β. ((Int → α) ∧ (Str → β)) → ⟨α, β⟩
+
+bothTypes(foo)
+//│ ⟨Int, Str⟩
+
+// Flow lambdas
+
+((a) => if a is Int then a + 1 else a)(1)
+//│ Int
+
+((a) => if a is Int then a + 1 else a)("Hello")
+//│ Str
+
+// A flow lambda bound by a let is used at two types, although it is not generalized.
+
+fun local(u) =
+  let g = (a) => if a is Int then a + 1 else a
+  (g(1), g("Hello"))
+//│ local: ⊤ → ⟨Int, Str⟩
+
+fun make(u) = (a) => if a is Int then a + 1 else a
+//│ make: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int, β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α)} ⟹ ⊤ → α → β
+
+make(unit)(1)
+//│ Int
+
+make(unit)("Hello")
+//│ Str
+
+// Functions applied in some branches only
+
+fun h1(f, a) = if a is Int then f(a) else a
+//│ h1: ∀α, β, γ. {β ≤ ¬({α ≤ β → γ} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int), α ≤ ¬({β ≤ Int} ⟹ ¬(β → γ)) ∨ ¬({β ≤ ¬Int} ⟹ ⊥), γ ≥ ({α ≤ β → γ, β ≤ Int} ⟹ ⊥) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ α → β → γ
+
+h1((x) => x + 1, 1)
+//│ Int
+
+h1((x) => x + 1, "Hello")
+//│ Str
+
+:te
+h1((x) => x ++ "!", 1)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int → β.
+//│ Typing error tree:
+//│   α ≤ Int → β
+//│     γ → δ ≤ Int → β
+//│       Int ≤ γ
+//│         Int ≤ ¬Int ∧ (¬({ε ≤ γ → δ} ⟹ ¬Int) ∨ ¬({δ ≥ γ} ⟹ Int))
+//│           Int ≤ ¬Int
+
+fun h2(f, a) = if a is Int then f(a) else f(a)
+//│ h2: ∀α, β. (¬({α ≤ Int} ⟹ ¬(α → β)) ∨ ¬({α ≤ ¬Int} ⟹ ¬(α → β))) → α → β
+
+h2((x) => x, 1)
+//│ Int
+
+h2((x) => x, "Hello")
+//│ Str
+
+:fixme // FIXME: The union argument is not split, so that the guards of the result do not hold.
+h2((x) => x, int_or_string) as (Int | Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int ∨ Str.
+//│ Typing error tree:
+//│   α ≤ Int ∨ Str
+//│     ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Int ∨ Str
+//│       ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Int
+//│         {β ≤ Int} ⟹ β ≤ Int
+//│           β ≤ Int
+//│             Int ∨ Str ≤ Int
+//│               Str ≤ Int
+//│         {β ≤ ¬Int} ⟹ β ≤ Int
+//│           β ≤ ¬Int
+//│             Int ∨ Str ≤ ¬Int
+//│               Int ≤ ¬Int
+//│       ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Str
+//│         {β ≤ Int} ⟹ β ≤ Str
+//│           β ≤ Int
+//│             Int ∨ Str ≤ Int
+//│               Str ≤ Int
+//│         {β ≤ ¬Int} ⟹ β ≤ Str
+//│           β ≤ ¬Int
+//│             Int ∨ Str ≤ ¬Int
+//│               Int ≤ ¬Int
+//│       (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int ≤ Int ∨ Str
+//│         (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int ≤ Int
+//│           ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Int
+//│             {β ≤ Int} ⟹ β ≤ Int
+//│               β ≤ Int
+//│                 Int ∨ Str ≤ Int
+//│                   Str ≤ Int
+//│             {β ≤ ¬Int} ⟹ β ≤ Int
+//│               β ≤ ¬Int
+//│                 Int ∨ Str ≤ ¬Int
+//│                   Int ≤ ¬Int
+//│           ¬Int ≤ Int
+//│         (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int ≤ Str
+//│           ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Str
+//│             {β ≤ Int} ⟹ β ≤ Str
+//│               β ≤ Int
+//│                 Int ∨ Str ≤ Int
+//│                   Str ≤ Int
+//│             {β ≤ ¬Int} ⟹ β ≤ Str
+//│               β ≤ ¬Int
+//│                 Int ∨ Str ≤ ¬Int
+//│                   Int ≤ ¬Int
+//│           ¬Int ≤ Str
+//│         ((({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int) ∧ ¬Str ≤ Int ∨ Str
+//│           ((({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int) ∧ ¬Str ≤ Int
+//│             (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int ≤ Int
+//│               ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Int
+//│                 {β ≤ Int} ⟹ β ≤ Int
+//│                   β ≤ Int
+//│                     Int ∨ Str ≤ Int
+//│                       Str ≤ Int
+//│                 {β ≤ ¬Int} ⟹ β ≤ Int
+//│                   β ≤ ¬Int
+//│                     Int ∨ Str ≤ ¬Int
+//│                       Int ≤ ¬Int
+//│               ¬Int ≤ Int
+//│             ¬Str ≤ Int
+//│           ((({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int) ∧ ¬Str ≤ Str
+//│             (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β)) ∧ ¬Int ≤ Str
+//│               ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ β) ≤ Str
+//│                 {β ≤ Int} ⟹ β ≤ Str
+//│                   β ≤ Int
+//│                     Int ∨ Str ≤ Int
+//│                       Str ≤ Int
+//│                 {β ≤ ¬Int} ⟹ β ≤ Str
+//│                   β ≤ ¬Int
+//│                     Int ∨ Str ≤ ¬Int
+//│                       Int ≤ ¬Int
+//│               ¬Int ≤ Str
+//│             ¬Str ≤ Str
+
+:te
+h2((x) => x + 1, int_or_string)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ (Int ∨ Str) → β.
+//│ Typing error tree:
+//│   α ≤ (Int ∨ Str) → β
+//│     γ → δ ≤ (Int ∨ Str) → β
+//│       Int ∨ Str ≤ γ
+//│         Int ∨ Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│           ¬Int ≤ ¬(Int ∨ Str)
+//│             Int ∨ Str ≤ Int
+//│               Str ≤ Int
+
+// Functions as scrutinees
+
+// A function is an instance of the negation of every class.
+
+fun h3(a) = if a is Int then a + 1 else a
+//│ h3: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β
+
+h3((x) => x)
+//│ ∀α. α → α

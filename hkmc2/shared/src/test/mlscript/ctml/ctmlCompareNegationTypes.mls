@@ -119,6 +119,15 @@ Nat <:< (~Nat & Int)
 //│   ¬Int ∨ Nat ≤ Int
 //│     ¬Int ≤ Int
 
+// A class is the union of a subclass and of its difference with the subclass, which is derived by
+// cases on the subclass (see `subtypeCases`).
+
+Int <:< (Nat | (Int & ~Nat))
+//│ OK
+
+(Nat | (Int & ~Nat)) <:< Int
+//│ OK
+
 // Negated binder types
 
 type T
@@ -133,9 +142,8 @@ Int <:< ~([T <:< Int] => ~Int)
 //│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬({T ≤ Int} ⟹ ¬Int).
 //│ Typing error tree:
 //│   Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
-//│     {T ≤ Int} ⟹ ¬Int ≤ ¬Int
-//│       T ≤ Int
-//│         ⊤ ≤ Int
+//│     T ≤ Int
+//│       ⊤ ≤ Int
 
 ~([T <:< Int] => ~Int) <:< Int
 //│ OK
@@ -176,9 +184,8 @@ Int <:< ~([T <:< Int] => ~Int)
 //│ Typing error tree:
 //│   {⊥ ≤ ⊤} ⟹ Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
 //│     Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
-//│       {T ≤ Int} ⟹ ¬Int ≤ ¬Int
-//│         T ≤ Int
-//│           ⊤ ≤ Int
+//│       T ≤ Int
+//│         ⊤ ≤ Int
 
 // Negated universal types
 
@@ -237,17 +244,14 @@ Top <:< ((A | B) | ~A)
 (~(A | B) & A) <:< Bot
 //│ OK
 
-// The negated operand is matched syntactically against the other operand of the union.
+// The negated operand need not be an operand of the union itself, since the judgment is derived by
+// cases on the class (see `subtypeCases`).
 
-:te
 Top <:< (A | (B | ~A))
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ A ∨ B ∨ ¬A.
-//│ Typing error tree:
-//│   ⊤ ≤ A ∨ B ∨ ¬A
-//│     ⊤ ≤ A
-//│     ⊤ ≤ B ∨ ¬A
-//│       ⊤ ≤ B
-//│       ⊤ ≤ ¬A
+//│ OK
+
+// Neither applies to the types that are not decided: function types, rigid variables, and
+// constrained types.
 
 :te
 Top <:< ((Int -> Int) | ~(Int -> Int))
@@ -291,7 +295,12 @@ Top <:< (([T <:< Int] => ~Int) | ~([T <:< Int] => ~Int))
 //│     ⊤ ≤ {T ≤ Int} ⟹ ¬Int
 //│       ⊤ ≤ ¬Int
 //│     ⊤ ≤ ¬({T ≤ Int} ⟹ ¬Int)
-//│       {T ≤ Int} ⟹ ¬Int ≤ ⊥
+//│       T ≤ Int
+//│         ⊤ ≤ Int
+//│     Int ≤ ({T ≤ Int} ⟹ ¬Int) ∨ ¬({T ≤ Int} ⟹ ¬Int)
+//│       Int ≤ {T ≤ Int} ⟹ ¬Int
+//│         Int ≤ ¬Int
+//│       Int ≤ ¬({T ≤ Int} ⟹ ¬Int)
 //│         T ≤ Int
 //│           ⊤ ≤ Int
 

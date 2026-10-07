@@ -4,7 +4,7 @@ import hkmc2.ctml.config.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.isSubClass
-import hkmc2.ctml.core.combine.join
+import hkmc2.ctml.core.combine.{join, meet}
 
 extension (type_ : Type)
   /** Get the simplified negation of this type. */
@@ -85,3 +85,51 @@ extension (type_ : Type)
         left.isDecided && right.isDecided
       case _ =>
         false
+
+  /** Get the classes of the Boolean structure of this type, that is, its classes that are not
+   *  under a type constructor: through negations, unions, intersections, and the bodies of
+   *  constrained types, which notably include the bodies of constraining types. */
+  def getBooleanClasses: List[TClass] =
+    type_ match
+      case type_ : TClass =>
+        List(type_)
+      case TNeg(body) =>
+        body.getBooleanClasses
+      case TJointType(_, left, right) =>
+        (left.getBooleanClasses ++ right.getBooleanClasses).distinct
+      case TConstrained(body, _) =>
+        body.getBooleanClasses
+      case _ =>
+        Nil
+
+/** Derive a subtyping judgment `τ ≤ σ` by cases on a class `C` of the Boolean structure of `σ`, by
+ *  excluded middle at `C`: `τ ≤ σ` follows from `τ ∧ C ≤ σ` and `τ ∧ ¬C ≤ σ`, since
+ *  `τ ≤ (τ ∧ C) ∨ (τ ∧ ¬C)`. A class is decided, so excluded middle applies to it (see
+ *  `admitsComplement`). If the judgment fails, the error trees of both cases are added to the error
+ *  trees of the judgment derived without cases.
+ *
+ *  This derives the judgments whose subtype is split between the operands of a union supertype
+ *  without being a union itself, which the choice rules cannot derive, e.g.
+ *  `Int ≤ Nat ∨ (Int ∧ ¬Nat)`. Notably, a function that matches a subclass and then its superclass bounds its parameter by a
+ *  union of constraining types, one per branch: an argument of the superclass pays the constraint
+ *  of the first branch when it is an instance of the subclass, and of the second branch otherwise.
+ *
+ *  Only a class that splits the subtype is used, that is, one such that neither `τ ≤ C` nor
+ *  `τ ≤ ¬C`, so that each case decides one more class of the supertype, and the cases terminate. */
+def subtypeCases(sub: Type, sup: Type, error: TypeError)(using ctx: SubContext): SubClauses =
+  val splitClass = sup.getBooleanClasses.find((class_) =>
+    !checkSubtype(sub, class_) && !checkSubtype(sub, class_.negate())
+  )
+
+  splitClass match
+    case Some(class_) =>
+      try
+        ctx.all(
+          subtype(meet(sub, class_), sup),
+          subtype(meet(sub, class_.negate()), sup),
+        )
+      catch
+        case caseError: TypeError =>
+          throw TypeError(None, error.trees ++ caseError.trees)
+    case None =>
+      throw error

@@ -53,14 +53,12 @@ foo as (Bool -> Bool -> Bool)
 //│                 Bool ≤ (¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)) ∧ Str
 //│                   Bool ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)
 //│                     Bool ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int)
-//│                       {δ ≤ Int, ζ ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│                         δ ≤ Int
-//│                           Bool ≤ Int
+//│                       δ ≤ Int
+//│                         Bool ≤ Int
 //│                     Bool ≤ ¬({δ ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)
-//│                       {δ ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                         {ζ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                           ¬Str ≤ ¬Bool
-//│                             Bool ≤ Str
+//│                       {ζ ≥ Str} ⟹ ¬Str ≤ ¬Bool
+//│                         ¬Str ≤ ¬Bool
+//│                           Bool ≤ Str
 
 :te
 foo(true, 1)
@@ -72,14 +70,12 @@ foo(true, 1)
 //│         Int ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Str
 //│           Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│             Int ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Int
-//│                 ε ≤ Int
-//│                   Bool ≤ Int
+//│               ε ≤ Int
+//│                 Bool ≤ Int
 //│             Int ≤ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
-//│               {ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str ≤ ¬Int
-//│                 {δ ≥ Str} ⟹ ¬Str ≤ ¬Int
-//│                   ¬Str ≤ ¬Int
-//│                     Int ≤ Str
+//│               {δ ≥ Str} ⟹ ¬Str ≤ ¬Int
+//│                 ¬Str ≤ ¬Int
+//│                   Int ≤ Str
 
 :te
 foo(true, true)
@@ -91,14 +87,12 @@ foo(true, true)
 //│         Bool ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Str
 //│           Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│             Bool ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│                 ε ≤ Int
-//│                   Bool ≤ Int
+//│               ε ≤ Int
+//│                 Bool ≤ Int
 //│             Bool ≤ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
-//│               {ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                 {δ ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│                   ¬Str ≤ ¬Bool
-//│                     Bool ≤ Str
+//│               {δ ≥ Str} ⟹ ¬Str ≤ ¬Bool
+//│                 ¬Str ≤ ¬Bool
+//│                   Bool ≤ Str
 
 :te
 foo(1, "World")
@@ -110,11 +104,9 @@ foo(1, "World")
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {ε ≤ Int, δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                   ¬Int ≤ ¬Str
-//│                     Str ≤ Int
+//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
+//│                 ¬Int ≤ ¬Str
+//│                   Str ≤ Int
 //│             Str ≤ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
-//│               {ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str ≤ ¬Str
-//│                 ε ≤ ¬Int
-//│                   Int ≤ ¬Int
+//│               ε ≤ ¬Int
+//│                 Int ≤ ¬Int

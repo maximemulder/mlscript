@@ -1,0 +1,273 @@
+:ctml
+
+:ctml-cfg error-absurd-constred
+
+val int_or_string: Int | Str
+//│ int_or_string: Int ∨ Str
+
+// Matches on the same scrutinee
+
+// The result of a first match is used under a second match on the same scrutinee: each branch of
+// the second match only sees the result of the corresponding branch of the first.
+
+fun g1(a) =
+  let x = if a is Int then 1 else "s"
+  if a is Int then x + 1 else x ++ "!"
+//│ g1: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, β ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ
+
+g1(1)
+//│ Int
+
+g1("Hello")
+//│ Str
+
+g1(true)
+//│ Str
+
+// With the branches of the second match swapped, no argument is accepted.
+
+fun g2(a) =
+  let x = if a is Int then 1 else "s"
+  if a is Int then x ++ "!" else x + 1
+//│ g2: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ
+
+:te
+g2(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Int → δ.
+//│ Typing error tree:
+//│   ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Int → δ
+//│     {η ≥ ({ε ≤ Int} ⟹ Int) ∧ ({ε ≤ ¬Int} ⟹ Str), ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
+//│       {ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
+//│         {ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
+//│           {η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
+//│             ε → ζ ≤ Int → δ
+//│               Int ≤ ε
+//│                 Int ≤ ⊥
+
+:te
+g2("Hello")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Str → δ.
+//│ Typing error tree:
+//│   ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Str → δ
+//│     {η ≥ ({ε ≤ Int} ⟹ Int) ∧ ({ε ≤ ¬Int} ⟹ Str), ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
+//│       {ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
+//│         {ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
+//│           {η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
+//│             ε → ζ ≤ Str → δ
+//│               Str ≤ ε
+//│                 Str ≤ ⊥
+
+// The result of a match used outside of any match bounds the parameter by the pattern.
+
+fun g3(a) =
+  let x = if a is Int then a else "s"
+  x + 1
+//│ g3: Int → Int
+
+g3(1)
+//│ Int
+
+:te
+g3("Hello")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+:te
+g3(int_or_string)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ Typing error tree:
+//│   Int → Int ≤ (Int ∨ Str) → α
+//│     Int ∨ Str ≤ Int
+//│       Str ≤ Int
+
+// Matches on several parameters
+
+fun g4(a, b) =
+  if a is
+    Int then (if b is Int then a + b else a)
+    else (if b is Str then b else "none")
+//│ g4: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str))), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬Int) ∨ ¬({β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({α ≤ ¬Int, β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str)} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))} ⟹ α → β → γ
+
+g4(1, 2)
+//│ Int
+
+g4(1, "Hello")
+//│ Int
+
+g4("Hello", "World")
+//│ Str
+
+g4("Hello", 1)
+//│ Str
+
+// A parameter used at different types in both branches is checked against the branch taken by the
+// argument of the scrutinee.
+
+fun g5(a, b) = if a is Int then b + 1 else b ++ "!"
+//│ g5: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
+
+g5(1, 1)
+//│ Int
+
+g5("Hello", "World")
+//│ Str
+
+:te
+g5(1, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → δ ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int
+//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
+//│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
+//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
+//│                 ¬Int ≤ ¬Str
+//│                   Str ≤ Int
+//│             Str ≤ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
+//│               ε ≤ ¬Int
+//│                 Int ≤ ¬Int
+
+:te
+g5(int_or_string, 1)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int → β.
+//│ Typing error tree:
+//│   α ≤ Int → β
+//│     (γ → δ) ∨ (ε → ζ) ≤ Int → β
+//│       ε → ζ ≤ Int → β
+//│         Int ≤ ε
+//│           Int ≤ (¬({η ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)) ∧ Str
+//│             Int ≤ ¬({η ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)
+//│               Int ≤ ¬({η ≤ Int, ζ ≥ Int} ⟹ ¬Int)
+//│                 η ≤ Int
+//│                   Str ≤ Int
+//│               Int ≤ ¬({η ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)
+//│                 {ζ ≥ Str} ⟹ ¬Str ≤ ¬Int
+//│                   ¬Str ≤ ¬Int
+//│                     Int ≤ Str
+
+:te
+g5(int_or_string, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     (γ → δ) ∨ (ε → ζ) ≤ Str → β
+//│       γ → δ ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ (¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int
+//│             Str ≤ ¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
+//│               Str ≤ ¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int)
+//│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
+//│                   ¬Int ≤ ¬Str
+//│                     Str ≤ Int
+//│               Str ≤ ¬({η ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
+//│                 η ≤ ¬Int
+//│                   Int ≤ ¬Int
+
+// A parameter used in one branch only is not bounded by the other branch.
+
+fun g6(a, b) = if a is Int then (b as Int) else b
+//│ g6: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ β)} ⟹ α → β → γ
+
+g6("Hello", "World")
+//│ Str
+
+:te
+g6(1, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → δ ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)
+//│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
+//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
+//│                 ¬Int ≤ ¬Str
+//│                   Str ≤ Int
+//│             Str ≤ ¬({ε ≤ ¬Int} ⟹ ⊥)
+//│               ε ≤ ¬Int
+//│                 Int ≤ ¬Int
+
+// Tuples
+
+fun g7(a) = if a is Int then (a, "int") else (a, 0)
+//│ g7: ∀α, β. {β ≥ ({α ≤ Int} ⟹ ⟨α, Str⟩) ∧ ({α ≤ ¬Int} ⟹ ⟨α, Int⟩), α ≤ ¬({β ≥ ⟨α, Str⟩} ⟹ ¬Int) ∨ ¬({β ≥ ⟨α, Int⟩} ⟹ Int)} ⟹ α → β
+
+g7(1)
+//│ ⟨Int, Str⟩
+
+g7("Hello")
+//│ ⟨Str, Int⟩
+
+// Function boundaries
+
+// The result of a flow function applied to the scrutinee is refined by the match.
+
+fun pick(a) = if a is Int then 1 else "s"
+//│ pick: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
+
+fun g8(a) = if a is Int then pick(a) + 1 else pick(a) ++ "!"
+//│ g8: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
+
+g8(1)
+//│ Int
+
+g8("Hello")
+//│ Str
+
+// The result of a flow function applied to another value is not.
+
+fun g9(a, b) = if a is Int then pick(b) + 1 else 0
+//│ g9: ∀α, β. {β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β → (({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+
+g9(1, 2)
+//│ Int
+
+g9("Hello", "World")
+//│ Int
+
+:te
+g9(1, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int)) ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
+//│               ¬Int ≤ ¬Str
+//│                 Str ≤ Int
+//│             Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│               δ ≤ ¬Int
+//│                 Int ≤ ¬Int
+
+// Scrutinees that are not variables
+
+// A scrutinee that is not a variable is bound before it is matched, so that the match refines the
+// binding.
+
+fun g10(a) = if (a as Int | Str) is Int then 1 else 2
+//│ g10: (Int ∨ Str) → Int
+
+g10(1)
+//│ Int
+
+g10("Hello")
+//│ Int
+
+// A match on the result of a flow function applied to a parameter refines the parameter through
+// the constraints of the function.
+
+fun g11(a) = if pick(a) is Int then a + 1 else a ++ "!"
+//│ g11: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ α → γ
+
+g11(1)
+//│ Int
+
+g11("Hello")
+//│ Str

@@ -9,13 +9,17 @@ import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.types.*
 
 extension (ctx: TypeContext)
-  /** Get the type of a term variable. */
+  /** Get the type of a term variable.
+   *
+   *  The elaborator resolves every variable, so a variable that is not in the context is one whose
+   *  definition failed to type or is not supported, which is a type error of the term that uses
+   *  it. */
   def getVarType(name: String): Type =
     ctx.terms.find(_.name == name) match
       case Some(var_) =>
         var_.type_
       case None =>
-        throw new Exception(s"Variable '${name}' not found in the context.")
+        throw TypeError(Some(s"Variable '${name}' has no type."))
 
 extension (ctx: SubContext)
   /** Get the class definition of a class variable. */

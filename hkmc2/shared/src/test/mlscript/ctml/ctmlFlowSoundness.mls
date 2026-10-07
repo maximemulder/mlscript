@@ -1,0 +1,141 @@
+:ctml
+
+:ctml-cfg error-absurd-constred
+
+// The counterexamples to the soundness of context joins (see the paper and the Lean
+// mechanization): each one is a program whose joined bounds would accept an argument that one
+// branch rejects.
+
+val int_or_string: Int | Str
+//│ int_or_string: Int ∨ Str
+
+// A branch that does not bound a parameter: the joined upper bound of `b` must still reject a `Str`
+// when `x` is an `Int` (`t_bad`).
+
+fun tbad(x, b) = if x is Int then b + 1 else 0
+//│ tbad: ∀α, β. {β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β → (({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+
+tbad(1, 1)
+//│ Int
+
+tbad("Hello", "World")
+//│ Int
+
+tbad(int_or_string, 1)
+//│ Int
+
+:te
+tbad(1, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int)) ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
+//│               ¬Int ≤ ¬Str
+//│                 Str ≤ Int
+//│             Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│               δ ≤ ¬Int
+//│                 Int ≤ ¬Int
+
+:te
+tbad(int_or_string, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     (γ → (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int))) ∨ (ε → (({ζ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({ζ ≤ ¬Int} ⟹ Int))) ≤ Str → β
+//│       γ → (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int)) ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│               Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
+//│                 ¬Int ≤ ¬Str
+//│                   Str ≤ Int
+//│               Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│                 δ ≤ ¬Int
+//│                   Int ≤ ¬Int
+
+// A scrutinee passed to a function: the function must accept it in the branch that applies it.
+
+fun tpass(x, f) = if x is Int then f(x) else 0
+//│ tpass: ∀α, β, γ. {β ≤ ¬({α ≤ Int} ⟹ ¬(α → γ)) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), α ≤ ¬({β ≤ α → γ} ⟹ ¬Int) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ α → γ} ⟹ ⊥) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
+
+tpass(1, (y) => y + 1)
+//│ Int
+
+tpass("Hello", (y) => y ++ "!")
+//│ Int
+
+:te
+tpass(1, (y) => y ++ "!")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ (Str → Str) → β.
+//│ Typing error tree:
+//│   α ≤ (Str → Str) → β
+//│     γ → δ ≤ (Str → Str) → β
+//│       Str → Str ≤ γ
+//│         Str → Str ≤ (¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (ε → δ)
+//│           Str → Str ≤ ¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│             Str → Str ≤ ¬({ε ≤ Int} ⟹ ¬(ε → δ))
+//│               ¬(ε → δ) ≤ ¬(Str → Str)
+//│                 Str → Str ≤ ε → δ
+//│                   ε ≤ Str
+//│                     Int ≤ Str
+//│             Str → Str ≤ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│               ε ≤ ¬Int
+//│                 Int ≤ ¬Int
+
+:te
+tpass(int_or_string, (y) => y ++ "!")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ (Str → Str) → β.
+//│ Typing error tree:
+//│   α ≤ (Str → Str) → β
+//│     (γ → δ) ∨ (ε → ζ) ≤ (Str → Str) → β
+//│       γ → δ ≤ (Str → Str) → β
+//│         Str → Str ≤ γ
+//│           Str → Str ≤ (¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (η → δ)
+//│             Str → Str ≤ ¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│               Str → Str ≤ ¬({η ≤ Int} ⟹ ¬(η → δ))
+//│                 ¬(η → δ) ≤ ¬(Str → Str)
+//│                   Str → Str ≤ η → δ
+//│                     η ≤ Str
+//│                       Int ≤ Str
+//│               Str → Str ≤ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│                 η ≤ ¬Int
+//│                   Int ≤ ¬Int
+
+// A nested match decided by the bound of the enclosing branch (`t_sel`).
+
+fun tsel(a, b) = if a is Int then (if b is Int then 1 else (a as Str)) else 1
+//│ tsel: ∀α, β, γ. {β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
+
+tsel(1, 1)
+//│ Int
+
+tsel("Hello", "World")
+//│ Int
+
+:te
+tsel(1, "World")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → δ ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ ((¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∧ Int
+//│           Str ≤ (¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))
+//│             Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│               Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)))
+//│                 {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
+//│                   ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
+//│                     Str ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
+//│                       Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                         ¬Int ≤ ¬Str
+//│                           Str ≤ Int
+//│                       Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
+//│                         ε ≤ Str
+//│                           Int ≤ Str
+//│               Str ≤ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│                 ε ≤ ¬Int
+//│                   Int ≤ ¬Int

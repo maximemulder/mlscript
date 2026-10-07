@@ -34,7 +34,14 @@ type S2
 //│         S1 ≤ Int
 //│           ⊤ ≤ Int
 //│         S1 ≤ ¬({S2 ≤ Int} ⟹ ⊥)
-//│           {S2 ≤ Int} ⟹ ⊥ ≤ ¬S1
+//│           S2 ≤ Int
+//│             ⊤ ≤ Int
+//│         S1 ∧ ¬Int ≤ Int ∨ ¬({S2 ≤ Int} ⟹ ⊥)
+//│           S1 ∧ ¬Int ≤ Int
+//│             S1 ≤ Int
+//│               ⊤ ≤ Int
+//│             ¬Int ≤ Int
+//│           S1 ∧ ¬Int ≤ ¬({S2 ≤ Int} ⟹ ⊥)
 //│             S2 ≤ Int
 //│               ⊤ ≤ Int
 

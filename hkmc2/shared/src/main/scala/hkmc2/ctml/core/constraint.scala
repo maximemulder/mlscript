@@ -44,6 +44,10 @@ def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
       constraints2 match
         case Nil =>
           body
+        // A constrained type whose body is `⊤` is `⊤`, whether its constraints hold or not, so
+        // that a constraining type whose body is `⊥` is `⊥`.
+        case _ if body == TTop =>
+          TTop
         case constraint :: constraints =>
           TConstrained(
             makeConstrainedType(body, constraints),

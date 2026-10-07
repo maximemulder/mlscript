@@ -142,6 +142,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   // flexible variable bound is decomposed rather than kept whole. Placing them after the flexible
   // variable rules, with the constrained type rules, makes inferred types larger.
 
+  // A constrained type that is moved to the left by contraposition is decomposed right away, which
+  // is the introduction rule of constraining types above. Deferring it to the rule of left
+  // constrained types would let the choice rules decompose the negated subtype first: e.g.
+  // `Int ∧ ¬Nat ≤ ¬({c} ⟹ ¬(Int ∧ ¬Nat))` would be explored as `{c} ⟹ ¬(Int ∧ ¬Nat) ≤ ¬Int` or
+  // `{c} ⟹ ¬(Int ∧ ¬Nat) ≤ Nat`, which both fail. A universal type that is moved to the left is
+  // still decomposed after the invertible rules, so that it is instantiated once per operand of a
+  // right intersection.
+
   sub match
     case TNeg(subBody) if subBody.isBinder =>
       return sup match
@@ -161,7 +169,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
         case sub: TConstrained =>
           subtypeConstrainedSub(sub, sup)
         case _ =>
-          subtype(supBody, sub.negate())
+          supBody match
+            case supBody: TConstrained =>
+              subtypeConstrainedSub(supBody, sub.negate())
+            case _ =>
+              subtype(supBody, sub.negate())
     case _ =>
 
   // A negated flexible variable on one side only is also moved to the other side by
@@ -295,16 +307,23 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   // `foo(1, 1) as Int` in `ctmlFlowWeirdMatch.mls`). It also prevents `joinMerge` from merging the
   // unions, so that `⊤ ≤ (A ∨ ¬A) ∧ (B ∨ ¬B)` fails.
 
+  // A subtype that is split between the operands of a right union is derived by cases on a class of
+  // the union, only once the choice of a single operand fails (see `subtypeCases`).
+
   sup.splitAny(Polarity.Positive) match
     case Some(supLeft, supRight) =>
       return joinMerge(supLeft, supRight) match
         case Some(sup) =>
           subtype(sub, sup)
         case None =>
-          ctx.any(
-            subtype(sub, supLeft),
-            subtype(sub, supRight),
-          )
+          try
+            ctx.any(
+              subtype(sub, supLeft),
+              subtype(sub, supRight),
+            )
+          catch
+            case error: TypeError =>
+              subtypeCases(sub, sup, error)
     case _ =>
 
   sub.splitAny(Polarity.Negative) match

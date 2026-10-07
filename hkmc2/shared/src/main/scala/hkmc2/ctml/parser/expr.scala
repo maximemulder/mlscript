@@ -54,7 +54,9 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
     // compact way to ascribe an intersection or union type.
     case Term.CompType(mlLeft, mlRight, mlPol) =>
       parseAscriptionComposition(mlLeft, mlRight, mlPol)
-    case Term.IfLike(_, IfLikeForm.ReturningIf, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, _, SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
+    // MLScript binds a scrutinee that is not a variable before matching it, so a conditional is a
+    // binding matched against `true`, while a binding matched against any other pattern is a match.
+    case Term.IfLike(_, IfLikeForm.ReturningIf, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, Pattern.Literal(Tree.BoolLit(true)), SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
       val condition = parseExpr(mlCondition)
       val then_ = parseExpr(mlThen)
       val else_ = parseExpr(mlElse)

@@ -5,6 +5,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.isSubClass
 import hkmc2.ctml.core.combine.{join, meet}
+import hkmc2.ctml.core.structural.getVars
 
 extension (type_ : Type)
   /** Get the simplified negation of this type. */
@@ -102,6 +103,22 @@ extension (type_ : Type)
       case _ =>
         Nil
 
+  /** Check whether a class splits this type `τ`, that is, whether neither `τ ≤ C` nor `τ ≤ ¬C`, so
+   *  that both `τ ∧ C` and `τ ∧ ¬C` are smaller than `τ`. */
+  def isSplitBy(class_ : TClass)(using ctx: SubContext): Boolean =
+    !checkSubtype(type_, class_) && !checkSubtype(type_, class_.negate())
+
+extension (constraint: Constraint)
+  /** Get the upper bound of a type variable that this constraint is, if any. */
+  def getUpperBound(var_ : TypeVar): Option[Type] =
+    (constraint.left, constraint.dir, constraint.right) match
+      case (TVar(`var_`), Direction.Sub, bound) =>
+        Some(bound)
+      case (bound, Direction.Super, TVar(`var_`)) =>
+        Some(bound)
+      case _ =>
+        None
+
 /** Derive a subtyping judgment `τ ≤ σ` by cases on a class `C` of the Boolean structure of `σ`, by
  *  excluded middle at `C`: `τ ≤ σ` follows from `τ ∧ C ≤ σ` and `τ ∧ ¬C ≤ σ`, since
  *  `τ ≤ (τ ∧ C) ∨ (τ ∧ ¬C)`. A class is decided, so excluded middle applies to it (see
@@ -110,18 +127,15 @@ extension (type_ : Type)
  *
  *  This derives the judgments whose subtype is split between the operands of a union supertype
  *  without being a union itself, which the choice rules cannot derive, e.g.
- *  `Int ≤ Nat ∨ (Int ∧ ¬Nat)`. Notably, a function that matches a subclass and then its superclass bounds its parameter by a
- *  union of constraining types, one per branch: an argument of the superclass pays the constraint
- *  of the first branch when it is an instance of the subclass, and of the second branch otherwise.
+ *  `Int ≤ Nat ∨ (Int ∧ ¬Nat)`. Notably, a function that matches a subclass and then its superclass
+ *  bounds its parameter by a union of constraining types, one per branch: an argument of the
+ *  superclass pays the constraint of the first branch when it is an instance of the subclass, and
+ *  of the second branch otherwise (see also `subtypeUnivCases`).
  *
- *  Only a class that splits the subtype is used, that is, one such that neither `τ ≤ C` nor
- *  `τ ≤ ¬C`, so that each case decides one more class of the supertype, and the cases terminate. */
+ *  Only a class that splits the subtype is used (see `isSplitBy`), so that each case decides one
+ *  more class of the supertype, and the cases terminate. */
 def subtypeCases(sub: Type, sup: Type, error: TypeError)(using ctx: SubContext): SubClauses =
-  val splitClass = sup.getBooleanClasses.find((class_) =>
-    !checkSubtype(sub, class_) && !checkSubtype(sub, class_.negate())
-  )
-
-  splitClass match
+  sup.getBooleanClasses.find(sub.isSplitBy(_)) match
     case Some(class_) =>
       try
         ctx.all(
@@ -133,3 +147,37 @@ def subtypeCases(sub: Type, sup: Type, error: TypeError)(using ctx: SubContext):
           throw TypeError(None, error.trees ++ caseError.trees)
     case None =>
       throw error
+
+/** Derive a subtyping judgment `∀ᾱ. {c̄} ⟹ α → σ ≤ τ → ρ` by cases on a class `C` of the upper
+ *  bounds of its parameter `α` in `c̄`, by excluded middle at `C` and the distributivity of lambda
+ *  types over the unions of their parameter: from `∀ᾱ. {c̄} ⟹ α → σ ≤ (τ ∧ C) → ρ` and
+ *  `∀ᾱ. {c̄} ⟹ α → σ ≤ (τ ∧ ¬C) → ρ`. Get `None` if no such class splits `τ` (see `isSplitBy`).
+ *
+ *  The universal type is thus instantiated once per case, as it is for an argument that is a
+ *  union, whose lambda type the invertible rules decompose into an intersection (see `splitAll`).
+ *  A single instance must instead pay the constraints of several operands of the union of
+ *  constraining types that bounds its parameter (see `subtypeCases`), so that the guards of the
+ *  promises of its result do not hold: e.g. against a function that matches `Nat` and then `Int`,
+ *  an instance at `Int` gives `(({Int ≤ Nat} ⟹ Str) ∧ ({Int ≤ Int ∧ ¬Nat} ⟹ Int)) ∨ Str ∨ Int`,
+ *  while an instance at `Nat` gives `Str`, and an instance at `Int ∧ ¬Nat` gives `Int`.
+ *
+ *  An argument with flexible variables is not split, since these variables are bounded by the
+ *  parameter instead, which carries the case analysis to the function that binds them. */
+def subtypeUnivCases(sub: TUniv, sup: TLam)(using ctx: SubContext): Option[SubClauses] =
+  if sup.param.getVars.exists(_.isFlex) then
+    return None
+
+  val (_, body) = sub.getUnivComponents
+  val (lambda, constraints) = body.getConstrainedComponents
+  val classes = lambda match
+    case TLam(TVar(param), _) =>
+      constraints.flatMap(_.getUpperBound(param)).flatMap(_.getBooleanClasses).distinct
+    case _ =>
+      Nil
+
+  classes.find(sup.param.isSplitBy(_)).map((class_) =>
+    ctx.all(
+      subtype(sub, TLam(meet(sup.param, class_), sup.ret)),
+      subtype(sub, TLam(meet(sup.param, class_.negate()), sup.ret)),
+    )
+  )

@@ -450,6 +450,16 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext): SubClau
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
+  // An argument that the bound of the parameter splits is checked by cases, each with its own
+  // instance (see `subtypeUnivCases`).
+  sup match
+    case sup: TLam =>
+      subtypeUnivCases(sub, sup) match
+        case Some(clauses) =>
+          return clauses
+        case None =>
+    case _ =>
+
   val (univVars, univBody) = sub.getUnivComponents
   ctx.withSubtypingLevel((ctx) =>
     val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)(using ctx)

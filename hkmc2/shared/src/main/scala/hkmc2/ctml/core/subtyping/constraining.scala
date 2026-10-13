@@ -83,9 +83,9 @@ def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 /** Implementation of `subtype` by the subtyping rules. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 
-  // Handle the reflexion case, up to the choice rules (see `isReflexive`).
+  // A judgment that holds by its atoms and the hypotheses holds (see `holdsByAtoms`).
 
-  if isReflexive(sub, sup) then
+  if holdsByAtoms(sub, sup) then
     return SubClauses.empty
 
   // A judgment that is assumed holds, by the hypothesis rule (see `assume`).
@@ -253,7 +253,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   // `C-JointAny`.
 
   // An operand of the subtype that is equal to the constrained type is thus not compared to it after
-  // a choice rule, but by the reflexivity check that precedes all the rules (see `isReflexive`).
+  // a choice rule, but by the check of its atoms that precedes all the rules (see `holdsByAtoms`).
 
   sup match
     case sup: TConstrained =>

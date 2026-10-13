@@ -42,34 +42,6 @@ private enum SplitRule:
       case All => !mode.isNaturalPol(pol)
       case Any => mode.isNaturalPol(pol)
 
-/** Check whether a judgment holds by reflexivity alone, up to the choice rules, that is, whether an
- *  operand of the nested intersections of the subtype is also an operand of the nested unions of
- *  the supertype: e.g. `τ ∧ σ ≤ τ ∨ ρ`.
- *
- *  This is checked before any other rule, since the other rules may turn such a judgment into
- *  judgments that are not derived. Comparing only the two sides as a whole is not enough, since the
- *  rules that are applied before the choice rules may not keep their operands as they are: e.g.
- *  `({c} ⟹ α) ∧ τ ≤ {c} ⟹ α` opens the right constrained type before choosing the left operand of
- *  the subtype (see `subtypeImpl`), and then requires `{c} ⟹ α ≤ α`, which is not derived when `α`
- *  is rigid: `α` is replaced by its lower bound before the left constrained type is opened. */
-def isReflexive(sub: Type, sup: Type): Boolean =
-  sup.hasJointOperand(JointMode.Union, sub) || (sub match
-    case TJointType(JointMode.Inter, left, right) =>
-      isReflexive(left, sup) || isReflexive(right, sup)
-    case _ =>
-      false
-  )
-
-extension (type_ : Type)
-  /** Check whether a type is this type, or an operand of its nested joint types of a given mode. */
-  private def hasJointOperand(mode: JointMode, operand: Type): Boolean =
-    type_ == operand || (type_ match
-      case TJointType(typeMode, left, right) if typeMode == mode =>
-        left.hasJointOperand(mode, operand) || right.hasJointOperand(mode, operand)
-      case _ =>
-        false
-    )
-
 extension (var_ : TypeVar)
   /** Get the bound that replaces a rigid variable at a polarity when splitting a type, which is its
    *  upper bound at the negative polarity, and its lower bound at the positive polarity.

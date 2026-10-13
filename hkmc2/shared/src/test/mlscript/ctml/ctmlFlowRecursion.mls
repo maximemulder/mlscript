@@ -10,9 +10,11 @@
 fun r1(a) = if a is Int then a else r1(1)
 //│ r1: ∀α, β, γ, δ. {α ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ)), α ≥ γ → δ, δ ≥ ({γ ≤ Int} ⟹ γ) ∧ ({β ≤ Int → δ, γ ≤ ¬Int} ⟹ ⊥), γ ≤ (¬({δ ≥ γ} ⟹ ¬Int) ∨ ¬({β ≤ Int → δ} ⟹ Int)) ∧ Int, β ≥ α, β ≤ ¬({γ ≤ Int, δ ≥ γ} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(Int → δ))} ⟹ γ → δ
 
-// FIXME: The result is `Int`, but keeps the refuted guards of the absurd else branch.
+// The promises of the absurd else branch are guarded by `Int ≤ ¬Int`, which makes `Int` empty, so
+// that they are absorbed by `Int` (see `holdsByAtoms`).
+
 r1(1)
-//│ ∀α, β, γ, δ. {δ ≤ α, α ≥ Int ∧ ({γ ≤ Int → δ, Int ≤ ¬Int} ⟹ ⊥), δ ≥ Int ∧ ({γ ≤ Int → δ, Int ≤ ¬Int} ⟹ ⊥), γ ≥ β, β ≥ Int → δ, β ≤ ¬({δ ≥ Int} ⟹ ⊥) ∨ ¬({Int ≤ ¬Int} ⟹ ¬(Int → δ))} ⟹ α
+//│ Int
 
 :fixme // FIXME: The else branch is absurd.
 r1("Hello")

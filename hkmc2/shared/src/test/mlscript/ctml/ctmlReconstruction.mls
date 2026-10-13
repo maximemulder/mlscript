@@ -94,7 +94,11 @@ S1 <:< ([(Int -> Int) <:< (S1 -> Int)] => Int)
 
 // The hypothesis rule
 
-// A hypothesis derives the judgment that it is, and only that judgment.
+// A hypothesis derives the judgment that it is, and the judgments that it closes as a cut (see
+// `holdsByAtoms`): assuming `Str ≤ Int`, `Str` is empty, since `Str ∧ Int` is.
+
+Top <:< ([Str <:< Int] => ~Str)
+//│ OK
 
 ((Str -> Int) -> Bool) <:< ([(S1 -> Int) <:< (Str -> Int)] => (S1 -> Int) -> Bool)
 //│ OK
@@ -102,7 +106,7 @@ S1 <:< ([(Int -> Int) <:< (S1 -> Int)] => Int)
 ((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Int) -> Bool)
 //│ OK
 
-:te
+:fixme // FIXME: `S1 → Nat ≤ S2 → Int` follows from the hypothesis through `S1 → Int`, which is not a cut that the closing rules find.
 ((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Nat) -> Bool)
 //│ ═══[TYPE ERROR] Cannot solve judgment (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Nat) → Bool.
 //│ Typing error tree:
@@ -121,18 +125,22 @@ S1 <:< ([(Int -> Int) <:< (S1 -> Int)] => Int)
 // Ex falso
 
 // Without the `ex-falso` option, a refuted constraint is assumed like any other one, so that the
-// body of the constrained type must hold under it.
+// body of the constrained type must hold under it: assuming `Str ≤ Int`, `Str ≤ Bool` holds, since
+// `Str` is empty, but `Bool ≤ Int` does not.
 
 (Str -> Str) <:< ([Str <:< Int] => Str -> Int)
 //│ OK
 
-:te
 (Str -> Str) <:< ([Str <:< Int] => Str -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment Str → Str ≤ {Str ≤ Int} ⟹ Str → Bool.
+//│ OK
+
+:te
+(Int -> Int) <:< ([Str <:< Int] => Bool -> Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ {Str ≤ Int} ⟹ Bool → Str.
 //│ Typing error tree:
-//│   Str → Str ≤ {Str ≤ Int} ⟹ Str → Bool
-//│     Str → Str ≤ Str → Bool
-//│       Str ≤ Bool
+//│   Int → Int ≤ {Str ≤ Int} ⟹ Bool → Str
+//│     Int → Int ≤ Bool → Str
+//│       Bool ≤ Int
 
 :ctml-cfg ex-falso
 
@@ -141,6 +149,9 @@ S1 <:< ([(Int -> Int) <:< (S1 -> Int)] => Int)
 // the opposite bound of the variable that it bounds.
 
 (Str -> Str) <:< ([Str <:< Int] => Str -> Bool)
+//│ OK
+
+(Int -> Int) <:< ([Str <:< Int] => Bool -> Str)
 //│ OK
 
 type S3 = Str

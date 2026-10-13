@@ -267,6 +267,64 @@ Top <:< (T | ~T)
 Top <:< (([T <:< Int] => ~Int) | ~([T <:< Int] => ~Int))
 //│ OK
 
+// A judgment also holds by atoms that are not operands of the same joint type, by reflexivity, by
+// the complement rules, or by disjoint constructors (see `holdsByAtoms`).
+
+Top <:< (T | (Int | ~T))
+//│ OK
+
+Top <:< ((Int -> Int) | (Str | ~(Int -> Int)))
+//│ OK
+
+(A & (T & ~A)) <:< Bot
+//│ OK
+
+(T & (Int & ~T)) <:< Bot
+//│ OK
+
+(Int & (T & Str)) <:< Bot
+//│ OK
+
+((Int & T) & Str) <:< Bot
+//│ OK
+
+Top <:< (~Int | (T | ~Str))
+//│ OK
+
+:te
+Top <:< (T | (Int | ~Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ T ∨ Int ∨ ¬Str.
+//│ Typing error tree:
+//│   ⊤ ≤ T ∨ Int ∨ ¬Str
+//│     ⊤ ≤ T
+//│       ⊤ ≤ ⊥
+//│     ⊤ ≤ Int ∨ ¬Str
+//│       ⊤ ≤ Int
+//│       ⊤ ≤ ¬Str
+//│       ¬Int ≤ Int ∨ ¬Str
+//│         ¬Int ≤ Int
+//│         ¬Int ≤ ¬Str
+//│           Str ≤ Int
+//│         Str ≤ Int ∨ ¬Str
+//│           Str ≤ Int
+//│           Str ≤ ¬Str
+//│     ¬Int ≤ T ∨ Int ∨ ¬Str
+//│       ¬Int ≤ T
+//│         ¬Int ≤ ⊥
+//│       ¬Int ≤ Int ∨ ¬Str
+//│         ¬Int ≤ Int
+//│         ¬Int ≤ ¬Str
+//│           Str ≤ Int
+//│         Str ≤ Int ∨ ¬Str
+//│           Str ≤ Int
+//│           Str ≤ ¬Str
+//│       Str ≤ T ∨ Int ∨ ¬Str
+//│         Str ≤ T
+//│           Str ≤ ⊥
+//│         Str ≤ Int ∨ ¬Str
+//│           Str ≤ Int
+//│           Str ≤ ¬Str
+
 // A function that accepts both a type and its negation accepts every value, by the distribution of
 // lambda types over the unions of their parameter (see `meetLambdas`).
 

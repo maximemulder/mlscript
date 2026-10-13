@@ -1,12 +1,12 @@
 package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.*
-import hkmc2.ctml.core.is
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.types.*
 
 /** The judgments assumed on the current path of the subtyping search that are not bounds, which
- *  the hypothesis rule derives when they are met again exactly (see `assume` and `subtypeImpl`).
+ *  the hypothesis rule derives when they are met again exactly (see `assume` and `subtypeImpl`),
+ *  and which close the judgments that they are a cut of (see `holdsByAtoms`).
  *
  *  Like the trail, the hypotheses are passed down the search and never returned: they are scoped
  *  to the body of the constrained type whose constraint they are assumed from. */
@@ -40,13 +40,13 @@ extension (ctx: SubContext)
    *  judgment to derive: the normalization of negations, the contraposition of negated variables,
    *  and the splits of `splitAll`. The judgments that no such rule decomposes are the leaves of the
    *  assumption:
-   *  - A leaf that holds by itself (reflexivity, the extremal types, disjoint constructors) assumes
-   *    nothing.
+   *  - A leaf that holds by its atoms and the hypotheses (see `holdsByAtoms`) assumes nothing.
    *  - A leaf whose side is a variable is assumed as a bound of that variable, whether it is rigid
    *    or flexible, which the variable rules of `subtypeImpl` then read. A leaf between two
    *    variables is a bound of both.
- *  - Any other leaf is assumed as a hypothesis, which the hypothesis rule of `subtypeImpl`
- *    derives when it is met again exactly, and which nothing else uses.
+   *  - Any other leaf is assumed as a hypothesis, which the hypothesis rule of `subtypeImpl`
+   *    derives when it is met again exactly, and which the check of the atoms of a judgment uses
+   *    as a cut (see `holdsByAtoms`).
    *
    *  The other rules would decompose an assumption into premises that it does not entail, since
    *  their conclusion holds in cases where their premises do not: the choice rules (`S1 ∧ S2 ≤ Int`
@@ -70,7 +70,7 @@ extension (ctx: SubContext)
 
     // Leaves that hold by themselves.
 
-    if isReflexive(sub, sup) || sub.is[TBot] || sup.is[TTop] then
+    if holdsByAtoms(sub, sup) then
       return Some(ctx)
 
     // Normalization of negations.

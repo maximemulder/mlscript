@@ -29,33 +29,21 @@ g1(true)
 fun g2(a) =
   let x = if a is Int then 1 else "s"
   if a is Int then x ++ "!" else x + 1
-//│ g2: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ
+//│ g2: ⊥ → ⊥
 
 :te
 g2(1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Int → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ ≤ Int → α.
 //│ Typing error tree:
-//│   ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Int → δ
-//│     {η ≥ ({ε ≤ Int} ⟹ Int) ∧ ({ε ≤ ¬Int} ⟹ Str), ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
-//│       {ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
-//│         {ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
-//│           {η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Int → δ
-//│             ε → ζ ≤ Int → δ
-//│               Int ≤ ε
-//│                 Int ≤ ⊥
+//│   ⊥ → ⊥ ≤ Int → α
+//│     Int ≤ ⊥
 
 :te
 g2("Hello")
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Str → δ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ ≤ Str → α.
 //│ Typing error tree:
-//│   ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ Str) ∧ ({β ≤ Int} ⟹ Int), α ≤ ⊥, β ≤ ¬({γ ≥ Str} ⟹ ¬Str) ∨ ¬({γ ≥ Int} ⟹ ¬Int)} ⟹ α → γ ≤ Str → δ
-//│     {η ≥ ({ε ≤ Int} ⟹ Int) ∧ ({ε ≤ ¬Int} ⟹ Str), ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
-//│       {ζ ≥ ({η ≤ Str} ⟹ Str) ∧ ({η ≤ Int} ⟹ Int), ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
-//│         {ε ≤ ⊥, η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
-//│           {η ≤ ¬({ζ ≥ Str} ⟹ ¬Str) ∨ ¬({ζ ≥ Int} ⟹ ¬Int)} ⟹ ε → ζ ≤ Str → δ
-//│             ε → ζ ≤ Str → δ
-//│               Str ≤ ε
-//│                 Str ≤ ⊥
+//│   ⊥ → ⊥ ≤ Str → α
+//│     Str ≤ ⊥
 
 // The result of a match used outside of any match bounds the parameter by the pattern.
 

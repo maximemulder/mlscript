@@ -62,9 +62,9 @@ extension (ctx: SubContext)
    *  supertype of every type. A leaf is refuted when it does not hold between decided types (see
    *  `isDecided`), on which the subtyping rules are complete: a bound `α ≤ τ` is refuted through
    *  the lower bound of `α`, which `α` is at least, and dually. This is valid in the model of
-   *  types, in which every class is inhabited, but not derivable, like the complement rules (see
-   *  `admitsComplement`). It is not valid on other types, on which a judgment that is not derived
-   *  may hold: `Int → Int ≤ ⊥ → Str` holds in the model. */
+   *  types, in which every class is inhabited, but not derivable. It is not valid on other types,
+   *  on which a judgment that is not derived may hold: `Int → Int ≤ ⊥ → Str` holds in the
+   *  model. */
   def assume(sub: Type, sup: Type): Option[SubContext] =
     given SubContext = ctx
 
@@ -145,6 +145,22 @@ extension (ctx: SubContext)
       return None
 
     Some(ctx.extend(Bound(var_, dir, type_, BoundKind.Asserted)))
+
+extension (type_ : Type)
+  /** Check whether this type is decided, that is, whether it is a closed Boolean combination of
+   *  class types and extrema, which the shape of every value decides: a value is an instance of a
+   *  class or it is not. The subtyping rules are complete on the judgments between decided types,
+   *  so that such a judgment that is not derived does not hold (see `isRefuted`). */
+  private def isDecided: Boolean =
+    type_ match
+      case TBot | TTop | TClass(_) =>
+        true
+      case TNeg(body) =>
+        body.isDecided
+      case TJointType(_, left, right) =>
+        left.isDecided && right.isDecided
+      case _ =>
+        false
 
 /** Check whether a subtyping judgment is refuted, that is, whether it is between decided types and
  *  does not hold (see `assume`). */

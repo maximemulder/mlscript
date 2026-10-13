@@ -20,16 +20,16 @@ def joinImpl(left: Type, right: Type)(using ctx: SubContext): Type =
   TJointType(JointMode.Union, left, right)
 
 /** Get the join of two non-subsumed types in a non-union shape if there is one: the join `¬σ ∨ τ`
- *  is `⊤` if `σ ≤ τ` and `σ` admits the complement rules, by excluded middle `⊤ ≤ σ ∨ ¬σ` (see
- *  `admitsComplement`). */
+ *  is `⊤` if `σ ≤ τ`, by excluded middle `⊤ ≤ σ ∨ ¬σ` (see the complement rules in
+ *  `negation.scala`). */
 def joinMerge(left: Type, right: Type)(using ctx: SubContext): Option[Type] =
   left match
-    case TNeg(left) if left.admitsComplement && checkSubtype(left, right) =>
+    case TNeg(left) if checkSubtype(left, right) =>
       return Some(TTop)
     case _ =>
 
   right match
-    case TNeg(right) if right.admitsComplement && checkSubtype(right, left) =>
+    case TNeg(right) if checkSubtype(right, left) =>
       return Some(TTop)
     case _ =>
 

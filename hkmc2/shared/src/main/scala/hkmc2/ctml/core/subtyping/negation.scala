@@ -1,11 +1,24 @@
 package hkmc2.ctml.core.subtyping
 
-import hkmc2.ctml.config.*
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.isSubClass
 import hkmc2.ctml.core.combine.{join, meet}
 import hkmc2.ctml.core.structural.getVars
+
+// The complement rules.
+
+// Excluded middle `⊤ ≤ σ ∨ ¬σ` (see `joinMerge`) and non-contradiction `σ ∧ ¬σ ≤ ⊥` (see
+// `subtractStep`) apply to every type `σ`, as the `S-Compl` and `S-NC` rules of the mechanization,
+// so that the negation of a type is its complement.
+
+// Both rules are valid in the set-theoretic model of types, in which a type is a set of values, and
+// the soundness of CTML is the safety of programs in that model: a well-typed program does not get
+// stuck. They do not preserve types through reduction, which is therefore not a property of CTML:
+// `λx. λy. x` is typed at `τ → ⊤ → τ` and at `¬τ → ⊤ → ¬τ`, so at `⊤ → ((⊤ → τ) ∨ (⊤ → ¬τ))` by
+// excluded middle at `τ`, and its application to a value `v` reduces to `λy. v`, which is typed at
+// that union only if `v` is typed at `τ` or at `¬τ`. No rule decides this for every value when `τ`
+// is a function type, whose members are characterized by their behavior.
 
 extension (type_ : Type)
   /** Get the simplified negation of this type. */
@@ -37,11 +50,11 @@ extension (type_ : Type)
         TJointType(JointMode.Inter, type_, TNeg(other))
 
   /** Evaluate a subtraction simplification step if possible: the subtraction `τ ∧ ¬σ` is empty if
-   *  `τ ≤ σ` and `σ` admits the complement rules, by non-contradiction `σ ∧ ¬σ ≤ ⊥` (see
-   *  `admitsComplement`), it distributes over the operands of a union `τ`, and it is `τ` itself if
-   *  `τ` and `σ` are disjoint constructors. */
+   *  `τ ≤ σ`, by non-contradiction `σ ∧ ¬σ ≤ ⊥` (see the complement rules above), it distributes
+   *  over the operands of a union `τ`, and it is `τ` itself if `τ` and `σ` are disjoint
+   *  constructors. */
   def subtractStep(other: Type)(using ctx: SubContext): Option[Type] =
-    if other.admitsComplement && checkSubtype(type_, other) then
+    if checkSubtype(type_, other) then
       return Some(TBot)
 
     type_ match
@@ -55,37 +68,6 @@ extension (type_ : Type)
 
     // Otherwise, return their intersection.
     None
-
-  /** Check whether the complement rules of excluded middle `⊤ ≤ σ ∨ ¬σ` (see `joinMerge`) and
-   *  non-contradiction `σ ∧ ¬σ ≤ ⊥` (see `subtractStep`) apply to this type `σ`: to every type with
-   *  the `general-complement` option, and to the decided types otherwise (see `isDecided`), as the
-   *  `SP-Middle` rule of the mechanization.
-   *
-   *  Both rules are valid in the set-theoretic model of types, in which every value is a member of
-   *  a type or of its negation, so the general complement is sound for the safety of programs. The
-   *  restriction is proof-theoretic: the preservation of types through reduction requires every
-   *  value to be typed at `σ` or at `¬σ`, since a function typed at both `σ → τ` and `¬σ → τ` is
-   *  typed at `⊤ → τ` by distribution over its parameter (see `meetLambdas`), so it accepts every
-   *  value, which its body then uses at `σ` or at `¬σ`. No rule types a function at the negation of
-   *  a function type, whose membership is a property of its behavior, and no shape decides a type
-   *  variable, which is only known through its bounds. */
-  def admitsComplement: Boolean =
-    config.generalComplement || type_.isDecided
-
-  /** Check whether this type is decided, that is, whether it is a closed Boolean combination of
-   *  class types and extrema, which the shape of every value decides: a value is an instance of a
-   *  class or it is not, and an instance of a class is typed at the negation of every other class
-   *  while a function is typed at the negation of every class (see `areDisjointConstructors`). */
-  def isDecided: Boolean =
-    type_ match
-      case TBot | TTop | TClass(_) =>
-        true
-      case TNeg(body) =>
-        body.isDecided
-      case TJointType(_, left, right) =>
-        left.isDecided && right.isDecided
-      case _ =>
-        false
 
   /** Get the classes of the Boolean structure of this type, that is, its classes that are not
    *  under a type constructor: through negations, unions, intersections, and the bodies of
@@ -121,9 +103,8 @@ extension (constraint: Constraint)
 
 /** Derive a subtyping judgment `τ ≤ σ` by cases on a class `C` of the Boolean structure of `σ`, by
  *  excluded middle at `C`: `τ ≤ σ` follows from `τ ∧ C ≤ σ` and `τ ∧ ¬C ≤ σ`, since
- *  `τ ≤ (τ ∧ C) ∨ (τ ∧ ¬C)`. A class is decided, so excluded middle applies to it (see
- *  `admitsComplement`). If the judgment fails, the error trees of both cases are added to the error
- *  trees of the judgment derived without cases.
+ *  `τ ≤ (τ ∧ C) ∨ (τ ∧ ¬C)`. If the judgment fails, the error trees of both cases are added to the
+ *  error trees of the judgment derived without cases.
  *
  *  This derives the judgments whose subtype is split between the operands of a union supertype
  *  without being a union itself, which the choice rules cannot derive, e.g.

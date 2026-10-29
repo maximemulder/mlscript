@@ -6,30 +6,39 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.inference.*
 import hkmc2.ctml.core.structural.*
-import hkmc2.ctml.core.subtyping.*
-import hkmc2.ctml.core.type_.impls.*
 import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.validation.validateInferenceState
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)
+  /** Simplify local variables in an open inference result, including relations recorded only on
+   *  another variable. Keep variables whose effective level belongs to an enclosing scope. */
   @tailrec
   def simplifyClauses(type_ : Type, level: Int, outs: SubClauses)(using noInlineVars: NoInlineVars): (Type, SubClauses) =
-    val typeVars = type_
-      .getDeps(Polarity.Positive).all
-      .flatMap((dep) => Iterator.single(dep).concat(dep.var_.getTransDeps(dep.pol)(using ctx.extend(outs)).all))
-      .map(_.var_)
-
-    val inlinings = outs.typeVars
+    val fullCtx = ctx.extend(outs)
+    val vars = outs.typeVars
       .filterNot(noInlineVars.contains)
-      .filter(ctx.extend(outs).getTypeVarEffectiveLevel(_) >= level)
-      .filter(canInlineOpenState(type_, outs, _)(using ctx.extend(outs)))
-      .map((var_) => type_.getInlinePolarities(var_)(using ctx.extend(outs)).map((var_, _)))
+      .filter(fullCtx.getTypeVarEffectiveLevel(_) >= level)
+    val inlinings = vars
+      .filter(canInlineOpenState(type_, outs, _)(using fullCtx))
+      .map((var_) => type_.getInlinePolarities(var_)(using fullCtx).map((var_, _)))
       .flatten
 
     inlinings.lastOption match
       case None =>
-        (type_, outs)
+        // Direct occurrences in another variable's bounds may hide a bound in the direction
+        // needed here: `β ≥ α` supplies `α ≤ β` when eliminating a negative parameter `α`.
+        val elimination = vars
+          .flatMap((var_) => getEliminationBounds(type_, var_, outs)(using fullCtx)
+            .map((var_, _)))
+          .lastOption
+        elimination match
+          case None =>
+            (type_, outs)
+          case Some((var_, flipped)) =>
+            val (newType, newOuts) = ctx.eliminateVar(type_, var_, outs.concat(SubClauses(flipped)))
+            validateInferenceState(s"eliminating ${var_}", newType, newOuts)(using ctx)
+            ctx.simplifyClauses(newType, level, newOuts)
       case Some((var_, polarities)) =>
         val (newType, newOuts) = inlineVar(type_, var_, polarities, outs)(using ctx)
         validateInferenceState(s"inlining ${var_}", newType, newOuts)(using ctx)
@@ -50,22 +59,3 @@ private def canInlineOpenState(type_ : Type, outs: SubClauses, var_ : TypeVar)(u
 
   (!polarities.negative || !var_.isIndirectRecursive(Polarity.Negative)) &&
     (!polarities.positive || !var_.isIndirectRecursive(Polarity.Positive))
-
-private def hasNoLocalDeps(var_ : TypeVar, localVars: Set[TypeVar])(using ctx: SubContext): Boolean =
-  Iterator(Polarity.Negative, Polarity.Positive)
-    .flatMap(var_.getDeps(_).all)
-    .forall((dep) => !localVars.contains(dep.var_))
-
-private def canEliminateDisconnectedVar(var_ : TypeVar)(using ctx: SubContext): Boolean =
-  val lower = var_.lowerBound
-  val upper = var_.upperBound
-
-  if lower == TBot || upper == TTop || lower == upper then
-    true
-  else if lower.containsVar(var_) || upper.containsVar(var_) then
-    false
-  else
-    val comparisonCtx = ctx
-      .map(_.filter(!_.isTypeVarBound(var_)))
-      .mapTrail(_ => SubtypingTrail())
-    checkEqual(lower, upper)(using comparisonCtx)

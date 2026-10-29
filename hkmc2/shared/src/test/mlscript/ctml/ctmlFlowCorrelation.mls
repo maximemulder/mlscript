@@ -76,7 +76,7 @@ fun g4(a, b) =
   if a is
     Int then (if b is Int then a + b else a)
     else (if b is Str then b else "none")
-//│ g4: ∀α, β, γ, δ. {γ ≥ α, α ≤ ¬({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), δ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), δ ≥ ({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)) ∧ ({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), γ ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)), β ≤ ¬({γ ≤ Int, δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({γ ≤ ¬Int, δ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(Str ∨ ¬({δ ≥ Str} ⟹ Str))), γ ≤ ¬({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), δ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int)} ⟹ α → β → (δ ∨ (({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)) ∧ ({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), γ ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))))
+//│ g4: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ ⊥)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, α ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({β ≤ Str ∨ ¬({γ ≥ Str} ⟹ Str), α ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(Str ∨ ¬({γ ≥ Str} ⟹ Str)))} ⟹ α → β → γ
 
 g4(1, 2)
 //│ Int
@@ -183,7 +183,7 @@ g6(1, "World")
 // Tuples
 
 fun g7(a) = if a is Int then (a, "int") else (a, 0)
-//│ g7: ∀α, β, γ. {γ ≤ ¬({β ≥ ⟨γ, Str⟩} ⟹ ¬Int) ∨ ¬({β ≥ ⟨γ, Int⟩} ⟹ Int), α ≤ ¬({β ≥ ⟨γ, Str⟩} ⟹ ¬Int) ∨ ¬({β ≥ ⟨γ, Int⟩} ⟹ Int), γ ≥ α, β ≥ ({γ ≤ Int} ⟹ ⟨γ, Str⟩) ∧ ({γ ≤ ¬Int} ⟹ ⟨γ, Int⟩)} ⟹ α → β
+//│ g7: ∀α, β. {β ≤ ¬({α ≥ ⟨β, Str⟩} ⟹ ¬Int) ∨ ¬({α ≥ ⟨β, Int⟩} ⟹ Int), α ≥ ({β ≤ Int} ⟹ ⟨β, Str⟩) ∧ ({β ≤ ¬Int} ⟹ ⟨β, Int⟩)} ⟹ β → α
 
 g7(1)
 //│ ⟨Int, Str⟩

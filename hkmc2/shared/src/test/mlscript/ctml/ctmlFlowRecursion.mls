@@ -8,7 +8,7 @@
 // that the else branch is absurd and the parameter is bounded by `Int`.
 
 fun r1(a) = if a is Int then a else r1(1)
-//│ r1: ∀α, β, γ, δ, ε. {α ≤ ¬({δ ≤ Int, ε ≥ δ} ⟹ ⊥) ∨ ¬({δ ≤ ¬Int} ⟹ ¬(Int → ε)), α ≥ γ → (ε ∨ (({δ ≤ Int} ⟹ δ) ∧ ({β ≤ Int → ε, δ ≤ ¬Int} ⟹ ⊥))), ε ≥ ({δ ≤ Int} ⟹ δ) ∧ ({β ≤ Int → ε, δ ≤ ¬Int} ⟹ ⊥), δ ≤ (¬({ε ≥ δ} ⟹ ¬Int) ∨ ¬({β ≤ Int → ε} ⟹ Int)) ∧ Int, γ ≤ (¬({ε ≥ δ} ⟹ ¬Int) ∨ ¬({β ≤ Int → ε} ⟹ Int)) ∧ Int, β ≥ α, δ ≥ γ, β ≤ ¬({δ ≤ Int, ε ≥ δ} ⟹ ⊥) ∨ ¬({δ ≤ ¬Int} ⟹ ¬(Int → ε))} ⟹ γ → (ε ∨ δ)
+//│ r1: ∀α, β. {β ≥ {α ≤ Int} ⟹ α, α ≤ (¬({β ≥ α} ⟹ ¬Int) ∨ ¬({α → β ≤ Int → β} ⟹ Int)) ∧ Int} ⟹ α → β
 
 // The promises of the absurd else branch are guarded by `Int ≤ ¬Int`, which makes `Int` empty, so
 // that they are absorbed by `Int` (see `holdsByAtoms`).
@@ -20,7 +20,7 @@ fun r1(a) = if a is Int then a else r1(1)
 // r1("Hello")
 
 fun r2(a, n) = if a is Int then a + n else r2(n, n)
-//│ r2: ∀α, β, γ, δ, ε. {α ≤ ¬({δ ≤ Int, γ ≤ Int, ε ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(δ → δ → ε)), α ≥ γ → δ → (ε ∨ (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥))), δ ≤ (¬({γ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ δ, γ ≤ ¬Int, ε ≥ ε ∨ (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥))} ⟹ ¬(¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int))) ∧ (¬({γ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥)), γ ≤ (¬({δ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ δ, δ ≤ ¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int, ε ≥ ε ∨ (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥))} ⟹ Int)) ∧ (¬({δ ≤ Int, ε ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ δ → δ → ε} ⟹ Int)), γ ≥ ({γ ≤ Int, δ ≤ Int, ε ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, δ ≤ ¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int, ε ≥ ε ∨ (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥))} ⟹ δ), ε ≥ (({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({γ ≥ δ, γ ≤ ¬Int, δ ≤ ¬({β ≤ δ → δ → ε} ⟹ Int) ∧ ¬Int} ⟹ ε ∨ (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥)))) ∨ (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({β ≤ δ → δ → ε, γ ≤ ¬Int} ⟹ ⊥)), β ≥ α, β ≤ ¬({δ ≤ Int, γ ≤ Int, ε ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int} ⟹ ¬(δ → δ → ε))} ⟹ γ → δ → ε
+//│ r2: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β, α ≤ ¬Int, α → β → γ ≤ β → β → γ} ⟹ Int), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β, β ≤ ¬({α → β → γ ≤ β → β → γ} ⟹ Int)} ⟹ Int), α ≥ ({α ≤ Int, β ≤ Int, γ ≥ Int} ⟹ ⊥) ∧ ({α ≤ ¬Int, β ≤ ¬({α → β → γ ≤ β → β → γ} ⟹ Int)} ⟹ β), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≥ β, α ≤ ¬Int, β ≤ ¬({α → β → γ ≤ β → β → γ} ⟹ Int)} ⟹ ⊥)} ⟹ α → β → γ
 
 // FIXME: Times out.
 // r2(1, 1)

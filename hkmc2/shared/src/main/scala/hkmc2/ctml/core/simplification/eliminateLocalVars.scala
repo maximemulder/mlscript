@@ -44,29 +44,41 @@ extension (ctx: SubContext)
     val fullCtx = ctx.extend(outs)
     val elimination = outs.typeVars
       .filter(vars.contains)
-      .flatMap((var_) => getFlippedBounds(var_, outs)(using fullCtx).map((var_, _)))
+      .flatMap((var_) => getEliminationBounds(TTop, var_, outs)(using fullCtx).map((var_, _)))
       .lastOption
     elimination match
       case None =>
         outs
       case Some((var_, flipped)) =>
-        val newOuts = ctx.eliminateVar(var_, outs.concat(SubClauses(flipped)))
+        val (_, newOuts) = ctx.eliminateVar(TTop, var_, outs.concat(SubClauses(flipped)))
         validateInferenceState(s"eliminating ${var_}", TTop, newOuts)(using ctx)
         debug(s"ELIMINATE ${var_} IN ${outs} OUT ${newOuts}")
         ctx.eliminateVars(vars, newOuts)
 
-  /** Eliminate a variable from the clauses by replacing it by its lower bound at its positive
-   *  occurrences and by its upper bound at its negative occurrences, and by removing its bounds. */
-  private def eliminateVar(var_ : TypeVar, outs: SubClauses): SubClauses =
+  /** Eliminate a variable from a type and its clauses by replacing it by its lower bound at its
+   *  positive occurrences and by its upper bound at its negative occurrences, and by removing its
+   *  bounds. The clauses must include the additional bounds selected by `getEliminationBounds`. */
+  private[simplification] def eliminateVar(
+    type_ : Type,
+    var_ : TypeVar,
+    outs: SubClauses,
+  ): (Type, SubClauses) =
     // The variable is replaced in its own bounds first, so that the other bounds are inlined with
     // bounds that do not mention it.
     val selfOuts = outs.mapBounds((bound) =>
       if bound.var_ == var_ then bound.inline(var_)(using ctx.extend(outs)) else bound
     )
-    selfOuts.mapBounds(_.inline(var_)(using ctx.extend(selfOuts))).removeTypeVar(var_)
+    val fullCtx = ctx.extend(selfOuts)
+    val result = (
+      type_.inline(var_)(using fullCtx),
+      selfOuts.mapBounds(_.inline(var_)(using fullCtx)).removeTypeVar(var_),
+    )
+    assert(!result._1.containsVar(var_))
+    assert(!result._2.assertedBounds.exists(_.type_.containsVar(var_)))
+    result
 
-/** Check whether a local variable can be eliminated from the clauses, and get the bounds of the
- *  variable that are read from its direct occurrences in the bounds of the other variables.
+/** Check whether a local variable can be eliminated from a type and its clauses, and get the
+ *  bounds read from its direct occurrences in the bounds of the other variables.
  *
  *  A direct occurrence of the variable in the bound of another variable is a bound between the two
  *  variables, which the solver records on the other variable (see `subtypeFlexVars`): `β ≥ γ ∨ …`
@@ -82,14 +94,20 @@ extension (ctx: SubContext)
  *  is replaced by `β` in `{γ ≥ τ, β ≥ γ, α ≤ ¬({γ ≥ Str} ⟹ ¬Str)}`, which becomes
  *  `{β ≥ τ, α ≤ ¬({β ≥ Str} ⟹ ¬Str)}`.
  *
+ *  Occurrences in the result type also determine the direction of elimination: a parameter `α`
+ *  in `α → γ` with `β ≥ α` is negative, so its replacement includes the upper bound `β`. When
+ *  `α` and `β` share the same other upper bounds, this identifies the two parameters without
+ *  duplicating the constraints of an intervening lambda application.
+ *
  *  The bound that replaces the variable must not mention it, and its other bound must not mention
  *  it at the polarity of the occurrences that this other bound replaces, since the variable would
  *  otherwise remain in the clauses. */
-private def getFlippedBounds(
+private[simplification] def getEliminationBounds(
+  type_ : Type,
   var_ : TypeVar,
   outs: SubClauses,
 )(using ctx: SubContext): Option[List[Bound]] =
-  var nested = Polarities.empty
+  var nested = type_.getVarPolarities(var_)
   var lowerVars = List[TypeVar]()
   var upperVars = List[TypeVar]()
   for bound <- outs.assertedBounds if bound.var_ != var_ do

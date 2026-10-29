@@ -35,11 +35,11 @@ extension (type_ : Type)
           ret.simplify(),
         )
       case TJointType(mode, left, right) =>
-        simplifyJoint(
+        redundantJointOperand(mode, left, right).getOrElse(simplifyJoint(
           mode,
           left.simplify(),
           right.simplify(),
-        )
+        ))
       case TApp(abs, arg) =>
         TApp(
           abs.simplify(),
@@ -70,7 +70,24 @@ def simplifyLambda(param: Type, ret: Type): Type =
 
 /** Simplify a join or meet after both operands have already been simplified. */
 def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: SubContext): Type =
-  hkmc2.ctml.core.combine.combine(mode, left, right)
+  redundantJointOperand(mode, left, right)
+    .getOrElse(hkmc2.ctml.core.combine.combine(mode, left, right))
+
+/** Remove an operand that is an explicit bound of the other operand. Reading the bound directly
+ *  also works when subtyping search decomposes its constrained types before looking up the bound.
+ *  Check before simplifying the operands, since that can change the shape of the bound. */
+private def redundantJointOperand(
+  mode: JointMode,
+  left: Type,
+  right: Type,
+)(using ctx: SubContext): Option[Type] =
+  val dir = mode match
+    case JointMode.Inter => Direction.Sub
+    case JointMode.Union => Direction.Super
+  (left, right) match
+    case (TVar(var_), _) if var_.bound(dir) == right => Some(left)
+    case (_, TVar(var_)) if var_.bound(dir) == left => Some(right)
+    case _ => None
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */
 def simplifyUniv(var_ : TypeVar, body: Type)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =

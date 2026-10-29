@@ -154,7 +154,7 @@ fun local(u) =
 //│ local: ⊤ → ⟨Int, Str⟩
 
 fun make(u) = (a) => if a is Int then a + 1 else a
-//│ make: ∀α, β, γ. {β ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ γ), γ ≥ α, α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ⊤ → α → β
+//│ make: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ⊤ → β → α
 
 make(unit)(1)
 //│ Int
@@ -165,7 +165,7 @@ make(unit)("Hello")
 // Functions applied in some branches only
 
 fun h1(f, a) = if a is Int then f(a) else a
-//│ h1: ∀α, β, γ, δ. {γ ≥ β, β ≤ ¬({α ≤ γ → δ} ⟹ ¬Int) ∨ ¬({δ ≥ γ} ⟹ Int), δ ≥ ({α ≤ γ → δ, γ ≤ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int} ⟹ γ), α ≤ ¬({γ ≤ Int} ⟹ ¬(γ → δ)) ∨ ¬({γ ≤ ¬Int} ⟹ ⊥), γ ≤ ¬({α ≤ γ → δ} ⟹ ¬Int) ∨ ¬({δ ≥ γ} ⟹ Int)} ⟹ α → β → (δ ∨ (({α ≤ γ → δ, γ ≤ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int} ⟹ γ)))
+//│ h1: ∀α, β, γ. {γ ≥ ({α ≤ β → γ, β ≤ Int} ⟹ ⊥) ∧ ({β ≤ ¬Int} ⟹ β), α ≤ ¬({β ≤ Int} ⟹ ¬(β → γ)) ∨ ¬({β ≤ ¬Int} ⟹ ⊥), β ≤ ¬({α ≤ β → γ} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int)} ⟹ α → β → γ
 
 h1((x) => x + 1, 1)
 //│ Int
@@ -178,11 +178,10 @@ h1((x) => x ++ "!", 1)
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int → β.
 //│ Typing error tree:
 //│   α ≤ Int → β
-//│     γ → (δ ∨ (({ζ ≤ ε → δ, ε ≤ Int} ⟹ ⊥) ∧ ({ε ≤ ¬Int} ⟹ ε))) ≤ Int → β
+//│     γ → δ ≤ Int → β
 //│       Int ≤ γ
-//│         Int ≤ ¬({ε ≤ ¬Int} ⟹ Int) ∧ (¬({ζ ≤ ε → δ} ⟹ ¬Int) ∨ ¬({δ ≥ ε} ⟹ Int))
-//│           Int ≤ ¬({ε ≤ ¬Int} ⟹ Int)
-//│             Int ≤ ¬Int
+//│         Int ≤ ¬Int ∧ (¬({ε ≤ γ → δ} ⟹ ¬Int) ∨ ¬({δ ≥ γ} ⟹ Int))
+//│           Int ≤ ¬Int
 
 fun h2(f, a) = if a is Int then f(a) else f(a)
 //│ h2: ∀α, β. (¬({α ≤ Int} ⟹ ¬(α → β)) ∨ ¬({α ≤ ¬Int} ⟹ ¬(α → β))) → α → β
@@ -285,7 +284,7 @@ h2((x) => x + 1, int_or_string)
 // A function is an instance of the negation of every class.
 
 fun h3(a) = if a is Int then a + 1 else a
-//│ h3: ∀α, β, γ. {γ ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ γ} ⟹ Int), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ γ} ⟹ Int), γ ≥ α, β ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ γ)} ⟹ α → β
+//│ h3: ∀α, β. {β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β} ⟹ Int), α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ β → α
 
 h3((x) => x)
 //│ ∀α. α → α

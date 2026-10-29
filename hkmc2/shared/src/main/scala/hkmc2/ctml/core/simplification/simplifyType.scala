@@ -1,15 +1,8 @@
 package hkmc2.ctml.core.simplification
 
-import scala.collection.immutable.LazyList.cons
-
 import hkmc2.ctml.core.*
-import hkmc2.ctml.core.type_.impls.getAllVarPolarities.getAllVarPolarities
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.inference.inlineVar
-import hkmc2.ctml.core.structural.isIndirectRecursive
 import hkmc2.ctml.core.subtyping.*
-import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
@@ -21,7 +14,7 @@ extension (type_ : Type)
       case TBot | TTop | TVar(_) | TClass(_) =>
         type_
       case TNeg(body) =>
-        simplifyNegation(
+        makeNegationType(
           body.simplify()
         )
       case TTuple(left, right) =>
@@ -30,7 +23,7 @@ extension (type_ : Type)
           right.simplify(),
         )
       case TLam(param, ret) =>
-        simplifyLambda(
+        makeLambdaType(
           param.simplify(),
           ret.simplify(),
         )
@@ -53,6 +46,7 @@ extension (type_ : Type)
           subtypeConstraint(constraint)(using ctx)
         catch
           case _: TypeError =>
+            // An unprovable guard supplies no usable bounds for simplifying the body.
             SubClauses.empty
 
         simplifyConstrained(
@@ -60,16 +54,8 @@ extension (type_ : Type)
           constraint.simplify(),
         )
 
-/** Simplify a negation after its body has already been simplified. */
-def simplifyNegation(body: Type): Type =
-  makeNegationType(body)
-
-/** Simplify a lambda after its parameter and return type have already been simplified. */
-def simplifyLambda(param: Type, ret: Type): Type =
-  makeLambdaType(param, ret)
-
 /** Simplify a join or meet after both operands have already been simplified. */
-def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: SubContext): Type =
+private[simplification] def simplifyJoint(mode: JointMode, left: Type, right: Type)(using ctx: SubContext): Type =
   redundantJointOperand(mode, left, right)
     .getOrElse(hkmc2.ctml.core.combine.combine(mode, left, right))
 
@@ -90,24 +76,25 @@ private def redundantJointOperand(
     case _ => None
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */
-def simplifyUniv(var_ : TypeVar, body: Type)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
+private[simplification] def simplifyUniv(var_ : TypeVar, body: Type)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
   if noInlineVars.contains(var_) then
     return TUniv(var_, body)
 
   body.getInlinePolarities(var_) match
-    case Some(polarities) =>
+    case Some(_) =>
       body.inline(var_)
     case None =>
       TUniv(var_, body)
 
 /** Simplify a constrained type after its body and constraint have already been simplified. */
-def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: SubContext): Type =
+private[simplification] def simplifyConstrained(body: Type, constraint: Constraint)(using ctx: SubContext): Type =
   if checkConstraint(constraint) then
     body
   else
     makeConstrainedType(body, List(constraint))
 
 extension (constraint: Constraint)
+  /** Simplify both sides of a constraint in the ambient context, without assuming the guard. */
   def simplify()(using ctx: SubContext, noInlineVars: NoInlineVars): Constraint =
     Constraint(
       constraint.left.simplify(),

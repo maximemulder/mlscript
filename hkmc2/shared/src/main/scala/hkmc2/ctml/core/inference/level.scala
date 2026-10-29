@@ -5,18 +5,13 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.impls.*
-import hkmc2.ctml.core.type_.impls.inline.*
 import hkmc2.ctml.core.simplification.*
-import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
 extension (ctx: SubContext)
-  /** Process the type, variables, and constraints generated in a level. Quantifying and
-   *  simplifying then if possible. */
+  /** Solve and simplify the type and clauses generated in a level, then quantify the remaining
+   *  variables and constraints. */
   def processLevel(level: Int, type_ : Type, levelOuts: SubClauses): Type =
-    // NOTE: unwrapCtx currently solves clauses, which may need to be moved somewhere else.
-
     // The clauses of the level are simplified and quantified with a single bound per variable and
     // direction, which summarizes its asserted and effective bounds. Effective bounds hold in the
     // scope of the level, since those computed under further assumptions have already been removed
@@ -70,21 +65,6 @@ extension (ctx: TypeContext)
       val (type_, outs) = f(innerCtx)
       subCtx.processLevel(level, type_, outs)
     )
-
-/** Inline a type variable in a type. */
-def inlineVar(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: SubClauses)(using ctx: SubContext) =
-  debugInlineVar(inlineVarImpl)(type_, var_, polarities, outs)
-
-/** Implementation of `inlineVar`. */
-def inlineVarImpl(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: SubClauses)(using ctx: SubContext) =
-  val relevantOuts = outs.filterBounds((bound) =>
-    bound.var_ != var_ || polarities.contains(bound.dir.leftPol)
-  )
-  given SubContext = ctx.extend(relevantOuts)
-  (
-    type_.inline(var_),
-    outs.mapBounds(_.inline(var_)).removeTypeVar(var_),
-  )
 
 /** Check whether a type contains outer unsolvable constrained types. */
 def checkUnsolvableConstreds(type_ : Type, outs: SubClauses)(using ctx: SubContext) =

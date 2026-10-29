@@ -21,6 +21,10 @@ def applyConfigArguments(arguments: List[String]): Unit =
           config.checkUnsolvableConstreds = true
         case "arbitrary-patterns" =>
           config.arbitraryPatterns = true
+        case "wrap-ifs" =>
+          config.wrapIfs = true
+        case "no-wrap-ifs" =>
+          config.wrapIfs = false
         case argument =>
           throw Exception(s"unknown argument '${argument}'")
   catch

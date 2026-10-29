@@ -10,7 +10,7 @@ fun foo(a) =
   if a is
     Int then (a as Int)
     Str then (a as Str)
-//│ foo: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β
+//│ foo: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
 
 fun bar(a) =
   foo(a) as Int
@@ -42,12 +42,12 @@ foo(int_or_string)
 
 :te
 foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool).
 //│ Typing error tree:
-//│   ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
-//│     ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ Bool → Bool
-//│       {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str), γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str)} ⟹ γ → δ ≤ Bool → Bool
-//│         {γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str)} ⟹ γ → δ ≤ Bool → Bool
+//│   ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
+//│     ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → Bool
+//│       {γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str), δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
+//│         {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ Str} ⟹ Str)} ⟹ γ → δ ≤ Bool → Bool
 //│           γ → δ ≤ Bool → Bool
 //│             Bool ≤ γ
 //│               Bool ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str)
@@ -60,11 +60,11 @@ foo as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
 
 :te
 foo(true)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ Bool → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
 //│ Typing error tree:
-//│   ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ Bool → γ
-//│     {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str), δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)} ⟹ δ → ε ≤ Bool → γ
-//│       {δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)} ⟹ δ → ε ≤ Bool → γ
+//│   ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ
+//│     {δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str), ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
+//│       {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
 //│         δ → ε ≤ Bool → γ
 //│           Bool ≤ δ
 //│             Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
@@ -83,7 +83,7 @@ fun foo2(a, b) =
   if a is
     Int then (b as Int)
     Str then (b as Str)
-//│ foo2: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
+//│ foo2: ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ
 
 fun bar2(a, b) =
   foo2(a, b) as Int
@@ -174,12 +174,12 @@ foo2(int_or_string, int_or_string)
 
 :te
 foo2 as (Bool -> Bool -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool.
 //│ Typing error tree:
-//│   ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool
-//│     {ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
-//│       {δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
-//│         {ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│   ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ Bool → Bool → Bool
+//│     {δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str), ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│       {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str), ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
+//│         {ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
 //│           δ → ε → ζ ≤ Bool → Bool → Bool
 //│             Bool ≤ δ
 //│               Bool ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str)
@@ -194,14 +194,14 @@ foo2 as (Bool -> Bool -> Bool)
 
 :te
 foo2 as ((Int | Str) -> (Int | Str) -> (Int | Str))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ (Int ∨ Str) → (Int ∨ Str) → (Int ∨ Str).
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ (Int ∨ Str) → (Int ∨ Str) → (Int ∨ Str).
 //│ Typing error tree:
-//│   ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ (Int ∨ Str) → (Int ∨ Str) → (Int ∨ Str)
-//│     ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → (Int ∨ Str) → (Int ∨ Str)
-//│       ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → Str → (Int ∨ Str)
-//│         {ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
-//│           {δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
-//│             {ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
+//│   ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ (Int ∨ Str) → (Int ∨ Str) → (Int ∨ Str)
+//│     ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ Int → (Int ∨ Str) → (Int ∨ Str)
+//│       ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ Int → Str → (Int ∨ Str)
+//│         {δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str), ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
+//│           {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str), ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
+//│             {ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
 //│               δ → ε → ζ ≤ Int → Str → (Int ∨ Str)
 //│                 ε → ζ ≤ Str → (Int ∨ Str)
 //│                   Str ≤ ε
@@ -217,13 +217,13 @@ foo2 as ((Int | Str) -> (Int | Str) -> (Int | Str))
 
 :te
 foo2 as (Top -> Top -> Bot)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ ⊤ → ⊤ → ⊥.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ ⊤ → ⊤ → ⊥.
 //│ Typing error tree:
-//│   ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ ⊤ → ⊤ → ⊥
-//│     ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ Str} ⟹ Str)} ⟹ α → β → γ ≤ Int → ⊤ → ⊥
-//│       {ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str), δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
-//│         {δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
-//│           {ζ ≥ ({δ ≤ Int, ε ≤ Int} ⟹ Int) ∧ ({δ ≤ Str, ε ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
+//│   ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ ⊤ → ⊤ → ⊥
+//│     ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ ¬Str), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ ≤ Int → ⊤ → ⊥
+//│       {δ ≤ ¬({ε ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, ζ ≥ Str} ⟹ ¬Str), ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str), ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
+//│         {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str), ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
+//│           {ε ≤ ¬({δ ≤ Int, ζ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str, ζ ≥ Str} ⟹ ¬Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
 //│             δ → ε → ζ ≤ Int → ⊤ → ⊥
 //│               ε → ζ ≤ ⊤ → ⊥
 //│                 ⊤ ≤ ε
@@ -260,7 +260,7 @@ fun fooI(a, b) =
     Int then (b as Int)
     Str then (b as Str)
   1
-//│ fooI: ∀α, β. {β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str} ⟹ ¬Str)} ⟹ α → β → Int
+//│ fooI: ∀α, β. {α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str} ⟹ ¬Str), β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str} ⟹ ¬Str)} ⟹ α → β → Int
 
 fooI(1, 2)
 //│ Int

@@ -1,5 +1,6 @@
 package hkmc2.ctml.parser
 
+import hkmc2.ctml.config.config
 import hkmc2.ctml.types.*
 import hkmc2.semantics.DefineVar
 import hkmc2.semantics.Elem
@@ -62,7 +63,15 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
       val else_ = parseExpr(mlElse)
       EApp(EApp(EApp(EVar("_if_"), condition), then_), else_)
     case Term.IfLike(_, IfLikeForm.ReturningIf, mlSplit) =>
-      parseSplit(mlSplit)
+      val body = parseSplit(mlSplit)
+      mlSplit match
+        case SimpleSplit.Cons(Head.Match(scrutinee, _, _), _) if config.wrapIfs =>
+          // Rebinding the scrutinee gives context join a non-expansive enclosing lambda and
+          // refines its occurrences throughout the split. A leading UCS let already does this.
+          val name = scrutinee.sym.nme
+          EApp(ELam(name, body), EVar(name))
+        case _ =>
+          body
     case _ =>
       throw new ParseError(mlExpr)
 

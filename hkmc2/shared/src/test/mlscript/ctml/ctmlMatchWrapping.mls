@@ -1,0 +1,174 @@
+:ctml
+
+:ctml-cfg error-absurd-constred
+
+val value: Int | Str
+//│ value: Int ∨ Str
+
+val scrutinee: Int
+//│ scrutinee: Int
+
+// A variable scrutinee is bound before matching, so either member of its union type is accepted.
+
+if value is Int then 1 else "s"
+//│ Int ∨ Str
+
+// Both branches refine occurrences of the scrutinee through the new binding.
+
+if value is Int then value + 1 else value ++ "!"
+//│ Int ∨ Str
+
+// UCS supplies the binding for a non-variable scrutinee.
+
+if (value as Int | Str) is Int then 1 else "s"
+//│ Int ∨ Str
+
+// A split with several patterns shares one binding of its scrutinee.
+
+if value is
+  Int then value + 1
+  Str then value ++ "!"
+//│ Int ∨ Str
+
+// Matches without an else branch still require an exhaustive pattern.
+
+if int is Int then int + 1
+//│ Int
+
+:te
+if value is Int then value + 1
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → α.
+//│ Typing error tree:
+//│   Int → Int ≤ (Int ∨ Str) → α
+//│     Int ∨ Str ≤ Int
+//│       Str ≤ Int
+
+// An operation incompatible with the selected pattern is rejected.
+
+:te
+if value is Int then value ++ "!" else value
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ¬({β ≥ α} ⟹ Int), β ≥ {α ≤ ¬Int} ⟹ α} ⟹ α → β ≤ (Int ∨ Str) → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ¬({β ≥ α} ⟹ Int), β ≥ {α ≤ ¬Int} ⟹ α} ⟹ α → β ≤ (Int ∨ Str) → γ
+//│     ∀α, β. {α ≤ ¬({β ≥ α} ⟹ Int), β ≥ {α ≤ ¬Int} ⟹ α} ⟹ α → β ≤ Int → γ
+//│       {δ ≤ ¬({ε ≥ δ} ⟹ Int), ε ≥ {δ ≤ ¬Int} ⟹ δ} ⟹ δ → ε ≤ Int → γ
+//│         {ε ≥ {δ ≤ ¬Int} ⟹ δ} ⟹ δ → ε ≤ Int → γ
+//│           δ → ε ≤ Int → γ
+//│             Int ≤ δ
+//│               Int ≤ ¬Int
+
+// A nested conditional rebinds the same scrutinee without capturing other variables.
+
+if value is Int then (if value is Nat then "nat" else value + 1) else value ++ "!"
+//│ Str ∨ Int
+
+// A branch may shadow the scrutinee with a local variable.
+
+if value is Int then
+  let value = "shadow"
+  value ++ "!"
+else value
+//│ Str
+
+// Disabling wrapping exposes the variable's union type directly to the branch check.
+
+:ctml-cfg no-wrap-ifs
+
+:te
+if value is Int then 1 else "s"
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ∨ Str ≤ Int.
+//│ Typing error tree:
+//│   Int ∨ Str ≤ Int
+//│     Str ≤ Int
+
+// UCS bindings remain present with wrapping disabled.
+
+if (value as Int | Str) is Int then 1 else "s"
+//│ Int ∨ Str
+
+:ctml-cfg wrap-ifs
+
+if value is Int then 1 else "s"
+//│ Int ∨ Str
+
+// Inference traces distinguish the parser's binding, the UCS binding, and an unwrapped match.
+
+:ctml-dbg infer depth 0
+
+if scrutinee is Int then 1
+//│ ...
+//│ infer EApp(ELam(scrutinee,EMatch(EVar(scrutinee),Int,EVar(int),None)),EVar(scrutinee))
+//│ ...
+//│ OK 96 ⇝ eff 96 ≥ Int, 96 ≥ Int, 96 flex (1)
+//│ ...
+//│ LEVEL CLAUSES (1) 96 OUT 96 ≥ Int, 96 flex (1)
+//│ ...
+//│ LEVEL UNWRAP 96 OUT ∅
+//│ ...
+//│ LEVEL SIMPLIFY TYPE 96 OUT ∅
+//│ ...
+//│ LEVEL WRAP TYPE 96
+//│ ...
+//│ LEVEL SIMPLIFY Int OUT ∅
+//│ ...
+//│ LEVEL RESULT Int
+//│ Int
+
+if 1 is Int then 1
+//│ ...
+//│ infer EApp(ELam(scrut,EMatch(EVar(scrut),Int,EVar(int),None)),EVar(int))
+//│ ...
+//│ OK 98 ⇝ eff 98 ≥ Int, 98 ≥ Int, 98 flex (1)
+//│ ...
+//│ LEVEL CLAUSES (1) 98 OUT 98 ≥ Int, 98 flex (1)
+//│ ...
+//│ LEVEL UNWRAP 98 OUT ∅
+//│ ...
+//│ LEVEL SIMPLIFY TYPE 98 OUT ∅
+//│ ...
+//│ LEVEL WRAP TYPE 98
+//│ ...
+//│ LEVEL SIMPLIFY Int OUT ∅
+//│ ...
+//│ LEVEL RESULT Int
+//│ Int
+
+:ctml-cfg no-wrap-ifs
+
+if scrutinee is Int then 1
+//│ ...
+//│ infer EMatch(EVar(scrutinee),Int,EVar(int),None)
+//│ ...
+//│ OK Int ⇝ ∅
+//│ ...
+//│ LEVEL CLAUSES (1) Int OUT ∅
+//│ ...
+//│ LEVEL UNWRAP Int OUT ∅
+//│ ...
+//│ LEVEL SIMPLIFY TYPE Int OUT ∅
+//│ ...
+//│ LEVEL WRAP TYPE Int
+//│ ...
+//│ LEVEL SIMPLIFY Int OUT ∅
+//│ ...
+//│ LEVEL RESULT Int
+//│ Int
+
+if 1 is Int then 1
+//│ ...
+//│ infer EApp(ELam(scrut,EMatch(EVar(scrut),Int,EVar(int),None)),EVar(int))
+//│ ...
+//│ OK 100 ⇝ eff 100 ≥ Int, 100 ≥ Int, 100 flex (1)
+//│ ...
+//│ LEVEL CLAUSES (1) 100 OUT 100 ≥ Int, 100 flex (1)
+//│ ...
+//│ LEVEL UNWRAP 100 OUT ∅
+//│ ...
+//│ LEVEL SIMPLIFY TYPE 100 OUT ∅
+//│ ...
+//│ LEVEL WRAP TYPE 100
+//│ ...
+//│ LEVEL SIMPLIFY Int OUT ∅
+//│ ...
+//│ LEVEL RESULT Int
+//│ Int

@@ -13,7 +13,7 @@ val int_or_string: Int | Str
 fun g1(a) =
   let x = if a is Int then 1 else "s"
   if a is Int then x + 1 else x ++ "!"
-//│ g1: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, β ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ
+//│ g1: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)) ∨ (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ
 
 g1(1)
 //│ Int
@@ -76,7 +76,7 @@ fun g4(a, b) =
   if a is
     Int then (if b is Int then a + b else a)
     else (if b is Str then b else "none")
-//│ g4: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str))), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬Int) ∨ ¬({β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({α ≤ ¬Int, β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str)} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))} ⟹ α → β → γ
+//│ g4: ∀α, β, γ, δ. {γ ≥ α, α ≤ ¬({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), δ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), δ ≥ ({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)) ∧ ({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), γ ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)), β ≤ ¬({γ ≤ Int, δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({γ ≤ ¬Int, δ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(Str ∨ ¬({δ ≥ Str} ⟹ Str))), γ ≤ ¬({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), δ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int)} ⟹ α → β → (δ ∨ (({β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ γ)) ∧ ({β ≤ Str ∨ ¬({δ ≥ Str} ⟹ Str), γ ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))))
 
 g4(1, 2)
 //│ Int
@@ -94,7 +94,7 @@ g4("Hello", 1)
 // argument of the scrutinee.
 
 fun g5(a, b) = if a is Int then b + 1 else b ++ "!"
-//│ g5: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, β ≤ Str} ⟹ Str)} ⟹ α → β → γ
+//│ g5: ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({β ≤ Str, α ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → γ
 
 g5(1, 1)
 //│ Int
@@ -158,7 +158,7 @@ g5(int_or_string, "World")
 // A parameter used in one branch only is not bounded by the other branch.
 
 fun g6(a, b) = if a is Int then (b as Int) else b
-//│ g6: ∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ β)} ⟹ α → β → γ
+//│ g6: ∀α, β, γ. {α ≤ ¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int), γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ β), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥)} ⟹ α → β → γ
 
 g6("Hello", "World")
 //│ Str
@@ -183,7 +183,7 @@ g6(1, "World")
 // Tuples
 
 fun g7(a) = if a is Int then (a, "int") else (a, 0)
-//│ g7: ∀α, β. {β ≥ ({α ≤ Int} ⟹ ⟨α, Str⟩) ∧ ({α ≤ ¬Int} ⟹ ⟨α, Int⟩), α ≤ ¬({β ≥ ⟨α, Str⟩} ⟹ ¬Int) ∨ ¬({β ≥ ⟨α, Int⟩} ⟹ Int)} ⟹ α → β
+//│ g7: ∀α, β, γ. {γ ≤ ¬({β ≥ ⟨γ, Str⟩} ⟹ ¬Int) ∨ ¬({β ≥ ⟨γ, Int⟩} ⟹ Int), α ≤ ¬({β ≥ ⟨γ, Str⟩} ⟹ ¬Int) ∨ ¬({β ≥ ⟨γ, Int⟩} ⟹ Int), γ ≥ α, β ≥ ({γ ≤ Int} ⟹ ⟨γ, Str⟩) ∧ ({γ ≤ ¬Int} ⟹ ⟨γ, Int⟩)} ⟹ α → β
 
 g7(1)
 //│ ⟨Int, Str⟩
@@ -196,10 +196,10 @@ g7("Hello")
 // The result of a flow function applied to the scrutinee is refined by the match.
 
 fun pick(a) = if a is Int then 1 else "s"
-//│ pick: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
+//│ pick: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ α → β
 
 fun g8(a) = if a is Int then pick(a) + 1 else pick(a) ++ "!"
-//│ g8: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
+//│ g8: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ α → β
 
 g8(1)
 //│ Int
@@ -210,7 +210,7 @@ g8("Hello")
 // The result of a flow function applied to another value is not.
 
 fun g9(a, b) = if a is Int then pick(b) + 1 else 0
-//│ g9: ∀α, β. {β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β → (({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+//│ g9: ∀α, β, γ. {α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥)} ⟹ α → β → γ
 
 g9(1, 2)
 //│ Int
@@ -223,15 +223,15 @@ g9(1, "World")
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
 //│ Typing error tree:
 //│   α ≤ Str → β
-//│     γ → (({δ ≤ Int, γ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int)) ≤ Str → β
+//│     γ → δ ≤ Str → β
 //│       Str ≤ γ
-//│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
-//│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
-//│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
+//│         Str ≤ (¬({ε ≤ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│           Str ≤ ¬({ε ≤ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)
+//│             Str ≤ ¬({ε ≤ Int} ⟹ ¬Int)
 //│               ¬Int ≤ ¬Str
 //│                 Str ≤ Int
-//│             Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
-//│               δ ≤ ¬Int
+//│             Str ≤ ¬({ε ≤ ¬Int} ⟹ ⊥)
+//│               ε ≤ ¬Int
 //│                 Int ≤ ¬Int
 
 // Scrutinees that are not variables

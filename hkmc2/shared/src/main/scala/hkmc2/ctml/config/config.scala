@@ -21,6 +21,9 @@ class Config:
   /** Whether to allow arbitrary (non-class) patterns or not. */
   var arbitraryPatterns = false
 
+  /** Whether to wrap conditional splits in a lambda application when UCS supplies no binding. */
+  var wrapIfs = true
+
   /** The current call depth. */
   var currentCallDepth = 0
 

@@ -1,0 +1,93 @@
+{
+  "revision": "239b7de93a40dd721541301728d72d4277fa25f0",
+  "tracked_diff": "",
+  "java": "java version \"25.0.1\" 2025-10-21 LTS\nJava(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)\nJava HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)\n",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "sources_sha256": {
+    "Wrapping.scala": "4d1077d3ea30e4d6a2f43ee7d711725bd20fd0659b98ea84424b6ba0373378c0",
+    "wrapping_bench.py": "f3bf4a82cdfdee75e9a4bb660d399fcc8ea78d35290296ae4062c9bd8a3b33dd"
+  },
+  "variants": [
+    "rebind",
+    "dummy",
+    "bubble"
+  ],
+  "cases": [
+    "sel-infer",
+    "siblings-8",
+    "nested-8"
+  ],
+  "warmups": 10,
+  "repeats": 10,
+  "timeout_seconds": 60.0,
+  "jvm_flags": [
+    "-Xss8m",
+    "-Xms128m",
+    "-Xmx1g"
+  ],
+  "cells": [
+    {
+      "variant": "rebind",
+      "case": "sel-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt, \u03b3 \u2265 ({\u03b2 \u2264 Int, \u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int), \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 1.2828710340000953
+    },
+    {
+      "variant": "dummy",
+      "case": "sel-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int), \u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt, \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6874341080000477
+    },
+    {
+      "variant": "bubble",
+      "case": "sel-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b2 \u2264 \u00ac({\u03b1 \u2264 Int, \u03b3 \u2265 ({\u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b2 \u2264 \u22a5} \u27f9 \u22a5), \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt, \u03b3 \u2265 Int} \u27f9 \u22a5), \u03b1 \u2264 \u00ac({\u03b2 \u2264 \u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt)} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Int} \u27f9 Int), \u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 \u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt)} \u27f9 Int \u2227 ({\u03b2 \u2264 \u22a5} \u27f9 \u22a5)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.622945120000054
+    },
+    {
+      "variant": "rebind",
+      "case": "siblings-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5, \u03b6, \u03b7, \u03b8, \u03b9. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b6 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b7 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b8 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b6 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b6 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b7 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b8 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b8 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b9 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b9 \u2265 Str} \u27f9 Int)), \u03b9 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, \u27e8\u03b6, \u27e8\u03b7, \u27e8\u03b8, \u27e8\u03b9, Int\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 39.959468249
+    },
+    {
+      "variant": "dummy",
+      "case": "siblings-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5, \u03b6, \u03b7, \u03b8, \u03b9. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b6 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b7 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b8 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b6 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b6 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b7 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b8 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b8 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b9 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b9 \u2265 Str} \u27f9 Int)), \u03b9 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, \u27e8\u03b6, \u27e8\u03b7, \u27e8\u03b8, \u27e8\u03b9, Int\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 16.482868791999977
+    },
+    {
+      "variant": "bubble",
+      "case": "siblings-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5, \u03b6, \u03b7, \u03b8, \u03b9. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b6 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b7 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b8 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b9 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (\u00ac({\u03b9 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b9 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b8 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b8 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b7 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b6 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b6 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, \u27e8\u03b6, \u27e8\u03b7, \u27e8\u03b8, \u27e8\u03b9, Int\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 9.026185579999947
+    },
+    {
+      "variant": "rebind",
+      "case": "nested-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 (((((((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((((((((((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (((((((((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 42.841519962999996
+    },
+    {
+      "variant": "dummy",
+      "case": "nested-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 1.1278068630000462
+    },
+    {
+      "variant": "bubble",
+      "case": "nested-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac(\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int, \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 1.1008861840000463
+    }
+  ]
+}

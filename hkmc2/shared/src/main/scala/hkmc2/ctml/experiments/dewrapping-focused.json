@@ -1,0 +1,970 @@
+{
+  "policies": {
+    "default": "wrap-ifs wrap-ucs-ifs",
+    "no-ctml": "no-wrap-ifs wrap-ucs-ifs",
+    "dewrap": "no-wrap-ifs dewrap-ucs-ifs"
+  },
+  "warmups": 3,
+  "repetitions": 5,
+  "sources": {
+    "g1": "(a) =>\n  let x = if a is Int then 1 else \"s\"\n  if a is Int then x + 1 else x ++ \"!\"",
+    "g4": "(a, b) =>\n  if a is\n    Int then (if b is Int then a + b else a)\n    else (if b is Str then b else \"none\")",
+    "g10": "(a) => if (a as Int | Str) is Int then 1 else 2",
+    "g11": "(a) => if pick(a) is Int then a + 1 else a ++ \"!\"",
+    "f6": "(a) => if a is Int then (if a is Str then a as Bool else a) else a",
+    "tbad": "(x, b) => if x is Int then b + 1 else 0",
+    "tsel": "(a, b) => if a is Int then (if b is Int then 1 else (a as Str)) else 1",
+    "siblings-8": "(a) => ((if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"), (if a is Int then 1 else \"s\"))",
+    "nested-8": "(a) => (if a is Int then (if a is Int then (if a is Int then (if a is Int then (if a is Int then (if a is Int then (if a is Int then (if a is Int then (1) else \"s\") else \"s\") else \"s\") else \"s\") else \"s\") else \"s\") else \"s\") else \"s\")"
+  },
+  "cells": [
+    {
+      "case": "g1",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 86.677434,
+          "type_nodes": 108
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 39.20829,
+          "type_nodes": 108
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 38.15494,
+          "type_nodes": 108
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 58.705117,
+          "type_nodes": 108
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 70.693231,
+          "type_nodes": 108
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)) ∨ (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ"
+      ]
+    },
+    {
+      "case": "g1",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 35.198246,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 45.683841,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 32.389677,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 66.316506,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 42.912228,
+          "type_nodes": 104
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, β ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ"
+      ]
+    },
+    {
+      "case": "g1",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 51.540658,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 48.510929,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 47.528239,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 69.701118,
+          "type_nodes": 104
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 48.324245,
+          "type_nodes": 104
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int, β ≤ Str} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ"
+      ]
+    },
+    {
+      "case": "g4",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 60.917471,
+          "type_nodes": 164
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 33.95347,
+          "type_nodes": 164
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 27.704643,
+          "type_nodes": 164
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 27.36736,
+          "type_nodes": 164
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 28.657711,
+          "type_nodes": 164
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ ⊥)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, α ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({β ≤ Str ∨ ¬({γ ≥ Str} ⟹ Str), α ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(Str ∨ ¬({γ ≥ Str} ⟹ Str)))} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "g4",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 88.944702,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 33.456894,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 26.1464,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 25.927581,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 25.8391,
+          "type_nodes": 179
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str))), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬Int) ∨ ¬({β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({α ≤ ¬Int, β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str)} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "g4",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 37.411862,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 36.0311,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 32.063282,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 31.974701,
+          "type_nodes": 179
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 44.155334,
+          "type_nodes": 179
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str))), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬Int) ∨ ¬({β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), γ ≥ ({α ≤ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({α ≤ ¬Int, β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str)} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "g10",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 4.787269,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 3.915323,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.995957,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 3.793944,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 3.939473,
+          "type_nodes": 5
+        }
+      ],
+      "output": [
+        "(Int ∨ Str) → Int"
+      ]
+    },
+    {
+      "case": "g10",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 13.905668,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 12.140082,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 11.915201,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 6.182702,
+          "type_nodes": 5
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.790358,
+          "type_nodes": 5
+        }
+      ],
+      "output": [
+        "(Int ∨ Str) → Int"
+      ]
+    },
+    {
+      "case": "g10",
+      "mode": "dewrap",
+      "expected": "failed",
+      "samples": [
+        {
+          "outcome": "failed",
+          "milliseconds": 2.293935,
+          "type_nodes": 0
+        },
+        {
+          "outcome": "failed",
+          "milliseconds": 0.95766,
+          "type_nodes": 0
+        },
+        {
+          "outcome": "failed",
+          "milliseconds": 3.124304,
+          "type_nodes": 0
+        },
+        {
+          "outcome": "failed",
+          "milliseconds": 1.207621,
+          "type_nodes": 0
+        },
+        {
+          "outcome": "failed",
+          "milliseconds": 0.393887,
+          "type_nodes": 0
+        }
+      ],
+      "output": [
+        "═══[TYPE ERROR] Cannot solve judgment Int ∨ Str ≤ Int.",
+        "Typing error tree:",
+        "  Int ∨ Str ≤ Int",
+        "    Str ≤ Int"
+      ]
+    },
+    {
+      "case": "g11",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 50.506249,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 45.007546,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 44.758485,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 75.969949,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 59.63158,
+          "type_nodes": 105
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ α → γ"
+      ]
+    },
+    {
+      "case": "g11",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 101.492621,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 96.918072,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 67.54097,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 111.337136,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 66.694265,
+          "type_nodes": 105
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ α → γ"
+      ]
+    },
+    {
+      "case": "g11",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 38.853056,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 38.039494,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 39.294406,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 64.612942,
+          "type_nodes": 105
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 41.968916,
+          "type_nodes": 105
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ α → γ"
+      ]
+    },
+    {
+      "case": "f6",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 4.653404,
+          "type_nodes": 13
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.532187,
+          "type_nodes": 13
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.301166,
+          "type_nodes": 13
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.446141,
+          "type_nodes": 13
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 3.921461,
+          "type_nodes": 13
+        }
+      ],
+      "output": [
+        "∀α. α → (({α ≤ Int} ⟹ α) ∧ ({α ≤ ¬Int} ⟹ α))"
+      ]
+    },
+    {
+      "case": "f6",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 7.181133,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.412698,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.203802,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.67784,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.379551,
+          "type_nodes": 30
+        }
+      ],
+      "output": [
+        "∀α, β. {β ≥ ({α ≤ (¬({β ≥ Bool} ⟹ ¬Str) ∨ ¬({β ≥ α} ⟹ ⊥)) ∧ Int} ⟹ α) ∧ ({α ≤ ¬Int} ⟹ α)} ⟹ α → β"
+      ]
+    },
+    {
+      "case": "f6",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 5.6622,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 6.587005,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.782257,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.922353,
+          "type_nodes": 30
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 7.701607,
+          "type_nodes": 30
+        }
+      ],
+      "output": [
+        "∀α, β. {β ≥ ({α ≤ (¬({β ≥ Bool} ⟹ ¬Str) ∨ ¬({β ≥ α} ⟹ ⊥)) ∧ Int} ⟹ α) ∧ ({α ≤ ¬Int} ⟹ α)} ⟹ α → β"
+      ]
+    },
+    {
+      "case": "tbad",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 16.992675,
+          "type_nodes": 49
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 12.456534,
+          "type_nodes": 49
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 6.632742,
+          "type_nodes": 49
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 14.346023,
+          "type_nodes": 49
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 17.797545,
+          "type_nodes": 49
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥)} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "tbad",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 5.700363,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.393288,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.221087,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.036883,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.166085,
+          "type_nodes": 45
+        }
+      ],
+      "output": [
+        "∀α, β. {β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β → (({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))"
+      ]
+    },
+    {
+      "case": "tbad",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 5.620965,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.526323,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 5.00412,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.434863,
+          "type_nodes": 45
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 4.648076,
+          "type_nodes": 45
+        }
+      ],
+      "output": [
+        "∀α, β. {β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥), α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β → (({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))"
+      ]
+    },
+    {
+      "case": "tsel",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 37.6207,
+          "type_nodes": 193
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 35.03871,
+          "type_nodes": 193
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 32.559628,
+          "type_nodes": 193
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 33.35686,
+          "type_nodes": 193
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 33.529241,
+          "type_nodes": 193
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥)} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "tsel",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 32.215601,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 31.828224,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 29.602281,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 27.750147,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 31.780306,
+          "type_nodes": 199
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "tsel",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 54.637749,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 31.848534,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 30.003908,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 28.841487,
+          "type_nodes": 199
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 48.298043,
+          "type_nodes": 199
+        }
+      ],
+      "output": [
+        "∀α, β, γ. {β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ"
+      ]
+    },
+    {
+      "case": "siblings-8",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 2113.266014,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 2089.976219,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 1928.20309,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 2082.346729,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 1956.848956,
+          "type_nodes": 227
+        }
+      ],
+      "output": [
+        "∀α, β, γ, δ, ε, ζ, η, θ, ι. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), δ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ε ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ζ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), η ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), θ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (((((((¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int))) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int))) ∧ (¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ Int))) ∧ (¬({ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ζ ≥ Str} ⟹ Int))) ∧ (¬({η ≥ Int} ⟹ ¬Int) ∨ ¬({η ≥ Str} ⟹ Int))) ∧ (¬({θ ≥ Int} ⟹ ¬Int) ∨ ¬({θ ≥ Str} ⟹ Int))) ∧ (¬({ι ≥ Int} ⟹ ¬Int) ∨ ¬({ι ≥ Str} ⟹ Int)), ι ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ α → ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨η, ⟨θ, ι⟩⟩⟩⟩⟩⟩⟩"
+      ]
+    },
+    {
+      "case": "siblings-8",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 428.215806,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 428.27797,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 429.857904,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 430.042439,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 424.2247,
+          "type_nodes": 227
+        }
+      ],
+      "output": [
+        "∀α, β, γ, δ, ε, ζ, η, θ, ι. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), δ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ε ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ζ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), η ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), θ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ι ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({ι ≥ Int} ⟹ ¬Int) ∨ ¬({ι ≥ Str} ⟹ Int)) ∧ (¬({θ ≥ Int} ⟹ ¬Int) ∨ ¬({θ ≥ Str} ⟹ Int)) ∧ (¬({η ≥ Int} ⟹ ¬Int) ∨ ¬({η ≥ Str} ⟹ Int)) ∧ (¬({ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ζ ≥ Str} ⟹ Int)) ∧ (¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ Int)) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)) ∧ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int))} ⟹ α → ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨η, ⟨θ, ι⟩⟩⟩⟩⟩⟩⟩"
+      ]
+    },
+    {
+      "case": "siblings-8",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 413.572427,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 402.823885,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 405.227667,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 401.572102,
+          "type_nodes": 227
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 412.512053,
+          "type_nodes": 227
+        }
+      ],
+      "output": [
+        "∀α, β, γ, δ, ε, ζ, η, θ, ι. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), δ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ε ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ζ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), η ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), θ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), ι ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({ι ≥ Int} ⟹ ¬Int) ∨ ¬({ι ≥ Str} ⟹ Int)) ∧ (¬({θ ≥ Int} ⟹ ¬Int) ∨ ¬({θ ≥ Str} ⟹ Int)) ∧ (¬({η ≥ Int} ⟹ ¬Int) ∨ ¬({η ≥ Str} ⟹ Int)) ∧ (¬({ζ ≥ Int} ⟹ ¬Int) ∨ ¬({ζ ≥ Str} ⟹ Int)) ∧ (¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ Int)) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)) ∧ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int))} ⟹ α → ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨η, ⟨θ, ι⟩⟩⟩⟩⟩⟩⟩"
+      ]
+    },
+    {
+      "case": "nested-8",
+      "mode": "default",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 2468.208253,
+          "type_nodes": 221
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 2367.210529,
+          "type_nodes": 221
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 2354.075962,
+          "type_nodes": 221
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 2370.438796,
+          "type_nodes": 221
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 2371.229569,
+          "type_nodes": 221
+        }
+      ],
+      "output": [
+        "∀α, β. {α ≤ ¬({β ≥ {α ≤ (((((((((((¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int} ⟹ Int ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ ¬((((((((((((((¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int)) ∨ ¬({β ≥ Str} ⟹ Int), β ≥ ({α ≤ (((((((((((((¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int} ⟹ Int ∧ ({α ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ α → β"
+      ]
+    },
+    {
+      "case": "nested-8",
+      "mode": "no-ctml",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 20.809163,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 18.299191,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 19.116192,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 37.019598,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 43.791201,
+          "type_nodes": 110
+        }
+      ],
+      "output": [
+        "∀α, β. {β ≥ ({α ≤ (¬({β ≥ Int ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int))) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int, α ≤ ¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ Int ∧ ({α ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ {α ≤ ¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ Int ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int)) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β"
+      ]
+    },
+    {
+      "case": "nested-8",
+      "mode": "dewrap",
+      "expected": "ok",
+      "samples": [
+        {
+          "outcome": "ok",
+          "milliseconds": 20.729525,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 18.600439,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 18.803698,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 17.499257,
+          "type_nodes": 110
+        },
+        {
+          "outcome": "ok",
+          "milliseconds": 17.809742,
+          "type_nodes": 110
+        }
+      ],
+      "output": [
+        "∀α, β. {β ≥ ({α ≤ (¬({β ≥ Int ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int))) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int, α ≤ ¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ Int ∧ ({α ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ {α ≤ ¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ Int ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ⊥) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ Int)) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β"
+      ]
+    }
+  ]
+}

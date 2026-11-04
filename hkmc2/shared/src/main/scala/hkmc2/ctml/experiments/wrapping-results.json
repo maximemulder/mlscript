@@ -1,0 +1,841 @@
+{
+  "revision": "239b7de93a40dd721541301728d72d4277fa25f0",
+  "tracked_diff": "",
+  "java": "java version \"25.0.1\" 2025-10-21 LTS\nJava(TM) SE Runtime Environment (build 25.0.1+8-LTS-27)\nJava HotSpot(TM) 64-Bit Server VM (build 25.0.1+8-LTS-27, mixed mode, sharing)\n",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "sources_sha256": {
+    "Wrapping.scala": "20fdc3f9d6f7e6a8b32fc9e4123bfb519468d1033b72553d04b3f1af031e662b",
+    "wrapping_bench.py": "f3bf4a82cdfdee75e9a4bb660d399fcc8ea78d35290296ae4062c9bd8a3b33dd"
+  },
+  "variants": [
+    "bubble",
+    "dummy",
+    "rebind"
+  ],
+  "cases": [
+    "flow-infer",
+    "flow-then",
+    "flow-else",
+    "flow-other",
+    "flow-wrong",
+    "flow-overload",
+    "flow-union",
+    "bad-infer",
+    "bad-honest-then",
+    "bad-honest-else",
+    "bad-dishonest",
+    "sel-infer",
+    "sel-then",
+    "sel-else",
+    "sel-dishonest",
+    "foo-infer",
+    "foo-then",
+    "foo-else",
+    "foo-dishonest",
+    "foo-overload",
+    "foo2-infer",
+    "foo2-then",
+    "foo2-else",
+    "foo2-dishonest",
+    "foo2-independent-unions",
+    "let-polymorphic",
+    "concrete-union",
+    "capture",
+    "capture-then",
+    "siblings-1",
+    "siblings-2",
+    "siblings-4",
+    "siblings-8",
+    "nested-1",
+    "nested-2",
+    "nested-4",
+    "nested-8"
+  ],
+  "warmups": 5,
+  "repeats": 7,
+  "timeout_seconds": 30,
+  "jvm_flags": [
+    "-Xss8m",
+    "-Xms128m",
+    "-Xmx1g"
+  ],
+  "cells": [
+    {
+      "variant": "bubble",
+      "case": "flow-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.9603436610000244
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.972568856999942
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.6084609299998647
+    },
+    {
+      "variant": "bubble",
+      "case": "flow-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5370923630000561
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.4713855190000231
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5817116480000095
+    },
+    {
+      "variant": "bubble",
+      "case": "flow-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.5602142950001507
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.5428486549999434
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.6581037339999511
+    },
+    {
+      "variant": "bubble",
+      "case": "flow-other",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.5764075590000175
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-other",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.5643742240001757
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-other",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.670627272000047
+    },
+    {
+      "variant": "bubble",
+      "case": "flow-wrong",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Int \u2192 Str.\nTyping error tree:\n  \u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Int \u2192 Str\n    {\u03b3 \u2264 \u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int), \u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n      {\u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n        \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n          \u03b4 \u2264 Str\n            (({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str)) \u2228 Int \u2264 Str\n              ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str) \u2264 Str\n                {\u03b3 \u2264 Int} \u27f9 Int \u2264 Str\n                  Int \u2264 Str\n                {\u03b3 \u2264 \u00acInt} \u27f9 Str \u2264 Str\n                  \u03b3 \u2264 \u00acInt\n                    Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.4922555839998495
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-wrong",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Int \u2192 Str.\nTyping error tree:\n  \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Int \u2192 Str\n    {\u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2264 \u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)} \u27f9 \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n      {\u03b3 \u2264 \u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)} \u27f9 \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n        \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n          \u03b4 \u2264 Str\n            (({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str)) \u2228 Int \u2264 Str\n              ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str) \u2264 Str\n                {\u03b3 \u2264 Int} \u27f9 Int \u2264 Str\n                  Int \u2264 Str\n                {\u03b3 \u2264 \u00acInt} \u27f9 Str \u2264 Str\n                  \u03b3 \u2264 \u00acInt\n                    Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.5722572149998086
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-wrong",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Int \u2192 Str.\nTyping error tree:\n  \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Int \u2192 Str\n    {\u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2264 \u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)} \u27f9 \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n      {\u03b3 \u2264 \u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)} \u27f9 \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n        \u03b3 \u2192 \u03b4 \u2264 Int \u2192 Str\n          \u03b4 \u2264 Str\n            (({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str)) \u2228 Int \u2264 Str\n              ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u00acInt} \u27f9 Str) \u2264 Str\n                {\u03b3 \u2264 Int} \u27f9 Int \u2264 Str\n                  Int \u2264 Str\n                {\u03b3 \u2264 \u00acInt} \u27f9 Str \u2264 Str\n                  \u03b3 \u2264 \u00acInt\n                    Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.5628454089999195
+    },
+    {
+      "variant": "bubble",
+      "case": "flow-overload",
+      "returncode": 0,
+      "diagnostic": "(Int \u2192 Int) \u2227 (Str \u2192 Str)\n",
+      "wall_seconds": 0.5597308139999768
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-overload",
+      "returncode": 0,
+      "diagnostic": "(Int \u2192 Int) \u2227 (Str \u2192 Str)\n",
+      "wall_seconds": 0.514988712999866
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-overload",
+      "returncode": 0,
+      "diagnostic": "(Int \u2192 Int) \u2227 (Str \u2192 Str)\n",
+      "wall_seconds": 0.5280935129999307
+    },
+    {
+      "variant": "bubble",
+      "case": "flow-union",
+      "returncode": 0,
+      "diagnostic": "Int \u2228 Str\n",
+      "wall_seconds": 0.6600292840000748
+    },
+    {
+      "variant": "dummy",
+      "case": "flow-union",
+      "returncode": 0,
+      "diagnostic": "Int \u2228 Str\n",
+      "wall_seconds": 0.6055925789999037
+    },
+    {
+      "variant": "rebind",
+      "case": "flow-union",
+      "returncode": 0,
+      "diagnostic": "Int \u2228 Str\n",
+      "wall_seconds": 0.6861719760001961
+    },
+    {
+      "variant": "bubble",
+      "case": "bad-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5), \u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt} \u27f9 \u03b1 \u2192 \u03b2 \u2192 (({\u03b1 \u2264 Int, \u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int))\n",
+      "wall_seconds": 0.7062461159998747
+    },
+    {
+      "variant": "dummy",
+      "case": "bad-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int), \u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt, \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.5921331439999449
+    },
+    {
+      "variant": "rebind",
+      "case": "bad-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt, \u03b3 \u2265 ({\u03b2 \u2264 Int, \u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int), \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6711867459998757
+    },
+    {
+      "variant": "bubble",
+      "case": "bad-honest-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6268612979999943
+    },
+    {
+      "variant": "dummy",
+      "case": "bad-honest-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5986707560000468
+    },
+    {
+      "variant": "rebind",
+      "case": "bad-honest-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6047158900000795
+    },
+    {
+      "variant": "bubble",
+      "case": "bad-honest-else",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.500823814999876
+    },
+    {
+      "variant": "dummy",
+      "case": "bad-honest-else",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.677877879000107
+    },
+    {
+      "variant": "rebind",
+      "case": "bad-honest-else",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5147269259998666
+    },
+    {
+      "variant": "bubble",
+      "case": "bad-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Str \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Str \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Str \u2192 \u03b2\n      Str \u2264 \u03b3\n        Str \u2264 (\u00ac({\u03b5 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt} \u27f9 \u22a5)) \u2227 Int\n          Str \u2264 \u00ac({\u03b5 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt} \u27f9 \u22a5)\n            Str \u2264 \u00ac({\u03b5 \u2264 Int} \u27f9 \u00acInt)\n              \u00acInt \u2264 \u00acStr\n                Str \u2264 Int\n            Str \u2264 \u00ac({\u03b5 \u2264 \u00acInt} \u27f9 \u22a5)\n              \u03b5 \u2264 \u00acInt\n                Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.43519180499993126
+    },
+    {
+      "variant": "dummy",
+      "case": "bad-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Str \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Str \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Str \u2192 \u03b2\n      Str \u2264 \u03b3\n        Str \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)) \u2227 Int\n          Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n            Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                \u00acInt \u2264 \u00acStr\n                  Str \u2264 Int\n            Str \u2264 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n              \u03b5 \u2264 \u00acInt\n                Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.575852242999872
+    },
+    {
+      "variant": "rebind",
+      "case": "bad-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Str \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Str \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Str \u2192 \u03b2\n      Str \u2264 \u03b3\n        Str \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)) \u2227 Int\n          Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n            Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                \u00acInt \u2264 \u00acStr\n                  Str \u2264 Int\n            Str \u2264 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n              \u03b5 \u2264 \u00acInt\n                Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.570084505000068
+    },
+    {
+      "variant": "bubble",
+      "case": "sel-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b2 \u2264 \u00ac({\u03b1 \u2264 Int, \u03b3 \u2265 ({\u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b2 \u2264 \u22a5} \u27f9 \u22a5), \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt, \u03b3 \u2265 Int} \u27f9 \u22a5), \u03b1 \u2264 \u00ac({\u03b2 \u2264 \u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt)} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Int} \u27f9 Int), \u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 \u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt)} \u27f9 Int \u2227 ({\u03b2 \u2264 \u22a5} \u27f9 \u22a5)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.5931164670000726
+    },
+    {
+      "variant": "dummy",
+      "case": "sel-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int), \u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt, \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6954703619999236
+    },
+    {
+      "variant": "rebind",
+      "case": "sel-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b1 \u2264 \u00ac({\u03b2 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00acInt, \u03b3 \u2265 ({\u03b2 \u2264 Int, \u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Int), \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 \u00acInt} \u27f9 \u22a5)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.7493947460000072
+    },
+    {
+      "variant": "bubble",
+      "case": "sel-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6016201950001232
+    },
+    {
+      "variant": "dummy",
+      "case": "sel-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6894303770000079
+    },
+    {
+      "variant": "rebind",
+      "case": "sel-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6665160430000014
+    },
+    {
+      "variant": "bubble",
+      "case": "sel-else",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6435459839999567
+    },
+    {
+      "variant": "dummy",
+      "case": "sel-else",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6191804620000312
+    },
+    {
+      "variant": "rebind",
+      "case": "sel-else",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6902873509998244
+    },
+    {
+      "variant": "bubble",
+      "case": "sel-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Bool \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Bool \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Bool \u2192 \u03b2\n      Bool \u2264 \u03b3\n        Bool \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u22a5} \u27f9 \u22a5), \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)) \u2227 Int\n          Bool \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u22a5} \u27f9 \u22a5), \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n            Bool \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u22a5} \u27f9 \u22a5), \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 ({\u03b3 \u2264 Int} \u27f9 Int) \u2227 ({\u03b3 \u2264 \u22a5} \u27f9 \u22a5), \u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acBool\n                {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acBool\n                  \u00acInt \u2264 \u00acBool\n                    Bool \u2264 Int\n            Bool \u2264 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n              \u03b5 \u2264 \u00acInt\n                Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.642947999000171
+    },
+    {
+      "variant": "dummy",
+      "case": "sel-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Bool \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Bool \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Bool \u2192 \u03b2\n      Bool \u2264 \u03b3\n        Bool \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)) \u2227 Int\n          Bool \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n            Bool \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acBool\n                \u00acInt \u2264 \u00acBool\n                  Bool \u2264 Int\n            Bool \u2264 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n              \u03b5 \u2264 \u00acInt\n                Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.6123997940001118
+    },
+    {
+      "variant": "rebind",
+      "case": "sel-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Bool \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Bool \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Bool \u2192 \u03b2\n      Bool \u2264 \u03b3\n        Bool \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)) \u2227 Int\n          Bool \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n            Bool \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acBool\n                \u00acInt \u2264 \u00acBool\n                  Bool \u2264 Int\n            Bool \u2264 \u00ac({\u03b5 \u2264 \u00acInt, \u03b4 \u2265 Int} \u27f9 \u22a5)\n              \u03b5 \u2264 \u00acInt\n                Int \u2264 \u00acInt\n",
+      "wall_seconds": 0.7410964489999969
+    },
+    {
+      "variant": "bubble",
+      "case": "foo-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00acStr)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.5713237410000147
+    },
+    {
+      "variant": "dummy",
+      "case": "foo-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00acStr), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.5407430860000204
+    },
+    {
+      "variant": "rebind",
+      "case": "foo-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00acStr), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.6723221510001167
+    },
+    {
+      "variant": "bubble",
+      "case": "foo-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.395744582999896
+    },
+    {
+      "variant": "dummy",
+      "case": "foo-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5228417020000506
+    },
+    {
+      "variant": "rebind",
+      "case": "foo-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5468022929999279
+    },
+    {
+      "variant": "bubble",
+      "case": "foo-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.436038531000122
+    },
+    {
+      "variant": "dummy",
+      "case": "foo-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.5341457480001282
+    },
+    {
+      "variant": "rebind",
+      "case": "foo-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.5686629379999886
+    },
+    {
+      "variant": "bubble",
+      "case": "foo-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt)), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str \u2227 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Bool \u2192 \u03b3.\nTyping error tree:\n  \u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt)), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str \u2227 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Bool \u2192 \u03b3\n    {\u03b4 \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt)), \u03b5 \u2265 ({\u03b4 \u2264 Int} \u27f9 Int) \u2227 ({\u03b4 \u2264 Str \u2227 \u00acInt} \u27f9 Str)} \u27f9 \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n      {\u03b5 \u2265 ({\u03b4 \u2264 Int} \u27f9 Int) \u2227 ({\u03b4 \u2264 Str \u2227 \u00acInt} \u27f9 Str)} \u27f9 \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n        \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n          Bool \u2264 \u03b4\n            Bool \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))\n              Bool \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt)\n                \u00acInt \u2264 \u00acBool\n                  Bool \u2264 Int\n              Bool \u2264 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))\n                \u00ac(Str \u2227 \u00acInt) \u2264 \u00acBool\n                  Bool \u2264 Str \u2227 \u00acInt\n                    Bool \u2264 Str\n",
+      "wall_seconds": 0.3955186450000383
+    },
+    {
+      "variant": "dummy",
+      "case": "foo-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str \u2227 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Bool \u2192 \u03b3.\nTyping error tree:\n  \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str \u2227 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Bool \u2192 \u03b3\n    {\u03b5 \u2265 ({\u03b4 \u2264 Int} \u27f9 Int) \u2227 ({\u03b4 \u2264 Str \u2227 \u00acInt} \u27f9 Str), \u03b4 \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n      {\u03b4 \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n        \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n          Bool \u2264 \u03b4\n            Bool \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))\n              Bool \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt)\n                \u00acInt \u2264 \u00acBool\n                  Bool \u2264 Int\n              Bool \u2264 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))\n                \u00ac(Str \u2227 \u00acInt) \u2264 \u00acBool\n                  Bool \u2264 Str \u2227 \u00acInt\n                    Bool \u2264 Str\n",
+      "wall_seconds": 0.5234845439999845
+    },
+    {
+      "variant": "rebind",
+      "case": "foo-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str \u2227 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Bool \u2192 \u03b3.\nTyping error tree:\n  \u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str \u2227 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b1 \u2192 \u03b2 \u2264 Bool \u2192 \u03b3\n    {\u03b5 \u2265 ({\u03b4 \u2264 Int} \u27f9 Int) \u2227 ({\u03b4 \u2264 Str \u2227 \u00acInt} \u27f9 Str), \u03b4 \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n      {\u03b4 \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))} \u27f9 \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n        \u03b4 \u2192 \u03b5 \u2264 Bool \u2192 \u03b3\n          Bool \u2264 \u03b4\n            Bool \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))\n              Bool \u2264 \u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt)\n                \u00acInt \u2264 \u00acBool\n                  Bool \u2264 Int\n              Bool \u2264 \u00ac({\u03b5 \u2265 Str} \u27f9 \u00ac(Str \u2227 \u00acInt))\n                \u00ac(Str \u2227 \u00acInt) \u2264 \u00acBool\n                  Bool \u2264 Str \u2227 \u00acInt\n                    Bool \u2264 Str\n",
+      "wall_seconds": 0.4714689239999643
+    },
+    {
+      "variant": "bubble",
+      "case": "foo-overload",
+      "returncode": 0,
+      "diagnostic": "(Int \u2192 Int) \u2227 (Str \u2192 Str)\n",
+      "wall_seconds": 0.47790995800005476
+    },
+    {
+      "variant": "dummy",
+      "case": "foo-overload",
+      "returncode": 0,
+      "diagnostic": "(Int \u2192 Int) \u2227 (Str \u2192 Str)\n",
+      "wall_seconds": 0.5837099400000625
+    },
+    {
+      "variant": "rebind",
+      "case": "foo-overload",
+      "returncode": 0,
+      "diagnostic": "(Int \u2192 Int) \u2227 (Str \u2192 Str)\n",
+      "wall_seconds": 0.5585396039998614
+    },
+    {
+      "variant": "bubble",
+      "case": "foo2-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b2 \u2264 \u00ac({\u03b1 \u2264 Int, \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 Str, \u03b3 \u2265 Str} \u27f9 \u00acStr), \u03b1 \u2264 \u00ac({\u03b2 \u2264 Int, \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2264 Str, \u03b3 \u2265 Str} \u27f9 \u00acStr), \u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str, \u03b2 \u2264 Str} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.5237805710000885
+    },
+    {
+      "variant": "dummy",
+      "case": "foo2-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b3 \u2265 ({\u03b1 \u2264 Int, \u03b2 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 Str, \u03b2 \u2264 Str} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2264 Int, \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2264 Str, \u03b3 \u2265 Str} \u27f9 \u00acStr), \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int, \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 Str, \u03b3 \u2265 Str} \u27f9 \u00acStr)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6761384060000637
+    },
+    {
+      "variant": "rebind",
+      "case": "foo2-infer",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b1 \u2264 \u00ac({\u03b2 \u2264 Int, \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2264 Str, \u03b3 \u2265 Str} \u27f9 \u00acStr), \u03b3 \u2265 ({\u03b2 \u2264 Int, \u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b2 \u2264 Str, \u03b1 \u2264 Str} \u27f9 Str), \u03b2 \u2264 \u00ac({\u03b1 \u2264 Int, \u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b1 \u2264 Str, \u03b3 \u2265 Str} \u27f9 \u00acStr)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6315935710001668
+    },
+    {
+      "variant": "bubble",
+      "case": "foo2-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6157259130000057
+    },
+    {
+      "variant": "dummy",
+      "case": "foo2-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.6235454549998849
+    },
+    {
+      "variant": "rebind",
+      "case": "foo2-then",
+      "returncode": 0,
+      "diagnostic": "Int\n",
+      "wall_seconds": 0.5841775510000389
+    },
+    {
+      "variant": "bubble",
+      "case": "foo2-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.585270145999857
+    },
+    {
+      "variant": "dummy",
+      "case": "foo2-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.6693544749998637
+    },
+    {
+      "variant": "rebind",
+      "case": "foo2-else",
+      "returncode": 0,
+      "diagnostic": "Str\n",
+      "wall_seconds": 0.6362695010000152
+    },
+    {
+      "variant": "bubble",
+      "case": "foo2-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Str \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Str \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Str \u2192 \u03b2\n      Str \u2264 \u03b3\n        Str \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n          Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n            Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                \u00acInt \u2264 \u00acStr\n                  Str \u2264 Int\n            Str \u2264 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n              \u03b5 \u2264 Str\n                Int \u2264 Str\n",
+      "wall_seconds": 0.5773147370000515
+    },
+    {
+      "variant": "dummy",
+      "case": "foo2-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Str \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Str \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Str \u2192 \u03b2\n      Str \u2264 \u03b3\n        Str \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n          Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n            Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                \u00acInt \u2264 \u00acStr\n                  Str \u2264 Int\n            Str \u2264 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n              \u03b5 \u2264 Str\n                Int \u2264 Str\n",
+      "wall_seconds": 0.630640072999995
+    },
+    {
+      "variant": "rebind",
+      "case": "foo2-dishonest",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 Str \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 Str \u2192 \u03b2\n    \u03b3 \u2192 \u03b4 \u2264 Str \u2192 \u03b2\n      Str \u2264 \u03b3\n        Str \u2264 (\u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n          Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n            Str \u2264 \u00ac({\u03b5 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n              {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                \u00acInt \u2264 \u00acStr\n                  Str \u2264 Int\n            Str \u2264 \u00ac({\u03b5 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n              \u03b5 \u2264 Str\n                Int \u2264 Str\n",
+      "wall_seconds": 0.7231238070000927
+    },
+    {
+      "variant": "bubble",
+      "case": "foo2-independent-unions",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 (Int \u2228 Str) \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 (Int \u2228 Str) \u2192 \u03b2\n    (\u03b3 \u2192 \u03b4) \u2228 (\u03b5 \u2192 \u03b6) \u2264 (Int \u2228 Str) \u2192 \u03b2\n      \u03b3 \u2192 \u03b4 \u2264 (Int \u2228 Str) \u2192 \u03b2\n        Int \u2228 Str \u2264 \u03b3\n          Int \u2228 Str \u2264 (\u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n            Str \u2264 (\u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n              Str \u2264 \u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n                Str \u2264 \u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n                  {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                    \u00acInt \u2264 \u00acStr\n                      Str \u2264 Int\n                Str \u2264 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n                  \u03b7 \u2264 Str\n                    Int \u2264 Str\n",
+      "wall_seconds": 0.5824051199999758
+    },
+    {
+      "variant": "dummy",
+      "case": "foo2-independent-unions",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 (Int \u2228 Str) \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 (Int \u2228 Str) \u2192 \u03b2\n    (\u03b3 \u2192 \u03b4) \u2228 (\u03b5 \u2192 \u03b6) \u2264 (Int \u2228 Str) \u2192 \u03b2\n      \u03b3 \u2192 \u03b4 \u2264 (Int \u2228 Str) \u2192 \u03b2\n        Int \u2228 Str \u2264 \u03b3\n          Int \u2228 Str \u2264 (\u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n            Str \u2264 (\u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n              Str \u2264 \u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n                Str \u2264 \u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n                  {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                    \u00acInt \u2264 \u00acStr\n                      Str \u2264 Int\n                Str \u2264 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n                  \u03b7 \u2264 Str\n                    Int \u2264 Str\n",
+      "wall_seconds": 0.6352469409998776
+    },
+    {
+      "variant": "rebind",
+      "case": "foo2-independent-unions",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment \u03b1 \u2264 (Int \u2228 Str) \u2192 \u03b2.\nTyping error tree:\n  \u03b1 \u2264 (Int \u2228 Str) \u2192 \u03b2\n    (\u03b3 \u2192 \u03b4) \u2228 (\u03b5 \u2192 \u03b6) \u2264 (Int \u2228 Str) \u2192 \u03b2\n      \u03b3 \u2192 \u03b4 \u2264 (Int \u2228 Str) \u2192 \u03b2\n        Int \u2228 Str \u2264 \u03b3\n          Int \u2228 Str \u2264 (\u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n            Str \u2264 (\u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)) \u2227 Int\n              Str \u2264 \u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n                Str \u2264 \u00ac({\u03b7 \u2264 Int, \u03b4 \u2265 Int} \u27f9 \u00acInt)\n                  {\u03b4 \u2265 Int} \u27f9 \u00acInt \u2264 \u00acStr\n                    \u00acInt \u2264 \u00acStr\n                      Str \u2264 Int\n                Str \u2264 \u00ac({\u03b7 \u2264 Str, \u03b4 \u2265 Str} \u27f9 \u00acStr)\n                  \u03b7 \u2264 Str\n                    Int \u2264 Str\n",
+      "wall_seconds": 0.6768637709999439
+    },
+    {
+      "variant": "bubble",
+      "case": "let-polymorphic",
+      "returncode": 0,
+      "diagnostic": "\u27e8Int, Str\u27e9\n",
+      "wall_seconds": 0.4185641770000075
+    },
+    {
+      "variant": "dummy",
+      "case": "let-polymorphic",
+      "returncode": 0,
+      "diagnostic": "\u27e8Int, Str\u27e9\n",
+      "wall_seconds": 0.4689777309999954
+    },
+    {
+      "variant": "rebind",
+      "case": "let-polymorphic",
+      "returncode": 0,
+      "diagnostic": "\u27e8Int, Str\u27e9\n",
+      "wall_seconds": 0.5566908110001805
+    },
+    {
+      "variant": "bubble",
+      "case": "concrete-union",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment Int \u2228 Str \u2264 Int.\nTyping error tree:\n  Int \u2228 Str \u2264 Int\n    Str \u2264 Int\n",
+      "wall_seconds": 0.24997561000009227
+    },
+    {
+      "variant": "dummy",
+      "case": "concrete-union",
+      "returncode": 0,
+      "diagnostic": "Cannot solve judgment Int \u2228 Str \u2264 Int.\nTyping error tree:\n  Int \u2228 Str \u2264 Int\n    Str \u2264 Int\n",
+      "wall_seconds": 0.23403001199994833
+    },
+    {
+      "variant": "rebind",
+      "case": "concrete-union",
+      "returncode": 0,
+      "diagnostic": "Int \u2228 Str\n",
+      "wall_seconds": 0.5395058449998942
+    },
+    {
+      "variant": "bubble",
+      "case": "capture",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b1 \u2264 \u00ac({\u03b3 \u2265 \u03b2} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 \u03b2) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.48805396600005224
+    },
+    {
+      "variant": "dummy",
+      "case": "capture",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 \u03b2) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b3 \u2265 \u03b2} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6250994090000859
+    },
+    {
+      "variant": "rebind",
+      "case": "capture",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b1 \u2264 \u00ac({\u03b3 \u2265 \u03b2} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 \u03b2) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2 \u2192 \u03b3\n",
+      "wall_seconds": 0.6091235999999753
+    },
+    {
+      "variant": "bubble",
+      "case": "capture-then",
+      "returncode": 0,
+      "diagnostic": "Bool\n",
+      "wall_seconds": 0.5003061509999043
+    },
+    {
+      "variant": "dummy",
+      "case": "capture-then",
+      "returncode": 0,
+      "diagnostic": "Bool\n",
+      "wall_seconds": 0.5581347729998924
+    },
+    {
+      "variant": "rebind",
+      "case": "capture-then",
+      "returncode": 0,
+      "diagnostic": "Bool\n",
+      "wall_seconds": 0.6020257249999759
+    },
+    {
+      "variant": "bubble",
+      "case": "siblings-1",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, Int\u27e9\n",
+      "wall_seconds": 0.43326352400004
+    },
+    {
+      "variant": "dummy",
+      "case": "siblings-1",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, Int\u27e9\n",
+      "wall_seconds": 0.4654870619999656
+    },
+    {
+      "variant": "rebind",
+      "case": "siblings-1",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, Int\u27e9\n",
+      "wall_seconds": 0.4441030770001362
+    },
+    {
+      "variant": "bubble",
+      "case": "siblings-2",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, Int\u27e9\u27e9\n",
+      "wall_seconds": 0.5119400680000581
+    },
+    {
+      "variant": "dummy",
+      "case": "siblings-2",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, Int\u27e9\u27e9\n",
+      "wall_seconds": 0.6305085609999423
+    },
+    {
+      "variant": "rebind",
+      "case": "siblings-2",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, Int\u27e9\u27e9\n",
+      "wall_seconds": 0.6520441000000119
+    },
+    {
+      "variant": "bubble",
+      "case": "siblings-4",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, Int\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 0.6629648269999961
+    },
+    {
+      "variant": "dummy",
+      "case": "siblings-4",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int)), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, Int\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 0.918886306000104
+    },
+    {
+      "variant": "rebind",
+      "case": "siblings-4",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int)), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, Int\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 1.185356024999919
+    },
+    {
+      "variant": "bubble",
+      "case": "siblings-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5, \u03b6, \u03b7, \u03b8, \u03b9. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b6 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b7 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b8 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b9 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (\u00ac({\u03b9 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b9 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b8 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b8 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b7 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b6 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b6 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, \u27e8\u03b6, \u27e8\u03b7, \u27e8\u03b8, \u27e8\u03b9, Int\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 5.970216565000101
+    },
+    {
+      "variant": "dummy",
+      "case": "siblings-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5, \u03b6, \u03b7, \u03b8, \u03b9. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b6 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b7 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b8 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b6 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b6 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b7 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b8 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b8 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b9 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b9 \u2265 Str} \u27f9 Int)), \u03b9 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, \u27e8\u03b6, \u27e8\u03b7, \u27e8\u03b8, \u27e8\u03b9, Int\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 10.711545159000025
+    },
+    {
+      "variant": "rebind",
+      "case": "siblings-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2, \u03b3, \u03b4, \u03b5, \u03b6, \u03b7, \u03b8, \u03b9. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b3 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b4 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b5 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b6 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b7 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b8 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 (((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 (\u00ac({\u03b3 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b3 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b4 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b4 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b5 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b5 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b6 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b6 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b7 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b7 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b8 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b8 \u2265 Str} \u27f9 Int))) \u2227 (\u00ac({\u03b9 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b9 \u2265 Str} \u27f9 Int)), \u03b9 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u27e8\u03b2, \u27e8\u03b3, \u27e8\u03b4, \u27e8\u03b5, \u27e8\u03b6, \u27e8\u03b7, \u27e8\u03b8, \u27e8\u03b9, Int\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\u27e9\n",
+      "wall_seconds": 25.215170902999944
+    },
+    {
+      "variant": "bubble",
+      "case": "nested-1",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.38908448600000156
+    },
+    {
+      "variant": "dummy",
+      "case": "nested-1",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.4789247890000752
+    },
+    {
+      "variant": "rebind",
+      "case": "nested-1",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 Int} \u27f9 Int) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.462757363000037
+    },
+    {
+      "variant": "bubble",
+      "case": "nested-2",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 ((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.5683906330000355
+    },
+    {
+      "variant": "dummy",
+      "case": "nested-2",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.5931791119999161
+    },
+    {
+      "variant": "rebind",
+      "case": "nested-2",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.5991770929999802
+    },
+    {
+      "variant": "bubble",
+      "case": "nested-4",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac(\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int, \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.7927139450000595
+    },
+    {
+      "variant": "dummy",
+      "case": "nested-4",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 0.8093255720000343
+    },
+    {
+      "variant": "rebind",
+      "case": "nested-4",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 (((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 1.4700184010000612
+    },
+    {
+      "variant": "bubble",
+      "case": "nested-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac(\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int))) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int, \u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str), \u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 1.0121480489999612
+    },
+    {
+      "variant": "dummy",
+      "case": "nested-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 \u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (\u00ac({\u03b2 \u2265 Int} \u27f9 \u22a5) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 1.0174151509997955
+    },
+    {
+      "variant": "rebind",
+      "case": "nested-8",
+      "returncode": 0,
+      "diagnostic": "\u2200\u03b1, \u03b2. {\u03b1 \u2264 \u00ac({\u03b2 \u2265 {\u03b1 \u2264 (((((((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u00ac((((((((((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int)) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int), \u03b2 \u2265 ({\u03b1 \u2264 (((((((((((((\u00ac({\u03b2 \u2265 Int} \u27f9 \u00acInt) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int) \u2228 \u00ac({\u03b2 \u2265 Str} \u27f9 Int)) \u2227 Int} \u27f9 Int \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)) \u2227 ({\u03b1 \u2264 \u00acInt} \u27f9 Str)} \u27f9 \u03b1 \u2192 \u03b2\n",
+      "wall_seconds": 27.10407654000005
+    }
+  ]
+}

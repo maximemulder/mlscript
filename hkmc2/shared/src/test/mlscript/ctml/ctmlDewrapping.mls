@@ -23,15 +23,13 @@ direct as (Int -> Str)
 //│   ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β ≤ Int → Str
 //│     {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Str), γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)} ⟹ γ → δ ≤ Int → Str
 //│       {γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)} ⟹ γ → δ ≤ Int → Str
-//│         γ → δ ≤ Int → Str
-//│           δ ≤ Str
-//│             (({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Str)) ∨ Int ≤ Str
-//│               ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Str) ≤ Str
-//│                 {γ ≤ Int} ⟹ Int ≤ Str
-//│                   Int ≤ Str
-//│                 {γ ≤ ¬Int} ⟹ Str ≤ Str
-//│                   γ ≤ ¬Int
-//│                     Int ≤ ¬Int
+//│         γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)
+//│           Int ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)
+//│             Int ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│               Int ≤ δ
+//│                 Int ≤ Str
+//│             Int ≤ ¬({δ ≥ Str} ⟹ Int)
+//│               Int ≤ ¬Int
 
 // A single-use UCS binding can be removed even when its argument is a computation.
 
@@ -60,15 +58,13 @@ computed as (Int -> Str)
 //│   ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β ≤ Int → Str
 //│     {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Str), γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)} ⟹ γ → δ ≤ Int → Str
 //│       {γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)} ⟹ γ → δ ≤ Int → Str
-//│         γ → δ ≤ Int → Str
-//│           δ ≤ Str
-//│             (({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Str)) ∨ Int ≤ Str
-//│               ({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Str) ≤ Str
-//│                 {γ ≤ Int} ⟹ Int ≤ Str
-//│                   Int ≤ Str
-//│                 {γ ≤ ¬Int} ⟹ Str ≤ Str
-//│                   γ ≤ ¬Int
-//│                     Int ≤ ¬Int
+//│         γ ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)
+//│           Int ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int)
+//│             Int ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│               Int ≤ δ
+//│                 Int ≤ Str
+//│             Int ≤ ¬({δ ≥ Str} ⟹ Int)
+//│               Int ≤ ¬Int
 
 // Removing a UCS binding exposes the ascribed concrete type instead of a flexible proxy.
 
@@ -103,7 +99,7 @@ if (1 as Int | Str) is Int then 1 else "s"
 fun multi(a) = if id(a) is
   Int then 1
   Str then "s"
-//│ multi: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
+//│ multi: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β
 
 multi(1) as Int
 //│ Int
@@ -113,20 +109,19 @@ multi("s") as Str
 
 :te
 multi(true)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ Bool → γ.
 //│ Typing error tree:
-//│   ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β ≤ Bool → γ
-//│     {δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str), ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
-//│       {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ δ → ε ≤ Bool → γ
-//│         δ → ε ≤ Bool → γ
-//│           Bool ≤ δ
-//│             Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
-//│               Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
-//│                 ¬Int ≤ ¬Bool
-//│                   Bool ≤ Int
-//│               Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
-//│                 ¬Str ≤ ¬Bool
-//│                   Bool ≤ Str
+//│   ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β ≤ Bool → γ
+//│     {ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str), δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)} ⟹ δ → ε ≤ Bool → γ
+//│       {δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)} ⟹ δ → ε ≤ Bool → γ
+//│         δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
+//│           Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
+//│             Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
+//│               ¬Int ≤ ¬Bool
+//│                 Bool ≤ Int
+//│             Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
+//│               ¬Str ≤ ¬Bool
+//│                 Bool ≤ Str
 
 // Shadowing in a branch remains local when an ascribed variable scrutinee is substituted.
 
@@ -139,7 +134,7 @@ shadow(1) as Str
 // A lambda application supplied by the user keeps its own inference boundary.
 
 fun explicit(a) = (u => (if a is Int then 1 else "s"))(unit)
-//│ explicit: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ α → β
+//│ explicit: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
 
 explicit(1) as Int
 //│ Int
@@ -152,7 +147,7 @@ explicit("s") as Str
 fun sourceLet(a) =
   let x = id(a)
   if x is Int then 1 else "s"
-//│ sourceLet: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)} ⟹ α → β
+//│ sourceLet: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
 
 sourceLet(1) as Int
 //│ Int
@@ -208,9 +203,9 @@ if id(1) is
 //│ ...
 //│ infer EApp(ELam(scrut,EMatch(EVar(scrut),Int,EVar(int),Some(EMatch(EVar(scrut),Str,EVar(string),None)))),EApp(EVar(id),EVar(int)))
 //│ ...
-//│ OK 96 ⇝ eff 98 ≤ 96, 98 ≤ 96, eff 96 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 96 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, eff 97 ≥ 94, 97 ≥ 94, eff 94 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 94 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), eff 98 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 98 ≥ Int, eff 98 ≥ ({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str), 98 ≥ ({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str), eff 97 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 97 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 98 flex (2), 97 flex (2), 96 flex (1), eff 95 ≤ 94, 95 ≤ 94, eff 94 ≥ Int, 94 ≥ Int, eff 95 ≥ Int, 95 ≥ Int, 95 flex (2), 94 flex (1)
+//│ OK 96 ⇝ eff 97 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 97 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), eff 94 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 94 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), eff 98 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 98 ≥ Int, eff 96 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 96 ≥ Int, eff 98 ≥ ({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str), 98 ≥ ({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str), eff 96 ≥ ({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str), 96 ≥ ({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str), eff 98 ≤ 96, 98 ≤ 96, eff 97 ≥ 94, 97 ≥ 94, 98 flex (2), 97 flex (2), 96 flex (1), eff 95 ≤ 94, 95 ≤ 94, eff 94 ≥ Int, 94 ≥ Int, eff 95 ≥ Int, 95 ≥ Int, 95 flex (2), 94 flex (1)
 //│ ...
-//│ LEVEL CLAUSES (1) 96 OUT 98 ≤ 96, 96 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 97 ≥ 94, 94 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 98 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 97 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 98 flex (2), 97 flex (2), 96 flex (1), 95 ≤ 94, 94 ≥ Int, 95 ≥ Int, 95 flex (2), 94 flex (1)
+//│ LEVEL CLAUSES (1) 96 OUT 97 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 94 ≤ ¬({98 ≥ Int} ⟹ ¬Int) ∨ ¬({98 ≥ Str} ⟹ ¬(Str ∧ ¬Int)), 98 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 96 ≥ (({97 ≤ Int} ⟹ Int) ∧ ({97 ≤ Str ∧ ¬Int} ⟹ Str)) ∨ Int, 98 ≤ 96, 97 ≥ 94, 98 flex (2), 97 flex (2), 96 flex (1), 95 ≤ 94, 94 ≥ Int, 95 ≥ Int, 95 flex (2), 94 flex (1)
 //│ ...
 //│ LEVEL UNWRAP 96 OUT ∅
 //│ ...

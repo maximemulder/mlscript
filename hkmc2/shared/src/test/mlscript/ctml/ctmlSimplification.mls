@@ -16,7 +16,7 @@ fun direct(a) = if a is Int then a + 1 else a
 :ctml-cfg wrap-ifs
 
 fun wrapped(a) = if a is Int then a + 1 else a
-//│ wrapped: ∀α, β. {β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β} ⟹ Int), α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ β → α
+//│ wrapped: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
 
 // Additional aliases compose without accumulating quantified parameters.
 
@@ -24,7 +24,7 @@ fun aliases(a) =
   let b = a
   let c = b
   if c is Int then c + 1 else c
-//│ aliases: ∀α, β. {β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β} ⟹ Int), α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ β → α
+//│ aliases: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
 
 wrapped(1)
 //│ Int
@@ -48,7 +48,7 @@ aliases(int_or_string)
 // subclass of the argument when its branch returns the argument unchanged.
 
 fun preserve(a) = if a is Int then a else "other"
-//│ preserve: ∀α, β. {β ≤ ¬({α ≥ β} ⟹ ¬Int) ∨ ¬({α ≥ Str} ⟹ Int), α ≥ ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ Str)} ⟹ β → α
+//│ preserve: ∀α, β. {α ≥ ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≥ β} ⟹ ¬Int) ∨ ¬({α ≥ Str} ⟹ Int)} ⟹ β → α
 
 preserve(nat) as Nat
 //│ Nat
@@ -61,13 +61,8 @@ preserve(true) as Int
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
 //│ Typing error tree:
 //│   α ≤ Int
-//│     (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ Str)) ∨ Str ≤ Int
-//│       ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ Str) ≤ Int
-//│         {β ≤ Int} ⟹ β ≤ Int
-//│           β ≤ Int
-//│             Bool ≤ Int
-//│         {β ≤ ¬Int} ⟹ Str ≤ Int
-//│           Str ≤ Int
+//│     Str ∨ (({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ Str)) ≤ Int
+//│       Str ≤ Int
 
 // Nested splits also keep only the scrutinee and result variables. A union with the result's
 // lower bound, and an intersection with the scrutinee's upper bound, are redundant.
@@ -77,7 +72,7 @@ fun classify(a) =
     Nat then "nat"
     Int then a + 1
     Str then a ++ "!"
-//│ classify: ∀α, β. {α ≤ ¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat))), β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ (¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str))} ⟹ α → β
+//│ classify: ∀α, β. {β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ (¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)), α ≤ ¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))} ⟹ α → β
 
 classify(nat)
 //│ Str
@@ -90,33 +85,32 @@ classify("hello")
 
 :te
 classify(true)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat))), β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ (¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str))} ⟹ α → β ≤ Bool → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ (¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)), α ≤ ¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))} ⟹ α → β ≤ Bool → γ.
 //│ Typing error tree:
-//│   ∀α, β. {α ≤ ¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat))), β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ (¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str))} ⟹ α → β ≤ Bool → γ
-//│     {δ ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat))), ε ≥ ({δ ≤ Nat} ⟹ Str) ∧ ({δ ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str))} ⟹ δ → ε ≤ Bool → γ
-//│       {ε ≥ ({δ ≤ Nat} ⟹ Str) ∧ ({δ ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str))} ⟹ δ → ε ≤ Bool → γ
-//│         δ → ε ≤ Bool → γ
-//│           Bool ≤ δ
-//│             Bool ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
-//│               Bool ≤ ¬({ε ≥ Str} ⟹ ¬Nat)
-//│                 ¬Nat ≤ ¬Bool
-//│                   Bool ≤ Nat
-//│               Bool ≤ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
-//│                 ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)) ≤ ¬Bool
-//│                   Bool ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)
-//│                     Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat
-//│                       Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
-//│                         ¬Int ≤ ¬Bool
-//│                           Bool ≤ Int
-//│                     Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat
-//│                       Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
-//│                         ¬Str ≤ ¬Bool
-//│                           Bool ≤ Str
+//│   ∀α, β. {β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ (¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)), α ≤ ¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ ¬((¬({β ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({β ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))} ⟹ α → β ≤ Bool → γ
+//│     {ε ≥ ({δ ≤ Nat} ⟹ Str) ∧ ({δ ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)} ⟹ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)), δ ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))} ⟹ δ → ε ≤ Bool → γ
+//│       {δ ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))} ⟹ δ → ε ≤ Bool → γ
+//│         δ ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
+//│           Bool ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
+//│             Bool ≤ ¬({ε ≥ Str} ⟹ ¬Nat)
+//│               ¬Nat ≤ ¬Bool
+//│                 Bool ≤ Nat
+//│             Bool ≤ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
+//│               ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)) ≤ ¬Bool
+//│                 Bool ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)
+//│                   Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat
+//│                     Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
+//│                       ¬Int ≤ ¬Bool
+//│                         Bool ≤ Int
+//│                   Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat
+//│                     Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
+//│                       ¬Str ≤ ¬Bool
+//│                         Bool ≤ Str
 
 // A variable used at both polarities must retain the connection to the function argument.
 
 fun apply(f, a) = if a is Int then f(a) else a
-//│ apply: ∀α, β, γ. {γ ≥ ({α ≤ β → γ, β ≤ Int} ⟹ ⊥) ∧ ({β ≤ ¬Int} ⟹ β), α ≤ ¬({β ≤ Int} ⟹ ¬(β → γ)) ∨ ¬({β ≤ ¬Int} ⟹ ⊥), β ≤ ¬({α ≤ β → γ} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int)} ⟹ α → β → γ
+//│ apply: ∀α, β, γ. {β ≤ ¬({α ≤ β → γ} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int), α ≤ ¬({β ≤ Int} ⟹ ¬(β → γ)) ∨ ¬({β ≤ ¬Int} ⟹ ⊥), γ ≥ ({α ≤ β → γ, β ≤ Int} ⟹ ⊥) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ α → β → γ
 
 apply((x) => x + 1, 1)
 //│ Int
@@ -131,5 +125,4 @@ apply((x) => x ++ "!", 1)
 //│   α ≤ Int → β
 //│     γ → δ ≤ Int → β
 //│       Int ≤ γ
-//│         Int ≤ ¬Int ∧ (¬({ε ≤ γ → δ} ⟹ ¬Int) ∨ ¬({δ ≥ γ} ⟹ Int))
-//│           Int ≤ ¬Int
+//│         Int ≤ ¬Int

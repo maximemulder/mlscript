@@ -13,7 +13,7 @@ val int_or_string: Int | Str
 // when `x` is an `Int` (`t_bad`).
 
 fun tbad(x, b) = if x is Int then b + 1 else 0
-//│ tbad: ∀α, β, γ. {α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥)} ⟹ α → β → γ
+//│ tbad: ∀α, β. {α ≤ ¬({β ≤ Int} ⟹ ¬Int) ∨ ¬Int, β ≤ ¬({α ≤ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int} ⟹ ⊥)} ⟹ α → β → (({β ≤ Int, α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
 
 tbad(1, 1)
 //│ Int
@@ -29,15 +29,15 @@ tbad(1, "World")
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
 //│ Typing error tree:
 //│   α ≤ Str → β
-//│     γ → δ ≤ Str → β
+//│     γ → (({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int)) ≤ Str → β
 //│       Str ≤ γ
-//│         Str ≤ (¬({ε ≤ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)) ∧ Int
-//│           Str ≤ ¬({ε ≤ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)
-//│             Str ≤ ¬({ε ≤ Int} ⟹ ¬Int)
+//│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
 //│               ¬Int ≤ ¬Str
 //│                 Str ≤ Int
-//│             Str ≤ ¬({ε ≤ ¬Int} ⟹ ⊥)
-//│               ε ≤ ¬Int
+//│             Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│               δ ≤ ¬Int
 //│                 Int ≤ ¬Int
 
 :te
@@ -45,22 +45,22 @@ tbad(int_or_string, "World")
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
 //│ Typing error tree:
 //│   α ≤ Str → β
-//│     (γ → δ) ∨ (ε → ζ) ≤ Str → β
-//│       γ → δ ≤ Str → β
+//│     (γ → (({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int))) ∨ (ε → (({ε ≤ Int, ζ ≤ Int} ⟹ Int) ∧ ({ζ ≤ ¬Int} ⟹ Int))) ≤ Str → β
+//│       γ → (({γ ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({δ ≤ ¬Int} ⟹ Int)) ≤ Str → β
 //│         Str ≤ γ
-//│           Str ≤ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ ⊥)) ∧ Int
-//│             Str ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ ⊥)
-//│               Str ≤ ¬({η ≤ Int} ⟹ ¬Int)
+//│           Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
+//│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│               Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
 //│                 ¬Int ≤ ¬Str
 //│                   Str ≤ Int
-//│               Str ≤ ¬({η ≤ ¬Int} ⟹ ⊥)
-//│                 η ≤ ¬Int
+//│               Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
+//│                 δ ≤ ¬Int
 //│                   Int ≤ ¬Int
 
 // A scrutinee passed to a function: the function must accept it in the branch that applies it.
 
 fun tpass(x, f) = if x is Int then f(x) else 0
-//│ tpass: ∀α, β, γ. {α ≤ ¬({β ≤ ⊥ → γ} ⟹ ¬Int) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({β ≤ α → γ, α ≤ Int} ⟹ ⊥) ∧ ({α ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬(α → γ)) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥)} ⟹ α → β → γ
+//│ tpass: ∀α, β, γ. {α ≤ ¬({β ≤ ⊥ → γ} ⟹ ¬Int) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬(α → γ)) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ α → γ, α ≤ Int} ⟹ ⊥) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
 
 tpass(1, (y) => y + 1)
 //│ Int
@@ -108,7 +108,7 @@ tpass(int_or_string, (y) => y ++ "!")
 // A nested match decided by the bound of the enclosing branch (`t_sel`).
 
 fun tsel(a, b) = if a is Int then (if b is Int then 1 else (a as Str)) else 1
-//│ tsel: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥)} ⟹ α → β → γ
+//│ tsel: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
 
 tsel(1, 1)
 //│ Int
@@ -123,19 +123,18 @@ tsel(1, "World")
 //│   α ≤ Str → β
 //│     γ → δ ≤ Str → β
 //│       Str ≤ γ
-//│         Str ≤ ((¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int))) ∧ Int
-//│           Str ≤ (¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ Int))
-//│             Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
-//│               Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)))
-//│                 {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
-//│                   ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
-//│                     Str ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
-//│                       Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
-//│                         ¬Int ≤ ¬Str
-//│                           Str ≤ Int
-//│                       Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
-//│                         ε ≤ Str
-//│                           Int ≤ Str
-//│               Str ≤ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
-//│                 ε ≤ ¬Int
-//│                   Int ≤ ¬Int
+//│         Str ≤ (¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ Int
+//│           Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│             Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)))
+//│               {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
+//│                 ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
+//│                   Str ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
+//│                     Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                       ¬Int ≤ ¬Str
+//│                         Str ≤ Int
+//│                     Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
+//│                       ε ≤ Str
+//│                         Int ≤ Str
+//│             Str ≤ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
+//│               ε ≤ ¬Int
+//│                 Int ≤ ¬Int

@@ -52,15 +52,15 @@ if value is Int then value ++ "!" else value
 //│   ∀α, β. {α ≤ ¬({β ≥ α} ⟹ Int), β ≥ {α ≤ ¬Int} ⟹ α} ⟹ α → β ≤ (Int ∨ Str) → γ
 //│     ∀α, β. {α ≤ ¬({β ≥ α} ⟹ Int), β ≥ {α ≤ ¬Int} ⟹ α} ⟹ α → β ≤ Int → γ
 //│       {δ ≤ ¬({ε ≥ δ} ⟹ Int), ε ≥ {δ ≤ ¬Int} ⟹ δ} ⟹ δ → ε ≤ Int → γ
-//│         {ε ≥ {δ ≤ ¬Int} ⟹ δ} ⟹ δ → ε ≤ Int → γ
-//│           δ → ε ≤ Int → γ
-//│             Int ≤ δ
+//│         δ ≤ ¬({ε ≥ δ} ⟹ Int)
+//│           Int ≤ ¬δ
+//│             δ ≤ ¬Int
 //│               Int ≤ ¬Int
 
 // A nested conditional rebinds the same scrutinee without capturing other variables.
 
 if value is Int then (if value is Nat then "nat" else value + 1) else value ++ "!"
-//│ Str ∨ Int
+//│ (Str ∨ (({Int ∧ ¬Nat ≤ Nat} ⟹ Str) ∧ Int)) ∨ Int
 
 // A branch may shadow the scrutinee with a local variable.
 

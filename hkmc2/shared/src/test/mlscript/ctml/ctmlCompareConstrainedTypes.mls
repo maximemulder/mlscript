@@ -176,3 +176,13 @@ A <:< ([B <:< Int] => Int)
 //│       {A ≤ Int} ⟹ A ≤ ⊥
 //│         A ≤ ⊥
 //│           Nat ≤ ⊥
+
+// A guard containing a constrained type is still required when the body alone matches.
+
+:te
+([([Int <:< Int] => Int) <:< Str] => Int) <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment {{Int ≤ Int} ⟹ Int ≤ Str} ⟹ Int ≤ Int.
+//│ Typing error tree:
+//│   {{Int ≤ Int} ⟹ Int ≤ Str} ⟹ Int ≤ Int
+//│     {Int ≤ Int} ⟹ Int ≤ Str
+//│       Int ≤ Str

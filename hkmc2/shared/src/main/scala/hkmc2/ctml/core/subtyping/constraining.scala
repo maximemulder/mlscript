@@ -474,10 +474,27 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: SubContext): SubClauses =
     subtypeSeq(sub, instanceBody, outs)(using ctx)
   )
 
-/** Constrain a constrained type to be a subtype of another type. */
+/** Constrain a constrained type to be a subtype of another type.
+ *
+ *  A guard containing constrained types can choose between branches when it is solved. Solve the
+ *  body first to supply the bounds that decide these branches: opening the guarded bounds of a
+ *  polymorphic function before applying it can otherwise repeatedly join unconstrained branches.
+ *  Plain guards are solved first, so that an instance's bounds are available before its body is
+ *  used, notably when checking self-application. Both orders solve the guard and the body. */
 def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: SubContext): SubClauses =
-  val clauses = subtypeConstraint(constrained.constraint)
-  subtypeSeq(constrained.body, type_, clauses)
+  val constraint = constrained.constraint
+  if mentionsConstrained(constraint.left) || mentionsConstrained(constraint.right) then
+    val clauses = subtype(constrained.body, type_)
+    subtypeConstraintSeq(constraint, clauses)
+  else
+    val clauses = subtypeConstraint(constraint)
+    subtypeSeq(constrained.body, type_, clauses)
+
+/** Check whether a type contains a constrained type, including a negated constrained type. */
+private def mentionsConstrained(type_ : Type): Boolean =
+  type_ match
+    case _: TConstrained => true
+    case _ => type_.components.exists(mentionsConstrained)
 
 /** Constrain a constrained type to be a supertype of another type: `τ ≤ {c} ⟹ σ` iff `τ ≤ σ`
  *  assuming `c` (see `assume`). */

@@ -9,12 +9,12 @@ fun foo(a) =
   if a is
     Int then (a as Int)
     Str then (a as Str)
-//│ foo: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str), β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β
+//│ foo: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ ¬Str)} ⟹ α → β
 
 // Flow functions as arguments
 
 fun twoCalls(x, y) = (foo(x), foo(y))
-//│ twoCalls: ∀α, β, γ, δ. {δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str), β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str), α ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str)} ⟹ α → β → ⟨γ, δ⟩
+//│ twoCalls: ∀α, β, γ, δ. {δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str), β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → ⟨γ, δ⟩
 
 twoCalls(1, "Hello")
 //│ ⟨Int, Str⟩
@@ -154,7 +154,7 @@ fun local(u) =
 //│ local: ⊤ → ⟨Int, Str⟩
 
 fun make(u) = (a) => if a is Int then a + 1 else a
-//│ make: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ ⊤ → β → α
+//│ make: ∀α, β. {β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int, α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ ⊤ → β → α
 
 make(unit)(1)
 //│ Int
@@ -165,7 +165,7 @@ make(unit)("Hello")
 // Functions applied in some branches only
 
 fun h1(f, a) = if a is Int then f(a) else a
-//│ h1: ∀α, β, γ. {γ ≥ ({α ≤ β → γ, β ≤ Int} ⟹ ⊥) ∧ ({β ≤ ¬Int} ⟹ β), α ≤ ¬({β ≤ Int} ⟹ ¬(β → γ)) ∨ ¬({β ≤ ¬Int} ⟹ ⊥), β ≤ ¬({α ≤ β → γ} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int)} ⟹ α → β → γ
+//│ h1: ∀α, β, γ. {β ≤ ¬({α ≤ β → γ} ⟹ ¬Int) ∨ ¬({γ ≥ β} ⟹ Int), α ≤ ¬({β ≤ Int} ⟹ ¬(β → γ)) ∨ ¬({β ≤ ¬Int} ⟹ ⊥), γ ≥ ({α ≤ β → γ, β ≤ Int} ⟹ ⊥) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ α → β → γ
 
 h1((x) => x + 1, 1)
 //│ Int
@@ -180,8 +180,7 @@ h1((x) => x ++ "!", 1)
 //│   α ≤ Int → β
 //│     γ → δ ≤ Int → β
 //│       Int ≤ γ
-//│         Int ≤ ¬Int ∧ (¬({ε ≤ γ → δ} ⟹ ¬Int) ∨ ¬({δ ≥ γ} ⟹ Int))
-//│           Int ≤ ¬Int
+//│         Int ≤ ¬Int
 
 fun h2(f, a) = if a is Int then f(a) else f(a)
 //│ h2: ∀α, β. (¬({α ≤ Int} ⟹ ¬(α → β)) ∨ ¬({α ≤ ¬Int} ⟹ ¬(α → β))) → α → β
@@ -284,7 +283,7 @@ h2((x) => x + 1, int_or_string)
 // A function is an instance of the negation of every class.
 
 fun h3(a) = if a is Int then a + 1 else a
-//│ h3: ∀α, β. {β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬({α ≥ β} ⟹ Int), α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ β → α
+//│ h3: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
 
 h3((x) => x)
 //│ ∀α. α → α

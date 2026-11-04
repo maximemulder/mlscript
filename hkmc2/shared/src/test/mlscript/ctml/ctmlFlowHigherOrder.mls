@@ -13,7 +13,7 @@ fun foo(a) =
 
 // Flow functions as arguments
 
-fun twoCalls(x, y) = (foo(x), foo(y))
+fun twoCalls(x, y) = [foo(x), foo(y)]
 //│ twoCalls: ∀α, β, γ, δ. {δ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str), β ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({δ ≥ Str} ⟹ ¬Str), γ ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ Str} ⟹ Str), α ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)} ⟹ α → β → ⟨γ, δ⟩
 
 twoCalls(1, "Hello")
@@ -132,7 +132,7 @@ declare fun takesOverload: ((Int -> Int) & (Str -> Str)) -> Int
 takesOverload(foo)
 //│ Int
 
-fun bothTypes(f) = (f(1), f("Hello"))
+fun bothTypes(f) = [f(1), f("Hello")]
 //│ bothTypes: ∀α, β. ((Int → α) ∧ (Str → β)) → ⟨α, β⟩
 
 bothTypes(foo)
@@ -150,7 +150,7 @@ bothTypes(foo)
 
 fun local(u) =
   let g = (a) => if a is Int then a + 1 else a
-  (g(1), g("Hello"))
+  [g(1), g("Hello")]
 //│ local: ⊤ → ⟨Int, Str⟩
 
 fun make(u) = (a) => if a is Int then a + 1 else a

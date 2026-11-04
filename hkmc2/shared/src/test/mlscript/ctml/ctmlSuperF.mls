@@ -121,7 +121,7 @@ val a12 = id(poly((p) => p))
 //│ a12: ⟨Int, Bool⟩
 // OK
 
-fun b1(f) = (f(1), f(true))
+fun b1(f) = [f(1), f(true)]
 //│ b1: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 // OK
 
@@ -266,7 +266,7 @@ val g4a = ((u: Unit) => n3(n3)) as ((Unit) -> ChurchInt)
 //│ g4a: Unit → ChurchInt
 // OK
 
-val g5 = fst(fst(fst(n3((x) => (x, 0), 1))))
+val g5 = fst(fst(fst(n3((x) => [x, 0], 1))))
 //│ g5: Int
 // OK
 
@@ -298,7 +298,7 @@ val g12 = ((y) =>
 //│ g12: ∀A. ⊤ → A → ⊤ → A
 // OK
 
-val g13 = ((k) => (k((x) => x), k ((x) => single(x)))) ((f) => (f(1), f(true)))
+val g13 = ((k) => [k((x) => x), k ((x) => single(x))]) ((f) => [f(1), f(true)])
 //│ g13: ⟨⟨Int, Bool⟩, ⟨List[Int], List[Bool]⟩⟩
 // OK
 

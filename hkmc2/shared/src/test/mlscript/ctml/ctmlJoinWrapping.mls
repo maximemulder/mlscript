@@ -82,7 +82,7 @@ correlated((1 as Int | Str), ("s" as Int | Str))
 
 fun both(x) =
   let f = a => (u => (if a is Int then (a as Int) else (a as Str)))(unit)
-  (f(1), f("s"))
+  [f(1), f("s")]
 //│ both: ⊤ → ⟨Int, Str⟩
 
 both(unit)

@@ -182,7 +182,7 @@ g6(1, "World")
 
 // Tuples
 
-fun g7(a) = if a is Int then (a, "int") else (a, 0)
+fun g7(a) = if a is Int then [a, "int"] else [a, 0]
 //│ g7: ∀α, β. {α ≥ ({β ≤ Int} ⟹ ⟨β, Str⟩) ∧ ({β ≤ ¬Int} ⟹ ⟨β, Int⟩), β ≤ ¬({α ≥ ⟨β, Str⟩} ⟹ ¬Int) ∨ ¬({α ≥ ⟨β, Int⟩} ⟹ Int)} ⟹ β → α
 
 g7(1)

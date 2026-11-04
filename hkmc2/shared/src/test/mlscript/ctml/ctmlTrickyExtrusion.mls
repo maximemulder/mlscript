@@ -17,27 +17,27 @@ val True = true
 //│ True: Bool
 
 fun test(f) =
-  let r(x, g) = (g(x), unit)
-  (r(0, inc), r(true, not'))
+  let r(x, g) = [g(x), unit]
+  [r(0, inc), r(true, not')]
 //│ test: ⊤ → ⟨⟨Int, Unit⟩, ⟨Bool, Unit⟩⟩
 
 fun test(f) =
-  (f(0), f(true))
+  [f(0), f(true)]
 //│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
 fun test(f) =
   let r(x) = f(x)
-  (r(0), r(true))
+  [r(0), r(true)]
 //│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
 fun test(f) =
-  let r(x, g) = (g(x), f(x))
-  (r(0, inc), r(true, not'))
+  let r(x, g) = [g(x), f(x)]
+  [r(0, inc), r(true, not')]
 //│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨⟨Int, α⟩, ⟨Bool, β⟩⟩
 
 fun test(f) =
   let r(x) = f(x)
-  (r(0), r(true))
+  [r(0), r(true)]
 //│ test: ∀α, β. ((Int → α) ∧ (Bool → β)) → ⟨α, β⟩
 
 fst(test(id)) + 1

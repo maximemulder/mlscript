@@ -22,6 +22,9 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
     // Parse blocks.
     case Term.Blk(mlLefts, mlRight) =>
       parseBlock(mlLefts, mlRight)
+    // Binary tuples have the same shape as CTML products.
+    case Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _))) =>
+      ETuple(parseExpr(mlLeft), parseExpr(mlRight))
     // Parse literals as variables.
     case Term.UnitVal() | Term.Lit(Tree.UnitLit(_)) =>
       EVar("unit")
@@ -92,7 +95,8 @@ def parseAscriptionComposition(mlLeft: Term, mlRight: Term, mlPol: Boolean)(usin
     case _ =>
       throw new ParseError(mlLeft)
 
-/** Parse a block, which can either be a variable binding or a tuple. */
+/** Parse a block of variable bindings followed by its result expression.
+ *  Plain expression statements are unsupported; they do not introduce tuple components. */
 def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
   mlLefts match
     case Nil =>
@@ -107,10 +111,6 @@ def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
           EApp(lambda, expr)
         case LetDecl(_, _) =>
           next
-        case mlLeft: Term =>
-          val left = parseExpr(mlLeft)
-          val right = parseBlock(mlLefts, mlRight)
-          ETuple(left, right)
         case _ =>
           throw new ParseError(mlLeft)
 

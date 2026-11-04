@@ -37,13 +37,11 @@ baz(1, top)
 // lower bound `Str` of the result does not flow into the upper bound `Int` of the parameter, in
 // either branch order.
 fun foo(a) =
-  a as Int
-  if true then "hi" else a
+  [a as Int, if true then "hi" else a]
 //│ foo: ∀α. {α ≤ Int} ⟹ α → ⟨Int, α ∨ Str⟩
 
 fun bar(a) =
-  a as Int
-  if true then a else "hi"
+  [a as Int, if true then a else "hi"]
 //│ bar: ∀α. {α ≤ Int} ⟹ α → ⟨Int, α ∨ Str⟩
 
 foo(1)

@@ -2,6 +2,7 @@ package hkmc2.ctml.parser
 
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Elem
+import hkmc2.semantics.Fld
 import hkmc2.semantics.Term
 import hkmc2.semantics.QuantVar
 import hkmc2.semantics.SubConstraint
@@ -12,8 +13,9 @@ def parseType(mlType: Term)(using scope: Scope): Type =
   mlType match
     case Term.Neg(mlBody) =>
       TNeg(parseType(mlBody))
-    case Term.Tup(mlElems) =>
-      parseTypeTuple(mlElems.init.map(_.subTerms(0)), mlElems.last.subTerms(0))
+    // Preserve the binary product shape; other tuple arities are unsupported.
+    case Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _))) =>
+      TTuple(parseType(mlLeft), parseType(mlRight))
     case Term.Ref(mlSymbol) =>
       mlSymbol.nme match
         case "Top" =>
@@ -42,16 +44,6 @@ def parseType(mlType: Term)(using scope: Scope): Type =
       TJointType(parseJointMode(mlPol), left, right)
     case _ =>
       throw ParseError(mlType)
-
-/** Convert an MLScript block to a CTML tuple type. */
-def parseTypeTuple(mlLefts: List[Term], mlRight: Term)(using Scope): Type =
-  mlLefts match
-    case Nil =>
-      parseType(mlRight)
-    case mlLeft :: mlLefts =>
-      val left  = parseType(mlLeft)
-      val right = parseType(mlRight)
-      TTuple(left, right)
 
 /** Convert an MLScript function type to a CTML type. */
 def parseTypeLambda(mlParams: Term, mlRet: Term)(using Scope): Type =

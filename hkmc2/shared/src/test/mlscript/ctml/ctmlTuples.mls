@@ -1,0 +1,85 @@
+:ctml
+
+// Binary tuple expressions use square brackets and preserve nesting.
+
+[1, "hello"]
+//│ ⟨Int, Str⟩
+
+[[1, "hello"], true] as [[Int, Str], Bool]
+//│ ⟨⟨Int, Str⟩, Bool⟩
+
+[1, ["hello", true]] as [Int, [Str, Bool]]
+//│ ⟨Int, ⟨Str, Bool⟩⟩
+
+val pair =
+  let x = 1
+  [x, true]
+//│ pair: ⟨Int, Bool⟩
+
+// Each tuple component is checked.
+
+:te
+[1 + "hello", true]
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+:te
+[1, true] as [Int, Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Bool⟩ ≤ ⟨Int, Str⟩.
+//│ Typing error tree:
+//│   ⟨Int, Bool⟩ ≤ ⟨Int, Str⟩
+//│     Bool ≤ Str
+
+// Parentheses group expressions; multiple expressions form an unsupported statement block.
+
+(1)
+//│ Int
+
+:pe
+(1, true)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Lit(IntLit(1))
+
+:pe
+fun statements(x) =
+  x
+  true
+//│ ═══[PARSE ERROR] Unsupported CTML term: Ref(x)
+
+// Other arities and spreads have no supported CTML product translation.
+
+:pe
+[]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List())
+
+:pe
+[1]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List(Fld(‹›,Lit(IntLit(1)),None)))
+
+:pe
+[1, ...[2, 3]]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List(Fld(‹›,Lit(IntLit(1)),None), Spd(Eager,Tup(List(Fld(‹›,Lit(IntLit(2)),None), Fld(‹›,Lit(IntLit(3)),None))))))
+
+:pe
+[1, "hello", true]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List(Fld(‹›,Lit(IntLit(1)),None), Fld(‹›,Lit(StrLit(hello)),None), Fld(‹›,Lit(BoolLit(true)),None)))
+
+// A three-field MLscript tuple is distinct from a nested pair.
+
+:pe
+[1, ["hello", true]] as [Int, Str, Bool]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Str),None), Fld(‹›,Ref(member:Bool),None)))
+
+:pe
+[[1, "hello"], true] as [Int, Str, Bool]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List(Fld(‹›,Ref(member:Int),None), Fld(‹›,Ref(member:Str),None), Fld(‹›,Ref(member:Bool),None)))
+
+:pe
+1 as [Int]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List(Fld(‹›,Ref(member:Int),None)))
+
+:pe
+unit as []
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List())

@@ -14,7 +14,7 @@ val int_or_string: Int | Str
 // by the else branch keeps the type of the argument.
 
 fun f1(a) = if a is Int then a + 1 else a
-//│ f1: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
+//│ f1: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β
 
 f1(1)
 //│ Int

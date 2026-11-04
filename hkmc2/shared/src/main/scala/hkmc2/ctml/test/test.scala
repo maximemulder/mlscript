@@ -85,8 +85,8 @@ class Tester(
         this.testTypeVar(name, type_)
       case StmtExprDecl(name, type_) =>
         this.testExprDecl(name, type_)
-      case StmtExprVar(name, expr) =>
-        this.testExprVar(name, expr)
+      case StmtBindings(group) =>
+        this.testBindings(group)
       case StmtExpr(expr) =>
         this.testExpr(expr)
       case StmtTypeRel(rel, left, right) =>
@@ -111,17 +111,16 @@ class Tester(
     )
 
   /** Add an expression variable to the context. */
-  def testExprDecl(name: String, type_ : Type) =
-    this.output(s"${name}: ${type_.prettify(prettyCtx)}")
-    this.ctx = this.ctx.extendTerm(TermVarDecl(name, type_))
+  def testExprDecl(variable: TermVar, type_ : Type) =
+    this.output(s"${variable.name}: ${type_.prettify(prettyCtx)}")
+    this.ctx = this.ctx.extendTerm(TermVarDecl(variable, type_))
 
-  /** Test an expression variable type inference and add it to the context. */
-  def testExprVar(name: String, expr: Expr) =
-    val (type_, outs) = inferExpression(expr)
-    this.output(s"${name}: ${type_.prettify(prettyCtx)}")
-    if config.debug.output then
-      this.outputClauses(outs)
-    this.ctx = this.ctx.extendTerm(TermVarDecl(name, type_))
+  /** Infer a dependency component and add all its definitions to the context together. */
+  def testBindings(group: BindingGroup): Unit =
+    val types = profileInference(inferGeneralizedBindings(group)(using this.ctx))(_.map(typeSize).sum)
+    for (binding, type_) <- group.bindings.zip(types) do
+      this.output(s"${binding.variable.name}: ${type_.prettify(prettyCtx)}")
+      this.ctx = this.ctx.extendTerm(TermVarDecl(binding.variable, type_))
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
@@ -132,12 +131,16 @@ class Tester(
 
   /** Infer a test expression, optionally recording time separately from type-size counting. */
   private def inferExpression(expr: Expr): (Type, SubClauses) =
-    if !config.profileInfer then return inferTopLevel(expr)(using this.ctx)
+    profileInference(inferTopLevel(expr)(using this.ctx))(result => typeSize(result._1))
+
+  /** Record inference time and result size without including the size traversal in the timing. */
+  private def profileInference[T](infer: => T)(size: T => Int): T =
+    if !config.profileInfer then return infer
     val start = System.nanoTime()
     try
-      val result = inferTopLevel(expr)(using this.ctx)
+      val result = infer
       val millis = (System.nanoTime() - start).toDouble / 1000000
-      this.output(s"@ctml-infer ok $millis ${typeSize(result._1)}")
+      this.output(s"@ctml-infer ok $millis ${size(result)}")
       result
     catch
       case error: TypeError =>

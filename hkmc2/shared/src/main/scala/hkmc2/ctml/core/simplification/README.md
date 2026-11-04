@@ -46,7 +46,9 @@ would treat every variable as unobserved and could lose relations needed by the 
   their effective level and `NoInlineVars`, preserving dependencies on an enclosing scope.
 - Bound substitution temporarily overrides the eliminated variable's effective bounds to exclude
   direct references to the variable being bounded. This prevents a relation between two variables
-  from becoming a self-reference. Bound lookups must respect these overrides.
+  from becoming a self-reference. The bounded variable's own bounds are also hidden during the
+  rewrite: using them through a cycle could erase the cycle's nonrecursive base cases. Bound
+  lookups must respect these overrides.
 - Polarity selects the lower bound at a positive occurrence and the upper bound at a negative
   occurrence. Negations and function parameters reverse polarity. Constraints use the polarities
   of their subtyping direction independently of the enclosing type's polarity; changes to these

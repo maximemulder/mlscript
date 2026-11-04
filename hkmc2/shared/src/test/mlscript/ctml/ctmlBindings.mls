@@ -1,0 +1,484 @@
+:ctml
+
+// Local helpers can capture parameters, call themselves, and return closures.
+
+fun local(x) =
+  fun add(y) = x + y
+  add(1)
+//│ local: Int → Int
+
+local(2)
+//│ Int
+
+:te
+local("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+fun localFib(n) =
+  fun fib(n) = if n == 0 || n == 1 then n else fib(n - 1) + fib(n - 2)
+  fib(n)
+//│ localFib: Int → Int
+
+localFib(10)
+//│ Int
+
+fun delayed(x) =
+  fun get() = x
+  get
+//│ delayed: ∀α. α → Unit → α
+
+delayed(1)()
+//│ Int
+
+delayed("hello")()
+//│ Str
+
+// Acyclic helpers are generalized separately, including forward dependencies.
+
+fun polymorphic() =
+  fun use() = [id(1), id("hello")]
+  fun id(x) = x
+  use()
+//│ polymorphic: Unit → ⟨Int, Str⟩
+
+polymorphic()
+//│ ⟨Int, Str⟩
+
+fun forward(x) = later(x)
+fun later(x) = x
+//│ later: ∀α. α → α
+//│ forward: ∀β. β → β
+
+[forward(1), forward("hello")]
+//│ ⟨Int, Str⟩
+
+// Mutually recursive functions share provisional types until the group is checked.
+
+fun even(n) = if n == 0 then true else odd(n - 1)
+fun odd(n) = if n == 0 then false else even(n - 1)
+//│ even: Int → Bool
+//│ odd: Int → Bool
+
+even(10)
+//│ Bool
+
+:te
+even(10) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Bool ≤ Int
+
+:te
+odd("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Bool ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Bool ≤ Str → α
+//│     Str ≤ Int
+
+fun parity(n) =
+  fun even(n) = if n == 0 then true else odd(n - 1)
+  fun odd(n) = if n == 0 then false else even(n - 1)
+  even(n)
+//│ parity: Int → Bool
+
+parity(10)
+//│ Bool
+
+fun captured(x) =
+  fun first(n) = if n == 0 then x + 1 else second(n - 1)
+  fun second(n) = first(n)
+  first(2)
+//│ captured: Int → Int
+
+captured(1)
+//│ Int
+
+:te
+captured(1) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str
+
+:te
+captured("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+// An unused initializer must still constrain its captured parameter.
+
+fun unused(x) =
+  let ignored = x + 1
+  true
+//│ unused: Int → Bool
+
+unused(1)
+//│ Bool
+
+:te
+unused("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Bool ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Bool ≤ Str → α
+//│     Str ≤ Int
+
+// An unused closure does not execute its body or require the captured value to be an integer.
+
+fun unusedHelper(x) =
+  fun ignored() = x + 1
+  true
+//│ unusedHelper: ⊤ → Bool
+
+unusedHelper(1)
+//│ Bool
+
+unusedHelper("bad")
+//│ Bool
+
+// Symbol identities keep a closure's references intact across shadowing.
+
+fun shadow(x) =
+  fun get() = x
+  let x = "shadow"
+  get()
+//│ shadow: ∀α. α → α
+
+shadow(1)
+//│ Int
+
+fun nested(n) =
+  fun loop(n) = if n == 0 then 0 else loop(n - 1)
+  fun call() =
+    fun loop(x) = x
+    [loop("inner"), loop(true)]
+  [loop(n), call()]
+//│ nested: Int → ⟨Int, ⟨Str, Bool⟩⟩
+
+nested(2)
+//│ ⟨Int, ⟨Str, Bool⟩⟩
+
+// Parameter and result annotations constrain both ordinary and recursive functions.
+
+fun annotated(x: Int): Int = x
+//│ annotated: Int → Int
+
+annotated(1)
+//│ Int
+
+:te
+annotated("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+:te
+fun badBody(x: Str) = x + 1
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → Int ≤ Str → ⊤.
+//│ Typing error tree:
+//│   ⊥ → Int ≤ Str → ⊤
+//│     Str ≤ ⊥
+
+fun annotatedRec(x: Int): Int = if x == 0 then x else annotatedRec(x - 1)
+//│ annotatedRec: Int → Int
+
+annotatedRec(3)
+//│ Int
+
+:te
+fun badRec(x: Int): Str = if x == 0 then x else badRec(x - 1)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Str, γ ≤ α → β, α ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤.
+//│ Typing error tree:
+//│   ∀α, β. {β ≤ Str, γ ≤ α → β, α ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
+//│     {ε ≤ Str, γ ≤ δ → ε, δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
+//│       {γ ≤ δ → ε, δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
+//│         {δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
+//│           ⊥ → Str ≤ Int → ⊤
+//│             Int ≤ ⊥
+
+// Recursion is intrinsic and does not depend on a prelude term called fix.
+
+fun independent(fix) =
+  fun loop(n) = if n == 0 then 0 else loop(n - 1)
+  loop(2)
+//│ independent: ⊤ → Int
+
+independent("shadowed")
+//│ Int
+
+// Ordinary let bindings retain first-class polymorphic values.
+
+fun letPoly() =
+  let id = x => x
+  [id(1), id("hello")]
+//│ letPoly: Unit → ⟨Int, Str⟩
+
+letPoly()
+//│ ⟨Int, Str⟩
+
+// Functions can refer forward across value bindings without reordering initializers.
+
+fun mixed(x) =
+  fun first(y) = later(y) + localCapture
+  val localCapture = x + 1
+  fun later(y) = y
+  first(2)
+//│ mixed: Int → Int
+
+mixed(1)
+//│ Int
+
+:te
+mixed("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+fun withValues(x) =
+  val y = x + 1
+  fun add(z) = y + z
+  val answer = add(2)
+  answer
+//│ withValues: Int → Int
+
+withValues(1)
+//│ Int
+
+// A value can call a forward function, but cannot read a later value through that function.
+
+val forwardValue = forwardFunction(1)
+fun forwardFunction(x) = x
+//│ forwardFunction: ∀α. α → α
+//│ forwardValue: Int
+
+forwardValue
+//│ Int
+
+:pe
+val premature = readLater()
+fun readLater() = laterValue
+val laterValue = 1
+//│ ═══[PARSE ERROR] Recursive bindings require a function initializer.
+
+:pe
+val early = late + 1
+val late = 1
+//│ ═══[PARSE ERROR] Recursive bindings require a function initializer.
+
+// Function-valued vals can refer to themselves and to each other.
+
+val countdown = n => if n == 0 then 0 else countdown(n - 1)
+//│ countdown: Int → Int
+
+countdown(3)
+//│ Int
+
+val evenValue = n => if n == 0 then true else oddValue(n - 1)
+val oddValue = n => if n == 0 then false else evenValue(n - 1)
+//│ evenValue: Int → Bool
+//│ oddValue: Int → Bool
+
+:te
+evenValue(3) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Bool ≤ Int
+
+// Recursive groups can have more than two members and different function shapes.
+
+fun three(n) =
+  fun first(n) = if n == 0 then 1 else second()(n - 1)
+  fun second()(n) = third(n)
+  fun third(n) = first(n)
+  first(n)
+//│ three: Int → Int
+
+three(3)
+//│ Int
+
+:te
+three(3) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str
+
+// Completed recursive functions are polymorphic at their uses.
+
+fun recursiveIdentity() =
+  fun id(n, x) = if n == 0 then x else id(n - 1, x)
+  [id(1, 1), id(1, "hello")]
+//│ recursiveIdentity: Unit → ⟨Int, Str⟩
+
+recursiveIdentity()
+//│ ⟨Int, Str⟩
+
+// Every body and every recursive call must agree with the group's inferred signatures.
+
+:te
+fun badSelf(n) = if n - 1 == 0 then 0 else badSelf("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. ((β → α) → β → α) → β → α ≤ (∀γ, δ. {γ ≤ Str → δ} ⟹ γ → Int → (δ ∨ Int)) → ε.
+//│ Typing error tree:
+//│   ∀α, β. ((β → α) → β → α) → β → α ≤ (∀γ, δ. {γ ≤ Str → δ} ⟹ γ → Int → (δ ∨ Int)) → ε
+//│     ((ζ → η) → ζ → η) → ζ → η ≤ (∀γ, δ. {γ ≤ Str → δ} ⟹ γ → Int → (δ ∨ Int)) → ε
+//│       ∀γ, δ. {γ ≤ Str → δ} ⟹ γ → Int → (δ ∨ Int) ≤ (ζ → η) → ζ → η
+//│         {θ ≤ Str → ι} ⟹ θ → Int → (ι ∨ Int) ≤ (ζ → η) → ζ → η
+//│           θ → Int → (ι ∨ Int) ≤ (ζ → η) → ζ → η
+//│             Int → (ι ∨ Int) ≤ ζ → η
+//│               ζ ≤ Int
+//│                 Str ≤ Int
+
+:te
+fun badFirst(n) = if n == 0 then 0 else badSecond("bad")
+fun badSecond(n) = badFirst(n + 1)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ. ((β → α) → (δ → γ) → ⟨β → α, δ → γ⟩) → ⟨β → α, δ → γ⟩ ≤ (∀ε, ζ. ζ → ε → ⟨∀η. {ε ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ζ ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩) → κ.
+//│ Typing error tree:
+//│   ∀α, β, γ, δ. ((β → α) → (δ → γ) → ⟨β → α, δ → γ⟩) → ⟨β → α, δ → γ⟩ ≤ (∀ε, ζ. ζ → ε → ⟨∀η. {ε ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ζ ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩) → κ
+//│     ((λ → μ) → (ν → ξ) → ⟨λ → μ, ν → ξ⟩) → ⟨λ → μ, ν → ξ⟩ ≤ (∀ε, ζ. ζ → ε → ⟨∀η. {ε ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ζ ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩) → κ
+//│       ∀ε, ζ. ζ → ε → ⟨∀η. {ε ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ζ ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩ ≤ (λ → μ) → (ν → ξ) → ⟨λ → μ, ν → ξ⟩
+//│         ο → π → ⟨∀η. {π ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ο ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩ ≤ (λ → μ) → (ν → ξ) → ⟨λ → μ, ν → ξ⟩
+//│           π → ⟨∀η. {π ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ο ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩ ≤ (ν → ξ) → ⟨λ → μ, ν → ξ⟩
+//│             ⟨∀η. {π ≤ Str → η} ⟹ ⊤ → (η ∨ Int), ∀θ, ι. {ο ≤ θ → ι, θ ≥ Int} ⟹ Int → ι⟩ ≤ ⟨λ → μ, ν → ξ⟩
+//│               ∀θ, ι. {ο ≤ θ → ι, θ ≥ Int} ⟹ Int → ι ≤ ν → ξ
+//│                 {ο ≤ σ → ρ, σ ≥ Int} ⟹ Int → ρ ≤ ν → ξ
+//│                   {σ ≥ Int} ⟹ Int → ρ ≤ ν → ξ
+//│                     Int → ρ ≤ ν → ξ
+//│                       ν ≤ Int
+//│                         Str ≤ Int
+
+:te
+fun badMutualFirst(n): Int = badMutualSecond(n)
+fun badMutualSecond(n): Str = badMutualFirst(n)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ. ((β → α) → (δ → γ) → ⟨β → α, δ → γ⟩) → ⟨β → α, δ → γ⟩ ≤ (∀ε, ζ. ζ → ε → ⟨∀η, θ. {θ ≤ Int, ε ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, ζ ≤ ι → κ} ⟹ ι → Str⟩) → λ.
+//│ Typing error tree:
+//│   ∀α, β, γ, δ. ((β → α) → (δ → γ) → ⟨β → α, δ → γ⟩) → ⟨β → α, δ → γ⟩ ≤ (∀ε, ζ. ζ → ε → ⟨∀η, θ. {θ ≤ Int, ε ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, ζ ≤ ι → κ} ⟹ ι → Str⟩) → λ
+//│     ((μ → ν) → (ξ → ο) → ⟨μ → ν, ξ → ο⟩) → ⟨μ → ν, ξ → ο⟩ ≤ (∀ε, ζ. ζ → ε → ⟨∀η, θ. {θ ≤ Int, ε ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, ζ ≤ ι → κ} ⟹ ι → Str⟩) → λ
+//│       ∀ε, ζ. ζ → ε → ⟨∀η, θ. {θ ≤ Int, ε ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, ζ ≤ ι → κ} ⟹ ι → Str⟩ ≤ (μ → ν) → (ξ → ο) → ⟨μ → ν, ξ → ο⟩
+//│         π → ρ → ⟨∀η, θ. {θ ≤ Int, ρ ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, π ≤ ι → κ} ⟹ ι → Str⟩ ≤ (μ → ν) → (ξ → ο) → ⟨μ → ν, ξ → ο⟩
+//│           ρ → ⟨∀η, θ. {θ ≤ Int, ρ ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, π ≤ ι → κ} ⟹ ι → Str⟩ ≤ (ξ → ο) → ⟨μ → ν, ξ → ο⟩
+//│             ⟨∀η, θ. {θ ≤ Int, ρ ≤ η → θ} ⟹ η → Int, ∀ι, κ. {κ ≤ Str, π ≤ ι → κ} ⟹ ι → Str⟩ ≤ ⟨μ → ν, ξ → ο⟩
+//│               ∀ι, κ. {κ ≤ Str, π ≤ ι → κ} ⟹ ι → Str ≤ ξ → ο
+//│                 {τ ≤ Str, π ≤ σ → τ} ⟹ σ → Str ≤ ξ → ο
+//│                   {π ≤ σ → τ} ⟹ σ → Str ≤ ξ → ο
+//│                     π ≤ σ → τ
+//│                       μ → ν ≤ σ → τ
+//│                         ν ≤ τ
+//│                           ν ≤ Str
+//│                             Int ≤ Str
+
+// Local recursive values are rejected without executing their initializers.
+
+:pe
+fun recursiveValue() =
+  val x = x + 1
+  x
+//│ ═══[PARSE ERROR] Recursive bindings require a function initializer.
+
+// Captured refinements remain available in local functions.
+
+fun refined(x) =
+  if x is Int then
+    fun add(y) = x + y
+    add(1)
+  else 0
+//│ refined: ∀α. α → (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+
+refined(1)
+//│ Int
+
+refined("hello")
+//│ Int
+
+fun mutualIdentity() =
+  fun left(n, x) = if n == 0 then x else right(n - 1, x)
+  fun right(n, x) = left(n, x)
+  [left(1, 1), right(1, "hello")]
+//│ mutualIdentity: Unit → ⟨Int, Str⟩
+
+mutualIdentity()
+//│ ⟨Int, Str⟩
+
+// Compiler-generated references to literals and the conditional cannot capture local names.
+
+fun constants(int, bool, string, _if_) =
+  [1, if true then "yes" else "no"]
+//│ constants: ⊤ → ⊤ → ⊤ → ⊤ → ⟨Int, Str⟩
+
+constants("shadow", 1, true, 2)
+//│ ⟨Int, Str⟩
+
+:te
+constants("shadow", 1, true, 2) as [Str, Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Str, Str⟩.
+//│ Typing error tree:
+//│   α ≤ ⟨Str, Str⟩
+//│     ⟨Int, Str⟩ ≤ ⟨Str, Str⟩
+//│       Int ≤ Str
+
+// An annotated parameter can be refined, and its function must accept the entire annotation.
+
+fun typedFlow(x: Int | Str) = if x is Int then x + 1 else 0
+//│ typedFlow: ∀α. {α ≤ Int ∨ Str} ⟹ α → (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+
+typedFlow(1)
+//│ Int
+
+typedFlow("hello")
+//│ Int
+
+:te
+typedFlow(true)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int ∨ Str} ⟹ α → (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int)) ≤ Bool → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int ∨ Str} ⟹ α → (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int)) ≤ Bool → β
+//│     {γ ≤ Int ∨ Str} ⟹ γ → (({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Int)) ≤ Bool → β
+//│       γ → (({γ ≤ Int} ⟹ Int) ∧ ({γ ≤ ¬Int} ⟹ Int)) ≤ Bool → β
+//│         Bool ≤ γ
+//│           Bool ≤ Int ∨ Str
+//│             Bool ≤ Int
+//│             Bool ≤ Str
+
+:te
+fun partial(x: Int | Str) = if x is Int then x
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → α ≤ (Int ∨ Str) → ⊤.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → α ≤ (Int ∨ Str) → ⊤
+//│     ∀α. {α ≤ Int} ⟹ α → α ≤ Str → ⊤
+//│       {β ≤ Int} ⟹ β → β ≤ Str → ⊤
+//│         β → β ≤ Str → ⊤
+//│           Str ≤ β
+//│             Str ≤ Int
+
+:te
+fun narrowed(x: Int | Str) = x + 1
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ (Int ∨ Str) → ⊤.
+//│ Typing error tree:
+//│   Int → Int ≤ (Int ∨ Str) → ⊤
+//│     Int ∨ Str ≤ Int
+//│       Str ≤ Int
+
+// Unsupported variadics are rejected instead of dropping parameters or arguments.
+
+:pe
+fun variadic(...args) = args
+//│ ═══[PARSE ERROR] Rest and contextual parameters are unsupported in CTML.
+
+:pe
+((x, y) => x)(...[1, 2], true)
+//│ ═══[PARSE ERROR] Unsupported CTML term: Lam(ParamList(‹›,List(Param(‹›,x,None,Modulefulness(None)), Param(‹›,y,None,Modulefulness(None))),None),Ref(x))
+
+:pe
+declare fun variadicDeclaration(...args): Top
+//│ ═══[PARSE ERROR] Rest and contextual parameters are unsupported in CTML.
+
+:pe
+fun explicitTypeParameter[A](x: A) = x
+//│ ═══[PARSE ERROR] Type parameters on function definitions are unsupported.

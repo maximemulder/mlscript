@@ -55,8 +55,8 @@ sealed trait SubClause extends TypeClause:
 
 /** A term variable declaration. */
 case class TermVarDecl(
-  /** The term variable name. */
-  name: String,
+  /** The term variable and its binding identity. */
+  variable: TermVar,
   /** The term variable type. */
   type_ : Type,
 ) extends TypeClause:
@@ -193,7 +193,7 @@ given Show[SubClause] with
 /** Implementation of the `Show` trait for `TermVarDecl`. */
 given Show[TermVarDecl] with
   override def show(var_ : TermVarDecl): String =
-    s"${var_.name}: ${var_.type_}"
+    s"${var_.variable}: ${var_.type_}"
 
 /** Implementation of the `Show` trait for `ClassDecl`. */
 given Show[ClassDecl] with

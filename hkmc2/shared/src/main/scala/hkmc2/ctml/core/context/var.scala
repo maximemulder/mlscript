@@ -13,13 +13,17 @@ extension (ctx: TypeContext)
    *
    *  The elaborator resolves every variable, so a variable that is not in the context is one whose
    *  definition failed to type or is not supported, which is a type error of the term that uses
-   *  it. */
-  def getVarType(name: String): Type =
-    ctx.terms.find(_.name == name) match
+   *  it. Synthetic references select the oldest matching declaration, supplied by the prelude,
+   *  so local bindings cannot capture compiler-generated literal and operator references. */
+  def getVarType(variable: TermVar): Type =
+    val declaration = if variable.id.isDefined then
+      ctx.terms.find(_.variable == variable)
+    else ctx.terms.findLast(_.variable.name == variable.name)
+    declaration match
       case Some(var_) =>
         var_.type_
       case None =>
-        throw TypeError(Some(s"Variable '${name}' has no type."))
+        throw TypeError(Some(s"Variable '${variable.name}' has no type."))
 
 extension (ctx: SubContext)
   /** Get the class definition of a class variable. */

@@ -13,12 +13,16 @@ fun zero(i) =
     else zero(i - 1)
 //│ zero: Int → Int
 
+// Recursive values require an initialization semantics; only functions can be recursive.
+
+:pe
 val infinite = infinite + 1
-//│ infinite: Int
+//│ ═══[PARSE ERROR] Recursive bindings require a function initializer.
 
 fun recursive(x) =
   recursive(x)
 //│ recursive: ⊤ → ⊥
 
+:pe
 val never = never
-//│ never: ⊥
+//│ ═══[PARSE ERROR] Recursive bindings require a function initializer.

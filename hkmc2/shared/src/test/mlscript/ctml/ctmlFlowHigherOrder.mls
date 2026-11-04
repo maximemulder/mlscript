@@ -154,7 +154,7 @@ fun local(u) =
 //│ local: ⊤ → ⟨Int, Str⟩
 
 fun make(u) = (a) => if a is Int then a + 1 else a
-//│ make: ∀α, β. {β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int, α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β)} ⟹ ⊤ → β → α
+//│ make: ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int, β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α)} ⟹ ⊤ → α → β
 
 make(unit)(1)
 //│ Int
@@ -283,7 +283,7 @@ h2((x) => x + 1, int_or_string)
 // A function is an instance of the negation of every class.
 
 fun h3(a) = if a is Int then a + 1 else a
-//│ h3: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
+//│ h3: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β
 
 h3((x) => x)
 //│ ∀α. α → α

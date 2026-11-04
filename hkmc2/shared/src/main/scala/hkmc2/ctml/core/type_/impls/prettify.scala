@@ -30,7 +30,7 @@ extension (clause: SubClause)
 extension (decl: TermVarDecl)
   def prettify(prettyCtx: PrettyContext): TermVarDecl =
     TermVarDecl(
-      decl.name,
+      decl.variable,
       decl.type_.prettify(prettyCtx),
     )
 

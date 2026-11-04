@@ -19,9 +19,12 @@ extension (bound: Bound)
   private[simplification] def inline(var_ : TypeVar)(using ctx: SubContext): Bound =
     val newUpper = var_.upperBound.removeDirectVar(bound.var_, Polarity.Negative)
     val newLower = var_.lowerBound.removeDirectVar(bound.var_, Polarity.Positive)
-    // The bounds of the inlined variable without the bounded variable override its bounds.
+    // Simplification must not use the bound being rewritten, even through a cycle. Otherwise
+    // rewriting `α ≥ β ∨ Bool` with `β ≥ γ` and `γ ≥ α` could absorb Bool into γ using this very
+    // bound, leaving only the cycle and losing the requirement that α contains Bool.
+    // The inlined variable's replacement additionally excludes the bounded variable itself.
     val newBoundType = inlineType(bound.type_, var_, bound.dir.leftPol)(using
-      ctx.overrideVarBounds(var_, newUpper, newLower)
+      ctx.overrideVarBounds(bound.var_, TTop, TBot).overrideVarBounds(var_, newUpper, newLower)
     )
       .removeDirectVar(bound.var_, bound.dir.leftPol)
 

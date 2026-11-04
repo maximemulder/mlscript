@@ -27,7 +27,7 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
 
     // Variable.
     case var_ : EVar =>
-      (ctx.getVarType(var_.name), SubClauses.empty)
+      (ctx.getVarType(var_.variable), SubClauses.empty)
 
     // Tuple introduction.
     case tuple: ETuple =>
@@ -37,32 +37,35 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
 
     // Lambda abstraction.
     case lam: ELam =>
-      (
-        ctx.withInferLevel((innerCtx) =>
-          val (paramType, paramClauses, bodyCtx) = lam.paramName match
-            case Some(name) =>
-              val paramVarDecl = innerCtx.sub.declInferVar()
-              val paramType = TVar(paramVarDecl.var_)
-              val bodyCtx = innerCtx.extendSub(paramVarDecl)
-                .extendTerm(TermVarDecl(name, paramType))
-              (paramType, SubClauses.single(paramVarDecl), bodyCtx)
-            case None =>
-              (TClass(ClassVar("Unit")), SubClauses.empty, innerCtx)
-          val (bodyType, bodyClauses) = infer(lam.body)(using bodyCtx)
-          (TLam(paramType, bodyType), paramClauses.concat(bodyClauses))
-        ),
-        SubClauses.empty,
-      )
+      val type_ = ctx.withInferLevel: innerCtx =>
+        val (paramType, paramClauses, bodyCtx) = lam.param match
+          case Some(param) =>
+            val paramDecl = innerCtx.sub.declInferVar()
+            val paramType = TVar(paramDecl.var_)
+            val clauses = param.annotation.fold(paramDecl.asSubClauses): annotation =>
+              typingSubtypeSeq(paramType, annotation, paramDecl.asSubClauses)(using innerCtx)
+            val bodyCtx = innerCtx.extendSub(clauses)
+              .extendTerm(TermVarDecl(param.variable, paramType))
+            (paramType, clauses, bodyCtx)
+          case None =>
+            (TClass(ClassVar("Unit")), SubClauses.empty, innerCtx)
+        val (bodyType, bodyClauses) = infer(lam.body)(using bodyCtx)
+        (TLam(paramType, bodyType), paramClauses.concat(bodyClauses))
+      // A parameter's fresh variable permits branch refinements. Its inferred domain must still
+      // accept every value promised by the annotation, rather than just an inferred subset of it.
+      val clauses = lam.param.flatMap(_.annotation).fold(SubClauses.empty): annotation =>
+        typingSubtype(type_, TLam(annotation, TTop))
+      (type_, clauses)
 
     // Lambda application.
     case app: EApp =>
       val (lamType, lamClauses) = infer(app.lam)
       val (argType, argClauses) = inferSeq(app.arg, lamClauses)
-      val retVarDecl = ctx.sub.declInferVar()
-      val retType = TVar(retVarDecl.var_)
-      val mockLamType = TLam(argType, retType)
-      val consrainClauses = typingSubtypeSeq(lamType, mockLamType, argClauses.concat(retVarDecl.asSubClauses))
-      (retType, consrainClauses)
+      applyType(lamType, argType, argClauses)
+
+    // Immutable binding.
+    case ELet(group, body) =>
+      inferLet(group, body)
 
     // Type ascription.
     case ascr: EAscr =>

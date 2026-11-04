@@ -12,9 +12,9 @@ import hkmc2.semantics.Statement
 abstract class Error extends Exception
 
 /** A CTML parsing error. */
-case class ParseError(stmt: Statement) extends Error:
+case class ParseError(stmt: Statement, reason: Option[String] = None) extends Error:
   override def getMessage(): String =
-    s"Unsupported CTML term: ${this.stmt}"
+    reason.getOrElse(s"Unsupported CTML term: ${this.stmt}")
 
 /** A CTML type error.
  *

@@ -7,13 +7,19 @@ sealed trait Expr
 case object EUnit extends Expr
 
 /** A Variable expression. */
-case class EVar(val name: String) extends Expr
+case class EVar(val variable: TermVar) extends Expr
 
 /** A tuple introduction */
 case class ETuple(val left: Expr, val right: Expr) extends Expr
 
 /** A lambda abstraction. An absent parameter represents a zero-argument function with domain Unit. */
-case class ELam(val paramName: Option[String], val body: Expr) extends Expr
+case class ELam(val param: Option[LambdaParam], val body: Expr) extends Expr
+
+/** A lambda parameter with an optional domain annotation. */
+case class LambdaParam(variable: TermVar, annotation: Option[Type])
+
+/** A nonrecursive binding or a mutually recursive group, followed by its scope. */
+case class ELet(group: BindingGroup, body: Expr) extends Expr
 
 /** A lambda application. */
 case class EApp(val lam: Expr, val arg: Expr) extends Expr

@@ -2,11 +2,10 @@ package hkmc2.ctml.parser
 
 import hkmc2.ctml.config.config
 import hkmc2.ctml.types.*
-import hkmc2.semantics.DefineVar
 import hkmc2.semantics.Elem
 import hkmc2.semantics.Fld
-import hkmc2.semantics.LetDecl
 import hkmc2.semantics.Param
+import hkmc2.semantics.ParamList
 import hkmc2.semantics.Pattern
 import hkmc2.semantics.SimpleSplit
 import hkmc2.semantics.Statement
@@ -30,22 +29,21 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
       EUnit
     // Parse other literals as variables.
     case Term.Lit(Tree.BoolLit(_)) =>
-      EVar("bool")
+      EVar(TermVar("bool", None))
     case Term.Lit(Tree.IntLit(_)) =>
-      EVar("int")
+      EVar(TermVar("int", None))
     case Term.Lit(Tree.DecLit(_)) =>
-      EVar("num")
+      EVar(TermVar("num", None))
     case Term.Lit(Tree.StrLit(_)) =>
-      EVar("string")
+      EVar(TermVar("string", None))
     // Parse variables.
     case Term.Ref(mlSymbol) =>
-      val name = mlSymbol.nme
-      EVar(name)
+      EVar(termVar(mlSymbol))
     case Term.SynthSel(_, mlIdent) =>
-      EVar(mlIdent.name)
+      EVar(TermVar(mlIdent.name, None))
     // Parse lambda abstractions.
     case Term.Lam(mlParams, mlBody) =>
-      parseLambda(mlParams.allParams, mlBody)
+      parseLambda(mlParams, mlBody)
     // Parse lambda applications.
     case Term.App(mlLambda, mlArg) =>
       parseApp(mlLambda, mlArg)
@@ -65,15 +63,15 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
       val condition = parseExpr(mlCondition)
       val then_ = parseExpr(mlThen)
       val else_ = parseExpr(mlElse)
-      EApp(EApp(EApp(EVar("_if_"), condition), then_), else_)
+      EApp(EApp(EApp(EVar(TermVar("_if_", None)), condition), then_), else_)
     case Term.IfLike(_, IfLikeForm.ReturningIf, mlSplit) =>
       val body = parseSplit(mlSplit)
       mlSplit match
         case SimpleSplit.Cons(Head.Match(scrutinee, _, _), _) if config.wrapIfs =>
           // Rebinding the scrutinee gives context join a non-expansive enclosing lambda and
           // refines its occurrences throughout the split. A leading UCS let already does this.
-          val name = scrutinee.sym.nme
-          EApp(ELam(Some(name), body), EVar(name))
+          val variable = termVar(scrutinee.sym)
+          EApp(ELam(Some(LambdaParam(variable, None)), body), EVar(variable))
         case _ =>
           body
     case _ =>
@@ -96,36 +94,38 @@ def parseAscriptionComposition(mlLeft: Term, mlRight: Term, mlPol: Boolean)(usin
     case _ =>
       throw new ParseError(mlLeft)
 
-/** Parse a block of variable bindings followed by its result expression.
- *  Plain expression statements are unsupported; they do not introduce tuple components. */
+/** Parse immutable bindings followed by a result expression. Dependency ordering preserves value
+ *  initialization order and permits forward function references. Expression statements are
+ *  unsupported. */
 def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
   mlLefts match
     case Nil =>
       parseExpr(mlRight)
-    case mlLeft :: mlLefts =>
-      val next = parseBlock(mlLefts, mlRight)
-      mlLeft match
-        case DefineVar(mlSymbol, mlExpr) =>
-          val name = mlSymbol.nme
-          val expr = parseExpr(mlExpr)
-          val lambda = ELam(Some(name), next)
-          EApp(lambda, expr)
-        case LetDecl(_, _) =>
-          next
-        case _ =>
-          throw new ParseError(mlLeft)
+    case head :: _ if isBindingStatement(head) =>
+      val (bindings, rest) = mlLefts.span(isBindingStatement)
+      val groups = parseBindingGroups(bindings)
+      groups.foldRight(parseBlock(rest, mlRight))(ELet(_, _))
+    case mlLeft :: _ => throw ParseError(mlLeft)
 
 /** Convert an MLScript lambda abstraction to a CTML expression. */
-def parseLambda(mlParams: List[Param], mlBody: Term)(using Scope): Expr =
+def parseLambda(mlParams: ParamList, mlBody: Term)(using Scope): Expr =
   wrapLambda(mlParams, parseExpr(mlBody))
 
 /** Wrap a body in one parameter list, retaining an empty list as a Unit-domain abstraction. */
-def wrapLambda(mlParams: List[Param], body: Expr): Expr =
-  mlParams match
+def wrapLambda(mlParams: ParamList, body: Expr)(using Scope): Expr =
+  functionParams(mlParams) match
     case Nil =>
       ELam(None, body)
-    case _ =>
-      mlParams.foldRight(body)((param, body) => ELam(Some(param.sym.nme), body))
+    case params =>
+      params.foldRight(body): (param, body) =>
+        ELam(Some(LambdaParam(termVar(param.sym), param.sign.map(parseType))), body)
+
+/** Validate and unpack an ordinary parameter list, including an empty one. */
+def functionParams(params: ParamList): List[Param] =
+  if params.restParam.isDefined || params.flags.ctx then
+    throw ParseError(Term.Lam(params, Term.UnitVal()),
+      Some("Rest and contextual parameters are unsupported in CTML."))
+  params.params
 
 /** Convert an MLScript lambda application to a CTML expresssion. */
 def parseApp(mlLambda: Term, mlArgs: Term)(using Scope): Expr =
@@ -146,12 +146,13 @@ def parseAppLambda(mlLambda: Term, mlArgs: List[Elem])(using Scope): Expr =
       val lambda = parseAppLambda(mlLambda, mlArgs)
       val arg = parseExpr(mlArg)
       EApp(lambda, arg)
-    case _ =>
+    case Nil =>
       mlLambda match
         case Term.SynthSel(_, mlIdent) if mlIdent.name == "equals" =>
-          EVar("==")
+          EVar(TermVar("==", None))
         case _ =>
           parseExpr(mlLambda)
+    case _ => throw ParseError(mlLambda)
 
 /** Convert an MLScript split to a CTML expression */
 def parseSplit(mlSplit: SimpleSplit)(using Scope): Expr =
@@ -175,11 +176,11 @@ def parseCons(mlCons: SimpleSplit.Cons)(using Scope): Expr =
 
 /** Convert an MLScript let binding to a CTML expression */
 def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope): Expr =
-  val param = mlLet.binding.nme
+  val param = termVar(mlLet.binding)
   val arg = parseExpr(mlLet.term)
   val body = parseCons(mlTail)
   val direct = if config.dewrapUcsIfs then dewrapMatchBinding(param, arg, body) else None
-  direct.getOrElse(EApp(ELam(Some(param), body), arg))
+  direct.getOrElse(EApp(ELam(Some(LambdaParam(param, None)), body), arg))
 
 /** Convert an MLScript pattern match to a CTML expression */
 def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope): EMatch =

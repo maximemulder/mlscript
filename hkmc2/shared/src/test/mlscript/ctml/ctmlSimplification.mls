@@ -16,7 +16,7 @@ fun direct(a) = if a is Int then a + 1 else a
 :ctml-cfg wrap-ifs
 
 fun wrapped(a) = if a is Int then a + 1 else a
-//│ wrapped: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
+//│ wrapped: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β
 
 // Additional aliases compose without accumulating quantified parameters.
 
@@ -24,7 +24,7 @@ fun aliases(a) =
   let b = a
   let c = b
   if c is Int then c + 1 else c
-//│ aliases: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ β), β ≤ ¬({α ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ β → α
+//│ aliases: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ α), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬Int} ⟹ α → β
 
 wrapped(1)
 //│ Int

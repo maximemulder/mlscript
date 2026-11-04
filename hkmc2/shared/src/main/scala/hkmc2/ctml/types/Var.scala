@@ -2,6 +2,12 @@ package hkmc2.ctml.types
 
 import hkmc2.ctml.utils.*
 
+/** A term variable. Resolved variables retain their elaborator identity; synthetic references
+ *  select a prelude operation by name. */
+case class TermVar(name: String, id: Option[Int]):
+  /** Display the source name without its internal identity. */
+  override def toString: String = name
+
 /** A type variable. */
 case class TypeVar(val name: String):
   /** Get the string representation of the object. */

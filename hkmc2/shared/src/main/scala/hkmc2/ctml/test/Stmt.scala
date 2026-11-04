@@ -15,10 +15,10 @@ case class StmtTypeDecl(name: String, kind: TypeVarKind) extends Stmt
 case class StmtTypeVar(name: String, type_ : Type) extends Stmt
 
 /** An expression variable declaration. */
-case class StmtExprDecl(name: String, type_ : Type) extends Stmt
+case class StmtExprDecl(variable: TermVar, type_ : Type) extends Stmt
 
-/** An expression variable assignment. */
-case class StmtExprVar(name: String, expr: Expr) extends Stmt
+/** A dependency component of immutable term definitions. */
+case class StmtBindings(group: BindingGroup) extends Stmt
 
 /** An expression. */
 case class StmtExpr(expr: Expr) extends Stmt

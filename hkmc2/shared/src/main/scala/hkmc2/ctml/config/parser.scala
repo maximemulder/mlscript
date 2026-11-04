@@ -25,6 +25,12 @@ def applyConfigArguments(arguments: List[String]): Unit =
           config.wrapIfs = true
         case "no-wrap-ifs" =>
           config.wrapIfs = false
+        case "dewrap-ucs-ifs" =>
+          config.dewrapUcsIfs = true
+        case "wrap-ucs-ifs" =>
+          config.dewrapUcsIfs = false
+        case "profile-infer" =>
+          config.profileInfer = true
         case argument =>
           throw Exception(s"unknown argument '${argument}'")
   catch

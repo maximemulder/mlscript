@@ -83,27 +83,30 @@ def inferMatch(match_ : EMatch)(using ctx: TypeContext): (Type, SubClauses) =
 
   match_.else_ match
     case Some(else_) =>
-      ctx.seq(
-        {
-          val matchVarDecl = ctx.sub.declInferVar()
-          val matchType = TVar(matchVarDecl.var_)
-          val matchCtx = ctx.extendSub(matchVarDecl)
-          val clauses =
-            given TypeContext = matchCtx
-            val patternClauses = typingSubtype(scrutineeType, match_.pattern)
-            val (bodyType, bodyClauses) = inferSeq(match_.then_, patternClauses)
-            val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
-            val elsePatternClauses = typingSubtype(scrutineeType, TNeg(match_.pattern))
-            val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
-            val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
-            SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses))
-          (matchType, SubClauses.single(matchVarDecl).concat(clauses))
-        },
-        scrutineeClauses,
-      )
+      ctx.seq(inferMatchBranches(scrutineeType, match_.pattern, match_.then_, else_),
+        scrutineeClauses)
     case None =>
       val patternClauses = typingSubtypeSeq(scrutineeType, match_.pattern, scrutineeClauses)
       inferSeq(match_.then_, patternClauses)
+
+/** Infer both branches in a context containing the scrutinee's generated declarations and bounds.
+ *  This scope matters for a computed scrutinee: its result variable is declared by inference of
+ *  the scrutinee rather than by an enclosing parameter or UCS binding. */
+private def inferMatchBranches(scrutineeType: Type, pattern: Type, then_ : Expr, else_ : Expr)
+  (using ctx: TypeContext): (Type, SubClauses) =
+  val matchVarDecl = ctx.sub.declInferVar()
+  val matchType = TVar(matchVarDecl.var_)
+  val matchCtx = ctx.extendSub(matchVarDecl)
+  val clauses =
+    given TypeContext = matchCtx
+    val patternClauses = typingSubtype(scrutineeType, pattern)
+    val (bodyType, bodyClauses) = inferSeq(then_, patternClauses)
+    val realBodyClauses = typingSubtypeSeq(bodyType, matchType, bodyClauses)
+    val elsePatternClauses = typingSubtype(scrutineeType, TNeg(pattern))
+    val (elseType, elseClauses) = inferSeq(else_, elsePatternClauses)
+    val realElseClauses = typingSubtypeSeq(elseType, matchType, elseClauses)
+    SubClauses(matchCtx.sub.joinBounds(realBodyClauses, realElseClauses))
+  (matchType, SubClauses.single(matchVarDecl).concat(clauses))
 
 def typingSubtype(sub: Type, sup: Type)(using ctx: TypeContext) =
   subtype(sub, sup)(using ctx.sub)

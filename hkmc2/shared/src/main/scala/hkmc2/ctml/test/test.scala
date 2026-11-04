@@ -117,7 +117,7 @@ class Tester(
 
   /** Test an expression variable type inference and add it to the context. */
   def testExprVar(name: String, expr: Expr) =
-    val (type_, outs) = inferTopLevel(expr)(using this.ctx)
+    val (type_, outs) = inferExpression(expr)
     this.output(s"${name}: ${type_.prettify(prettyCtx)}")
     if config.debug.output then
       this.outputClauses(outs)
@@ -125,10 +125,28 @@ class Tester(
 
   /** Test an expression type inference. */
   def testExpr(expr: Expr) =
-    val (type_, outs) = inferTopLevel(expr)(using this.ctx)
+    val (type_, outs) = inferExpression(expr)
     if config.debug.output then
       this.outputClauses(outs)
     this.outputType(type_)
+
+  /** Infer a test expression, optionally recording time separately from type-size counting. */
+  private def inferExpression(expr: Expr): (Type, SubClauses) =
+    if !config.profileInfer then return inferTopLevel(expr)(using this.ctx)
+    val start = System.nanoTime()
+    try
+      val result = inferTopLevel(expr)(using this.ctx)
+      val millis = (System.nanoTime() - start).toDouble / 1000000
+      this.output(s"@ctml-infer ok $millis ${typeSize(result._1)}")
+      result
+    catch
+      case error: TypeError =>
+        val millis = (System.nanoTime() - start).toDouble / 1000000
+        this.output(s"@ctml-infer failed $millis 0")
+        throw error
+
+  /** Count type-tree occurrences, including the types in constraint guards. */
+  private def typeSize(type_ : Type): Int = 1 + type_.components.map(typeSize).sum
 
   /** Test the relation between two types. */
   def testTypeRel(rel: TypeRel, left: Type, right: Type) =

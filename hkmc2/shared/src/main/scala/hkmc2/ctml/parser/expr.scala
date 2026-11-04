@@ -183,7 +183,8 @@ def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope)
   val param = mlLet.binding.nme
   val arg = parseExpr(mlLet.term)
   val body = parseCons(mlTail)
-  EApp(ELam(param, body), arg)
+  val direct = if config.dewrapUcsIfs then dewrapMatchBinding(param, arg, body) else None
+  direct.getOrElse(EApp(ELam(param, body), arg))
 
 /** Convert an MLScript pattern match to a CTML expression */
 def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope): EMatch =

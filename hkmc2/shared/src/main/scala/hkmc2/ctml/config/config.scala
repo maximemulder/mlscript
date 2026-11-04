@@ -24,6 +24,12 @@ class Config:
   /** Whether to wrap conditional splits in a lambda application when UCS supplies no binding. */
   var wrapIfs = true
 
+  /** Whether to inline safe UCS scrutinee bindings instead of encoding them as applications. */
+  var dewrapUcsIfs = false
+
+  /** Whether the diff-test entry point reports inference time and final type size. */
+  var profileInfer = false
+
   /** The current call depth. */
   var currentCallDepth = 0
 

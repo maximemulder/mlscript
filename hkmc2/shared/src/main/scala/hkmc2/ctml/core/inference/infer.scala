@@ -22,6 +22,9 @@ def infer(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
 /** Implementation of `constrainSub`. */
 def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
   expr match
+    case EUnit =>
+      (TClass(ClassVar("Unit")), SubClauses.empty)
+
     // Variable.
     case var_ : EVar =>
       (ctx.getVarType(var_.name), SubClauses.empty)
@@ -35,12 +38,18 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
     // Lambda abstraction.
     case lam: ELam =>
       (
-        ctx.withInferLevel((ctx) =>
-          val paramVarDecl = ctx.sub.declInferVar()
-          val paramType = TVar(paramVarDecl.var_)
-          given TypeContext = ctx.extendSub(paramVarDecl).extendTerm(TermVarDecl(lam.paramName, paramType))
-          val (bodyType, bodyClauses) = infer(lam.body)
-          (TLam(paramType, bodyType), SubClauses.single(paramVarDecl).concat(bodyClauses))
+        ctx.withInferLevel((innerCtx) =>
+          val (paramType, paramClauses, bodyCtx) = lam.paramName match
+            case Some(name) =>
+              val paramVarDecl = innerCtx.sub.declInferVar()
+              val paramType = TVar(paramVarDecl.var_)
+              val bodyCtx = innerCtx.extendSub(paramVarDecl)
+                .extendTerm(TermVarDecl(name, paramType))
+              (paramType, SubClauses.single(paramVarDecl), bodyCtx)
+            case None =>
+              (TClass(ClassVar("Unit")), SubClauses.empty, innerCtx)
+          val (bodyType, bodyClauses) = infer(lam.body)(using bodyCtx)
+          (TLam(paramType, bodyType), paramClauses.concat(bodyClauses))
         ),
         SubClauses.empty,
       )

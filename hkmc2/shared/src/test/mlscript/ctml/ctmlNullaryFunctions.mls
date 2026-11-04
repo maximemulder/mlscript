@@ -1,0 +1,184 @@
+:ctml
+
+// Definitions, lambdas, and declared function types retain their empty parameter lists.
+
+fun answer() = 42
+//│ answer: Unit → Int
+
+answer()
+//│ Int
+
+val thunk = () => "hello"
+//│ thunk: Unit → Str
+
+thunk()
+//│ Str
+
+val typed: () -> Int = () => 1
+//│ typed: Unit → Int
+
+typed()
+//│ Int
+
+fun annotated(): Int = 1
+//│ annotated: Unit → Int
+
+annotated()
+//│ Int
+
+declare fun source(): Int
+//│ source: Unit → Int
+
+source()
+//│ Int
+
+declare fun declared: () -> Str
+//│ declared: Unit → Str
+
+declared()
+//│ Str
+
+// Empty parameter lists are preserved at every position in a curried declaration.
+
+fun before()(x) = x
+//│ before: ∀α. Unit → α → α
+
+before()(1)
+//│ Int
+
+fun after(x)() = x
+//│ after: ∀α. α → Unit → α
+
+after("hello")()
+//│ Str
+
+fun twice()() = true
+//│ twice: Unit → Unit → Bool
+
+twice()()
+//│ Bool
+
+declare fun curried()(x: Int)(): Str
+//│ curried: Unit → Int → Unit → Str
+
+curried()(1)()
+//│ Str
+
+// A nullary function remains first-class and can close over polymorphic arguments.
+
+fun force(f) = f()
+//│ force: ∀α. (Unit → α) → α
+
+force(thunk)
+//│ Str
+
+fun delay(x) = () => x
+//│ delay: ∀α. α → Unit → α
+
+delay(1)()
+//│ Int
+
+delay("hello")()
+//│ Str
+
+// Empty calls use a unit value without capturing a binding named unit.
+
+fun shadow(unit) = (() => unit)()
+//│ shadow: ∀α. α → α
+
+shadow(1)
+//│ Int
+
+// Recursive nullary functions retain their function layer.
+
+fun loop() = loop()
+//│ loop: Unit → ⊥
+
+loop()
+//│ ⊥
+
+// Definitions without parameter lists remain values in CTML.
+
+val value = 42
+//│ value: Int
+
+value
+//│ Int
+
+// Bodies and result annotations are checked, and non-functions cannot be called.
+
+:te
+val bad: () -> Int = () => "hello"
+//│ ═══[TYPE ERROR] Cannot solve judgment Unit → Str ≤ Unit → Int.
+//│ Typing error tree:
+//│   Unit → Str ≤ Unit → Int
+//│     Str ≤ Int
+
+:te
+fun badResult(): Int = "hello"
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int
+
+:te
+(() => 1 + "hello")()
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+:te
+answer("hello")
+//│ ═══[TYPE ERROR] Cannot solve judgment Unit → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Unit → Int ≤ Str → α
+//│     Str ≤ Unit
+
+:te
+value()
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Unit → α.
+//│ Typing error tree:
+//│   Int ≤ Unit → α
+
+:te
+answer + 1
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ (Unit → Int) → α.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ (Unit → Int) → α
+//│     Unit → Int ≤ Int
+
+// Constraints from a captured variable remain part of the enclosing function's type.
+
+fun captured(x) = () => x + 1
+//│ captured: Int → Unit → Int
+
+captured(1)()
+//│ Int
+
+:te
+captured("hello")()
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Unit → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Unit → Int ≤ Str → α
+//│     Str ≤ Int
+
+fun refined(x) = if x is Int then (() => x + 1)() else 0
+//│ refined: ∀α. α → (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+
+refined(1)
+//│ Int
+
+refined("hello")
+//│ Int
+
+// Type parameters scope over every parameter list of a declaration.
+
+declare fun generic[A]()(x: A): A
+//│ generic: ∀A. Unit → A → A
+
+generic()(1)
+//│ Int
+
+generic()("hello")
+//│ Str

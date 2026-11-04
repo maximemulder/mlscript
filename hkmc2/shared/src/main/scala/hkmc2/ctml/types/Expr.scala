@@ -3,14 +3,17 @@ package hkmc2.ctml.types
 /** An expression. */
 sealed trait Expr
 
+/** The unit value, independent of term bindings named `unit`. */
+case object EUnit extends Expr
+
 /** A Variable expression. */
 case class EVar(val name: String) extends Expr
 
 /** A tuple introduction */
 case class ETuple(val left: Expr, val right: Expr) extends Expr
 
-/** A lambda abstraction. */
-case class ELam(val paramName: String, val body: Expr) extends Expr
+/** A lambda abstraction. An absent parameter represents a zero-argument function with domain Unit. */
+case class ELam(val paramName: Option[String], val body: Expr) extends Expr
 
 /** A lambda application. */
 case class EApp(val lam: Expr, val arg: Expr) extends Expr

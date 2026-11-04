@@ -9,6 +9,7 @@ import hkmc2.semantics.Fld
 import hkmc2.semantics.Import
 import hkmc2.semantics.ModuleOrObjectDef
 import hkmc2.semantics.Param
+import hkmc2.semantics.ParamList
 import hkmc2.semantics.Statement
 import hkmc2.semantics.Symbol
 import hkmc2.semantics.Term
@@ -57,10 +58,10 @@ def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
         parseFlexVarDecl(mlSymbol)
       case TypeDef(mlSymbol, _, _, Some(mlType), _, mlAnnotations) if !isAbstract(mlAnnotations) =>
         parseTypeVar(mlSymbol, mlType)
-      case TermDefinition(_, mlSymbol, _, _, mlTypeParams, mlType, None, _, _, _, _) =>
-        parseExprDecl(mlSymbol, mlTypeParams.getOrElse(Nil), mlType)
+      case TermDefinition(_, mlSymbol, _, mlParams, mlTypeParams, mlType, None, _, _, _, _) =>
+        parseExprDecl(mlSymbol, mlParams, mlTypeParams.getOrElse(Nil), mlType)
       case TermDefinition(_, mlSymbol, _, mlParams, _, mlType, Some(mlExpr), _, _, _, _) =>
-        parseExprVar(mlSymbol, mlParams.map(_.allParams).flatten.toList, mlType, mlExpr)
+        parseExprVar(mlSymbol, mlParams, mlType, mlExpr)
       case Term.App(Term.SynthSel(_, mlIdent), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlIdent.name == "equals" =>
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)
@@ -115,23 +116,25 @@ def parseTypeVar(mlSymbol: TypeAliasSymbol, mlType: Term)(using Scope): Stmt =
   StmtTypeVar(name, type_)
 
 /** Convert an MLScript term declaration to a CTML expression variable declaration. */
-def parseExprDecl(mlSymbol: BlockMemberSymbol, mlTypeParams: List[Param], mlType: Option[Term])(using scope: Scope): Stmt =
+def parseExprDecl(mlSymbol: BlockMemberSymbol, mlParams: List[ParamList], mlTypeParams: List[Param], mlType: Option[Term])(using scope: Scope): Stmt =
   val name  = mlSymbol.nme
-  val type_ = mlType match
-    case Some(mlType) =>
-      val typeParamNames = mlTypeParams.map(_.sym.nme)
-      val typeParamScope = typeParamNames.foldLeft(scope)((scope, name) => scope.withType(name))
-      typeParamNames.foldRight(parseType(mlType)(using typeParamScope)): (typeParamName, body) =>
-        TUniv(TypeVar(typeParamName), body)
-    case None =>
-      TTop
+  val typeParamNames = mlTypeParams.map(_.sym.nme)
+  val typeParamScope = typeParamNames.foldLeft(scope)((scope, name) => scope.withType(name))
+  given Scope = typeParamScope
+  val result = mlType.map(parseType(_)).getOrElse(TTop)
+  val function = mlParams.foldRight(result): (params, ret) =>
+    params.allParams match
+      case Nil => TLam(TClass(ClassVar("Unit")), ret)
+      case params => params.foldRight(ret): (param, ret) =>
+        TLam(param.sign.map(parseType(_)).getOrElse(TTop), ret)
+  val type_ = typeParamNames.foldRight(function): (typeParamName, body) =>
+    TUniv(TypeVar(typeParamName), body)
 
   StmtExprDecl(name, type_)
 
 /** Convert an MLScript term declaration to a CTML expression variable assignment. */
-def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Option[Term], mlExpr: Term)(using Scope): Stmt =
+def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[ParamList], mlType: Option[Term], mlExpr: Term)(using Scope): Stmt =
   val name  = mlSymbol.nme
-  val type_ = mlType.map(parseType(_))
   var expr = parseExprVarBody(mlParams, mlType, mlExpr)
 
   // If the term is recursive, wrap it in a fixed-point combinator.
@@ -141,20 +144,12 @@ def parseExprVar(mlSymbol: BlockMemberSymbol, mlParams: List[Param], mlType: Opt
   StmtExprVar(name, expr)
 
 /** Convert an MLScript term declaration to a CTML expression body. */
-def parseExprVarBody(mlParams: List[Param], mlType: Option[Term], mlExpr: Term)(using Scope): Expr =
-  mlParams match
-    case Nil =>
-      val type_ = mlType.map(parseType(_))
-      val expr = parseExpr(mlExpr)
-      type_ match
-        case Some(type_) =>
-          EAscr(expr, type_)
-        case None =>
-          expr
-    case mlParam :: mlParams =>
-      val paramName = mlParam.sym.nme
-      val body = parseExprVarBody(mlParams, mlType, mlExpr)
-      ELam(paramName, body)
+def parseExprVarBody(mlParams: List[ParamList], mlType: Option[Term], mlExpr: Term)(using Scope): Expr =
+  val expr = parseExpr(mlExpr)
+  val body = mlType match
+    case Some(mlType) => EAscr(expr, parseType(mlType))
+    case None => expr
+  mlParams.foldRight(body)((params, body) => wrapLambda(params.allParams, body))
 
 /** Update the parser scope with on a statement. */
 def updateScope(stmt: Stmt, scope: Scope) =
@@ -191,7 +186,7 @@ def isAbstract(mlAnnotations: List[Annot]): Boolean =
 
 /** Wrap a recursive term in a fixed-point combinator. */
 def wrapRecursive(name: String, expr: Expr): Expr =
-  EApp(EVar("fix"), ELam(name, expr))
+  EApp(EVar("fix"), ELam(Some(name), expr))
 
 /** Check whether a MLScript term contains a given symbol. */
 def containsSymbol(mlTerm: Term, mlSymbol: Symbol): Boolean =

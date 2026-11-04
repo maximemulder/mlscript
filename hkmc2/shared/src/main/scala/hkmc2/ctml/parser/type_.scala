@@ -48,6 +48,8 @@ def parseType(mlType: Term)(using scope: Scope): Type =
 /** Convert an MLScript function type to a CTML type. */
 def parseTypeLambda(mlParams: Term, mlRet: Term)(using Scope): Type =
   mlParams match
+    case Term.Tup(Nil) =>
+      TLam(TClass(ClassVar("Unit")), parseType(mlRet))
     case Term.Tup(mlParams) =>
       parseTypeLambdaParams(mlParams, mlRet)
     case _ =>

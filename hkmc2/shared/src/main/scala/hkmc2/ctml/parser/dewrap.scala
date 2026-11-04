@@ -17,6 +17,7 @@ private[parser] def dewrapMatchBinding(name: String, arg: Expr, body: Expr): Opt
 /** Whether duplicating a scrutinee only repeats a variable lookup and erased ascriptions. */
 private def reusableScrutinee(expr: Expr): Boolean =
   expr match
+    case EUnit => true
     case EVar(_) => true
     case EAscr(expr, _) => reusableScrutinee(expr)
     case _ => false
@@ -24,8 +25,9 @@ private def reusableScrutinee(expr: Expr): Boolean =
 /** Count free occurrences, respecting the shadowing of named lambda parameters. */
 private def freeOccurrences(expr: Expr, name: String): Int =
   expr match
+    case EUnit => 0
     case EVar(other) => if other == name then 1 else 0
-    case ELam(param, body) => if param == name then 0 else freeOccurrences(body, name)
+    case ELam(param, body) => if param.contains(name) then 0 else freeOccurrences(body, name)
     case EApp(lam, arg) => freeOccurrences(lam, name) + freeOccurrences(arg, name)
     case ETuple(left, right) => freeOccurrences(left, name) + freeOccurrences(right, name)
     case EAscr(expr, _) => freeOccurrences(expr, name)
@@ -36,10 +38,11 @@ private def freeOccurrences(expr: Expr, name: String): Int =
 /** Replace a free variable, declining the rewrite if an intervening binder would capture it. */
 private def substituteTerm(expr: Expr, name: String, arg: Expr): Option[Expr] =
   expr match
+    case EUnit => Some(EUnit)
     case EVar(other) => Some(if other == name then arg else expr)
     case ELam(param, body) =>
-      if param == name then Some(expr)
-      else if freeOccurrences(arg, param) > 0 && freeOccurrences(body, name) > 0 then None
+      if param.contains(name) then Some(expr)
+      else if param.exists(freeOccurrences(arg, _) > 0) && freeOccurrences(body, name) > 0 then None
       else substituteTerm(body, name, arg).map(ELam(param, _))
     case EApp(lam, value) =>
       for

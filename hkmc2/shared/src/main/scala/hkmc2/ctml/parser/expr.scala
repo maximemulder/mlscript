@@ -25,9 +25,10 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
     // Binary tuples have the same shape as CTML products.
     case Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _))) =>
       ETuple(parseExpr(mlLeft), parseExpr(mlRight))
-    // Parse literals as variables.
+    // Parse unit independently of term bindings.
     case Term.UnitVal() | Term.Lit(Tree.UnitLit(_)) =>
-      EVar("unit")
+      EUnit
+    // Parse other literals as variables.
     case Term.Lit(Tree.BoolLit(_)) =>
       EVar("bool")
     case Term.Lit(Tree.IntLit(_)) =>
@@ -72,7 +73,7 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
           // Rebinding the scrutinee gives context join a non-expansive enclosing lambda and
           // refines its occurrences throughout the split. A leading UCS let already does this.
           val name = scrutinee.sym.nme
-          EApp(ELam(name, body), EVar(name))
+          EApp(ELam(Some(name), body), EVar(name))
         case _ =>
           body
     case _ =>
@@ -107,7 +108,7 @@ def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
         case DefineVar(mlSymbol, mlExpr) =>
           val name = mlSymbol.nme
           val expr = parseExpr(mlExpr)
-          val lambda = ELam(name, next)
+          val lambda = ELam(Some(name), next)
           EApp(lambda, expr)
         case LetDecl(_, _) =>
           next
@@ -116,27 +117,21 @@ def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
 
 /** Convert an MLScript lambda abstraction to a CTML expression. */
 def parseLambda(mlParams: List[Param], mlBody: Term)(using Scope): Expr =
-  mlParams match
-    case Nil =>
-      throw new ParseError(mlBody)
-    case mlParam :: mlParams =>
-      val paramName = mlParam.sym.nme
-      val body = parseLambdaBody(mlParams, mlBody)
-      ELam(paramName, body)
+  wrapLambda(mlParams, parseExpr(mlBody))
 
-/** Convert an MLScript lambda abstraction to a CTML lambda abstraction body. */
-def parseLambdaBody(mlParams: List[Param], mlBody: Term)(using Scope): Expr =
+/** Wrap a body in one parameter list, retaining an empty list as a Unit-domain abstraction. */
+def wrapLambda(mlParams: List[Param], body: Expr): Expr =
   mlParams match
     case Nil =>
-      parseExpr(mlBody)
-    case mlParam :: mlParams =>
-      val paramName = mlParam.sym.nme
-      val body = parseLambdaBody(mlParams, mlBody)
-      ELam(paramName, body)
+      ELam(None, body)
+    case _ =>
+      mlParams.foldRight(body)((param, body) => ELam(Some(param.sym.nme), body))
 
 /** Convert an MLScript lambda application to a CTML expresssion. */
 def parseApp(mlLambda: Term, mlArgs: Term)(using Scope): Expr =
   mlArgs match
+    case Term.Tup(Nil) =>
+      EApp(parseExpr(mlLambda), EUnit)
     case Term.Tup(mlArgs :+ Fld(_, mlArg, _)) =>
       val lambda = parseAppLambda(mlLambda, mlArgs)
       val arg = parseExpr(mlArg)
@@ -184,7 +179,7 @@ def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope)
   val arg = parseExpr(mlLet.term)
   val body = parseCons(mlTail)
   val direct = if config.dewrapUcsIfs then dewrapMatchBinding(param, arg, body) else None
-  direct.getOrElse(EApp(ELam(param, body), arg))
+  direct.getOrElse(EApp(ELam(Some(param), body), arg))
 
 /** Convert an MLScript pattern match to a CTML expression */
 def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope): EMatch =

@@ -20,6 +20,10 @@ final class TypeMonoidCombinator[T, P](m: Monoid[T]) extends TypeCombinator[Cons
   def class_(var_ : ClassVar): T =
     m.empty
 
+  /** Fold the type of an immutable field. */
+  def field(name: String, value: T, p: P): T =
+    value
+
   def tuple(left: T, right: T, p: P): T =
     m.combine(left, right)
 

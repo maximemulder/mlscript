@@ -25,6 +25,10 @@ final class TypeLazyDispatcher[P](
         last.var_(var_)
       case TClass(var_) =>
         last.class_(var_)
+      case TField(name, value) =>
+        val newValue = first.apply(value, p)
+        if newValue == value then return type_
+        last.field(name, newValue, p)
       case TTuple(left, right) =>
         val newLeft  = first.apply(left, p);
         val newRight = first.apply(right, p);

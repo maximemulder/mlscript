@@ -17,6 +17,8 @@ extension (type_ : Type)
         makeNegationType(
           body.simplify()
         )
+      case TField(name, value) =>
+        TField(name, value.simplify())
       case TTuple(left, right) =>
         TTuple(
           left.simplify(),

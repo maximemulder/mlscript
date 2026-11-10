@@ -20,6 +20,10 @@ final class TypeIdentityCombinator[P] extends TypeCombinator[Id, Id, P], Constra
   def class_(var_ : ClassVar): TClass =
     TClass(var_)
 
+  /** Rebuild an immutable field type. */
+  def field(name: String, value: Type, p: P): TField =
+    TField(name, value)
+
   def tuple(left: Type, right: Type, p: P): TTuple =
     TTuple(left, right)
 

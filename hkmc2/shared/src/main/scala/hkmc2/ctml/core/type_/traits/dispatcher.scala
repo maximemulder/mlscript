@@ -23,6 +23,8 @@ final class TypeDispatcher[T[+_], B[+_], P](
           first.apply(body, p),
           p,
         )
+      case TField(name, value) =>
+        last.field(name, first.apply(value, p), p)
       case TTuple(left, right) =>
         last.tuple(
           first.apply(left, p),

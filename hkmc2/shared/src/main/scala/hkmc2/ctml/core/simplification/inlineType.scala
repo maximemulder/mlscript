@@ -37,6 +37,8 @@ private def inlineType(type_ : Type, var_ : TypeVar, pol: Polarity)(using ctx: S
       var_.bound(pol.dir).removeDirectVar(var_, pol)
     case neg: TNeg =>
       inlineNegation(neg, var_, pol)
+    case TField(name, value) =>
+      TField(name, inlineType(value, var_, pol))
     case tuple: TTuple =>
       inlineTuple(tuple, var_, pol)
     case lam: TLam =>

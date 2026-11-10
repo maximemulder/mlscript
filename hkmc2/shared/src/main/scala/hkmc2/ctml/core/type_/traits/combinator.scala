@@ -20,6 +20,9 @@ trait TypeCombinator[T[_], B[_], P]:
   /** Get a class type combination. */
   def class_(name : ClassVar): T[TClass]
 
+  /** Get an immutable field type combination. */
+  def field(name: String, value: T[Type], p: P): T[TField]
+
   /** Get a tuple type combination. */
   def tuple(left: T[Type], right: T[Type], p: P): T[TTuple]
 

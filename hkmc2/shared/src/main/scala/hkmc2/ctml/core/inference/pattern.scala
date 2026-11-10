@@ -7,6 +7,10 @@ extension (type_ : Type)
   /** Check whether this type is an acceptable pattern or not. */
   def isPattern(using ctx: TypeContext): Boolean =
     type_ match
+      case TTop | TBot =>
+        true
+      case TField(_, value) =>
+        value.isPattern
       case TClass(var_) =>
         true
       case TNeg(body) =>

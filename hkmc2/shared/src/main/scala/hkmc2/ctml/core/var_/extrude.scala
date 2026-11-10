@@ -43,6 +43,9 @@ private def extrudeTypeImpl(type_ : Type)(using ctx: SubContext, level: Int, pol
       given Polarity = !pol
       val (newBody, outs) = extrudeType(body)
       (TNeg(newBody), outs)
+    case TField(name, value) =>
+      val (newValue, outs) = extrudeType(value)
+      (TField(name, newValue), outs)
     case TTuple(left, right) =>
       val (newLeft,  leftOuts)  = extrudeType(left)
       val (newRight, rightOuts) = extrudeTypeSeq(right, leftOuts)

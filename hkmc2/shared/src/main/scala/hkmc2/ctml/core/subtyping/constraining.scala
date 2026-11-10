@@ -374,6 +374,16 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
       return SubClauses.empty
     case _ =>
 
+  // Immutable fields are covariant. Two requirements on the same field are disjoint when their
+  // payloads are disjoint; a negated field also permits the field to be absent.
+
+  (sub, sup) match
+    case (TField(left, subValue), TField(right, supValue)) if left == right =>
+      return subtype(subValue, supValue)
+    case (TField(left, subValue), TNeg(TField(right, supValue))) if left == right =>
+      return subtype(subValue, TNeg(supValue))
+    case _ =>
+
   // Subtyping of tuple types.
 
   (sub, sup) match
@@ -386,6 +396,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   (sub, sup) match
     case (sub: TApp, sup: TApp) =>
       return subtypeApp(sub, sup)
+    case _ =>
+
+  // A record with an impossible required field has no inhabitants at any target type.
+  sub match
+    case TField(_, value) => return subtype(value, TBot)
     case _ =>
 
   throw TypeError()

@@ -24,7 +24,10 @@ case class TVar(val var_ : TypeVar) extends Type
 /** A class type. */
 case class TClass(val var_ : ClassVar) extends Type
 
-/** A tuple typle. */
+/** An immutable record field. A value must have the field, with a value of the given type. */
+case class TField(name: String, value: Type) extends Type
+
+/** A tuple type. */
 case class TTuple(val left: Type, val right: Type) extends Type
 
 /** A lambda type. */
@@ -56,6 +59,8 @@ extension (type_ : Type)
         Nil
       case TNeg(body) =>
         List(body)
+      case TField(_, value) =>
+        List(value)
       case TTuple(left, right) =>
         List(left, right)
       case TLam(param, ret) =>
@@ -92,6 +97,8 @@ private def showType(type_ : Type, parentOpen: Boolean = false): String =
       (var_.show, false)
     case TClass(var_) =>
       (var_.show, false)
+    case TField(name, value) =>
+      (s"{${name}: ${showType(value)}}", false)
     case TTuple(left, right) =>
       (s"⟨${showType(left)}, ${showType(right)}⟩", false)
     case lambda: TLam =>

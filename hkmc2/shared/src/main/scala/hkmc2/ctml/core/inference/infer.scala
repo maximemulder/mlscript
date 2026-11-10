@@ -35,6 +35,21 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
       val (rightType, rightClauses) = inferSeq(tuple.right, leftClauses)
       (TTuple(leftType, rightType), rightClauses)
 
+    // Record fields are evaluated in order, preserving every initializer obligation.
+    case ERecord(tag, fields) =>
+      fields.foldLeft((TClass(tag): Type, SubClauses.empty)):
+        case ((recordType, clauses), (name, value)) =>
+          val (fieldType, fieldClauses) = inferSeq(value, clauses)
+          (TJointType(JointMode.Inter, recordType, TField(name, fieldType)), fieldClauses)
+
+    case EProj(record, field) =>
+      val (recordType, recordClauses) = infer(record)
+      val result = ctx.sub.declInferVar()
+      val resultType = TVar(result.var_)
+      val clauses = typingSubtypeSeq(recordType, TField(field, resultType),
+        recordClauses.concat(result.asSubClauses))
+      (resultType, clauses)
+
     // Lambda abstraction.
     case lam: ELam =>
       val type_ = ctx.withInferLevel: innerCtx =>
@@ -91,7 +106,7 @@ def inferMatch(match_ : EMatch)(using ctx: TypeContext): (Type, SubClauses) =
   // Infer the type and bounds of the scrutinee.
   val (scrutineeType, scrutineeClauses) = infer(match_.scrutinee)
   if !config.arbitraryPatterns && !match_.pattern.isPattern then
-    throw TypeError(Some(s"Pattern ${match_.pattern} is not a class."))
+    throw TypeError(Some(s"Pattern ${match_.pattern} is not a supported runtime pattern."))
 
   match_.else_ match
     case Some(else_) =>

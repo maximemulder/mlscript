@@ -1,0 +1,280 @@
+:ctml
+
+// Class tags and immutable payload types remain separate.
+data class Box(value)
+data class Pair(first, second)
+data class Empty()
+data class IntBox(value: Int)
+//│ Box: ∀α. α → (Box ∧ {value: α})
+//│ Pair: ∀β, γ. β → γ → ((Pair ∧ {first: β}) ∧ {second: γ})
+//│ Empty: Unit → Empty
+//│ IntBox: ∀δ. {δ ≤ Int} ⟹ δ → (IntBox ∧ {value: δ})
+
+val boxed = Box(1)
+boxed.value as Int
+//│ boxed: Box ∧ {value: Int}
+//│ Int
+
+fun unbox(x) = if x is Box(value) then value
+unbox(Box(1)) as Int
+unbox(Box("hello")) as Str
+//│ unbox: ∀α. ({value: α} ∧ Box) → α
+//│ Int
+//│ Str
+
+fun nested(x) = if x is
+  Box(Box(value)) then value
+  Box(_) then 0
+nested(Box(Box("hello"))) as Str
+nested(Box(1)) as Int
+//│ nested: ∀α, β. {β ≥ ({α ≤ {value: {value: β} ∧ Box} ∧ Box} ⟹ ⊥) ∧ ({α ≤ (Box ∧ {value: ⊤}) ∧ ¬(Box ∧ {value: Box ∧ {value: ⊤}})} ⟹ Int), α ≤ ({value: {value: β} ∧ Box} ∧ Box) ∨ ¬({β ≥ Int} ⟹ ¬((Box ∧ {value: ⊤}) ∧ ¬(Box ∧ {value: Box ∧ {value: ⊤}})))} ⟹ α → β
+//│ Str
+//│ Int
+
+fun select(x) = if x is
+  Box(Int) then x.value + 1
+  Box(value) then value
+select(Box(1)) as Int
+select(Box("hello")) as Str
+//│ select: ∀α, β. {β ≥ ({α ≤ Box ∧ {value: Int}} ⟹ Int) ∧ ({α ≤ ({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int})} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int}))} ⟹ α → β
+//│ Int
+//│ Str
+
+val pair = Pair(Box(1), "hello")
+pair.first.value as Int
+pair.second as Str
+//│ pair: (Pair ∧ {first: Box ∧ {value: Int}}) ∧ {second: Str}
+//│ Int
+//│ Str
+
+fun first(x) = if x is Pair(value, _) then value
+first(pair) as (Box & {value: Int})
+//│ first: ∀α. (({first: α} ∧ Pair) ∧ {second: ⊤}) → α
+//│ Box ∧ {value: Int}
+
+new Box(1)
+Empty()
+IntBox(1)
+//│ Box ∧ {value: Int}
+//│ Empty
+//│ IntBox ∧ {value: Int}
+
+:te
+Box(1).value as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str
+
+:te
+Box(1).missing
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ {missing: β}.
+//│ Typing error tree:
+//│   α ≤ {missing: β}
+//│     Box ∧ {value: γ} ≤ {missing: β}
+//│       Box ≤ {missing: β}
+//│       {value: γ} ≤ {missing: β}
+//│         γ ≤ ⊥
+//│           Int ≤ ⊥
+
+:te
+IntBox("hello")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → (IntBox ∧ {value: α}) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → (IntBox ∧ {value: α}) ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → (IntBox ∧ {value: γ}) ≤ Str → β
+//│       γ → (IntBox ∧ {value: γ}) ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int
+
+:te
+unbox(Empty())
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ({value: α} ∧ Box) → α ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. ({value: α} ∧ Box) → α ≤ β → γ
+//│     ({value: δ} ∧ Box) → δ ≤ β → γ
+//│       β ≤ {value: δ} ∧ Box
+//│         Empty ≤ {value: δ} ∧ Box
+//│           Empty ≤ {value: δ}
+
+:te
+fun bad(x) = if x is Box(value) then value + "hello"
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+// Exhaustiveness applies to nested patterns as well as to their outer tag.
+:te
+fun onlyNested(x: Box & {value: Int | (Box & {value: Str})}) =
+  if x is Box(Box(value)) then value
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ({value: (Int ∨ (Box ∧ {value: Str})) ∧ {value: α} ∧ Box} ∧ Box) → α ≤ (Box ∧ {value: Int ∨ (Box ∧ {value: Str})}) → ⊤.
+//│ Typing error tree:
+//│   ∀α. ({value: (Int ∨ (Box ∧ {value: Str})) ∧ {value: α} ∧ Box} ∧ Box) → α ≤ (Box ∧ {value: Int ∨ (Box ∧ {value: Str})}) → ⊤
+//│     ∀α. ({value: (Int ∨ (Box ∧ {value: Str})) ∧ {value: α} ∧ Box} ∧ Box) → α ≤ (Box ∧ {value: Int}) → ⊤
+//│       ({value: (Int ∨ (Box ∧ {value: Str})) ∧ {value: β} ∧ Box} ∧ Box) → β ≤ (Box ∧ {value: Int}) → ⊤
+//│         Box ∧ {value: Int} ≤ {value: (Int ∨ (Box ∧ {value: Str})) ∧ {value: β} ∧ Box} ∧ Box
+//│           Box ∧ {value: Int} ≤ {value: (Int ∨ (Box ∧ {value: Str})) ∧ {value: β} ∧ Box}
+//│             Box ∧ {value: Int} ≤ {value: {value: β} ∧ Box}
+//│               Box ∧ {value: Int} ≤ {value: {value: β}}
+//│                 Box ≤ {value: {value: β}}
+//│                 {value: Int} ≤ {value: {value: β}}
+//│                   Int ≤ {value: β}
+
+// Distinct fields and nested fallthrough retain their own bindings.
+fun choose(x) = if x is
+  Pair(Box(a), Box(b)) then [a, b]
+  Pair(_, b) then [0, b]
+choose(Pair(Box(1), Box("hello"))) as [Int, Str]
+choose(Pair(1, "hello")) as [Int, Str]
+//│ choose: ∀α, β, γ, δ, ε. {β ≥ ({α ≤ ({first: {value: δ} ∧ Box} ∧ {second: {value: ε} ∧ Box}) ∧ Pair} ⟹ ⟨δ, ε⟩) ∧ ({α ≤ (({second: γ} ∧ Pair) ∧ {first: ⊤}) ∧ ¬((Pair ∧ {first: Box ∧ {value: ⊤}}) ∧ {second: Box ∧ {value: ⊤}})} ⟹ ⟨Int, γ⟩), α ≤ ¬({β ≥ ⟨δ, ε⟩} ⟹ ¬(({first: {value: δ} ∧ Box} ∧ {second: {value: ε} ∧ Box}) ∧ Pair)) ∨ ¬({β ≥ ⟨Int, γ⟩} ⟹ ¬((({second: γ} ∧ Pair) ∧ {first: ⊤}) ∧ ¬((Pair ∧ {first: Box ∧ {value: ⊤}}) ∧ {second: Box ∧ {value: ⊤}})))} ⟹ α → β
+//│ ⟨Int, Str⟩
+//│ ⟨Int, Str⟩
+
+:te
+choose(Pair(Box(1), Box("hello"))) as [Str, Int]
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Str, Int⟩.
+//│ Typing error tree:
+//│   α ≤ ⟨Str, Int⟩
+//│     ⟨β, γ⟩ ∨ (({δ ≤ ({first: {value: β} ∧ Box} ∧ {second: {value: γ} ∧ Box}) ∧ Pair} ⟹ ⟨β, γ⟩) ∧ ({δ ≤ (({second: ε} ∧ Pair) ∧ {first: ⊤}) ∧ ¬((Pair ∧ {first: Box ∧ {value: ⊤}}) ∧ {second: Box ∧ {value: ⊤}})} ⟹ ⟨Int, ε⟩)) ≤ ⟨Str, Int⟩
+//│       ⟨β, γ⟩ ≤ ⟨Str, Int⟩
+//│         β ≤ Str
+//│           ζ ≤ Str
+//│             Int ≤ Str
+
+// Wildcards accept arbitrary values; successful bindings shadow outer variables.
+fun fallback(x) = if x is
+  Box(value) then value
+  _ then "empty"
+fallback(Empty()) as Str
+fallback(Box(1)) as Int
+val value = "outer"
+fun shadow(x) = if x is Box(value) then value
+shadow(Box(1)) as Int
+value as Str
+//│ fallback: ∀α, β. {β ≥ ({α ≤ {value: β} ∧ Box} ⟹ ⊥) ∧ ({α ≤ ¬(Box ∧ {value: ⊤})} ⟹ Str), α ≤ ({value: β} ∧ Box) ∨ ¬({β ≥ Str} ⟹ Box ∧ {value: ⊤})} ⟹ α → β
+//│ Str
+//│ Int
+//│ value: Str
+//│ shadow: ∀γ. ({value: γ} ∧ Box) → γ
+//│ Int
+//│ Str
+
+// Fields can themselves hold functions, including closures over a projected field.
+fun rebox(x) = if x is Box(value) then Box((_) => value)
+rebox(Box(1)).value(true) as Int
+rebox(Box("hello")).value(1) as Str
+//│ rebox: ∀α. ({value: α} ∧ Box) → (Box ∧ {value: ⊤ → α})
+//│ Int
+//│ Str
+
+:te
+rebox(Box(1)).value(true) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str
+
+// Field types are structural; an annotation containing only the tag forgets the payload.
+:te
+fun lostPayload(x: Box) = x.value
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (Box ∧ {value: α}) → α ≤ Box → ⊤.
+//│ Typing error tree:
+//│   ∀α. (Box ∧ {value: α}) → α ≤ Box → ⊤
+//│     (Box ∧ {value: β}) → β ≤ Box → ⊤
+//│       Box ≤ Box ∧ {value: β}
+//│         Box ≤ {value: β}
+
+// Unused constructor fields still have to type-check.
+:te
+Pair(1, 1 + "hello").first
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+:pe
+Box()
+//│ ═══[PARSE ERROR] Incorrect constructor arity.
+
+:pe
+Box(1, 2)
+//│ ═══[PARSE ERROR] Incorrect constructor arity.
+
+:pe
+fun wrongArity(x) = if x is Pair(a) then a
+//│ ═══[PARSE ERROR] Incorrect constructor pattern arity.
+
+:pe
+class Mutable(mut val value)
+//│ ═══[PARSE ERROR] CTML constructor parameters must be immutable val fields.
+
+:pe
+data class WithBody(value) with
+  fun method() = value
+//│ ═══[PARSE ERROR] CTML constructors require no type parameters, parent, auxiliary parameters, or body.
+
+:pe
+data class Generic[A](value: A)
+//│ ═══[PARSE ERROR] CTML constructors require no type parameters, parent, auxiliary parameters, or body.
+
+:pe
+data class Child(value) extends Box(value)
+//│ ═══[PARSE ERROR] CTML constructors require no type parameters, parent, auxiliary parameters, or body.
+
+// A local term with the constructor's name retains its own identity.
+fun local() =
+  let Box = (x) => x
+  Box(1)
+local() as Int
+//│ local: Unit → Int
+//│ Int
+
+// An argument may contain either nested case; the full annotated domain must be accepted.
+select as ((Box & {value: Int | Str}) -> (Int | Str))
+nested as ((Box & {value: Int | (Box & {value: Str})}) -> (Int | Str))
+//│ (Box ∧ {value: Int ∨ Str}) → (Int ∨ Str)
+//│ (Box ∧ {value: Int ∨ (Box ∧ {value: Str})}) → (Int ∨ Str)
+
+:te
+select as ((Box & {value: Int | Str}) -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ({α ≤ Box ∧ {value: Int}} ⟹ Int) ∧ ({α ≤ ({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int})} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int}))} ⟹ α → β ≤ (Box ∧ {value: Int ∨ Str}) → Int.
+//│ Typing error tree:
+//│   ∀α, β. {β ≥ ({α ≤ Box ∧ {value: Int}} ⟹ Int) ∧ ({α ≤ ({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int})} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int}))} ⟹ α → β ≤ (Box ∧ {value: Int ∨ Str}) → Int
+//│     ∀α, β. {β ≥ ({α ≤ Box ∧ {value: Int}} ⟹ Int) ∧ ({α ≤ ({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int})} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: β} ∧ Box) ∧ ¬(Box ∧ {value: Int}))} ⟹ α → β ≤ (Box ∧ {value: Str}) → Int
+//│       {δ ≥ ({γ ≤ Box ∧ {value: Int}} ⟹ Int) ∧ ({γ ≤ ({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int})} ⟹ ⊥), γ ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int}))} ⟹ γ → δ ≤ (Box ∧ {value: Str}) → Int
+//│         {γ ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int}))} ⟹ γ → δ ≤ (Box ∧ {value: Str}) → Int
+//│           γ ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int}))
+//│             Box ∧ {value: Str} ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int}))
+//│               Box ∧ {value: Str} ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int}))
+//│                 ¬(Box ∧ {value: Int}) ≤ ¬(Box ∧ {value: Str})
+//│                   Box ∧ {value: Str} ≤ Box ∧ {value: Int}
+//│                     Box ∧ {value: Str} ≤ {value: Int}
+//│                       Box ≤ {value: Int}
+//│                       {value: Str} ≤ {value: Int}
+//│                         Str ≤ Int
+//│               Box ∧ {value: Str} ≤ ({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int})
+//│                 Box ∧ {value: Str} ≤ {value: δ} ∧ Box
+//│                   Box ∧ {value: Str} ≤ {value: δ}
+//│                     Box ≤ {value: δ}
+//│                     {value: Str} ≤ {value: δ}
+//│                       Str ≤ δ
+//│                         Str ≤ Int
+
+fun emptyCase(x) = if x is
+  Empty() then 1
+  _ then "other"
+emptyCase(Empty()) as Int
+emptyCase(Box(1)) as Str
+//│ emptyCase: ∀α, β. {β ≥ ({α ≤ Empty} ⟹ Int) ∧ ({α ≤ ¬Empty} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Empty) ∨ ¬({β ≥ Str} ⟹ Empty)} ⟹ α → β
+//│ Int
+//│ Str
+
+fun bindAny(x) = if x is result then result
+bindAny(1) as Int
+bindAny("hello") as Str
+//│ bindAny: ∀α. α → α
+//│ Int
+//│ Str

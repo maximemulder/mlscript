@@ -77,8 +77,9 @@ class Tester(
   /** Test a statement */
   def testStatement(stmt: Stmt) =
     stmt match
-      case StmtClassDecl(name, parent) =>
+      case StmtClassDecl(name, parent, constructor) =>
         this.testClassDecl(name, parent)
+        constructor.foreach(ctor => this.testExprVar(ctor.variable, ctor.expression(ClassVar(name))))
       case StmtTypeDecl(name, kind) =>
         this.testTypeDecl(name, kind)
       case StmtTypeVar(name, type_) =>

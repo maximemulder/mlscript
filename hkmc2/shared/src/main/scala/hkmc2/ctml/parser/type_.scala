@@ -11,6 +11,9 @@ import hkmc2.semantics.SubDir
 /** Convert an MLScript term to a CTML type. */
 def parseType(mlType: Term)(using scope: Scope): Type =
   mlType match
+    case Term.Rcd(false, fields) =>
+      parseRecordTypeFields(fields).reduceOption[Type](TJointType(JointMode.Inter, _, _))
+        .getOrElse(TTop)
     case Term.Neg(mlBody) =>
       TNeg(parseType(mlBody))
     // Preserve the binary product shape; other tuple arities are unsupported.
@@ -24,7 +27,7 @@ def parseType(mlType: Term)(using scope: Scope): Type =
           TBot
         case name =>
           scope.get(name) match
-            case Some(DeclKind.Class) =>
+            case Some(DeclKind.Class(_)) =>
               TClass(ClassVar(name))
             case Some(DeclKind.Type) =>
               TVar(TypeVar(name))
@@ -132,3 +135,17 @@ def parseTypeDirection(mlDir: SubDir): Direction =
 def parseJointMode(mlPol: Boolean): JointMode =
   if mlPol then JointMode.Union
   else JointMode.Inter
+
+/** Read literal field types, including the bindings synthesized for identifier field names. */
+private def parseRecordTypeFields(fields: List[hkmc2.semantics.Statement])(using Scope): List[Type] =
+  import hkmc2.semantics.{DefineVar, LetDecl, RcdField}
+  import hkmc2.syntax.Tree.StrLit
+  fields match
+    case LetDecl(decl, Nil) :: DefineVar(binding, value) ::
+        RcdField(Term.Lit(StrLit(name)), Term.Ref(ref)) :: rest
+        if decl == binding && binding == ref =>
+      TField(name, parseType(value)) :: parseRecordTypeFields(rest)
+    case RcdField(Term.Lit(StrLit(name)), value) :: rest =>
+      TField(name, parseType(value)) :: parseRecordTypeFields(rest)
+    case Nil => Nil
+    case field :: _ => throw ParseError(field, Some("Unsupported CTML record type field."))

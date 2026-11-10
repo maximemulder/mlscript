@@ -62,6 +62,11 @@ extension (type_ : Type)
         return Some(join(left.subtract(other), right.subtract(other)))
       case _ =>
 
+    (type_, other) match
+      case (TField(leftName, left), TField(rightName, right)) if leftName == rightName =>
+        return Some(TField(leftName, left.subtract(right)))
+      case _ =>
+
     // If the types are disjoint,
     if areDisjointConstructors(type_, other) then
       return Some(type_)

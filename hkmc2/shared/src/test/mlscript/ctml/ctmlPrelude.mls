@@ -43,3 +43,20 @@ object Refl[A] extends Eq[A, A] with
   fun apply(x: A): A = x
 
 type (>:>) Sup[A, B]
+
+// The MLScript elaborator resolves these builtins when elaborating field selections.
+class Anything
+class Int31
+class Int32
+class Int64
+class Float32
+class Float64
+class BigInt
+class Error
+class Array
+class TypedArray
+class Symbol
+module source with
+  val line
+  val name
+  val file

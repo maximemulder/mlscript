@@ -10,6 +10,8 @@ extension (type_ : Type)
     type_ match
       case TClass(_) =>
         true
+      case TField(_, _) =>
+        true
       case TTuple(_, _) =>
         true
       case TLam(_, _) =>
@@ -18,9 +20,12 @@ extension (type_ : Type)
         false
 
 /** Check if two types are disjoint constructor types: two classes are disjoint unless one inherits
- *  from the other, and classes, tuples and lambda types are disjoint from each other. */
+ *  from the other. Fields can coexist with other fields and class tags, but not with tuples or
+ *  functions. Class tags, tuples and functions are otherwise disjoint. */
 def areDisjointConstructors(left: Type, right: Type)(using ctx: SubContext): Boolean =
   (left, right) match
+    case (TField(_, _), TField(_, _) | TClass(_)) | (TClass(_), TField(_, _)) =>
+      false
     case (TLam(_, _), TLam(_, _)) =>
       false
     case (TTuple(_, _), TTuple(_, _)) =>

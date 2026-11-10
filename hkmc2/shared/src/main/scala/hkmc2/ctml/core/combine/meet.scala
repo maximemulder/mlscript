@@ -37,6 +37,10 @@ def meetMerge(left: Type, right: Type)(using ctx: SubContext): Option[Type] =
       return left.subtractStep(right)
     case _ =>
 
+  mergeFieldRequirements(left, right) match
+    case Some(merged) => return Some(merged)
+    case None =>
+
   // Meet lambda types.
 
   (left, right) match
@@ -67,3 +71,30 @@ extension (types: List[Type])
   /** Get the simplified meet of many types. */
   def meetMany()(using ctx: SubContext): Type =
     types.foldRight(TTop)(meet)
+
+/** Combine requirements for the same field even when other intersection operands separate them.
+ *  A negative requirement refines its payload only if a positive requirement guarantees presence:
+ *  `{l: A} ∧ ¬{l: B} = {l: A ∧ ¬B}`, whereas `¬{l: B}` alone also permits an absent field. */
+private def mergeFieldRequirements(left: Type, right: Type)(using SubContext): Option[Type] =
+  /** Flatten only intersections, preserving the order of their operands. */
+  def operands(type_ : Type): List[Type] = type_ match
+    case TJointType(JointMode.Inter, left, right) => operands(left) ++ operands(right)
+    case _ => List(type_)
+  val parts = operands(left) ++ operands(right)
+  val fields = parts.collect { case TField(name, _) => name }
+  val repeated = fields.find: name =>
+    parts.count:
+      case TField(`name`, _) | TNeg(TField(`name`, _)) => true
+      case _ => false
+    > 1
+  repeated.map: name =>
+    val requirements = parts.collect:
+      case TField(`name`, value) => value
+      case TNeg(TField(`name`, value)) => TNeg(value)
+    val value = requirements.reduce(meet)
+    if value == TBot then TBot
+    else
+      val rest = parts.filterNot:
+        case TField(`name`, _) | TNeg(TField(`name`, _)) => true
+        case _ => false
+      rest.foldLeft(TField(name, value): Type)(meet)

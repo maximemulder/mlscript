@@ -97,6 +97,8 @@ private def getTypeDeps(type_ : Type, pol: Polarity, direct: Boolean): VarDeps =
       getTypeDeps(body, !pol, false)
     case TVar(var_) =>
       VarDeps.single(var_, pol, direct)
+    case TField(_, value) =>
+      getTypeDeps(value, pol, false)
     case TTuple(left, right) =>
       getTypeDeps(left, pol, false) ++ getTypeDeps(right, pol, false)
     case TLam(param, ret) =>

@@ -48,6 +48,8 @@ def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
     mlStmt match
       case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) | LetDecl(_, _) =>
         return None
+      case definition: ClassDef.Parameterized if !isAbstract(definition.annotations) =>
+        parseConstructorDecl(definition)
       case ClassDef.Plain(_, _, _, mlSymbol,_, mlParent, _, _, mlAnnotations, _, _) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol, mlParent)
       case ModuleOrObjectDef(_, _, mlSymbol,_, _, _, mlParent, _, _, _, mlAnnotations) if !isAbstract(mlAnnotations) =>
@@ -101,7 +103,33 @@ def parseClassDecl(mlSymbol: BlockMemberSymbol, mlParent: Option[Term.New])(usin
     case Some(mlParent) =>
       throw new ParseError(mlParent)
 
-  StmtClassDecl(name, parent)
+  StmtClassDecl(name, parent, None)
+
+/** Translate a plain data constructor. Class names denote tags; payload precision is structural.
+ *  Bodies, type parameters and inheritance require additional semantics and are unsupported here. */
+def parseConstructorDecl(definition: ClassDef.Parameterized)(using Scope): Stmt =
+  if definition.tparams.nonEmpty || definition.ext.nonEmpty || definition.auxParams.nonEmpty ||
+      !hasOnlyConstructorFields(definition) then
+    throw ParseError(definition, Some(
+      "CTML constructors require no type parameters, parent, auxiliary parameters, or body."))
+  val fields = functionParams(definition.params).map: param =>
+    if param.flags.mut || !param.flags.isVal then
+      throw ParseError(definition, Some("CTML constructor parameters must be immutable val fields."))
+    LambdaParam(termVar(param.sym), param.sign.map(parseType))
+  StmtClassDecl(definition.bsym.nme, None,
+    Some(ConstructorDecl(termVar(definition.bsym), fields)))
+
+/** The elaborator adds one field definition per public constructor parameter to an empty body.
+ *  Accept exactly those definitions, so user initializers and methods are never silently erased. */
+private def hasOnlyConstructorFields(definition: ClassDef.Parameterized): Boolean =
+  val params = definition.params.params
+  val stats = definition.body.blk.stats
+  stats.size == params.size && stats.zip(params).forall:
+    case (field: TermDefinition, param) =>
+      param.fldSym.contains(field.sym) && (field.body match
+        case Some(Term.Ref(symbol)) => symbol == param.sym
+        case _ => false)
+    case _ => false
 
 /** Convert an MLScript type declaration to a CTML rigid type variable declaration. */
 def parseRigidVarDecl(mlSymbol: TypeAliasSymbol)(using Scope): Stmt =
@@ -139,8 +167,8 @@ def parseExprDecl(mlSymbol: BlockMemberSymbol, mlParams: List[ParamList], mlType
 /** Update the parser scope with on a statement. */
 def updateScope(stmt: Stmt, scope: Scope) =
   getStmtDecl(stmt) match
-    case Some((name, DeclKind.Class)) =>
-      scope.withClass(name)
+    case Some((name, DeclKind.Class(constructor))) =>
+      scope.withClass(name, constructor)
     case Some((name, DeclKind.Type)) =>
       scope.withType(name)
     case None =>
@@ -149,8 +177,8 @@ def updateScope(stmt: Stmt, scope: Scope) =
 /** Get a class or type variable declaration from a statement, if it is one. */
 def getStmtDecl(stmt: Stmt): Option[(String, DeclKind)] =
   stmt match
-    case StmtClassDecl(name, _) =>
-      Some((name, DeclKind.Class))
+    case StmtClassDecl(name, _, constructor) =>
+      Some((name, DeclKind.Class(constructor)))
     case StmtTypeDecl(name, _) =>
       Some((name, DeclKind.Type))
     case StmtTypeVar(name, _) =>

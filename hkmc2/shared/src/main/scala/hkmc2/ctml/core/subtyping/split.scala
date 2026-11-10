@@ -188,8 +188,17 @@ extension (type_ : Type)
       case TNeg(TJointType(jointMode, left, right)) =>
         TJointType(!jointMode, TNeg(left), TNeg(right)).split(rule, distribute, operand, rest, lookup)
 
-      // A negated lambda type is split as the negation of the split of the lambda type, which is at
-      // the opposite polarity.
+      // A field distributes over both unions and intersections of its payload. Negation reverses
+      // the polarity of that decomposition; it does not move inside the field.
+      case TNeg(field: TField) =>
+        field.split(rule, distribute, operand, rest, lookup)(using ctx, !pol, visited)
+          .map((left, right) => (TNeg(left), TNeg(right)))
+
+      case TField(name, value) if rule == SplitRule.All =>
+        value.split(rule, true, true, rest, lookup)
+          .map((left, right) => (TField(name, left), TField(name, right)))
+
+      // A negated lambda type is split at the opposite polarity.
       case TNeg(lam: TLam) =>
         lam.split(rule, distribute, operand, rest, lookup)(using ctx, !pol, visited).map((left, right) => (TNeg(left), TNeg(right)))
 

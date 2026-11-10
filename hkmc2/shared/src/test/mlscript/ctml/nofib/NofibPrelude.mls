@@ -1,0 +1,22 @@
+:ctml
+
+// Shared definitions for the CTML ports of mlscript-compile/nofib/.
+// Projections and external integer operations are trusted primitives.
+
+declare fun fst[A, B]: ([A, B]) -> A
+declare fun snd[A, B]: ([A, B]) -> B
+//│ fst: ∀A, B. ⟨A, B⟩ → A
+//│ snd: ∀A, B. ⟨A, B⟩ → B
+
+val (*): Int -> Int -> Int
+//│ *: Int → Int → Int
+
+// Integer division truncates toward zero, as in the source Nofib prelude.
+declare fun intQuot: Int -> Int -> Int
+//│ intQuot: Int → Int → Int
+
+fun intRem(a, b) = a - (b * intQuot(a, b))
+//│ intRem: Int → Int → Int
+
+fun quotRem(a, b) = [intQuot(a, b), intRem(a, b)]
+//│ quotRem: Int → Int → ⟨Int, Int⟩

@@ -1,0 +1,111 @@
+:ctml
+
+class Tag
+
+// Fields are covariant, and additional fields can be forgotten.
+{value: Int} <:< {value: Top}
+{left: Int, right: Str} <:< {left: Int}
+(Tag & {value: Int}) <:< Tag
+(Tag & {value: Int}) <:< {value: Int}
+//│ OK
+//│ OK
+//│ OK
+//│ OK
+
+// A required field distributes over both Boolean joins.
+{value: Int | Str} == ({value: Int} | {value: Str})
+{value: Int & Nat} == ({value: Int} & {value: Nat})
+{value: Bot} == Bot
+({value: Int} & {value: Str}) <:< Bot
+//│ OK
+//│ OK
+//│ OK
+//│ OK
+
+// Complement includes records without the field. It is not just a negated payload.
+{value: Str} <:< ~{value: Int}
+({value: Top} & ~{value: Int}) == {value: ~Int}
+{left: Int, right: Str} <:< ~{left: Str}
+//│ OK
+//│ OK
+//│ OK
+
+:te
+Top <:< {value: Top}
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ {value: ⊤}.
+//│ Typing error tree:
+//│   ⊤ ≤ {value: ⊤}
+
+:te
+{left: Int} <:< {right: Int}
+//│ ═══[TYPE ERROR] Cannot solve judgment {left: Int} ≤ {right: Int}.
+//│ Typing error tree:
+//│   {left: Int} ≤ {right: Int}
+//│     Int ≤ ⊥
+
+:te
+{value: Top} <:< {value: Int}
+//│ ═══[TYPE ERROR] Cannot solve judgment {value: ⊤} ≤ {value: Int}.
+//│ Typing error tree:
+//│   {value: ⊤} ≤ {value: Int}
+//│     ⊤ ≤ Int
+
+:te
+~{value: Int} <:< {value: ~Int}
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬{value: Int} ≤ {value: ¬Int}.
+//│ Typing error tree:
+//│   ¬{value: Int} ≤ {value: ¬Int}
+
+// Class tags and fields may overlap, and different fields may coexist.
+:te
+(Tag & {value: Int}) <:< Bot
+//│ ═══[TYPE ERROR] Cannot solve judgment Tag ∧ {value: Int} ≤ ⊥.
+//│ Typing error tree:
+//│   Tag ∧ {value: Int} ≤ ⊥
+//│     Tag ≤ ⊥
+//│     {value: Int} ≤ ⊥
+//│       Int ≤ ⊥
+
+:te
+({left: Int} & {right: Str}) <:< Bot
+//│ ═══[TYPE ERROR] Cannot solve judgment {left: Int} ∧ {right: Str} ≤ ⊥.
+//│ Typing error tree:
+//│   {left: Int} ∧ {right: Str} ≤ ⊥
+//│     {left: Int} ≤ ⊥
+//│       Int ≤ ⊥
+//│     {right: Str} ≤ ⊥
+//│       Str ≤ ⊥
+
+:te
+{left: Int} <:< ~{right: Str}
+//│ ═══[TYPE ERROR] Cannot solve judgment {left: Int} ≤ ¬{right: Str}.
+//│ Typing error tree:
+//│   {left: Int} ≤ ¬{right: Str}
+//│     Int ≤ ⊥
+
+// Functions and tuples cannot carry record fields.
+({value: Int} & (Int -> Int)) <:< Bot
+({value: Int} & [Int, Str]) <:< Bot
+//│ OK
+//│ OK
+
+// Payload transformations preserve quantifiers, constraints, and function polarity.
+fun field(x) = x.value
+field as ([A] -> ({value: A}) -> A)
+val poly: {value: [A] -> A -> A}
+[field(poly)(1), field(poly)("hello")] as [Int, Str]
+//│ field: ∀α. {value: α} → α
+//│ ∀A. {value: A} → A
+//│ poly: {value: ∀A. A → A}
+//│ ⟨Int, Str⟩
+
+:te
+field(poly)(1) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str
+
+// Repeated requirements on a field must refer to the same payload.
+(Tag & {value: Int} & {value: Str}) <:< Bot
+//│ OK

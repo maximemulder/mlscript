@@ -44,6 +44,12 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
       EVar(termVar(mlSymbol))
     case Term.SynthSel(_, mlIdent) =>
       EVar(TermVar(mlIdent.name, None))
+    // Immutable constructor fields are projected structurally.
+    case Term.Sel(record, field) =>
+      EProj(parseExpr(record), field.name)
+    case Term.New(target, List(args: Term.Tup), None) =>
+      constructor(target)
+      parseApp(target, args)
     // Parse lambda abstractions.
     case Term.Lam(mlParams, mlBody) =>
       parseLambda(mlParams, mlBody)
@@ -136,7 +142,15 @@ def functionParams(params: ParamList): List[Param] =
   params.params
 
 /** Convert an MLScript lambda application to a CTML expresssion. */
-def parseApp(mlLambda: Term, mlArgs: Term)(using Scope): Expr =
+def parseApp(mlLambda: Term, mlArgs: Term)(using scope: Scope): Expr =
+  (mlLambda, mlArgs) match
+    case (Term.Ref(symbol), Term.Tup(args)) =>
+      scope.get(symbol.nme) match
+        case Some(DeclKind.Class(Some(ctor))) if ctor.variable == termVar(symbol) =>
+          if args.size != ctor.fields.size then
+            throw ParseError(mlArgs, Some("Incorrect constructor arity."))
+        case _ =>
+    case _ =>
   mlArgs match
     case Term.Tup(Nil) =>
       EApp(parseExpr(mlLambda), EUnit)
@@ -193,8 +207,9 @@ def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope)
 /** Convert an MLScript pattern match to a CTML expression */
 def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope): EMatch =
   val scrutinee = parseExpr(mlMatch.scrutinee)
-  val pattern = parsePattern(mlMatch.pattern)
-  val then_ = parseSplit(mlMatch.consequent)
+  val (pattern, bindings) = parsePattern(mlMatch.pattern, scrutinee)
+  val then_ = bindings.foldRight(parseSplit(mlMatch.consequent)):
+    case ((variable, value), body) => EApp(ELam(Some(LambdaParam(variable, None)), body), value)
   val else_ = mlTail match
     case mlCons: SimpleSplit.Cons =>
       Some(parseCons(mlCons))
@@ -204,17 +219,48 @@ def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope
       None
   EMatch(scrutinee, pattern, then_, else_)
 
-/** Convert an MLScript pattern to a CTML pattern */
-def parsePattern(mlPattern: Pattern)(using Scope): Type =
+/** Look up the metadata of a supported constructor without confusing shadowing term bindings. */
+private def constructor(target: Term)(using scope: Scope): ConstructorDecl =
+  target match
+    case Term.Ref(symbol) =>
+      scope.get(symbol.nme) match
+        case Some(DeclKind.Class(Some(ctor))) if ctor.variable == termVar(symbol) => ctor
+        case _ => throw ParseError(target, Some("Unsupported CTML constructor."))
+    case _ => throw ParseError(target, Some("Unsupported CTML constructor."))
+
+/** Translate a pattern into a runtime-testable type and bindings for its successful branch.
+ *  Nested field tests stay in the pattern type, so failure negates the entire pattern and preserves
+ *  fallthrough. Projections are evaluated only after all its tests succeed. */
+def parsePattern(mlPattern: Pattern, scrutinee: Expr)(using Scope)
+  : (Type, List[(TermVar, Expr)]) =
   mlPattern match
-    case Pattern.Constructor(mlPattern, _) =>
-      parseType(mlPattern)
-    case Pattern.Negation(mlPattern) =>
-      TNeg(parsePattern(mlPattern))
-    case Pattern.Composition(mlPol, mlLeft, mlRight) =>
-      TJointType(parseJointMode(mlPol), parsePattern(mlLeft), parsePattern(mlRight))
-    case _ =>
-      throw ParseError(Term.Error())
+    case Pattern.Wildcard() => (TTop, Nil)
+    case alias: Pattern.Alias =>
+      val (pattern, bindings) = parsePattern(alias.pattern, scrutinee)
+      (pattern, (termVar(alias.symbol), scrutinee) :: bindings)
+    case Pattern.Constructor(target, None) => (parseType(target), Nil)
+    case Pattern.Constructor(target, Some(args)) =>
+      val ctor = constructor(target)
+      if args.size != ctor.fields.size then
+        throw ParseError(target, Some("Incorrect constructor pattern arity."))
+      ctor.fields.zip(args).foldLeft((TClass(ClassVar(ctor.variable.name)): Type,
+          List.empty[(TermVar, Expr)])):
+        case ((pattern, bindings), (field, arg)) =>
+          val name = field.variable.name
+          val (nested, nestedBindings) = parsePattern(arg, EProj(scrutinee, name))
+          (TJointType(JointMode.Inter, pattern, TField(name, nested)), bindings ++ nestedBindings)
+    case Pattern.Negation(inner) =>
+      val (pattern, bindings) = parsePattern(inner, scrutinee)
+      if bindings.nonEmpty then
+        throw ParseError(Term.Error(), Some("Bindings under negated patterns are unsupported."))
+      (TNeg(pattern), Nil)
+    case Pattern.Composition(pol, left, right) =>
+      val (leftType, leftBindings) = parsePattern(left, scrutinee)
+      val (rightType, rightBindings) = parsePattern(right, scrutinee)
+      if pol && (leftBindings.nonEmpty || rightBindings.nonEmpty) then
+        throw ParseError(Term.Error(), Some("Bindings in alternative patterns are unsupported."))
+      (TJointType(parseJointMode(pol), leftType, rightType), leftBindings ++ rightBindings)
+    case _ => throw ParseError(Term.Error(), Some("Unsupported CTML pattern."))
 
 /** Get the underlying term of an MLScript element. */
 def getElemTerm(elem: Elem): Term =

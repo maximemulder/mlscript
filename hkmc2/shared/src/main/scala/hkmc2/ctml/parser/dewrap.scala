@@ -29,6 +29,8 @@ private def freeOccurrences(expr: Expr, name: TermVar): Int =
     case EVar(other) => if other == name then 1 else 0
     case ELam(param, body) => if param.exists(_.variable == name) then 0 else freeOccurrences(body, name)
     case EApp(lam, arg) => freeOccurrences(lam, name) + freeOccurrences(arg, name)
+    case ERecord(_, fields) => fields.map(f => freeOccurrences(f._2, name)).sum
+    case EProj(record, _) => freeOccurrences(record, name)
     case ETuple(left, right) => freeOccurrences(left, name) + freeOccurrences(right, name)
     case EAscr(expr, _) => freeOccurrences(expr, name)
     case EMatch(scrutinee, _, then_, else_) =>
@@ -49,6 +51,16 @@ private def substituteTerm(expr: Expr, name: TermVar, arg: Expr): Option[Expr] =
         lam <- substituteTerm(lam, name, arg)
         value <- substituteTerm(value, name, arg)
       yield EApp(lam, value)
+    case ERecord(tag, fields) =>
+      fields.foldRight(Option(List.empty[(String, Expr)])):
+        case ((field, value), rest) =>
+          for
+            value <- substituteTerm(value, name, arg)
+            rest <- rest
+          yield (field, value) :: rest
+      .map(ERecord(tag, _))
+    case EProj(record, field) =>
+      substituteTerm(record, name, arg).map(EProj(_, field))
     case ETuple(left, right) =>
       for
         left <- substituteTerm(left, name, arg)

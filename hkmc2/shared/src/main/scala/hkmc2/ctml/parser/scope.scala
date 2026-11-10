@@ -1,8 +1,10 @@
 package hkmc2.ctml.parser
 
+import hkmc2.ctml.types.ConstructorDecl
+
 /** The kind of a declared class or type variable declaration. */
 enum DeclKind:
-  case Class
+  case Class(constructor: Option[ConstructorDecl])
   case Type
 
 /** A scope that tracks classes and type variable declarations. */
@@ -11,8 +13,8 @@ case class Scope(
   parent: Option[Scope],
 ):
   /** Get a child scope with a class declaration. */
-  def withClass(name: String): Scope =
-    Scope(Map((name, DeclKind.Class)), Some(this))
+  def withClass(name: String, constructor: Option[ConstructorDecl]): Scope =
+    Scope(Map((name, DeclKind.Class(constructor))), Some(this))
 
   /** Get a child scope with a type variable declaration. */
   def withType(name: String): Scope =

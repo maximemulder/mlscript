@@ -10,6 +10,8 @@ extension (type_ : Type)
         Set(var_)
       case TNeg(body) =>
         body.getVars
+      case TField(_, value) =>
+        value.getVars
       case TTuple(left, right) =>
         left.getVars ++ right.getVars
       case TLam(param, ret) =>

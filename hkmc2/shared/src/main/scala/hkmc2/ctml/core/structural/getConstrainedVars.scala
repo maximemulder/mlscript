@@ -10,6 +10,8 @@ extension (type_ : Type)
     type_ match
       case TNeg(body) =>
         body.getConstrainedVars
+      case TField(_, value) =>
+        value.getConstrainedVars
       case TTuple(left, right) =>
         left.getConstrainedVars ++ right.getConstrainedVars
       case TLam(param, ret) =>

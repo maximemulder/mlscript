@@ -237,6 +237,14 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 
   sup match
     case sup: TUniv =>
+      // The whole polymorphic target can itself be an impredicative witness. Introducing its
+      // variables first hides that witness, even though right introduction remains sound.
+      sub match
+        case sub: TUniv =>
+          subtypeTargetInstance(sub, sup) match
+            case Some(clauses) => return clauses
+            case None =>
+        case _ =>
       return subtypeUnivSup(sub, sup)
     case _ =>
 
@@ -258,6 +266,15 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   sup match
     case sup: TConstrained =>
       return subtypeConstrainedSup(sup, sub)
+    case _ =>
+
+  // An identity-bodied universal admits the target itself as an explicit instance. Check its
+  // guards before exposing a rigid target or choosing one branch of a target union.
+  sub match
+    case sub: TUniv =>
+      subtypeTargetInstance(sub, sup) match
+        case Some(clauses) => return clauses
+        case None =>
     case _ =>
 
   // Subtyping of union and intersection types.
@@ -481,6 +498,19 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
     subtypeSeq(instanceBody, sup, outs)(using ctx)
   )
 
+/** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
+ *  elimination: constrain every substituted guard and return its obligations. Failure leaves
+ *  other instances available. Repeated attempts are skipped, never discharged coinductively. */
+private def subtypeTargetInstance(sub: TUniv, sup: Type)(using ctx: SubContext): Option[SubClauses] =
+  val (body, guards) = sub.body.getConstrainedComponents
+  if body != TVar(sub.var_) || ctx.trail.instances.contains((sub, sup)) then return None
+  val instanceCtx = ctx.mapTrail(trail => trail.copy(instances = trail.instances + ((sub, sup))))
+  try
+    Some(guards.reverse.foldLeft(SubClauses.empty)((clauses, guard) =>
+      subtypeConstraintSeq(guard.substitute(sub.var_, sup), clauses)(using instanceCtx)))
+  catch
+    case _: TypeError => None
+
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: SubContext): SubClauses =
   val (univVars, univBody) = sup.getUnivComponents
@@ -631,6 +661,6 @@ def trySolve(clauses: UnsolvedClauses)(using ctx: SubContext): Option[SubClauses
 def instantiateUniv(vars: List[TypeVar], body: Type, kind: TypeVarKind)(using ctx: SubContext): (Type, SubClauses) =
   val decls = ctx.declFreshVars(vars, kind)
   val instanceBody = vars.zip(decls).foldLeft(body)((body, pair) =>
-    body.substitute(pair(0), pair(1).var_)
+    body.substitute(pair(0), TVar(pair(1).var_))
   )
   (instanceBody, SubClauses(decls.reverse))

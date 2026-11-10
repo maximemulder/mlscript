@@ -26,10 +26,16 @@ import hkmc2.ctml.types.*
  *  which contain an instance of the type, and this check opens another instance. This trail does
  *  not need to: a new bound of a flexible variable is checked against the opposite bounds of the
  *  variable before being recorded (see `subtypeFlexVar`), so that the check does not meet the type
- *  being recorded. */
+ *  being recorded.
+ *
+ *  The separate `instances` set tracks target-directed universal witnesses, which can repeat
+ *  without a variable side. A repeated witness is skipped rather than used as a hypothesis. */
 case class SubtypingTrail(
   /** The judgments in progress, as pairs of a subtype and a supertype. */
   val judgments: Set[(Type, Type)] = Set(),
+  /** Target-directed universal instances being checked on this path. A revisit skips that
+   *  witness; it does not establish the judgment. */
+  val instances: Set[(Type, Type)] = Set(),
 ):
   /** Check whether a judgment repeats a judgment in progress. */
   def contains(sub: Type, sup: Type): Boolean =
@@ -39,7 +45,7 @@ case class SubtypingTrail(
    *  sides is a type variable or a negated type variable (see `lookupVar`). */
   def add(sub: Type, sup: Type): SubtypingTrail =
     if sub.lookupVar.isDefined || sup.lookupVar.isDefined then
-      SubtypingTrail(this.judgments + ((sub, sup)))
+      this.copy(judgments = this.judgments + ((sub, sup)))
     else
       this
 

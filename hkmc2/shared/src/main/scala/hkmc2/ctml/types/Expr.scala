@@ -38,6 +38,9 @@ case class ConstructorDecl(variable: TermVar, fields: List[LambdaParam]):
 /** A lambda application. */
 case class EApp(val lam: Expr, val arg: Expr) extends Expr
 
+/** Erased explicit instantiation of leading universal type parameters. */
+case class ETypeApp(expr: Expr, arguments: List[Type]) extends Expr
+
 /** A type ascription. */
 case class EAscr(val expr: Expr, val type_ : Type) extends Expr
 
@@ -45,10 +48,11 @@ case class EAscr(val expr: Expr, val type_ : Type) extends Expr
 case class EMatch(val scrutinee: Expr, val pattern: Type, val then_ : Expr, val else_ : Option[Expr]) extends Expr
 
 extension (expr: Expr)
-  /** Whether an initializer creates a closure, possibly with an erased type ascription. */
+  /** Whether an initializer creates a closure, possibly with erased ascriptions or type arguments. */
   def isFunction: Boolean = expr match
     case ELam(_, _) => true
     case EAscr(body, _) => body.isFunction
+    case ETypeApp(body, _) => body.isFunction
     case _ => false
 
   /** The free term variables, retaining the identity of each elaborated binding. */
@@ -61,5 +65,6 @@ extension (expr: Expr)
     case EProj(record, _) => record.freeVars
     case ETuple(left, right) => left.freeVars ++ right.freeVars
     case EAscr(expr, _) => expr.freeVars
+    case ETypeApp(expr, _) => expr.freeVars
     case EMatch(scrutinee, _, then_, else_) =>
       scrutinee.freeVars ++ then_.freeVars ++ else_.toSet.flatMap(_.freeVars)

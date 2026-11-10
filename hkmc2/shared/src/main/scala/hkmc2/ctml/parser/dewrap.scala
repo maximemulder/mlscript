@@ -3,8 +3,8 @@ package hkmc2.ctml.parser
 import hkmc2.ctml.types.*
 
 /** Inline a UCS scrutinee binding when this preserves evaluation order and multiplicity.
- *  A variable, possibly ascribed, can be reused. A computation can only replace the first
- *  scrutinee when that is the binding's sole free occurrence. Other computations keep their
+ *  A variable with erased ascriptions or type arguments can be reused. A computation can replace
+ *  the first scrutinee when that is the binding's sole free occurrence. Other computations keep their
  *  binding so that subsequent tests and branch uses do not evaluate them again. */
 private[parser] def dewrapMatchBinding(name: TermVar, arg: Expr, body: Expr): Option[Expr] =
   body match
@@ -14,12 +14,13 @@ private[parser] def dewrapMatchBinding(name: TermVar, arg: Expr, body: Expr): Op
       else None
     case _ => None
 
-/** Whether duplicating a scrutinee only repeats a variable lookup and erased ascriptions. */
+/** Whether duplicating a scrutinee only repeats a lookup and erased type annotations. */
 private def reusableScrutinee(expr: Expr): Boolean =
   expr match
     case EUnit => true
     case EVar(_) => true
     case EAscr(expr, _) => reusableScrutinee(expr)
+    case ETypeApp(expr, _) => reusableScrutinee(expr)
     case _ => false
 
 /** Count free occurrences, respecting the shadowing of named lambda parameters. */
@@ -33,6 +34,7 @@ private def freeOccurrences(expr: Expr, name: TermVar): Int =
     case EProj(record, _) => freeOccurrences(record, name)
     case ETuple(left, right) => freeOccurrences(left, name) + freeOccurrences(right, name)
     case EAscr(expr, _) => freeOccurrences(expr, name)
+    case ETypeApp(expr, _) => freeOccurrences(expr, name)
     case EMatch(scrutinee, _, then_, else_) =>
       freeOccurrences(scrutinee, name) + freeOccurrences(then_, name) +
         else_.map(freeOccurrences(_, name)).getOrElse(0)
@@ -67,6 +69,7 @@ private def substituteTerm(expr: Expr, name: TermVar, arg: Expr): Option[Expr] =
         right <- substituteTerm(right, name, arg)
       yield ETuple(left, right)
     case EAscr(expr, type_) => substituteTerm(expr, name, arg).map(EAscr(_, type_))
+    case ETypeApp(expr, arguments) => substituteTerm(expr, name, arg).map(ETypeApp(_, arguments))
     case EMatch(scrutinee, pattern, then_, else_) =>
       for
         scrutinee <- substituteTerm(scrutinee, name, arg)

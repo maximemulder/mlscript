@@ -12,6 +12,13 @@ Direct recursion is translated to `fix (self => body)`, using the prelude signat
 `forall A. (A -> A) -> A`. Only syntactic closures, possibly ascribed, may refer to themselves;
 recursive value initializers require an initialization semantics and are rejected.
 
+Explicit type arguments such as `fix[Int -> Int]` select leading universal instances. They are
+erased, use capture-avoiding substitution, and constrain exposed guards while retaining the
+operand's obligations. Partial and impredicative arguments are supported. A visible universal
+type is required, possibly under transparent aliases or guards; arbitrary inference-variable
+bounds do not select the universal to instantiate. The constrained recursive-type report in
+`../subtyping/recursive-encoding.md` describes the associated rules and list examples.
+
 Local bindings are translated to lambda applications. Initializer clauses remain obligations even
 when the bound name is unused. Closing an extra level around an arbitrary initializer would hide
 those obligations in an unused type. Function bodies, in contrast, are delayed by closure creation.

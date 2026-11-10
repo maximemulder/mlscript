@@ -1,0 +1,99 @@
+:ctml
+
+// A universal with identity body denotes the intersection of its admissible carriers.
+type IntLike = [X restricts Int] -> X
+IntLike == Int
+IntLike <:< (Int | Str)
+//│ IntLike = ∀X. {X ≥ Int} ⟹ X
+//│ OK
+//│ OK
+
+:te
+IntLike <:< Str
+//│ ═══[TYPE ERROR] Cannot solve judgment IntLike ≤ Str.
+//│ Typing error tree:
+//│   IntLike ≤ Str
+//│     ∀X. {X ≥ Int} ⟹ X ≤ Str
+//│       {α ≥ Int} ⟹ α ≤ Str
+//│         α ≤ Str
+//│           Int ≤ Str
+
+// Every guard is an obligation; proving one does not discharge the others.
+type Both = [X restricts Int] -> ([Str <:< X] => X)
+Both == (Int | Str)
+//│ Both = ∀X. {X ≥ Int, Str ≤ X} ⟹ X
+//│ OK
+
+:te
+Both <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment Both ≤ Int.
+//│ Typing error tree:
+//│   Both ≤ Int
+//│     ∀X. {X ≥ Int, Str ≤ X} ⟹ X ≤ Int
+//│       {α ≥ Int, Str ≤ α} ⟹ α ≤ Int
+//│         {Str ≤ α} ⟹ α ≤ Int
+//│           α ≤ Int
+//│             Int ∨ Str ≤ Int
+//│               Str ≤ Int
+
+// Bounds assumed by a constrained target remain scoped to that target.
+type A
+type B
+type Carrier = [X restricts A] -> X
+Carrier <:< ([A <:< B] => B)
+//│ Carrier = ∀X. {X ≥ A} ⟹ X
+//│ OK
+
+:te
+Carrier <:< B
+//│ ═══[TYPE ERROR] Cannot solve judgment Carrier ≤ B.
+//│ Typing error tree:
+//│   Carrier ≤ B
+//│     ∀X. {X ≥ A} ⟹ X ≤ B
+//│       ∀X. {X ≥ A} ⟹ X ≤ ⊥
+//│         {α ≥ A} ⟹ α ≤ ⊥
+//│           α ≤ ⊥
+//│             A ≤ ⊥
+//│               ⊤ ≤ ⊥
+
+// Repeating a target witness cannot justify a circular proof through rigid bounds.
+:te
+Carrier <:< ([A <:< Carrier] => Str)
+//│ ═══[TYPE ERROR] Judgment A ≤ Str repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   Carrier ≤ {A ≤ Carrier} ⟹ Str
+//│     ∀X. {X ≥ A} ⟹ X ≤ {A ≤ Carrier} ⟹ Str
+//│       ∀X. {X ≥ A} ⟹ X ≤ Str
+//│         {α ≥ A} ⟹ α ≤ Str
+//│           α ≤ Str
+//│             A ≤ Str
+//│               Carrier ≤ Str
+//│                 ∀X. {X ≥ A} ⟹ X ≤ Str
+//│                   {β ≥ A} ⟹ β ≤ Str
+//│                     β ≤ Str
+//│                       A ≤ Str
+
+// Substituting the free Y for X must rename the inner binder Y.
+type Y
+type Capture = [X restricts ([Y] -> Y -> X)] -> X
+Capture <:< ([Y >:> ([Z] -> Z -> Y)] => Y)
+//│ Capture = ∀X. {X ≥ ∀Y. Y → X} ⟹ X
+//│ OK
+
+// A binder that shadows the substituted variable keeps its own occurrences.
+([X restricts ([X] -> X -> X)] -> X) == ([Z] -> Z -> Z)
+//│ OK
+
+// A failed target witness leaves other instances available; X = Bot proves this judgment.
+([X extends Int] -> X) <:< Str
+//│ OK
+
+// A negative recursive occurrence has no general unfold law. The target attempt must prove
+// its substituted guard rather than treating an arbitrary bounded encoding as a fixed point.
+type Negative = [X restricts ~X] -> X
+//│ Negative = ∀X. {X ≥ ¬X} ⟹ X
+
+:breakme // FIXME: Cyclic flexible bounds admit an invalid negative-encoding comparison.
+:te
+Negative <:< ~Negative
+//│ OK

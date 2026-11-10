@@ -1,0 +1,67 @@
+:ctml
+
+fun id(x) = x
+id[Int](1) as Int
+//│ id: ∀α. α → α
+//│ Int
+
+:te
+id[Int]("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+declare fun pair[A, B]: A -> B -> ([A, B])
+pair[Int, Str](1, "hello") as [Int, Str]
+pair[Int][Str](1, "hello") as [Int, Str]
+//│ pair: ∀A, B. A → B → ⟨A, B⟩
+//│ ⟨Int, Str⟩
+//│ ⟨Int, Str⟩
+
+// Type arguments may themselves be polymorphic.
+id[[A] -> A -> A](id)(1) as Int
+id[[A] -> A -> A](id)("hello") as Str
+//│ Int
+//│ Str
+
+// Partial instantiation preserves remaining binders and avoids capture by their names.
+type Y
+declare fun capture[X]: [Y] -> X -> Y -> X
+capture[Y][Int] as (Y -> Int -> Y)
+//│ capture: ∀X, Y. X → Y → X
+//│ Y → Int → Y
+
+:te
+capture[Y][Int] as (Int -> Int -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment Y → Int → Y ≤ Int → Int → Int.
+//│ Typing error tree:
+//│   Y → Int → Y ≤ Int → Int → Int
+//│     Int ≤ Y
+//│       Int ≤ ⊥
+
+// Explicit bounded instantiation must prove its guard, even when the result is unused.
+declare fun bounded: [A extends Int] -> A -> A
+bounded[Int](1) as Int
+//│ bounded: ∀A. {A ≤ Int} ⟹ A → A
+//│ Int
+
+:te
+bounded[Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int
+
+:te
+val unused = bounded[Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment Str ≤ Int.
+//│ Typing error tree:
+//│   Str ≤ Int
+
+:te
+id[Int, Str]
+//│ ═══[TYPE ERROR] Cannot apply a type argument to non-universal type Int → Int.
+
+:te
+int[Int]
+//│ ═══[TYPE ERROR] Cannot apply a type argument to non-universal type Int.

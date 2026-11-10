@@ -56,6 +56,8 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
     // Parse lambda applications.
     case Term.App(mlLambda, mlArg) =>
       parseApp(mlLambda, mlArg)
+    case Term.TyApp(expr, arguments) =>
+      ETypeApp(parseExpr(expr), arguments.map(parseType))
     // Parse type ascriptions.
     case Term.Asc(mlExpr, mlType) =>
       val expr  = parseExpr(mlExpr)

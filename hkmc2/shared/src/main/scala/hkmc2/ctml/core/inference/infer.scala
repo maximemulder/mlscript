@@ -82,6 +82,15 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
         argClauses.concat(retDecl.asSubClauses))
       (retType, clauses)
 
+    // Explicit instantiation constrains the selected guards, retaining their output obligations.
+    case ETypeApp(expr, arguments) =>
+      val (type_, clauses) = infer(expr)
+      val instance = instantiateExplicit(type_, arguments)(using ctx.sub.extend(clauses))
+      val (body, guards) = instance.getConstrainedComponents
+      val outs = guards.reverse.foldLeft(clauses)((outs, guard) =>
+        subtypeConstraintSeq(guard, outs)(using ctx.sub))
+      (body, outs)
+
     // Type ascription.
     case ascr: EAscr =>
       val (inferType, inferClauses) = infer(ascr.expr)

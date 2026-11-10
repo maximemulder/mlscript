@@ -142,7 +142,13 @@ fun length(xs) = if xs is
 exceeds the local harness's 25-second limit even without an application. Its exact performance
 bottleneck is not localized here. It is retained as a commented reproducer, not an active timeout.
 
-## Proposed next decision
+## Deferred solver investigation
+
+This investigation is deferred. The Nofib port tests inference and can retain these failures;
+making implicit instantiation succeed is not a prerequisite for translating more source code.
+Continue according to the
+[Nofib porting guide](../../../../../../test/mlscript/ctml/nofib/README.md).
+The following is a possible direction for later solver work, not an approved implementation task.
 
 Keep the inferred constrained scheme and make its implicit uses work. Investigate witness
 selection for positive recursive bounds: for `F(α) ≤ α`, the encoded least fixed point is a

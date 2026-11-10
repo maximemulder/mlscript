@@ -31,6 +31,8 @@ the implementation seems more correct than the paper, suggest a change to the pa
   - `config/`: the options of the `:ctml-cfg` and `:ctml-dbg` commands.
   - `test/`: the entry point of the diff tests.
 - `hkmc2/shared/src/test/mlscript/ctml/`: the CTML tests, and the CTML prelude `ctmlPrelude.mls`.
+  - `nofib/`: incremental Nofib ports. Read the [porting guide](hkmc2/shared/src/test/mlscript/ctml/nofib/README.md)
+    before continuing a port; it records agreed principles, deferred issues, and current progress.
 - `hkmc2DiffTests/src/test/scala/hkmc2/InvalmlDiffMaker.scala`: the CTML diff-test commands.
 
 

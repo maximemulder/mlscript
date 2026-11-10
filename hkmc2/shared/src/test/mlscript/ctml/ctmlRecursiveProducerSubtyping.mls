@@ -1,0 +1,109 @@
+:ctml
+
+type F
+type Rec = [X restricts F[X]] -> X
+type LayerRec = [X restricts F[X]] -> F[X]
+type Producer = [X restricts F[X]] -> Int -> F[X]
+type WidenedProducer = [X restricts F[X]] -> Int -> X
+//│ Rec = ∀X. {X ≥ F[X]} ⟹ X
+//│ LayerRec = ∀X. {X ≥ F[X]} ⟹ F[X]
+//│ Producer = ∀X. {X ≥ F[X]} ⟹ Int → F[X]
+//│ WidenedProducer = ∀X. {X ≥ F[X]} ⟹ Int → X
+
+LayerRec <:< Rec
+//│ OK
+
+Rec <:< LayerRec
+//│ OK
+
+:fixme // FIXME: The recursive instance cycles before finding the witness Rec.
+Producer <:< (Int -> Rec)
+//│ ═══[TYPE ERROR] Judgment F[4] ≤ 5 repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   Producer ≤ Int → Rec
+//│     ∀X. {X ≥ F[X]} ⟹ Int → F[X] ≤ Int → Rec
+//│       {α ≥ F[α]} ⟹ Int → F[α] ≤ Int → Rec
+//│         Int → F[α] ≤ Int → Rec
+//│           F[α] ≤ Rec
+//│             F[α] ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│               F[α] ≤ {β ≥ F[β]} ⟹ β
+//│                 F[α] ≤ β
+//│                   F[α] ≤ F[β]
+//│                     α ≤ β
+//│                       F[α] ≤ β
+
+:fixme // FIXME: Widening the result to the carrier does not resolve implicit instantiation.
+WidenedProducer <:< (Int -> Rec)
+//│ ═══[TYPE ERROR] Judgment F[6] ≤ 7 repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   WidenedProducer ≤ Int → Rec
+//│     ∀X. {X ≥ F[X]} ⟹ Int → X ≤ Int → Rec
+//│       {α ≥ F[α]} ⟹ Int → α ≤ Int → Rec
+//│         Int → α ≤ Int → Rec
+//│           α ≤ Rec
+//│             F[α] ≤ Rec
+//│               F[α] ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│                 F[α] ≤ {β ≥ F[β]} ⟹ β
+//│                   F[α] ≤ β
+//│                     F[α] ≤ F[β]
+//│                       α ≤ β
+//│                         F[α] ≤ β
+
+// A nonrecursive guard distinguishes the cycle from arrow instantiation.
+type PlainProducer = [X restricts Int] -> Int -> X
+//│ PlainProducer = ∀X. {X ≥ Int} ⟹ Int → X
+
+PlainProducer <:< (Int -> Int)
+//│ OK
+
+// An explicit witness supplies a finite derivation for the failing producer comparison.
+declare fun producer: Producer
+//│ producer: Producer
+
+producer[Rec] as (Int -> Rec)
+//│ Int → Rec
+
+// The corresponding declared list-shaped scheme isolates inference from subtyping.
+data class LNil()
+data class LCons(head, tail)
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+type ListScheme = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] ->
+  LNil | (LCons & {head: Int} & {tail: X})
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ ListScheme = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})
+
+:fixme // FIXME: Splitting the carrier bound before instantiation loses its union.
+ListScheme <:< IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment ListScheme ≤ IntList.
+//│ Typing error tree:
+//│   ListScheme ≤ IntList
+//│     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ IntList
+//│       ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
+//│           ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ α
+//│             ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ LNil
+//│               {β ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ LNil
+//│                 LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ LNil
+//│                   (LCons ∧ {head: Int}) ∧ {tail: β} ≤ LNil
+//│                     LCons ∧ {head: Int} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: Int} ≤ LNil
+//│                         Int ≤ ⊥
+//│                     {tail: β} ≤ LNil
+//│                       β ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ ⊥
+//│                           LNil ≤ ⊥
+//│             ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ (LCons ∧ {head: Int}) ∧ {tail: α}
+//│               ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ LCons ∧ {head: Int}
+//│                 ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ LCons
+//│                   {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ}) ≤ LCons
+//│                     LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ}) ≤ LCons
+//│                       LNil ≤ LCons
+
+declare fun listValue: ListScheme
+//│ listValue: ListScheme
+
+listValue[IntList] as IntList
+//│ IntList

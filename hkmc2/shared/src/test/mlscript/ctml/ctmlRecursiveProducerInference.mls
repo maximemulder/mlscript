@@ -1,0 +1,177 @@
+:ctml
+
+data class LNil()
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+val (<=): Int -> Int -> Bool
+//│ <=: Int → Int → Bool
+
+// The source Nofib range is inclusive and returns empty when a > b.
+// Its definition has no type annotations or explicit instantiations.
+fun enumFromTo(a, b) =
+  if a <= b then LCons(a, enumFromTo(a + 1, b)) else LNil()
+//│ enumFromTo: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
+
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+// Explicit uses are diagnostic controls, not annotations on the producer.
+enumFromTo[IntList] as (Int -> Int -> IntList)
+//│ Int → Int → IntList
+
+enumFromTo[IntList](1, 5) as IntList
+//│ IntList
+
+:fixme // FIXME: Automatic instantiation cannot solve the positive recursive result bound.
+enumFromTo as (Int -> Int -> IntList)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Int → Int → IntList.
+//│ Typing error tree:
+//│   ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Int → Int → IntList
+//│     {β ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β})) ≤ Int → Int → IntList
+//│       Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β})) ≤ Int → Int → IntList
+//│         Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β})) ≤ Int → IntList
+//│           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ IntList
+//│             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│                 LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ γ
+//│                   (LCons ∧ {head: Int}) ∧ {tail: β} ≤ γ
+//│                     (LCons ∧ {head: Int}) ∧ {tail: β} ≤ LNil
+//│                       LCons ∧ {head: Int} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: Int} ≤ LNil
+//│                           Int ≤ ⊥
+//│                       {tail: β} ≤ LNil
+//│                         β ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│                     (LCons ∧ {head: Int}) ∧ {tail: β} ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│                       (LCons ∧ {head: Int}) ∧ {tail: β} ≤ {tail: γ}
+//│                         LCons ∧ {head: Int} ≤ {tail: γ}
+//│                           LCons ≤ {tail: γ}
+//│                           {head: Int} ≤ {tail: γ}
+//│                             Int ≤ ⊥
+//│                         {tail: β} ≤ {tail: γ}
+//│                           β ≤ γ
+//│                             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ γ
+
+:fixme // FIXME: Automatic instantiation cannot solve the positive recursive result bound.
+enumFromTo(1, 5) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ IntList
+//│       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ γ
+//│             (LCons ∧ {head: Int}) ∧ {tail: β} ≤ γ
+//│               (LCons ∧ {head: Int}) ∧ {tail: β} ≤ LNil
+//│                 LCons ∧ {head: Int} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: Int} ≤ LNil
+//│                     Int ≤ ⊥
+//│                 {tail: β} ≤ LNil
+//│                   β ≤ ⊥
+//│                     LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: Int}) ∧ {tail: β} ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│                 (LCons ∧ {head: Int}) ∧ {tail: β} ≤ {tail: γ}
+//│                   LCons ∧ {head: Int} ≤ {tail: γ}
+//│                     LCons ≤ {tail: γ}
+//│                     {head: Int} ≤ {tail: γ}
+//│                       Int ≤ ⊥
+//│                   {tail: β} ≤ {tail: γ}
+//│                     β ≤ γ
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β}) ≤ γ
+
+val inferredRange = enumFromTo(1, 5)
+//│ inferredRange: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})
+
+:fixme // FIXME: Implicit instantiation loses the whole closed carrier when splitting its bound.
+inferredRange as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ IntList.
+//│ Typing error tree:
+//│   ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ IntList
+//│     ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│       ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ {β ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: β})} ⟹ β
+//│         ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ β
+//│           ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ LNil
+//│             {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ}) ≤ LNil
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ}) ≤ LNil
+//│                 (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ LNil
+//│                   LCons ∧ {head: Int} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Int} ≤ LNil
+//│                       Int ≤ ⊥
+//│                   {tail: γ} ≤ LNil
+//│                     γ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│           ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ (LCons ∧ {head: Int}) ∧ {tail: β}
+//│             ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ LCons ∧ {head: Int}
+//│               ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ LCons
+//│                 {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ}) ≤ LCons
+//│                   LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ}) ≤ LCons
+//│                     LNil ≤ LCons
+
+:te
+enumFromTo("bad", 5)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β
+//│     {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ≤ Str → β
+//│       Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ≤ Str → β
+//│         Str ≤ Int
+
+:te
+enumFromTo(1, "bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ≤ Str → β
+//│       Str ≤ Int
+
+fun firstOrZero(xs) = if xs is
+  LNil() then 0
+  LCons(head, _) then head
+//│ firstOrZero: ∀α, β. {β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ ({head: β} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ (({head: β} ∧ LCons) ∧ {tail: ⊤})} ⟹ α → β
+
+:fixme // FIXME: Case splitting skips the flexible argument produced by the range application.
+firstOrZero(enumFromTo(1, 5)) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Int ∨ (({β ≤ LNil} ⟹ Int) ∧ ({β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥)) ≤ Int
+//│       ({β ≤ LNil} ⟹ Int) ∧ ({β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥) ≤ Int
+//│         {β ≤ LNil} ⟹ Int ≤ Int
+//│           β ≤ LNil
+//│             δ ≤ LNil
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ LNil
+//│                 (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ LNil
+//│                   LCons ∧ {head: Int} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Int} ≤ LNil
+//│                       Int ≤ ⊥
+//│                   {tail: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│         {β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥ ≤ Int
+//│           β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
+//│             δ ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
+//│                 LNil ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
+//│                   LNil ≤ {head: γ} ∧ LCons
+//│                     LNil ≤ {head: γ}
+
+firstOrZero(LNil()) as Int
+//│ Int
+
+firstOrZero(LCons(1, LNil())) as Int
+//│ Int
+
+// FIXME: Inferring this unannotated recursive consumer exceeds the 25-second test limit.
+// fun length(xs) = if xs is
+//   LNil() then 0
+//   LCons(_, tail) then 1 + length(tail)

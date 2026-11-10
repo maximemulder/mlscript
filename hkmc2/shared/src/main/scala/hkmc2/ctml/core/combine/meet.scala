@@ -41,9 +41,14 @@ def meetMerge(left: Type, right: Type)(using ctx: SubContext): Option[Type] =
     case Some(merged) => return Some(merged)
     case None =>
 
-  // Meet lambda types.
+  // Meet product and function types.
 
   (left, right) match
+    case (TTuple(leftFirst, leftSecond), TTuple(rightFirst, rightSecond)) =>
+      // Products intersect componentwise; an empty component makes the whole product empty.
+      val first = meet(leftFirst, rightFirst)
+      val second = meet(leftSecond, rightSecond)
+      return Some(if first == TBot || second == TBot then TBot else TTuple(first, second))
     case (left: TLam, right: TLam) =>
       return meetLambdas(left, right)
     case _ =>

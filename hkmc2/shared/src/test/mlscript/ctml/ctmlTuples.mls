@@ -1,5 +1,52 @@
 :ctml
 
+// Intersecting tuple requirements combines their components, including nested requirements.
+
+fun pairRequirements(x: [Int, Top] & [Top, Str]) = x
+//│ pairRequirements: ∀α. {α ≤ ⟨Int, Str⟩} ⟹ α → α
+
+fun tripleRequirements(x: [Int, Top] & [Top, [Int, Top]] & [Top, [Top, Int]]) = x
+//│ tripleRequirements: ∀α. {α ≤ ⟨Int, ⟨Int, Int⟩⟩} ⟹ α → α
+
+// Component intersections preserve shared type variables.
+
+declare fun polymorphicPair[A, B]: A -> B -> ([A, Top] & [Top, B])
+fun pairFrom(a, b) = polymorphicPair(a, b)
+//│ polymorphicPair: ∀A, B. A → B → (⟨A, ⊤⟩ ∧ ⟨⊤, B⟩)
+//│ pairFrom: ∀α, β. α → β → ⟨α, β⟩
+
+pairFrom(1, "hello") as [Int, Str]
+//│ ⟨Int, Str⟩
+
+:te
+pairFrom(1, "hello") as [Str, Int]
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Str, Int⟩.
+//│ Typing error tree:
+//│   α ≤ ⟨Str, Int⟩
+//│     ⟨β, γ⟩ ≤ ⟨Str, Int⟩
+//│       β ≤ Str
+//│         Int ≤ Str
+
+// Conflicting requirements on either component make the intersection empty.
+
+fun emptyFirst(x: [Int, Top] & [Str, Bool]) = x
+//│ emptyFirst: ⊥ → ⊥
+
+fun emptySecond(x: [Top, Int] & [Bool, Str]) = x
+//│ emptySecond: ⊥ → ⊥
+
+// A union of pairs preserves correlation between its components.
+
+:te
+[1, 2] as ([Int, Str] | [Str, Int])
+//│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Int⟩ ≤ ⟨Int, Str⟩ ∨ ⟨Str, Int⟩.
+//│ Typing error tree:
+//│   ⟨Int, Int⟩ ≤ ⟨Int, Str⟩ ∨ ⟨Str, Int⟩
+//│     ⟨Int, Int⟩ ≤ ⟨Int, Str⟩
+//│       Int ≤ Str
+//│     ⟨Int, Int⟩ ≤ ⟨Str, Int⟩
+//│       Int ≤ Str
+
 // Binary tuple expressions use square brackets and preserve nesting.
 
 [1, "hello"]

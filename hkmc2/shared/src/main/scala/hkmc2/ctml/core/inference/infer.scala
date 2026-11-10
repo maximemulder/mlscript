@@ -61,11 +61,11 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
     case app: EApp =>
       val (lamType, lamClauses) = infer(app.lam)
       val (argType, argClauses) = inferSeq(app.arg, lamClauses)
-      applyType(lamType, argType, argClauses)
-
-    // Immutable binding.
-    case ELet(group, body) =>
-      inferLet(group, body)
+      val retDecl = ctx.sub.declInferVar()
+      val retType = TVar(retDecl.var_)
+      val clauses = typingSubtypeSeq(lamType, TLam(argType, retType),
+        argClauses.concat(retDecl.asSubClauses))
+      (retType, clauses)
 
     // Type ascription.
     case ascr: EAscr =>

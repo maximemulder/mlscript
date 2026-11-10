@@ -4,6 +4,8 @@ import hkmc2.ctml.test.*
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Annot
 import hkmc2.semantics.BlockMemberSymbol
+import hkmc2.semantics.DefineVar
+import hkmc2.semantics.LetDecl
 import hkmc2.semantics.ClassDef
 import hkmc2.semantics.Fld
 import hkmc2.semantics.Import
@@ -29,9 +31,6 @@ def parseTermStmts(mlStmts: Term)(using Scope): List[Stmt] =
 /** Convert an MLScript statement to a CTML statement. */
 def parseStmts(mlStmts: List[Statement])(using scope: Scope): List[Stmt] =
   mlStmts match
-    case head :: _ if isBindingStatement(head) =>
-      val (bindings, rest) = mlStmts.span(isBindingStatement)
-      parseBindingGroups(bindings).map(StmtBindings(_)) ++ parseStmts(rest)
     case mlStmt :: mlStmts =>
       val stmt = parseStmt(mlStmt)
       val newScope = stmt match
@@ -47,7 +46,7 @@ def parseStmts(mlStmts: List[Statement])(using scope: Scope): List[Stmt] =
 def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
   Some(
     mlStmt match
-      case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) =>
+      case Term.Lit(Tree.UnitLit(false)) | Import(_, _, _) | LetDecl(_, _) =>
         return None
       case ClassDef.Plain(_, _, _, mlSymbol,_, mlParent, _, _, mlAnnotations, _, _) if !isAbstract(mlAnnotations) =>
         parseClassDecl(mlSymbol, mlParent)
@@ -61,6 +60,12 @@ def parseStmt(mlStmt: Statement)(using Scope): Option[Stmt] =
         parseTypeVar(mlSymbol, mlType)
       case TermDefinition(_, mlSymbol, _, mlParams, mlTypeParams, mlType, None, _, _, _, _) =>
         parseExprDecl(mlSymbol, mlParams, mlTypeParams.getOrElse(Nil), mlType)
+      case definition: TermDefinition if definition.body.isDefined =>
+        val (variable, expr) = parseBinding(definition)
+        StmtExprVar(variable, expr)
+      case definition: DefineVar =>
+        val (variable, expr) = parseBinding(definition)
+        StmtExprVar(variable, expr)
       case Term.App(Term.SynthSel(_, mlIdent), Term.Tup(List(Fld(_, mlLeft, _), Fld(_, mlRight, _)))) if mlIdent.name == "equals" =>
         val left  = parseType(mlLeft)
         val right = parseType(mlRight)

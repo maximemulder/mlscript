@@ -126,3 +126,20 @@ apply((x) => x ++ "!", 1)
 //│     γ → δ ≤ Int → β
 //│       Int ≤ γ
 //│         Int ≤ ¬Int
+
+// Simplifying cyclic lower bounds must preserve their nonrecursive base case.
+
+declare fun cycle[A, B, C]: [A >:> (B | Bool), B >:> C, C >:> A] => Unit -> A
+//│ cycle: ∀A, B, C. {A ≥ B ∨ Bool, B ≥ C, C ≥ A} ⟹ Unit → A
+
+val cycleResult = cycle()
+//│ cycleResult: Bool
+
+cycleResult as Bool
+//│ Bool
+
+:te
+cycleResult as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ Int.
+//│ Typing error tree:
+//│   Bool ≤ Int

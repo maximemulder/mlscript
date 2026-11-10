@@ -2,6 +2,9 @@ package hkmc2.ctml.parser
 
 import hkmc2.ctml.config.config
 import hkmc2.ctml.types.*
+import hkmc2.semantics.DefineVar
+import hkmc2.semantics.LetDecl
+import hkmc2.semantics.TermDefinition
 import hkmc2.semantics.Elem
 import hkmc2.semantics.Fld
 import hkmc2.semantics.Param
@@ -94,18 +97,23 @@ def parseAscriptionComposition(mlLeft: Term, mlRight: Term, mlPol: Boolean)(usin
     case _ =>
       throw new ParseError(mlLeft)
 
-/** Parse immutable bindings followed by a result expression. Dependency ordering preserves value
- *  initialization order and permits forward function references. Expression statements are
- *  unsupported. */
+/** Parse sequential immutable bindings as lambda applications.
+ *  Initializers retain their obligations even when the bound name is unused. Definitions are
+ *  available only to subsequent bindings and the result; forward references are unsupported. */
 def parseBlock(mlLefts: List[Statement], mlRight: Term)(using Scope): Expr =
   mlLefts match
-    case Nil =>
-      parseExpr(mlRight)
-    case head :: _ if isBindingStatement(head) =>
-      val (bindings, rest) = mlLefts.span(isBindingStatement)
-      val groups = parseBindingGroups(bindings)
-      groups.foldRight(parseBlock(rest, mlRight))(ELet(_, _))
-    case mlLeft :: _ => throw ParseError(mlLeft)
+    case Nil => parseExpr(mlRight)
+    case LetDecl(_, _) :: rest => parseBlock(rest, mlRight)
+    case (head: DefineVar) :: rest => parseLocalBinding(head, rest, mlRight)
+    case (head: TermDefinition) :: rest if head.body.isDefined =>
+      parseLocalBinding(head, rest, mlRight)
+    case head :: _ => throw ParseError(head)
+
+/** Apply the continuation of one local binding to its initializer. */
+private def parseLocalBinding(stmt: Statement, rest: List[Statement], result: Term)
+  (using Scope): Expr =
+  val (variable, expr) = parseBinding(stmt)
+  EApp(ELam(Some(LambdaParam(variable, None)), parseBlock(rest, result)), expr)
 
 /** Convert an MLScript lambda abstraction to a CTML expression. */
 def parseLambda(mlParams: ParamList, mlBody: Term)(using Scope): Expr =

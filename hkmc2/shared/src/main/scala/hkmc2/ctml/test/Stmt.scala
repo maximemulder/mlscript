@@ -17,8 +17,8 @@ case class StmtTypeVar(name: String, type_ : Type) extends Stmt
 /** An expression variable declaration. */
 case class StmtExprDecl(variable: TermVar, type_ : Type) extends Stmt
 
-/** A dependency component of immutable term definitions. */
-case class StmtBindings(group: BindingGroup) extends Stmt
+/** An immutable term definition. */
+case class StmtExprVar(variable: TermVar, expr: Expr) extends Stmt
 
 /** An expression. */
 case class StmtExpr(expr: Expr) extends Stmt

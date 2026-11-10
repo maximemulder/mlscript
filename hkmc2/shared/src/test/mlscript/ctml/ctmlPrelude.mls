@@ -26,6 +26,7 @@ val num    : Num
 val string : Str
 
 declare fun _if_[A]: Bool -> A -> A -> A
+declare fun fix[A]: (A -> A) -> A
 
 val (+):  Int -> Int -> Int
 val (-):  Int -> Int -> Int

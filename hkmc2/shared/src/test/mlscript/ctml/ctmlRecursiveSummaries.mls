@@ -1,0 +1,327 @@
+:ctml
+
+
+/** Empty list. */
+data class LNil()
+/** A list cell with structural payloads. */
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** Traverse using a shared inferred recursive invariant. */
+fun walk(xs) = if xs is
+  LNil() then 0
+  LCons(_, t) then walk(t)
+//│ walk: (∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α) → Int
+
+walk(LCons(1, LCons("two", LNil()))) as Int
+//│ Int
+
+:te
+walk(LCons(1, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α) → Int ≤ β → γ.
+//│ Typing error tree:
+//│   (∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α) → Int ≤ β → γ
+//│     β ≤ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α
+//│       (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α
+//│         (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ})} ⟹ ζ
+//│           (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ ζ
+//│             (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ LNil
+//│               LCons ∧ {head: δ} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: δ} ≤ LNil
+//│                   δ ≤ ⊥
+//│                     Int ≤ ⊥
+//│               {tail: ε} ≤ LNil
+//│                 ε ≤ ⊥
+//│                   Bool ≤ ⊥
+//│             (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ζ}
+//│               (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                 LCons ∧ {head: δ} ≤ {tail: ζ}
+//│                   LCons ≤ {tail: ζ}
+//│                   {head: δ} ≤ {tail: ζ}
+//│                     δ ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: ε} ≤ {tail: ζ}
+//│                   ε ≤ ζ
+//│                     Bool ≤ ζ
+//│                       Bool ≤ LNil
+//│                       Bool ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ζ}
+//│                         Bool ≤ LCons ∧ {head: ⊤}
+//│                           Bool ≤ LCons
+
+/** Count cells without annotating the recursive definition. */
+fun length(xs) = if xs is
+  LNil() then 0
+  LCons(_, t) then 1 + length(t)
+//│ length: (∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α) → Int
+
+length(LCons(1, LNil())) as Int
+//│ Int
+
+/** Preserve payload types while reconstructing cells. */
+fun copy(xs) = if xs is
+  LNil() then LNil()
+  LCons(h, t) then LCons(h, copy(t))
+//│ copy: ∀α. (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ γ)
+
+/** Relate callback input and output payloads across recursion. */
+fun map(f, xs) = if xs is
+  LNil() then LNil()
+  LCons(h, t) then LCons(f(h), map(f, t))
+//│ map: ∀α, β. (α → β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ γ) → (∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ)
+
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+type StrList = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ StrList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+copy(LCons(1, LNil())) as IntList
+map(x => "value", LCons(1, LNil())) as StrList
+length(map(x => x + 1, LCons(1, LNil()))) as Int
+//│ IntList
+//│ StrList
+//│ Int
+
+:te
+map(x => x + 1, LCons("bad", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: δ})} ⟹ δ) → (∀ζ. {ζ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: ζ})} ⟹ ζ) ≤ β → γ
+//│       β ≤ ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: δ})} ⟹ δ
+//│         (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: δ})} ⟹ δ
+//│           (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: κ})} ⟹ κ
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                 LCons ∧ {head: θ} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: θ} ≤ LNil
+//│                     θ ≤ ⊥
+//│                       Str ≤ ⊥
+//│                 {tail: ι} ≤ LNil
+//│                   ι ≤ ⊥
+//│                     λ ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: ε}) ∧ {tail: κ}
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LCons ∧ {head: ε}
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {head: ε}
+//│                     LCons ∧ {head: θ} ≤ {head: ε}
+//│                       LCons ≤ {head: ε}
+//│                       {head: θ} ≤ {head: ε}
+//│                         θ ≤ ε
+//│                           θ ≤ Int
+//│                             Str ≤ Int
+//│                     {tail: ι} ≤ {head: ε}
+//│                       ι ≤ ⊥
+//│                         λ ≤ ⊥
+//│                           LNil ≤ ⊥
+
+:te
+copy(LCons(1, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ γ) ≤ δ → ε.
+//│ Typing error tree:
+//│   ∀α. (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ γ) ≤ δ → ε
+//│     (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: γ})} ⟹ γ) ≤ δ → ε
+//│       δ ≤ ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: β})} ⟹ β
+//│         (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: β})} ⟹ β
+//│           (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {ι ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: ι})} ⟹ ι
+//│             (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ι
+//│               (LCons ∧ {head: η}) ∧ {tail: θ} ≤ LNil
+//│                 LCons ∧ {head: η} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: η} ≤ LNil
+//│                     η ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: θ} ≤ LNil
+//│                   θ ≤ ⊥
+//│                     Bool ≤ ⊥
+//│               (LCons ∧ {head: η}) ∧ {tail: θ} ≤ (LCons ∧ {head: ζ}) ∧ {tail: ι}
+//│                 (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {tail: ι}
+//│                   LCons ∧ {head: η} ≤ {tail: ι}
+//│                     LCons ≤ {tail: ι}
+//│                     {head: η} ≤ {tail: ι}
+//│                       η ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: θ} ≤ {tail: ι}
+//│                     θ ≤ ι
+//│                       Bool ≤ ι
+//│                         Bool ≤ LNil
+//│                         Bool ≤ (LCons ∧ {head: ζ}) ∧ {tail: ι}
+//│                           Bool ≤ LCons ∧ {head: ζ}
+//│                             Bool ≤ LCons
+
+:te
+map(x => "value", LCons(1, LNil())) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ IntList
+//│       ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
+//│           ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ δ
+//│             ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LNil
+//│               {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ LNil
+//│                 ε ≤ LNil
+//│                   LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ LNil
+//│                     (LCons ∧ {head: γ}) ∧ {tail: ε} ≤ LNil
+//│                       LCons ∧ {head: γ} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: γ} ≤ LNil
+//│                           γ ≤ ⊥
+//│                             Str ≤ ⊥
+//│                       {tail: ε} ≤ LNil
+//│                         ε ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│             ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│               ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons ∧ {head: Int}
+//│                 ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons
+//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                     ζ ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ζ}) ≤ LCons
+//│                         LNil ≤ LCons
+
+/** Unary traversal does not depend on list names or element fields. */
+data class Stop()
+/** A unary structural successor. */
+data class Next(rest)
+//│ Stop: Unit → Stop
+//│ Next: ∀α. α → (Next ∧ {rest: α})
+
+fun unary(xs) = if xs is
+  Stop() then 0
+  Next(t) then unary(t)
+//│ unary: (∀α. {α ≥ Stop ∨ (Next ∧ {rest: α})} ⟹ α) → Int
+
+unary(Next(Next(Stop()))) as Int
+//│ Int
+
+:te
+unary(Next(false))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀α. {α ≥ Stop ∨ (Next ∧ {rest: α})} ⟹ α) → Int ≤ β → γ.
+//│ Typing error tree:
+//│   (∀α. {α ≥ Stop ∨ (Next ∧ {rest: α})} ⟹ α) → Int ≤ β → γ
+//│     β ≤ ∀α. {α ≥ Stop ∨ (Next ∧ {rest: α})} ⟹ α
+//│       Next ∧ {rest: δ} ≤ ∀α. {α ≥ Stop ∨ (Next ∧ {rest: α})} ⟹ α
+//│         Next ∧ {rest: δ} ≤ {ε ≥ Stop ∨ (Next ∧ {rest: ε})} ⟹ ε
+//│           Next ∧ {rest: δ} ≤ ε
+//│             Next ∧ {rest: δ} ≤ Stop
+//│               Next ≤ Stop
+//│               {rest: δ} ≤ Stop
+//│                 δ ≤ ⊥
+//│                   Bool ≤ ⊥
+//│             Next ∧ {rest: δ} ≤ Next ∧ {rest: ε}
+//│               Next ∧ {rest: δ} ≤ {rest: ε}
+//│                 Next ≤ {rest: ε}
+//│                 {rest: δ} ≤ {rest: ε}
+//│                   δ ≤ ε
+//│                     Bool ≤ ε
+//│                       Bool ≤ Stop
+//│                       Bool ≤ Next ∧ {rest: ε}
+//│                         Bool ≤ Next
+
+/** Multiple recursive fields share the same positive invariant. */
+data class Leaf(value)
+/** A branching recursive node. */
+data class Fork(left, right)
+//│ Leaf: ∀α. α → (Leaf ∧ {value: α})
+//│ Fork: ∀β, γ. β → γ → ((Fork ∧ {left: β}) ∧ {right: γ})
+
+fun leaves(tree) = if tree is
+  Leaf(_) then 1
+  Fork(l, r) then leaves(l) + leaves(r)
+//│ leaves: (∀α. {α ≥ (Leaf ∧ {value: ⊤}) ∨ ((Fork ∧ {left: α}) ∧ {right: α})} ⟹ α) → Int
+
+leaves(Fork(Leaf(1), Fork(Leaf("two"), Leaf(true)))) as Int
+//│ Int
+
+:te
+leaves(Fork(Leaf(1), false))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀α. {α ≥ (Leaf ∧ {value: ⊤}) ∨ ((Fork ∧ {left: α}) ∧ {right: α})} ⟹ α) → Int ≤ β → γ.
+//│ Typing error tree:
+//│   (∀α. {α ≥ (Leaf ∧ {value: ⊤}) ∨ ((Fork ∧ {left: α}) ∧ {right: α})} ⟹ α) → Int ≤ β → γ
+//│     β ≤ ∀α. {α ≥ (Leaf ∧ {value: ⊤}) ∨ ((Fork ∧ {left: α}) ∧ {right: α})} ⟹ α
+//│       (Fork ∧ {left: δ}) ∧ {right: ε} ≤ ∀α. {α ≥ (Leaf ∧ {value: ⊤}) ∨ ((Fork ∧ {left: α}) ∧ {right: α})} ⟹ α
+//│         (Fork ∧ {left: δ}) ∧ {right: ε} ≤ {ζ ≥ (Leaf ∧ {value: ⊤}) ∨ ((Fork ∧ {left: ζ}) ∧ {right: ζ})} ⟹ ζ
+//│           (Fork ∧ {left: δ}) ∧ {right: ε} ≤ ζ
+//│             (Fork ∧ {left: δ}) ∧ {right: ε} ≤ Leaf ∧ {value: ⊤}
+//│               (Fork ∧ {left: δ}) ∧ {right: ε} ≤ Leaf
+//│                 Fork ∧ {left: δ} ≤ Leaf
+//│                   Fork ≤ Leaf
+//│                   {left: δ} ≤ Leaf
+//│                     δ ≤ ⊥
+//│                       η ≤ ⊥
+//│                         Leaf ∧ {value: θ} ≤ ⊥
+//│                           Leaf ≤ ⊥
+//│                           {value: θ} ≤ ⊥
+//│                             θ ≤ ⊥
+//│                               Int ≤ ⊥
+//│                 {right: ε} ≤ Leaf
+//│                   ε ≤ ⊥
+//│                     Bool ≤ ⊥
+//│             (Fork ∧ {left: δ}) ∧ {right: ε} ≤ (Fork ∧ {left: ζ}) ∧ {right: ζ}
+//│               (Fork ∧ {left: δ}) ∧ {right: ε} ≤ {right: ζ}
+//│                 Fork ∧ {left: δ} ≤ {right: ζ}
+//│                   Fork ≤ {right: ζ}
+//│                   {left: δ} ≤ {right: ζ}
+//│                     δ ≤ ⊥
+//│                       η ≤ ⊥
+//│                         Leaf ∧ {value: θ} ≤ ⊥
+//│                           Leaf ≤ ⊥
+//│                           {value: θ} ≤ ⊥
+//│                             θ ≤ ⊥
+//│                               Int ≤ ⊥
+//│                 {right: ε} ≤ {right: ζ}
+//│                   ε ≤ ζ
+//│                     Bool ≤ ζ
+//│                       Bool ≤ Leaf ∧ {value: ⊤}
+//│                         Bool ≤ Leaf
+//│                       Bool ≤ (Fork ∧ {left: ζ}) ∧ {right: ζ}
+//│                         Bool ≤ Fork ∧ {left: ζ}
+//│                           Bool ≤ Fork
+
+/** Nested recursive bindings retain their validated payload relationships. */
+fun localCopy(xs) =
+  fun go(ys) = if ys is
+    LNil() then LNil()
+    LCons(h, t) then LCons(h, go(t))
+  go(xs)
+//│ localCopy: ∀α, β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ γ) → β
+
+:fixme // FIXME: The enclosing nonrecursive wrapper hoists the result carrier; its witness is not inferred.
+localCopy(LCons(1, LNil())) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ IntList
+//│       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
+//│           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│                 LCons ∧ {head: β} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: β} ≤ LNil
+//│                     β ≤ ⊥
+//│                       ε ≤ ⊥
+//│                         Int ≤ ⊥
+//│                 {tail: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│                 (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {tail: δ}
+//│                   LCons ∧ {head: β} ≤ {tail: δ}
+//│                     LCons ≤ {tail: δ}
+//│                     {head: β} ≤ {tail: δ}
+//│                       β ≤ ⊥
+//│                         ε ≤ ⊥
+//│                           Int ≤ ⊥
+//│                   {tail: γ} ≤ {tail: δ}
+//│                     γ ≤ δ
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ δ
+
+// Explicit witnesses separate wrapper instantiation from recursive-body inference.
+localCopy[Int][IntList](LCons(1, LNil())) as IntList
+//│ IntList

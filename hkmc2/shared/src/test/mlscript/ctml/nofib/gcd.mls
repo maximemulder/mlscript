@@ -3,7 +3,7 @@
 //│ Imported 15 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/gcd.mls.
-// The kernel is checked; the translated list driver is disabled by max_ inference timeout.
+// The kernel and maximum are checked; the nested comprehension blocks the list driver.
 // Triples are represented as [a, [b, c]], with nested tuple patterns for destructuring.
 
 fun g(us, vs) =
@@ -56,14 +56,71 @@ gcdE(30, 12) as [Int, [Int, Str]]
 //│       ⟨Int, Int⟩ ≤ ⟨Int, Str⟩
 //│         Int ≤ Str
 
-// FIXME: Inferring the unannotated max_ definition alone exceeds the diff-test time limit.
-// /** Source maximum is partial on empty lists and compares successive candidates. */
-// fun max_(ls) = if ls is
-//   LCons(x, LNil()) then x
-//   LCons(x, LCons(y, xs)) then
-//     if x < y then max_(LCons(y, xs)) else max_(LCons(x, xs))
+/** Source maximum is partial on empty lists and compares successive candidates. */
+fun max_(ls) = if ls is
+  LCons(x, LNil()) then x
+  LCons(x, LCons(y, xs)) then
+    if x < y then max_(LCons(y, xs)) else max_(LCons(x, xs))
+//│ max_: ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int
 
-// FIXME: The driver depends on max_ and its nested comprehension; both inference paths time out.
+max_(LCons(1, LNil())) as Int
+max_(LCons(1, LCons(3, LCons(2, LNil())))) as Int
+//│ Int
+//│ Int
+
+:te
+max_(LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int ≤ β → γ.
+//│ Typing error tree:
+//│   ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int ≤ β → γ
+//│     β ≤ (LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│       LNil ≤ (LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│         LNil ≤ LCons ∧ {head: Int}
+//│           LNil ≤ LCons
+
+:te
+max_(LCons("bad", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int ≤ β → γ.
+//│ Typing error tree:
+//│   ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int ≤ β → γ
+//│     β ≤ (LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│       (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ (LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│         (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ LCons ∧ {head: Int}
+//│           (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ {head: Int}
+//│             LCons ∧ {head: δ} ≤ {head: Int}
+//│               LCons ≤ {head: Int}
+//│               {head: δ} ≤ {head: Int}
+//│                 δ ≤ Int
+//│                   Str ≤ Int
+//│             {tail: ε} ≤ {head: Int}
+//│               ε ≤ ⊥
+//│                 ζ ≤ ⊥
+//│                   LNil ≤ ⊥
+
+:te
+max_(LCons(1, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int ≤ β → γ.
+//│ Typing error tree:
+//│   ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}) → Int ≤ β → γ
+//│     β ≤ (LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│       (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ (LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│         (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│           LCons ∧ {head: δ} ≤ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│             LCons ≤ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│             {head: δ} ≤ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│               δ ≤ ⊥
+//│                 Int ≤ ⊥
+//│           {tail: ε} ≤ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}
+//│             ε ≤ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
+//│               Bool ≤ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
+//│                 Bool ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ})} ⟹ ζ
+//│                   Bool ≤ ζ
+//│                     Bool ≤ LNil
+//│                     Bool ≤ (LCons ∧ {head: Int}) ∧ {tail: ζ}
+//│                       Bool ≤ LCons ∧ {head: Int}
+//│                         Bool ≤ LCons
+
+// FIXME: The driver's nested comprehension exceeds the inference time limit.
 // /** Source driver enumerates the Cartesian product before computing and reducing GCD triples. */
 // fun test(d) =
 //   let ns = enumFromTo(5000, 5000 + d)
@@ -83,14 +140,14 @@ gcdE(30, 12) as [Int, [Int, Str]]
 // fun testGcd_nofib(x) = test(x)
 // fun main() = testGcd_nofib(40)
 
-// Independent checks of the driver's tuple-mapping stages use the trusted map contract.
+// Independent checks of the driver's tuple-mapping stages use the inferred map contract.
 /** Diagnostic result type for the driver's integer score list. */
 type ScoreList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
 //│ ScoreList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
 
 val sampleTriples = map(p => if p is [x, y] then [x, [y, gcdE(x, y)]],
   LCons([5000, 10000], LNil()))
-//│ sampleTriples: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⟨Int, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩}) ∧ {tail: Y})} ⟹ Y
+//│ sampleTriples: ∀α. {α ≥ ((LCons ∧ {head: ⟨Int, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩}) ∧ {tail: α}) ∨ LNil} ⟹ α
 
 map(p => if p is [d1, [d2, [gg, [u, v]]]] then abs(gg + u + v), sampleTriples) as ScoreList
 //│ ScoreList
@@ -100,36 +157,36 @@ map(p => if p is [x, y] then [x, [y, gcdE(x, y)]], LCons(["bad", 10000], LNil())
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
 //│ Typing error tree:
 //│   α ≤ β → γ
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
-//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│         (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│           (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
-//│             (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ θ
-//│               (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LNil
-//│                 LCons ∧ {head: ζ} ≤ LNil
-//│                   LCons ≤ LNil
-//│                   {head: ζ} ≤ LNil
-//│                     ζ ≤ ⊥
-//│                       ⟨Str, Int⟩ ≤ ⊥
-//│                 {tail: η} ≤ LNil
-//│                   η ≤ ⊥
-//│                     ι ≤ ⊥
-//│                       LNil ≤ ⊥
-//│               (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
-//│                 (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LCons ∧ {head: δ}
-//│                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {head: δ}
-//│                     LCons ∧ {head: ζ} ≤ {head: δ}
-//│                       LCons ≤ {head: δ}
-//│                       {head: ζ} ≤ {head: δ}
-//│                         ζ ≤ δ
-//│                           ζ ≤ ⟨κ, λ⟩
-//│                             ⟨Str, Int⟩ ≤ ⟨κ, λ⟩
-//│                               Str ≤ κ
+//│     (∀δ. {δ ≥ ((LCons ∧ {head: ε}) ∧ {tail: δ}) ∨ LNil} ⟹ δ) → (∀ζ. {ζ ≥ ((LCons ∧ {head: η}) ∧ {tail: ζ}) ∨ LNil} ⟹ ζ) ≤ β → γ
+//│       β ≤ ∀δ. {δ ≥ ((LCons ∧ {head: ε}) ∧ {tail: δ}) ∨ LNil} ⟹ δ
+//│         (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀δ. {δ ≥ ((LCons ∧ {head: ε}) ∧ {tail: δ}) ∨ LNil} ⟹ δ
+//│           (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ ((LCons ∧ {head: ε}) ∧ {tail: κ}) ∨ LNil} ⟹ κ
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: ε}) ∧ {tail: κ}
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LCons ∧ {head: ε}
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {head: ε}
+//│                     LCons ∧ {head: θ} ≤ {head: ε}
+//│                       LCons ≤ {head: ε}
+//│                       {head: θ} ≤ {head: ε}
+//│                         θ ≤ ε
+//│                           θ ≤ ⟨λ, μ⟩
+//│                             ⟨Str, Int⟩ ≤ ⟨λ, μ⟩
+//│                               Str ≤ λ
 //│                                 Str ≤ Int
-//│                     {tail: η} ≤ {head: δ}
-//│                       η ≤ ⊥
-//│                         ι ≤ ⊥
+//│                     {tail: ι} ≤ {head: ε}
+//│                       ι ≤ ⊥
+//│                         ν ≤ ⊥
 //│                           LNil ≤ ⊥
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                 LCons ∧ {head: θ} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: θ} ≤ LNil
+//│                     θ ≤ ⊥
+//│                       ⟨Str, Int⟩ ≤ ⊥
+//│                 {tail: ι} ≤ LNil
+//│                   ι ≤ ⊥
+//│                     ν ≤ ⊥
+//│                       LNil ≤ ⊥
 
 // FIXME: Inferring the nested comprehension alone exceeds the 25-second test limit.
 // /** Diagnostic extraction of the driver's nested comprehension, without its maximum dependency. */

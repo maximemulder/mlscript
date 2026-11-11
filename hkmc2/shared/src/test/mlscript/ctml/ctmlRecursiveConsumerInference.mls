@@ -36,17 +36,8 @@ fun mapStep(self, f, xs) = if xs is
 // FIXME: Isolated closure of recursion exhausts the 5,000-step subtyping debug budget.
 // fix(walkStep)
 
-// FIXME: Direct recursion also exceeds 25 seconds, without any encoded list signature.
-// fun walk(xs) = if xs is
-//   LNil() then 0
-//   LCons(_, t) then walk(t)
-
-// FIXME: List heads are unnecessary for the timeout; unary constructor traversal suffices.
-// data class Stop()
-// data class Next(tail)
-// fun unaryWalk(xs) = if xs is
-//   Stop() then 0
-//   Next(t) then unaryWalk(t)
+// Direct recursive consumers and unary traversal are active in ctmlRecursiveSummaries.mls.
+// The explicit fix(walkStep) form above exercises the general guarded-inference fallback.
 
 /** Recursive field access without a branch retains a compact recursive constraint. */
 fun spin(xs) = spin(xs.tail)

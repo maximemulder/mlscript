@@ -8,8 +8,8 @@ import hkmc2.semantics.{DefineVar, Statement, Symbol, TermDefinition}
 def termVar(symbol: Symbol): TermVar = TermVar(symbol.nme, Some(symbol.uid.asInt))
 
 /** Translate a single immutable binding, retaining parameter and result annotations.
- *  Direct recursive functions are expressed using the prelude fixed-point combinator. Its
- *  synthetic reference cannot be captured by a local binding named `fix`. Recursive value
+ *  Direct recursive functions retain their binding identity for summary inference; ordinary
+ *  fixed-point inference remains the fallback for unsupported shapes. Recursive value
  *  initializers are unsupported because they require an initialization semantics. */
 def parseBinding(stmt: Statement)(using Scope): (TermVar, Expr) =
   val (variable, expr) = stmt match
@@ -24,6 +24,6 @@ def parseBinding(stmt: Statement)(using Scope): (TermVar, Expr) =
   val result = if expr.freeVars(variable) then
     if !expr.isFunction then
       throw ParseError(stmt, Some("Recursive bindings require a function initializer."))
-    EApp(EVar(TermVar("fix", None)), ELam(Some(LambdaParam(variable, None)), expr))
+    ERec(variable, expr)
   else expr
   (variable, result)

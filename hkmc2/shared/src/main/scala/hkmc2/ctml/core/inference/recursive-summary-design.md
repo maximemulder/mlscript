@@ -1,206 +1,182 @@
 # Recursive summaries with local branch refinement
 
-## Recommendation
+## Implemented scope
 
-Prototype candidate synthesis followed by checking the original recursive body against the
-candidate. Keep constructor alternatives and local branch refinement; summarize recursive calls
-with one shared contract. This is a restricted inference strategy, not a change to what programs
-mean or permission to discard typing obligations.
+Direct recursive closures use a finite structural candidate followed by checking of the original
+body. Recursive calls share the candidate contract; local constructor and payload tests retain
+branch refinement. This is a restricted inference strategy, not an extension of subtyping or an
+unchecked library declaration.
 
-Start with regular structural recursion over immutable tagged records. Generate candidates using
-finite structural templates, encode positive recursive data shapes with the existing constrained
-encoding, and check candidates before accepting them. Do not initially replace general subtyping
-with an abstract interpreter or globally approximate context joins.
+Unannotated `walk`, `length`, `copy`, `map`, unary traversal, and a branching-tree consumer have
+usable inferred contracts. The Nofib source implementations of `map`, `take`, and `filter` replace
+their trusted declarations. The partial `max_` and nested-recursive `addj` and `permutations` definitions are active.
+Their algorithms and parameter annotations are unchanged. Fully annotated direct recursive
+functions also use the checking path.
 
-This report proposes a design for review. No inference or subtyping implementation is changed.
-Automatic candidate synthesis, its soundness argument, and performance on unannotated `map` remain
-work to do. The supplied-invariant controls demonstrate parts of the validation route, not an
-implemented inference solution.
+Unsupported candidates fall back to ordinary fixed-point inference, which may still time out.
+General termination and principality are not claimed. In particular, the GCD Cartesian-product
+wrapper remains outside the successful fragment, and implicit recursive-witness selection through
+ordinary wrappers remains incomplete. Cryptarithm's translated driver reaches the independent
+`take`/range witness failure and is an active `:fixme`; its entry point remains disabled.
 
-## Evidence and comparison with FCCTI+
+## Construction: a finite graph, not recursive branch expansion
 
-The [performance investigation](recursive-consumer-performance.md) isolates the expensive step:
-closing recursion through `fix` feeds the inferred function back into its guarded bounds. The
-body with a supplied recursive parameter infers quickly. Ordinary field recursion without a
-branch also infers quickly. These observations support targeting recursive summaries, but do not
-establish that fresh instantiation is the dominant cost or that every branch history is enumerated.
+`parser/binding.scala` retains a recursive closure as `ERec`, including the resolved binding
+identity. Unsupported shapes lower to the same synthetic prelude `fix` reference as ordinary
+fixed-point inference; a source binding named `fix` cannot capture it.
 
-FCCTI+'s `sections/terminating-inference.tex`, especially its Approximation and Termination
-paragraphs, supplies two distinct ideas:
+`summary.scala` collects candidate equations using a local union-find graph. Nodes contain tagged
+record alternatives, field edges, an arrow or product shape, or an opaque surrounding type. A
+source parameter, result, field position, or copied signature component allocates a node. A
+recursive reference reuses a node; its call does not visit the body again. Nested recursive
+closures have their own nodes and retain lexical captures.
 
-- `cond` joins possible results without tracking correlation with the Boolean condition.
-- `Forall1`/`Forall2` share instantiations by an abstract call context. The chosen abstraction is
-  the set of program-location marks; its finite range bounds instantiation diversity. `Var1`,
-  `Var2`, and `Skip` propagate new bounds and avoid reprocessing recorded ones.
+Applications merge argument/result shapes. Pattern chains without a default contribute the
+constructor alternatives required by the domain. A test with an unconditional default instead
+collects its positive branch with a separate shape: testing a head for `Int` does not require all
+heads to be integers. These equations can overconstrain or otherwise propose an unsuitable
+contract; they are not evidence that the body is typable.
 
-Local source reference:
-`/media/Data/HKUST/Research/first-class-polym/constrained-types-paper-new/`.
-The constraint rules are in `figures/small-steps-constraint-solving-rules.tex`.
+Simple polymorphic external signatures are copied with fresh payload slots. The collector also
+recognizes the exact one-guard encoding `forall X. {F(X) <= X} => X`, making its carrier a graph
+node rather than unfolding it repeatedly. Other constrained signatures are unsupported.
 
-CTML has guarded context disjunction, negation, and rigid assumptions beyond that constraint
-language. Finite instantiations alone do not establish finite CTML bounds or a useful runtime
-bound. Call-site sets can also have exponentially many values. Copying the instantiation cache
-without abstracting guarded bounds is therefore not yet a justified fix.
+Positive record cycles are serialized using the existing encoding. Independent nested cycles
+are allowed, as needed for nonempty-list domains and lists of lists. Cycles crossing arrows or
+products, and cycles requiring mutually dependent quantified carriers, are rejected as candidates.
+The finite graph and syntax traversal bound candidate construction; this does not bound the
+subsequent general subtyping checks.
 
-The CTML paper's `sections/E-lean-status-report.tex`, subsection on join performance, independently
-records duplication of nested guards and expensive failed searches. Its terminating solver variant
-does not guarantee practical runtime. This supports separating termination, representation size,
-and search cost rather than expecting a revisit cut alone to solve this problem.
-
-## New checking experiments
-
-[ctmlRecursiveSummaryChecking.mls](../../../../../../test/mlscript/ctml/ctmlRecursiveSummaryChecking.mls)
-uses the existing checker without modifying its rules.
-
-For unary traversal, define:
+Payload occurrences are tracked in the structural graph before encoding. Payloads used only as
+inputs are widened to `Top`; payloads connecting input and output positions are retained and
+quantified. Thus `length` accepts heterogeneous lists, while `copy` and `map` retain their element
+relationships. With `List[A]` standing for the encoding, typical candidates are:
 
 ```text
-F(X) = Stop | (Next & {tail: X})
-Nodes = forall X. {F(X) <= X} => X
-H = Nodes -> Int
+length : List[Top] -> Int
+copy   : forall A. List[A] -> List[A]
+map    : forall A, B. (A -> B) -> List[A] -> List[B]
+max_   : (LCons & {head: Int} & {tail: List[Int]}) -> Int
+addj   : forall A. A -> List[A] -> List[List[A]]
 ```
 
-The following comparisons matter:
+The selected least fixed point is a deliberate usable domain, not an equivalence between an
+arbitrary upper-bound constraint `X <= F(X)` and that encoding. No name such as `List`, `head`,
+`tail`, or `map` has special treatment.
 
-1. Infer `step(self, xs)`, whose body returns `0` or `self(tail)`. Inference finishes, as in the
-   earlier investigation. Checking that inferred scheme at `H -> H` fails quickly: the curried
-   scheme's inner domain is not split into its constructor cases. This is an incompleteness
-   result, not another timeout. It is retained as `:fixme`.
-2. Supply `H` at `fix`, expose one layer of `Nodes`, and ascribe the recursive reference to `H`
-   inside the body. This checks. A concrete two-cell call checks; both a malformed input tail and
-   a recursive call on `false` are rejected.
-3. For heterogeneous lists, a nested match on a head exposed as `Top` fails with `Top <= ~Int`.
-   It is retained as a second `:fixme`. The current infer-then-constrain path tries to constrain
-   the concrete scrutinee type rather than give the branch a locally refinable binding.
-4. Inferring the same head refinement independently as `intOrZero(h)` succeeds, but composing
-   its guarded scheme inside the supplied-invariant traversal is also rejected (`:fixme`). A
-   separate control checks a `Top -> Int` summary of that helper before composition; that
-   traversal and a mixed-element call both pass. Adding an
-   arbitrary unrefined head to an integer is rejected. These helpers are diagnostic, not proposed
-   rewrites of Nofib programs.
+## Validation and soundness boundary
 
-Consequently, candidate validation should be a checking judgment with an expected type and
-branch-local refinements. Merely emitting a type ascription around the already inferred scheme
-is insufficient with the current checker. Even the successful explicit-invariant idiom needs
-additional checking support to preserve arbitrary nested refinement in the original body.
+`check.scala` checks a proposed contract `H` under `self : H`, establishing the body obligation
+corresponding to a generator of type `H -> H`. The existing fixed-point contract then justifies
+recursion. Payload variables are rigid throughout this check and generalized only afterward.
+No rule discharges arbitrary subtype cycles.
 
-## Proposed algorithm and its proof boundary
+Expected arrows flow into lambda bodies. Local bindings evaluate/check their initializers even
+when unused. Known function arrows check their arguments; generic instantiation retains its
+guards. Source parameter and result annotations remain obligations.
 
-### Candidate construction
+Matches check the scrutinee, then visit each reachable branch with its type intersected with the
+pattern or its negation. A missing final alternative requires exhaustiveness. Refinements are
+stored on immutable variable/projection paths, with local aliases sharing their source path.
+Branch refinements do not become assumptions at a recursive call or escape to subsequent code.
+Ascriptions are always checked, even when their underlying path has a cached refinement.
 
-Preserve recursive-binding identity in the CTML expression representation. `parseBinding` currently
-lowers it immediately to an ordinary `fix` application, losing a convenient boundary at which to
-select a summary. An internal recursive-binding node can retain that boundary without adding
-surface syntax; its checking rule must remain derivable using the existing `fix` contract. Do not
-recognize arbitrary user variables merely because their spelling is `fix`.
+Encoded data is exposed only as far as a pattern inspects it. Each carrier unfolding is proved
+using existing subtyping; reconstruction of larger covariant record types preserves that
+inclusion. Negative occurrences are not unfolded to derive stronger assumptions. This finite,
+pattern-directed exposure handles the nested singleton/non-singleton patterns of `max_` without
+unbounded unfolding.
 
-For the initial structural fragment, collect constructor alternatives, field requirements,
-recursive argument flows, and result constructors from the body before serializing branch joins
-into mutually guarded types. Use slots associated with source parameters/results/field positions.
-When a recursive argument flows back to a parameter, connect the slots rather than adding another
-copy of the body or its branch guards. Retain payload variables shared with callbacks.
+Every evaluated operation, argument, branch result, and recursive argument contributes its
+obligations. Generated existential constraints are processed at a checking-local level using a
+`Unit` witness, and that constrained witness must check as `Unit` with enclosing variables
+rigidified. This separates discharge of body obligations from rediscovery of the recursive result
+witnesses already present in `H`. Captured-variable obligations cannot be silently satisfied by
+strengthening the caller's context and then discarding those constraints.
 
-These are candidate equations, not asserted facts. For example:
+Explicitly instantiated applications also use the checker when a known arrow domain is supplied
+for a function argument. This supports the existing `fix[H](...)` diagnostic controls. General
+infer-then-ascribe checking of an already inferred guarded scheme remains incomplete.
 
-```text
-walk:    D = Stop | (Next & {tail: D}); result = Int
-length:  D = LNil | (LCons & {head: Top} & {tail: D}); result = Int
-copy:    D = LNil | (LCons & {head: A} & {tail: D}); result = D
-map:     D = LNil | (LCons & {head: A} & {tail: D})
-         E = LNil | (LCons & {head: B} & {tail: E})
-         contract = (A -> B) -> D -> E
+This describes the intended proof reduction to existing typing/subtyping rules. It is not a
+machine-checked soundness proof of the implementation; existing solver soundness limitations
+still apply, including the nested-result issue below.
+
+## Preserving useful contracts
+
+A validated recursive binding returns its scoped contract directly, without hoisting its result
+carrier again at the definition boundary. Otherwise a result of type `List[A]` becomes a fresh
+outer carrier whose implicit recursive witness the general solver may fail to rediscover.
+Fallback recursive closures are generalized before their continuation, which also preserves
+independent polymorphic uses of a local recursive identity.
+
+Ordinary surrounding inference can still hoist a wrapper's result. The `localCopy` regression
+retains this separate limitation as `:fixme`, with a successful explicit-witness control.
+
+The simplifier conservatively preserves variables related to a nested quantified carrier in both
+its inlining and reversed-bound elimination paths. Its direction-only guard traversal does not
+fully account for the enclosing variance of that carrier. Erasing a shared payload can reduce
+`forall A. List[A] -> List[A]` to an unusably narrow empty-list contract. Preserving these variables
+avoids that loss; it does not claim a complete new polarity analysis.
+
+## Known limitations and adversarial checks
+
+The tests distinguish successful inference from expected failures:
+
+- `ctmlRecursiveSummaries.mls`: unannotated consumers, callback/result relationships, mixed
+  payloads, unary constructors, branching trees, and malformed tails. A wrapper-instantiation
+  limitation remains explicitly marked.
+- `ctmlRecursiveSummarySoundness.mls`: supplied-domain exhaustiveness, invalid recursive
+  arguments, unused failing initializers, escaping refinements, invalid result annotations,
+  checked ascriptions on refined paths, and captured outer-variable relationships.
+- `ctmlRecursiveSummaryChecking.mls`: the nested heterogeneous-head control checks; post-hoc
+  summary ascription and unsummarized helper composition remain `:fixme` cases.
+- Nofib callers exercise the inferred source helpers and preserve the separate range-witness
+  failures. Empty input is rejected for `max_`, preserving source partiality.
+
+A new adversarial caller of `addj` exposes an existing nested-list result bug: inserting a string
+into an integer list can be incorrectly accepted as a list of integer lists. The independent
+`ctmlNestedListResult.mls` uses a manually declared precise contract, with no recursive
+implementation inference. It reproduces the same acceptance with every checker source restored
+temporarily to unchanged HEAD; the implementation edits were restored after that run. Both
+callers are marked `:breakme`, while a concrete malformed nested list is correctly rejected.
+This is an unresolved solver soundness issue, not successful negative-test coverage.
+
+## Comparison with FCCTI+
+
+FCCTI+'s `sections/terminating-inference.tex` shares polymorphic instantiations using a finite
+abstraction of call-location marks; its `cond` also drops correlation with the Boolean condition.
+The local source is `/media/Data/HKUST/Research/first-class-polym/constrained-types-paper-new/`.
+Its finite constraint-space argument does not transfer directly to CTML's guarded disjunctions.
+
+This implementation instead restricts the inferred recursive contract and validates the body
+against it. It retains local flow refinement, but does not carry branch histories across recursive
+calls. It leaves ordinary nonrecursive context-disjunctive inference and the subtyping rules in
+place. Instantiation sharing and completed-judgment caching remain complementary experiments.
+
+`:ctml-cfg no-recursive-summaries` selects ordinary fixed-point inference for recursive bindings;
+`:ctml-cfg recursive-summaries` reenables summaries. The explicitly instantiated argument checker
+and conservative simplifier protection are independent of this switch. Disabling summaries can
+restore the known timeouts; use isolated probes rather than enabling them in the main suite.
+
+## Reproduction
+
+```sh
+sbt --client "dtest ctml/ctmlRecursiveSumm"
+sbt --client "dtest ctml/ctmlNestedListResult"
+sbt --client "dtest ctml/nofib/"
+sbt --client "dtest ctml/"
+sbt --client shutdown
 ```
 
-`map` must retain the same `A` and `B` throughout the body; merging all payloads to `Top` would
-lose the contract needed by callers. Generalize these variables outside the recursive binding,
-with ordinary escape/level restrictions, and use one instance throughout its recursive calls.
+The baseline contains 54 passing CTML files, including marked limitations. Diff-test output changes
+must be reviewed: a passing suite includes explicit `:fixme` and `:breakme` cases and does not mean
+all inference or soundness issues have been resolved.
 
-For a single positive structural equation, select the existing least-fixed-point encoding
-`mu F = forall X. {F(X) <= X} => X`. This is a deliberate domain restriction to a usable recursive
-shape, not an equivalence between arbitrary `X <= F(X)` constraints and that encoding. Check
-positivity/monotonicity syntactically for the initial fragment. Reject unsupported negative cycles
-as candidates; do not extend the recursive encoding theorem to them. Multiple mutually recursive
-shape equations need a separate encoding/design and are outside the first prototype.
+## Validation result
 
-A finite slot set alone does not bound expressions stored in slots. The prototype must also bound
-its template grammar: source constructor alternatives and field slots, scalar/payload variables,
-and references to existing slots, with canonical unions/intersections. Unsupported higher-order
-recursive shapes should yield no candidate, not initiate unbounded template unfolding.
-
-### Validation
-
-Given a candidate `H`, check the original body with `self : H`, proving the generator has type
-`H -> H`. Then instantiate the existing `fix` at `H`. This provides a small proof boundary:
-candidate generation may be incomplete or heuristic, but cannot make a program acceptable without
-a derivation checking its original body. An inferred contract is not a trusted declaration.
-This is an intended soundness reduction to the checking rules, not a claim that the current checker
-is proved sound: the known cyclic-constraint counterexamples remain relevant regression tests.
-
-Checking must propagate expected arrow types into lambdas, check each reachable pattern branch,
-and give pattern-bound values refinable local types. For a known input `D` and pattern `P`, the
-branch reasoning concerns `D & P` and `D & ~P`; it must not assert `D <= P` globally. Exposing one
-encoded layer uses the existing fold/unfold derivations, with their obligations retained.
-
-At each recursive call, check all arguments against the shared contract and use its result type.
-Do not export the caller's branch assumptions as assumptions of the callee. The callee can still
-refine its own input when checking its body. For multiple parameters, check every parameter, even
-if it is unchanged at the recursive call.
-
-Every branch result must satisfy the candidate result; every operation and evaluated argument
-must check even when its result is unused. Exhaustiveness remains required. A wrong candidate
-may fail quickly or reach a resource limit; neither outcome is a proof of the candidate. A solver
-budget is a useful operational backstop, but this proposal does not prove termination of CTML's
-general validation judgment.
-
-### Precision policy
-
-Preserve ordinary context-disjunctive inference outside recursive boundaries. Inside a recursive
-body, retain local refinements, but use the selected summary at recursive calls. Begin with one
-summary per recursive binding; add a finite collection of constructor-indexed summaries only if
-real examples need the extra precision. Multiple summaries introduce their own coverage and
-cross-call obligations and are not part of the first prototype.
-
-Some valid functions will require correlations across recursive calls that one summary loses.
-Failing to infer them is an explicit precision tradeoff. Keep their original programs as inference
-failures; support checked explicit contracts rather than weakening obligations or changing their
-algorithms. A bounded fallback to the current inference path is an option for unsupported shapes,
-but should not silently restore the same long timeout on every supported consumer.
-
-## Alternatives considered
-
-| Approach | Assessment |
-| --- | --- |
-| Simplify the completed guarded scheme into a summary | Attractive as a small change, but even supplying the right summary to existing subtyping fails on unary `step`. A sound type-directed abstraction still needs a proof and better validation. |
-| Share polymorphic instantiations as in FCCTI+ | Useful for fresh-instantiation growth. Needs origin/context tracking and handling of rigid variables and guards; current evidence does not establish it as sufficient. |
-| Finite abstract contexts plus worklist saturation throughout subtyping | General direction, but requires an abstract domain for CTML's guarded types, a simulation argument, and a finite bound vocabulary. Much larger than a first recursive-consumer prototype. |
-| Cache completed subtyping judgments | Complementary optimization. Keys must account for assumptions, variable kinds, bounds and trail-dependent results; it does not select the desired recursive invariant. |
-| Drop guards or combine all branch requirements indiscriminately | Unsuitable. Dropping a guard can admit an invalid recursive argument; requiring the scrutinee to satisfy both disjoint constructor patterns makes useful domains empty. |
-| Accept a repeated subtyping cycle | Unsuitable. Recursive calls justified by `fix` differ from circular subtype proofs; existing cyclic-constraint counterexamples still apply. |
-
-## Suggested implementation sequence
-
-1. Add expected-type checking for recursive-body validation, including branch-local bindings.
-   Exercise supplied candidates first: unary `walk`, nested head refinement, invalid recursive
-   arguments, invalid head operations, missing branches, and branch-local assumptions that must
-   not escape. Reuse the existing rigid-element `map` control for payload relationships.
-2. Preserve the recursive binding boundary, synthesize the smallest positive structural template,
-   and validate it. Acceptance requires unannotated `walk` and `length`, meaningful result types,
-   valid concrete calls and rejection of malformed tails. An empty domain is not success.
-3. Extend candidate collection to reconstruction and callbacks (`copy`, then `map`), checking
-   mixed-element calls and wrong callback/result types. Test that unrelated flow-correlation
-   examples keep their precision.
-4. Reassess Nofib `take`, `filter`, `max_`, and `addj` individually. Do not claim that these more
-   complex examples follow from success on unary traversal.
-
-The first stage is a checker improvement with explicit candidates; the second and third deliver
-inference. This staged approach separates the correctness of checking a summary from the quality
-of selecting one. Substantial checker changes remain proposals for review, as required by the
-porting roadmap.
-
-## Validation
-
-The baseline has 53 passing CTML files. With the new controls, all 54 files pass in 5.8 seconds;
-the focused file processes in 1.5 seconds. Passing includes the three explicitly marked checking
-limitations, not successful inference of those programs. Existing golden files are unchanged.
-No Scala code is modified. Run `sbt --client "dtest ctml/ctmlRecursiveSummaryChecking"` for the
-focused controls and `sbt --client "dtest ctml/"` for the suite.
+`sbt --client "dtest ctml/"` passes all 58 files in 9.1 seconds. The main recursive-summary file
+processes in 0.9 seconds; every file is below five seconds in this run. Existing flow, cyclic-bound,
+and extrusion tests retain their expected outcomes. Two existing `:fixme` cases become successful
+checks: annotated direct list length and independent polymorphic uses of a local recursive closure.
+The generated output has been reviewed; no shared MLscript infrastructure is changed.

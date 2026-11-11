@@ -57,35 +57,153 @@ condition(LNil())
 //│                                             LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {head: Int} ∧ LCons}}}}}}}}}
 //│                                               LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {head: Int}}}}}}}}}}
 
-// FIXME: Inference of addj exceeds the 25-second diff-test limit.
-// /** Insert j at every position, preserving the source order of generated lists. */
-// fun addj(j, ls) = if ls is
-//   LNil() then LCons(LCons(j, LNil()), LNil())
-//   LCons(k, ks) then
-//     fun lscomp(p1) = if p1 is
-//       LNil() then LNil()
-//       LCons(h1, t1) then LCons(LCons(k, h1), lscomp(t1))
-//     LCons(LCons(j, LCons(k, ks)), lscomp(addj(j, ks)))
+/** Insert j at every position, preserving the source order of generated lists. */
+fun addj(j, ls) = if ls is
+  LNil() then LCons(LCons(j, LNil()), LNil())
+  LCons(k, ks) then
+    fun lscomp(p1) = if p1 is
+      LNil() then LNil()
+      LCons(h1, t1) then LCons(LCons(k, h1), lscomp(t1))
+    LCons(LCons(j, LCons(k, ks)), lscomp(addj(j, ks)))
+//│ addj: ∀α. α → (∀β. {β ≥ ((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: ∀δ. {δ ≥ ((LCons ∧ {head: α}) ∧ {tail: δ}) ∨ LNil} ⟹ δ}) ∧ {tail: γ})} ⟹ γ)
 
-// FIXME: Permutation generation and entry points depend on the disabled addj definition.
-// /** Enumerate permutations by inserting the head into each permutation of the tail. */
-// fun permutations(ls) = if ls is
-//   LNil() then LCons(LNil(), LNil())
-//   LCons(j, js) then
-//     fun lscomp1(p1) = if p1 is
-//       LNil() then LNil()
-//       LCons(pjs, t1) then
-//         fun lscomp2(p2) = if p2 is
-//           LNil() then lscomp1(t1)
-//           LCons(r, t2) then LCons(r, lscomp2(t2))
-//         lscomp2(addj(j, pjs))
-//     lscomp1(permutations(js))
+/** Expected element and outer-list types for insertion results. */
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+type IntLists = [X restricts (LNil | (LCons & {head: IntList} & {tail: X}))] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ IntLists = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: X})} ⟹ X
 
-// /** Preserve the source's inclusive ranges and ten-digit truncation for every iteration. */
-// fun testCryptarithm_nofib(n) =
-//   map(i =>
-//     let p0 = take(10, enumFromTo(0, 9 + i))
-//     filter(condition, permutations(p0)), enumFromTo(1, n))
+addj(1, LNil()) as IntLists
+addj(1, LCons(2, LCons(3, LNil()))) as IntLists
+//│ IntLists
+//│ IntLists
 
+:te
+addj(1, LCons(2, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀δ. {δ ≥ ((LCons ∧ {head: ε}) ∧ {tail: δ}) ∨ LNil} ⟹ δ) → (∀ζ. {ζ ≥ LNil ∨ ((LCons ∧ {head: ∀η. {η ≥ ((LCons ∧ {head: ε}) ∧ {tail: η}) ∨ LNil} ⟹ η}) ∧ {tail: ζ})} ⟹ ζ) ≤ β → γ
+//│       β ≤ ∀δ. {δ ≥ ((LCons ∧ {head: ε}) ∧ {tail: δ}) ∨ LNil} ⟹ δ
+//│         (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀δ. {δ ≥ ((LCons ∧ {head: ε}) ∧ {tail: δ}) ∨ LNil} ⟹ δ
+//│           (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ ((LCons ∧ {head: ε}) ∧ {tail: κ}) ∨ LNil} ⟹ κ
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: ε}) ∧ {tail: κ}
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {tail: κ}
+//│                   LCons ∧ {head: θ} ≤ {tail: κ}
+//│                     LCons ≤ {tail: κ}
+//│                     {head: θ} ≤ {tail: κ}
+//│                       θ ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ι} ≤ {tail: κ}
+//│                     ι ≤ κ
+//│                       Bool ≤ κ
+//│                         Bool ≤ (LCons ∧ {head: ε}) ∧ {tail: κ}
+//│                           Bool ≤ LCons ∧ {head: ε}
+//│                             Bool ≤ LCons
+//│                         Bool ≤ LNil
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                 LCons ∧ {head: θ} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: θ} ≤ LNil
+//│                     θ ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: ι} ≤ LNil
+//│                   ι ≤ ⊥
+//│                     Bool ≤ ⊥
+
+:breakme // FIXME: Nested result instantiation loses the element constraint from the first argument.
+:te
+addj("bad", LCons(2, LNil())) as IntLists
+//│ IntLists
+
+/** Enumerate permutations by inserting the head into each permutation of the tail. */
+fun permutations(ls) = if ls is
+  LNil() then LCons(LNil(), LNil())
+  LCons(j, js) then
+    fun lscomp1(p1) = if p1 is
+      LNil() then LNil()
+      LCons(pjs, t1) then
+        fun lscomp2(p2) = if p2 is
+          LNil() then lscomp1(t1)
+          LCons(r, t2) then LCons(r, lscomp2(t2))
+        lscomp2(addj(j, pjs))
+    lscomp1(permutations(js))
+//│ permutations: ∀α. (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: ∀δ. {δ ≥ ((LCons ∧ {head: α}) ∧ {tail: δ}) ∨ LNil} ⟹ δ}) ∧ {tail: γ})} ⟹ γ)
+
+permutations(LNil()) as IntLists
+permutations(LCons(1, LCons(2, LNil()))) as IntLists
+//│ IntLists
+//│ IntLists
+
+:te
+permutations(LCons(1, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: ∀δ. {δ ≥ ((LCons ∧ {head: α}) ∧ {tail: δ}) ∨ LNil} ⟹ δ}) ∧ {tail: γ})} ⟹ γ) ≤ ε → ζ.
+//│ Typing error tree:
+//│   ∀α. (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: ∀δ. {δ ≥ ((LCons ∧ {head: α}) ∧ {tail: δ}) ∨ LNil} ⟹ δ}) ∧ {tail: γ})} ⟹ γ) ≤ ε → ζ
+//│     (∀β. {β ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: β})} ⟹ β) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: ∀δ. {δ ≥ ((LCons ∧ {head: η}) ∧ {tail: δ}) ∨ LNil} ⟹ δ}) ∧ {tail: γ})} ⟹ γ) ≤ ε → ζ
+//│       ε ≤ ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: β})} ⟹ β
+//│         (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: β})} ⟹ β
+//│           (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: κ})} ⟹ κ
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                 LCons ∧ {head: θ} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: θ} ≤ LNil
+//│                     θ ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: ι} ≤ LNil
+//│                   ι ≤ ⊥
+//│                     Bool ≤ ⊥
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: η}) ∧ {tail: κ}
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {tail: κ}
+//│                   LCons ∧ {head: θ} ≤ {tail: κ}
+//│                     LCons ≤ {tail: κ}
+//│                     {head: θ} ≤ {tail: κ}
+//│                       θ ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ι} ≤ {tail: κ}
+//│                     ι ≤ κ
+//│                       Bool ≤ κ
+//│                         Bool ≤ LNil
+//│                         Bool ≤ (LCons ∧ {head: η}) ∧ {tail: κ}
+//│                           Bool ≤ LCons ∧ {head: η}
+//│                             Bool ≤ LCons
+
+:fixme // FIXME: The implicit recursive witness for take's enumFromTo argument is not inferred.
+/** Preserve the source's inclusive ranges and ten-digit truncation for every iteration. */
+fun testCryptarithm_nofib(n) =
+  map((i =>
+    let p0 = take(10, enumFromTo(0, 9 + i))
+    filter(condition, permutations(p0))), enumFromTo(1, n))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: δ})} ⟹ δ) → (∀ζ. {ζ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: ζ})} ⟹ ζ) ≤ β → γ
+//│       β ≤ ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: δ})} ⟹ δ
+//│         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: δ})} ⟹ δ
+//│           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: θ})} ⟹ θ
+//│             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ θ
+//│               (LCons ∧ {head: Int}) ∧ {tail: η} ≤ θ
+//│                 (LCons ∧ {head: Int}) ∧ {tail: η} ≤ LNil
+//│                   LCons ∧ {head: Int} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Int} ≤ LNil
+//│                       Int ≤ ⊥
+//│                   {tail: η} ≤ LNil
+//│                     η ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Int}) ∧ {tail: η} ≤ (LCons ∧ {head: ε}) ∧ {tail: θ}
+//│                   (LCons ∧ {head: Int}) ∧ {tail: η} ≤ {tail: θ}
+//│                     LCons ∧ {head: Int} ≤ {tail: θ}
+//│                       LCons ≤ {tail: θ}
+//│                       {head: Int} ≤ {tail: θ}
+//│                         Int ≤ ⊥
+//│                     {tail: η} ≤ {tail: θ}
+//│                       η ≤ θ
+//│                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ θ
+
+// FIXME: The entry point depends on the driver's unresolved recursive-witness obligation.
 // /** Source benchmark input. */
 // fun main() = testCryptarithm_nofib(1)

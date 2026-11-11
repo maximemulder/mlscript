@@ -1,0 +1,159 @@
+:ctml
+
+/** Empty list. */
+data class LNil()
+/** A list cell with unrestricted payloads. */
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+type AnyList = [X restricts (LNil | (LCons & {head: Top} & {tail: X}))] -> X
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+//│ AnyList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+/** Local refinement must not restrict every head to Int. */
+fun sumInts(xs) = if xs is
+  LNil() then 0
+  LCons(h, t) then
+    if h is Int then h + sumInts(t) else sumInts(t)
+//│ sumInts: (∀α. {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α) → Int
+
+sumInts(LCons(1, LCons("skip", LNil()))) as Int
+sumInts as (AnyList -> Int)
+//│ Int
+//│ AnyList → Int
+
+/** Supplied source signatures use the same checking boundary as inferred summaries. */
+fun annotatedLength(xs: AnyList): Int = if xs is
+  LNil() then 0
+  LCons(_, t) then 1 + annotatedLength(t)
+//│ annotatedLength: AnyList → Int
+
+annotatedLength(LCons(false, LNil())) as Int
+//│ Int
+
+// A bad recursive argument cannot hide behind an unused result.
+:te
+fun badArgument(xs: AnyList): Int = if xs is
+  LNil() then 0
+  LCons(_, t) then
+    val ignored = badArgument(false)
+    0
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool ≤ AnyList.
+//│ Typing error tree:
+//│   Bool ≤ AnyList
+//│     Bool ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│       Bool ≤ {α ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: α})} ⟹ α
+//│         Bool ≤ α
+//│           Bool ≤ LNil
+//│           Bool ≤ (LCons ∧ {head: ⊤}) ∧ {tail: α}
+//│             Bool ≤ LCons ∧ {head: ⊤}
+//│               Bool ≤ LCons
+
+// A branch operation is checked even if its result is discarded.
+:te
+fun badUnused(xs: AnyList): Int = if xs is
+  LNil() then 0
+  LCons(h, t) then
+    val ignored = h as Int
+    badUnused(t)
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ Int.
+//│ Typing error tree:
+//│   ⊤ ≤ Int
+
+// A local match cannot establish that every head is an integer.
+:te
+fun leakedRefinement(xs: AnyList): Int = if xs is
+  LNil() then 0
+  LCons(h, t) then
+    val ignored = if h is Int then h + 1 else 0
+    h + leakedRefinement(t)
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ Int.
+//│ Typing error tree:
+//│   ⊤ ≤ Int
+
+// Returning the unrefined tail does not establish a stronger element invariant.
+:te
+fun badResult(xs: AnyList): IntList = if xs is
+  LNil() then LNil()
+  LCons(h, t) then
+    if h is Int then LCons(h, badResult(t)) else xs
+//│ ═══[TYPE ERROR] Cannot solve judgment ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ IntList.
+//│ Typing error tree:
+//│   ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ IntList
+//│     ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│       ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
+//│         ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ α
+//│           ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ LNil
+//│             (LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X} ≤ LNil
+//│               LCons ∧ {head: ⊤} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: ⊤} ≤ LNil
+//│                   ⊤ ≤ ⊥
+//│               {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X} ≤ LNil
+//│                 ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                   {β ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})} ⟹ β ≤ ⊥
+//│                     β ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│             ¬LNil ≤ LNil
+//│           ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ (LCons ∧ {head: Int}) ∧ {tail: α}
+//│             ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ LCons ∧ {head: Int}
+//│               ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ ¬LNil ≤ {head: Int}
+//│                 (LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X} ≤ {head: Int}
+//│                   LCons ∧ {head: ⊤} ≤ {head: Int}
+//│                     LCons ≤ {head: Int}
+//│                     {head: ⊤} ≤ {head: Int}
+//│                       ⊤ ≤ Int
+//│                   {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X} ≤ {head: Int}
+//│                     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                       {γ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: γ})} ⟹ γ ≤ ⊥
+//│                         γ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: γ}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│                 ¬LNil ≤ {head: Int}
+
+// A supplied domain must cover every constructor, including a missing empty branch.
+:te
+fun incomplete(xs: AnyList): Int = if xs is
+  LCons(_, t) then incomplete(t)
+//│ ═══[TYPE ERROR] Cannot solve judgment LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ⊤}.
+//│ Typing error tree:
+//│   LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ⊤}
+//│     LNil ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ⊤}
+//│       LNil ≤ LCons ∧ {head: ⊤}
+//│         LNil ≤ LCons
+
+// Refinement of an immutable alias must not skip a failing ascription.
+:te
+fun badAscription(xs: AnyList): Int = if xs is
+  LNil() then 0
+  LCons(h, t) then
+    if h is Int then
+      val ignored = h as Str
+      badAscription(t)
+    else badAscription(t)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ Str.
+//│ Typing error tree:
+//│   Int ≤ Str
+
+/** A captured value remains related to the enclosing function's parameter. */
+fun capture(value) =
+  fun loop(xs) = if xs is
+    LNil() then value
+    LCons(_, t) then loop(t)
+  loop(LCons(1, LNil()))
+//│ capture: ∀α. α → α
+
+capture("value") as Str
+capture(1) as Int
+//│ Str
+//│ Int
+
+:te
+capture("value") as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Str ≤ Int

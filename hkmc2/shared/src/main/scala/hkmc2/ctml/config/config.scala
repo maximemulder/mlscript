@@ -5,6 +5,9 @@ class Config:
   /** The global debug print function. */
   var output: String => Unit = (message) => print(message)
 
+  /** Whether structural recursion uses validated finite summaries. */
+  var recursiveSummaries = true
+
   /** Whether to extrude type variable bounds. */
   var extrudeVar = false
 

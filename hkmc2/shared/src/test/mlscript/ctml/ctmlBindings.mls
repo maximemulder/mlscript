@@ -179,14 +179,11 @@ annotatedRec(3)
 
 :te
 fun badRec(x: Int): Str = if x == 0 then x else badRec(x - 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Str, γ ≤ α → β, α ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
 //│ Typing error tree:
-//│   ∀α, β. {β ≤ Str, γ ≤ α → β, α ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│     {ε ≤ Str, γ ≤ δ → ε, δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│       {γ ≤ δ → ε, δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│         {δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│           ⊥ → Str ≤ Int → ⊤
-//│             Int ≤ ⊥
+//│   α ≤ Str
+//│     Int ∨ Str ≤ Str
+//│       Int ≤ Str
 
 // Generated references to the prelude fixed point cannot capture a local name.
 
@@ -268,24 +265,18 @@ val evenValue = n => if n == 0 then true else oddValue(n - 1)
 val oddValue = n => if n == 0 then false else evenValue(n - 1)
 //│ ═══[TYPE ERROR] Variable 'oddValue' has no type.
 
-// Local recursive functions can be used at different types, but may merge their results.
+// Local recursive closures are generalized before their continuation.
 
 fun recursiveIdentity() =
   fun id(n, x) = if n == 0 then x else id(n - 1, x)
   [id(1, 1), id(1, "hello")]
-//│ recursiveIdentity: Unit → ⟨Int ∨ Str, Int ∨ Str⟩
+//│ recursiveIdentity: Unit → ⟨Int, Str⟩
 
 recursiveIdentity()
-//│ ⟨Int ∨ Str, Int ∨ Str⟩
+//│ ⟨Int, Str⟩
 
-:fixme // FIXME: Local fixed-point applications are not generalized before their continuation.
 recursiveIdentity() as [Int, Str]
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Int, Str⟩.
-//│ Typing error tree:
-//│   α ≤ ⟨Int, Str⟩
-//│     ⟨Int ∨ Str, Int ∨ Str⟩ ≤ ⟨Int, Str⟩
-//│       Int ∨ Str ≤ Int
-//│         Str ≤ Int
+//│ ⟨Int, Str⟩
 
 // Top-level recursive definitions are generalized before their uses.
 

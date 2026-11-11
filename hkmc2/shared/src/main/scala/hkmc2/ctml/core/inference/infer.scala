@@ -12,16 +12,21 @@ import hkmc2.ctml.core.var_.declInferVar
 def inferSeq(expr: Expr, ins: SubClauses)(using ctx: TypeContext): (Type, SubClauses) =
   ctx.seq(infer(expr), ins)
 
-def inferTopLevel(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
-  (ctx.withInferLevel((ctx) => infer(expr)(using ctx)), SubClauses.empty)
+/** Infer a complete definition. Recursive bindings already produce a validated, scoped contract;
+ *  hoisting its result quantifiers again would lose the witnesses selected by the summary. */
+def inferTopLevel(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) = expr match
+  case _: ERec => infer(expr)
+  case _ => (ctx.withInferLevel((ctx) => infer(expr)(using ctx)), SubClauses.empty)
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
   inferWithDebug(inferImpl)(expr)
 
-/** Implementation of `constrainSub`. */
+/** Implementation of expression inference. */
 def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
   expr match
+    case rec: ERec => inferRecursive(rec)
+
     case EUnit =>
       (TClass(ClassVar("Unit")), SubClauses.empty)
 
@@ -85,6 +90,13 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
     // Lambda application.
     case app: EApp =>
       val (lamType, lamClauses) = infer(app.lam)
+      // Explicit instantiation supplies an expected function domain before body inference.
+      if app.lam.isInstanceOf[ETypeApp] && app.arg.isFunction then
+        lamType match
+          case TLam(input, output) =>
+            val checked = checkExpr(app.arg, input)(using ctx.extendSub(lamClauses))
+            return (output, lamClauses.concat(checked))
+          case _ =>
       val (argType, argClauses) = inferSeq(app.arg, lamClauses)
       val retDecl = ctx.sub.declInferVar()
       val retType = TVar(retDecl.var_)

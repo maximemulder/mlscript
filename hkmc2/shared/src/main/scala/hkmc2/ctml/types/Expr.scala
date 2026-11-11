@@ -38,6 +38,9 @@ case class ConstructorDecl(variable: TermVar, fields: List[LambdaParam]):
     if fields.isEmpty then ELam(None, record)
     else fields.foldRight(record: Expr)((field, body) => ELam(Some(field), body))
 
+/** A recursive closure whose body is checked with a shared recursive contract. */
+case class ERec(variable: TermVar, body: Expr) extends Expr
+
 /** A lambda application. */
 case class EApp(val lam: Expr, val arg: Expr) extends Expr
 
@@ -54,12 +57,14 @@ extension (expr: Expr)
   /** Whether an initializer creates a closure, possibly with erased ascriptions or type arguments. */
   def isFunction: Boolean = expr match
     case ELam(_, _) => true
+    case ERec(_, body) => body.isFunction
     case EAscr(body, _) => body.isFunction
     case ETypeApp(body, _) => body.isFunction
     case _ => false
 
   /** The free term variables, retaining the identity of each elaborated binding. */
   def freeVars: Set[TermVar] = expr match
+    case ERec(variable, body) => body.freeVars - variable
     case EUnit => Set.empty
     case EVar(variable) => Set(variable)
     case ELam(param, body) => body.freeVars -- param.map(_.variable)

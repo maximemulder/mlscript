@@ -1,5 +1,9 @@
 # Recursive consumer inference: timeout investigation
 
+This report records the guarded-inference baseline. Direct recursive closures also have a
+[validated structural-summary path](recursive-summary-design.md); its active tests supersede the
+commented direct-recursion timeouts described here. The general fixed-point path remains available.
+
 ## Finding
 
 The sampled Nofib list timeouts occur while closing recursion through `fix`, after inference of

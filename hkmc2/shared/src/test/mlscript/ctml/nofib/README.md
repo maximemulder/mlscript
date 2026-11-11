@@ -69,10 +69,11 @@ before implementing them. An inference failure alone does not require such a des
   and explicit-instantiation support are implemented; native recursive types are not a
   prerequisite for continuing the port. Generic source-level alias syntax or other missing
   conveniences still need a decision if a port requires them.
-- Automatic recursive-witness selection and consumer inference precision remain open. The
-  authorized consumer-performance investigation localizes the sampled timeouts to closing
-  recursion over guarded bounds; see the report linked below. Prioritize that bottleneck before
-  adding more list-heavy ports.
+- Direct recursive closures use validated structural summaries while retaining local branch
+  refinement. The source `map`, `take`, `filter`, `max_`, `addj`, and `permutations` infer without
+  signatures. Automatic recursive-witness selection through ordinary wrappers and inference of
+  structural requirements on captured unknown parameters remain open. See the implementation
+  report and its soundness limitation below.
 
 ## File-by-file workflow
 
@@ -115,48 +116,40 @@ server when finished. Do not include unrelated golden-output changes.
 
 | File or area | State |
 | --- | --- |
-| [gcd.mls](gcd.mls) | Source translation complete, inference coverage partial: `g` and `gcdE` infer successfully. `max_` inference alone exceeds the 25-second limit; the extracted nested comprehension also times out. Both are retained as commented reproducers. `test`, `testGcd_nofib`, and `main` are translated but disabled because of these dependencies. Independent checks of both tuple-mapping stages compose successfully through the trusted `map` contract, with an integer-list result assertion and an invalid-input test. |
-| [cryptarithm1.mls](cryptarithm1.mls) | Source translation complete, inference coverage partial: `expand` and the exact ten-element `condition` pattern infer successfully. `addj` exceeds the 25-second test limit and is retained as a commented reproducer. `permutations`, `testCryptarithm_nofib`, and `main` are translated but disabled because they depend on `addj`. The source input remains `1`. The MLscript runtime reference reports a stack overflow, not a successful benchmark result. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
+| [gcd.mls](gcd.mls) | Source translation complete, inference coverage partial: `g`, `gcdE`, and the partial `max_` infer. Maximum caller checks accept nonempty integer lists and reject empty lists, wrong heads, and malformed tails. The nested comprehension still exceeds 25 seconds in an isolated probe; `test`, `testGcd_nofib`, and `main` remain disabled. Both tuple-mapping stages compose through the inferred source `map`. |
+| [cryptarithm1.mls](cryptarithm1.mls) | `expand`, the exact ten-element `condition`, `addj`, and `permutations` infer. Concrete insertion/permutation calls check as integer lists of lists; malformed tails are rejected. A wrong nested result assertion is incorrectly accepted and marked `:breakme`, with an independent baseline reproducer. The translated driver is an active `:fixme` at the implicit `take`/range witness; `main` remains disabled. Source input remains `1`; the MLscript runtime reference reports a stack overflow. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted primitive arithmetic/comparisons and pair projections; inferred `intRem`, `quotRem`, `abs`, and inclusive `enumFromTo`. Shared `LNil`/`LCons` constructors are available. Source `map`, `take`, and `filter` infer and their trusted declarations are removed. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
-| Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
-| List consumers | The focused investigation reproduces timeouts without encoded list signatures, down to unary constructor traversal. `walk`, `copy`, `map`, and dewrapped `length` samples locate the bottleneck in guarded-bound subtyping at the outer `fix` application. Function bodies with supplied recursive calls infer quickly; explicitly typed fixed-point controls pass. See `ctmlRecursiveConsumerInference.mls` and the performance report. Producer/consumer composition remains a separate precision issue. |
+| Inferred `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive witness selection in `preludeTests.mls`; an explicit range witness remains a separate control. |
+| Recursive summaries | Unannotated `walk`, `length`, `copy`, and `map`, unary traversal, branching trees, and heterogeneous-head refinement are active tests. Source annotations also check direct recursion. Unsupported shapes retain ordinary fixed-point inference, including its possible timeouts. |
 
-**Next task: review the recursive-summary design, then prototype summary checking.**
-The [consumer performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)
-localizes the timeout. The follow-up
-[recursive-summary design](../../../../main/scala/hkmc2/ctml/core/inference/recursive-summary-design.md)
-compares FCCTI+-style instantiation sharing with candidate synthesis and body checking. It recommends
-preserving local branch refinement while using a shared checked contract at recursive calls.
-The new `ctmlRecursiveSummaryChecking.mls` controls expose why neither an ascription around an
-inferred scheme nor the current explicit-invariant idiom alone provides that checking path.
+**Next task: review the structural-summary implementation and compare inference strategies.**
+The [implementation report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-summary-design.md)
+describes candidate construction, checking, scope, and remaining failures. The
+[baseline performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)
+records the original timeout evidence. `:ctml-cfg no-recursive-summaries` selects ordinary fixed-point
+inference for isolated comparisons; it may restore the known timeouts.
 
-No approximation rule or inference implementation is adopted yet. First establish expected-type
-checking with local refinements using supplied candidates; then infer positive structural candidates
-for `walk` and `length`, followed by `copy` and `map`. Keep the existing recursive representation,
-unannotated benchmarks, and library contracts. Substantial solver design changes still need review.
+The next unresolved cases involve captured unknown structural parameters and implicit witnesses
+through nonrecursive wrappers. Independently, `ctmlNestedListResult.mls` exposes an existing
+nested-result subtyping soundness bug. It reproduces against the unchanged HEAD checker with a
+manually declared precise contract and is marked `:breakme`; successful suite execution does not
+mean that issue is resolved.
 
 When porting resumes, `cse.mls` remains the next source: its nonrecursive `retURN`, `bind`, `join`,
 `mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`, `update`, and `set_` combinators exercise
 higher-order inference and pair destructuring before its recursive/tree stages.
 
-Cryptarithm's shared `take` and `filter` contracts have caller checks in `preludeTests.mls`.
-Their implementations time out during inference. Implicit `take`/range composition retains
-an active `:fixme`, with an explicit range witness tested separately as a diagnostic control.
-The benchmark-local `addj` timeout blocks permutation generation and the entry point; no trusted
-signature substitutes for that benchmark computation.
+Cryptarithm's shared `take` and `filter` implementations and their inferred contracts are checked.
+Implicit `take`/range composition retains an active `:fixme`, with an explicit range witness tested
+separately. `addj` and `permutations` are inferred benchmark computations, with no trusted
+substitutes. The driver reaches the independent `take`/range witness failure; subsequent obligations
+are not established by that partial check. The rigid-element fixed-point map in `ctmlRecursiveLists.mls` remains an independent
+checking control; ordinary callers use the inferred source `map`.
 
-GCD's source translation is complete, including the original `testGcd_nofib(40)` entry point.
-The kernel and tuple-mapping stages are active; the maximum and nested-comprehension inference
-reproducers exceed the test time limit. These are benchmark-local functions, so the current
-library-signature fallback does not replace them with trusted declarations. Continuing active
-checking of the entire driver would require addressing those inference costs or agreeing to a
-broader signature fallback. The remaining producer-instantiation limitation is independently
-recorded in `preludeTests.mls`.
-
-The rigid-element fixed-point map implementation in `ctmlRecursiveLists.mls` remains a separate
-checked diagnostic control. Tests of the driver's mapping stages use the manually supplied
-library signature and do not establish whole-program inference or runtime equivalence.
+GCD's source translation includes `testGcd_nofib(40)`. The remaining nested-comprehension timeout
+blocks its complete driver. Its source maximum remains partial on empty lists. These diff tests
+check types and do not establish runtime equivalence or the benchmark's numeric result.
 
 The source `enumFromTo(a, b)` includes both endpoints and returns the empty list when `a > b`.
 The explicitly typed range example in `ctmlRecursiveLists.mls` is a different, exclusive-endpoint
@@ -178,6 +171,9 @@ Paths below are relative to this directory:
 - [Recursive encoding tests](../ctmlRecursiveEncoding.mls),
   [explicitly typed list controls](../ctmlRecursiveLists.mls), and
   [target-instantiation tests](../ctmlTargetInstantiation.mls).
+- [Recursive summary tests](../ctmlRecursiveSummaries.mls),
+  [checking adversaries](../ctmlRecursiveSummarySoundness.mls), and
+  [nested-result soundness reproducer](../ctmlNestedListResult.mls).
 - [Consumer inference controls](../ctmlRecursiveConsumerInference.mls) and
   [timeout investigation](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md).
 - [Deferred producer-inference investigation](../../../../main/scala/hkmc2/ctml/core/inference/nofib-producer-inference.md).

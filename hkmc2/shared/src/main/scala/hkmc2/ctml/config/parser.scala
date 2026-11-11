@@ -11,6 +11,10 @@ def applyConfigArguments(arguments: List[String]): Unit =
       buffer.remove(0) match
         case "" =>
           ()
+        case "no-recursive-summaries" =>
+          config.recursiveSummaries = false
+        case "recursive-summaries" =>
+          config.recursiveSummaries = true
         case "extrude-var" =>
           config.extrudeVar = true
         case "no-hypothesis" =>

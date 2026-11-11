@@ -26,6 +26,7 @@ private def reusableScrutinee(expr: Expr): Boolean =
 /** Count free occurrences, respecting the shadowing of named lambda parameters. */
 private def freeOccurrences(expr: Expr, name: TermVar): Int =
   expr match
+    case ERec(v, body) => if v == name then 0 else freeOccurrences(body, name)
     case EUnit => 0
     case EVar(other) => if other == name then 1 else 0
     case ELam(param, body) => if param.exists(_.variable == name) then 0 else freeOccurrences(body, name)
@@ -43,6 +44,10 @@ private def freeOccurrences(expr: Expr, name: TermVar): Int =
 /** Replace a free variable, declining the rewrite if an intervening binder would capture it. */
 private def substituteTerm(expr: Expr, name: TermVar, arg: Expr): Option[Expr] =
   expr match
+    case ERec(v, body) =>
+      if v == name then Some(expr)
+      else if arg.freeVars(v) then None
+      else substituteTerm(body, name, arg).map(ERec(v, _))
     case EUnit => Some(EUnit)
     case EVar(other) => Some(if other == name then arg else expr)
     case ELam(param, body) =>

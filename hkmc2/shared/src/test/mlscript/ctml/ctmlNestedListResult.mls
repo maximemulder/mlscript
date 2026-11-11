@@ -1,0 +1,93 @@
+:ctml
+
+/** Empty list. */
+data class LNil()
+/** A structural list cell. */
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+type IntLists = [X restricts (LNil | (LCons & {head: IntList} & {tail: X}))] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ IntLists = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: X})} ⟹ X
+
+/** A precise contract isolates nested result subtyping from implementation inference. */
+declare fun insert[A]: A -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: ([Z restricts (LNil | (LCons & {head: A} & {tail: Z}))] -> Z)} & {tail: Y}))] -> Y)
+//│ insert: ∀A. A → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y)
+
+insert(1, LCons(2, LNil())) as IntLists
+//│ IntLists
+
+:breakme // FIXME: Nested result instantiation loses the element constraint from the first argument.
+:te
+insert("bad", LCons(2, LNil())) as IntLists
+//│ IntLists
+
+:te
+LCons(LCons("bad", LNil()), LNil()) as IntLists
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntLists.
+//│ Typing error tree:
+//│   α ≤ IntLists
+//│     (LCons ∧ {head: β}) ∧ {tail: γ} ≤ IntLists
+//│       (LCons ∧ {head: β}) ∧ {tail: γ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: δ})} ⟹ δ
+//│           (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│               LCons ∧ {head: β} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: β} ≤ LNil
+//│                   β ≤ ⊥
+//│                     ε ≤ ⊥
+//│                       (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ⊥
+//│                         LCons ∧ {head: ζ} ≤ ⊥
+//│                           LCons ≤ ⊥
+//│                           {head: ζ} ≤ ⊥
+//│                             ζ ≤ ⊥
+//│                               Str ≤ ⊥
+//│                         {tail: η} ≤ ⊥
+//│                           η ≤ ⊥
+//│                             θ ≤ ⊥
+//│                               LNil ≤ ⊥
+//│               {tail: γ} ≤ LNil
+//│                 γ ≤ ⊥
+//│                   ι ≤ ⊥
+//│                     LNil ≤ ⊥
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: IntList}) ∧ {tail: δ}
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LCons ∧ {head: IntList}
+//│                 (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {head: IntList}
+//│                   LCons ∧ {head: β} ≤ {head: IntList}
+//│                     LCons ≤ {head: IntList}
+//│                     {head: β} ≤ {head: IntList}
+//│                       β ≤ IntList
+//│                         ε ≤ IntList
+//│                           (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ IntList
+//│                             (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│                               (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: κ})} ⟹ κ
+//│                                 (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ κ
+//│                                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LNil
+//│                                     LCons ∧ {head: ζ} ≤ LNil
+//│                                       LCons ≤ LNil
+//│                                       {head: ζ} ≤ LNil
+//│                                         ζ ≤ ⊥
+//│                                           Str ≤ ⊥
+//│                                     {tail: η} ≤ LNil
+//│                                       η ≤ ⊥
+//│                                         θ ≤ ⊥
+//│                                           LNil ≤ ⊥
+//│                                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ (LCons ∧ {head: Int}) ∧ {tail: κ}
+//│                                     (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LCons ∧ {head: Int}
+//│                                       (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {head: Int}
+//│                                         LCons ∧ {head: ζ} ≤ {head: Int}
+//│                                           LCons ≤ {head: Int}
+//│                                           {head: ζ} ≤ {head: Int}
+//│                                             ζ ≤ Int
+//│                                               Str ≤ Int
+//│                                         {tail: η} ≤ {head: Int}
+//│                                           η ≤ ⊥
+//│                                             θ ≤ ⊥
+//│                                               LNil ≤ ⊥
+//│                   {tail: γ} ≤ {head: IntList}
+//│                     γ ≤ ⊥
+//│                       ι ≤ ⊥
+//│                         LNil ≤ ⊥

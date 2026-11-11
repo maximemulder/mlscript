@@ -17,6 +17,7 @@ private[simplification] def tryEliminateVar(
   var_ : TypeVar,
   outs: SubClauses,
 )(using ctx: SubContext): Option[(Type, SubClauses)] =
+  if nestedGuardDependency(type_, var_) then return None
   assert(outs.hasVar(var_))
   assert(!outs.hasEffectiveBounds)
   getEliminationBounds(type_, var_, outs)(using ctx.extend(outs)).map((flipped) =>

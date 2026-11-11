@@ -26,6 +26,10 @@ extension (type_ : Type)
   /** Determine whether a quantified variable can be inlined, following the effective bounds of
    *  the other variables reachable from the type. Mixed polarities require equal bounds. */
   private[simplification] def getInlinePolarities(var_ : TypeVar)(using ctx: SubContext): Option[Polarities] =
+    // A payload related to a nested quantified carrier must retain that relationship. The
+    // direction-only guard traversal does not account for the carrier's enclosing variance.
+    // Inlining it can turn `forall A. List[A] -> List[A]` into `List[Bottom] -> LNil`.
+    if nestedGuardDependency(type_, var_) then return None
     val polarities = type_.getAllVarPolarities(var_)
 
     if polarities == Polarities(false, false) then
@@ -94,3 +98,14 @@ private def canInlineOpenState(type_ : Type, outs: SubClauses, var_ : TypeVar)(u
 
   (!polarities.negative || !var_.isIndirectRecursive(Polarity.Negative)) &&
     (!polarities.positive || !var_.isIndirectRecursive(Polarity.Positive))
+
+/** Whether a nested quantifier relates its carrier to the variable being considered for inlining. */
+private[simplification] def nestedGuardDependency(type_ : Type, variable: TypeVar): Boolean = type_ match
+  case TUniv(bound, body) if bound != variable =>
+    val (_, guards) = body.getConstrainedComponents
+    guards.exists(c =>
+      (c.left.hasVar(bound) || c.right.hasVar(bound)) &&
+      (c.left.hasVar(variable) || c.right.hasVar(variable))) ||
+      nestedGuardDependency(body, variable)
+  case TUniv(_, _) => false
+  case _ => type_.components.exists(nestedGuardDependency(_, variable))

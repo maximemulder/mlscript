@@ -100,15 +100,17 @@ server when finished. Do not include unrelated golden-output changes.
 | File or area | State |
 | --- | --- |
 | [gcd.mls](gcd.mls) | Partial translation: extended Euclidean kernel `g` uses nested tuple patterns; `g` and `gcdE` infer successfully. Result checks and negative tests are present. The list-based driver is not translated. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication and quotient; inferred `intRem` and `quotRem`. No shared list definitions yet. |
-| Unannotated `enumFromTo` | Translated in a diagnostic test and infers a recursive constrained scheme. Its implicit uses expose subtyping failures. Not yet incorporated into the Nofib prelude. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is translated but commented out because inference times out. |
+| Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | List consumers | Diagnostic `firstOrZero` composes imprecisely with the inferred producer. Unannotated `length` inference times out and is retained as a commented reproducer. These are deferred inference issues. |
 
-**Next task: finish translating the GCD helpers and driver under this policy.** Read the source
-prelude and bring in the list constructors, inclusive `enumFromTo`, `map`, comparison, and `abs`
-as needed. Translate `max_`, `test` (including its nested list-comprehension helpers),
+**Next task: translate the remaining GCD helpers and driver under this policy.**
+Translate `max_`, `test` (including its nested list-comprehension helpers),
 `testGcd_nofib`, and `main`. Preserve their unannotated definitions and record inference failures
-instead of fixing the solver first. Report any genuinely new language or representation decision.
+instead of fixing the solver first. The shared `map` definition exceeds the diff-test time limit;
+its translation and dependent use checks are retained as commented reproducers. Keep driver
+sections depending on it explicitly disabled if necessary, without adding a trusted replacement.
+Report any genuinely new language or representation decision.
 
 The source `enumFromTo(a, b)` includes both endpoints and returns the empty list when `a > b`.
 The explicitly typed range example in `ctmlRecursiveLists.mls` is a different, exclusive-endpoint

@@ -1,0 +1,69 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 12 member(s)
+
+// Integer helpers accept negative, zero, and positive inputs.
+[abs(0 - 3), [abs(0), abs(3)]] as [Int, [Int, Int]]
+//│ ⟨Int, ⟨Int, Int⟩⟩
+
+[1 < 2, 2 <= 2] as [Bool, Bool]
+//│ ⟨Bool, Bool⟩
+
+:te
+abs("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+:te
+1 <= "bad"
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Bool ≤ Str → β
+//│       Str ≤ Int
+
+// Ranges retain their inferred recursive result for all endpoint orderings.
+val ascending = enumFromTo(1, 3)
+//│ ascending: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})
+
+val singleton = enumFromTo(2, 2)
+//│ singleton: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})
+
+val descending = enumFromTo(3, 1)
+//│ descending: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})
+
+:te
+enumFromTo("bad", 3)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β
+//│     {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ≤ Str → β
+//│       Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ≤ Str → β
+//│         Str ≤ Int
+
+:te
+enumFromTo(1, "bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ≤ Str → β
+//│       Str ≤ Int
+
+// FIXME: Map uses cannot be checked until its definition can be inferred.
+// Mapping exercises empty and nonempty lists, and changes the element type.
+// map(x => x + 1, LNil())
+//
+// map(x => x + 1, LCons(1, LCons(2, LNil())))
+//
+// map(x => [x, true], LCons("hello", LNil()))
+//
+// The producer and consumer are composed without explicit instantiation.
+// map(abs, enumFromTo(0 - 2, 2))
+//
+// :te
+// map(x => x + 1, LCons("bad", LNil()))
+//
+// :te
+// map(x => x, 1)

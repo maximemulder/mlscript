@@ -21,11 +21,24 @@ Distinguish these cases before changing the checker or rewriting a benchmark:
 | The translated program is expressible but inference or subtyping fails | Preserve the unannotated program, record the failure, and continue porting. Defer solver work unless explicitly requested. |
 | A standard-library type or operation is missing | Put shared support in `NofibPrelude.mls`; infer ordinary helper implementations and declare genuinely primitive operations with precise types. Discuss new representation choices with the user. |
 
-Do not add parameter/result signatures, explicit type arguments, or a typed replacement for a
-helper merely to make the benchmark pass. Such annotations can be useful in separate diagnostic
-controls, where they establish that a failure concerns inference. Keep those controls distinct
-from the actual port. Result assertions and negative tests may check the behavior of inferred
-definitions without replacing them with annotated definitions.
+Keep benchmark functions unannotated. For widely used library helpers whose inference failure
+or timeout blocks downstream porting, a precise manual signature is an allowed fallback:
+
+- Preserve the faithful unannotated implementation as an inference reproducer, with a `FIXME`;
+  comment it out only when it times out.
+- Prefer checking the implementation against the supplied signature when feasible. Keep any
+  annotated or explicitly instantiated diagnostic control separate from the unannotated port.
+- When implementation checking is blocked or deferred, provide a documented trusted declaration in
+  `NofibPrelude.mls`. State that its implementation is not checked by that declaration, and link
+  relevant diagnostic controls. Do not replace its contract with an unchecked or dynamic type.
+- Test callers against the supplied contract, including invalid arguments and result-type checks.
+  Leave ordinary callers implicitly instantiated; retain independent inference failures as
+  `:fixme` cases rather than weakening the signature to accept them.
+- Report coverage as checking against manually supplied library signatures, not whole-program
+  inference. Record each fallback in the status table below.
+
+Result assertions and negative tests may check inferred definitions without replacing those
+definitions with annotated ones. Solver work remains deferred unless explicitly requested.
 
 Preserve source behavior, including range endpoints, empty cases, partial functions, evaluation
 structure, and benchmark inputs. Document necessary representation changes. Do not replace a
@@ -66,7 +79,8 @@ before implementing them. An inference failure alone does not require such a des
 2. Translate into this directory using existing CTML constructs and approved rewrites. Record
    the original source path and representation choices in the file. Share reusable definitions
    through `NofibPrelude.mls`; CTML's `:import` already works.
-3. Keep ordinary helpers and benchmark functions unannotated. Classify each obstacle using the
+3. Keep benchmark functions and ordinary helpers unannotated, except for the documented library
+   fallback above. Classify each obstacle using the
    table above. For an inference failure, retain a small reproducer when useful, but do not let
    an open-ended solver investigation block the port.
 4. Mark valid programs rejected by the checker with `:fixme // FIXME: <reason>`. Mark invalid
@@ -74,8 +88,8 @@ before implementing them. An inference failure alone does not require such a des
    apply to diff-test blocks, so separate successful definitions from failing uses where useful.
 5. For a timeout, isolate and comment out the offending block with a `FIXME` explaining the
    limitation. Retain the source so the test can be enabled later. If dependent code cannot be
-   checked, preserve it with an explicit explanation; do not introduce trusted signatures for
-   missing inferred definitions to manufacture a passing benchmark.
+   checked, use a documented library signature where the fallback policy applies; otherwise
+   preserve the dependent code with an explicit explanation.
 6. Run focused tests, review the generated `//│` output, then run the CTML suite for executable
    changes. Follow `AGENTS.md` for baseline comparisons and any shared-code changes. Aim for
    under five seconds per file; exclude known timeout cases from active execution.
@@ -100,16 +114,18 @@ server when finished. Do not include unrelated golden-output changes.
 | File or area | State |
 | --- | --- |
 | [gcd.mls](gcd.mls) | Partial translation: extended Euclidean kernel `g` uses nested tuple patterns; `g` and `gcdE` infer successfully. Result checks and negative tests are present. The list-based driver is not translated. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is translated but commented out because inference times out. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
+| Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | Diagnostic `firstOrZero` composes imprecisely with the inferred producer. Unannotated `length` inference times out and is retained as a commented reproducer. These are deferred inference issues. |
 
 **Next task: translate the remaining GCD helpers and driver under this policy.**
 Translate `max_`, `test` (including its nested list-comprehension helpers),
 `testGcd_nofib`, and `main`. Preserve their unannotated definitions and record inference failures
-instead of fixing the solver first. The shared `map` definition exceeds the diff-test time limit;
-its translation and dependent use checks are retained as commented reproducers. Keep driver
-sections depending on it explicitly disabled if necessary, without adding a trusted replacement.
+instead of fixing the solver first. Use the documented shared `map` contract to check dependent
+code while preserving any independent instantiation or subtyping failures. The rigid-element
+fixed-point implementation in `ctmlRecursiveLists.mls` is a separate checked diagnostic control;
+the unannotated source implementation still exceeds the diff-test time limit.
 Report any genuinely new language or representation decision.
 
 The source `enumFromTo(a, b)` includes both endpoints and returns the empty list when `a > b`.

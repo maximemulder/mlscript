@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 12 member(s)
+//│ Imported 13 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/gcd.mls.
 // Partial port: the extended Euclidean kernel. The list-based driver is not yet ported.

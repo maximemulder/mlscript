@@ -51,3 +51,11 @@ fun enumFromTo(a, b) =
 // fun map(f, xs) = if xs is
 //   LCons(x, tail) then LCons(f(x), map(f, tail))
 //   LNil() then LNil()
+
+/**
+ * Trusted library contract; inference of the source implementation above is deferred.
+ * ../ctmlRecursiveLists.mls checks a fixed-point implementation for rigid element types.
+ * This declaration does not check the source implementation.
+ */
+declare fun map[A, B]: (A -> B) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y)
+//│ map: ∀A, B. (A → B) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y)

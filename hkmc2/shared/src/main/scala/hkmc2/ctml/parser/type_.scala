@@ -1,5 +1,7 @@
 package hkmc2.ctml.parser
 
+import hkmc2.asInt
+
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Elem
 import hkmc2.semantics.Fld
@@ -84,7 +86,8 @@ def parseTypeApp(mlAbs: Term, mlArgs: List[Term])(using Scope): Type =
 def parseTypeUniv(mlVars: List[QuantVar], mlBody: Term)(using scope: Scope): Type =
   mlVars match
     case mlVar :: mlVars =>
-      val var_ = TypeVar(mlVar.sym.name)
+      val var_ = new TypeVar(mlVar.sym.name,
+        VarProvenance(VarOrigin.Source(mlVar.sym.uid.asInt), VarRole.Root, Set.empty))
       val newScope = scope.withType(mlVar.sym.name)
       var body = parseTypeUniv(mlVars, mlBody)(using newScope)
 

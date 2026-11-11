@@ -70,6 +70,8 @@ class Tester(
       case error: TypeError =>
         raise(Source.Typing, error.prettify(prettyCtx).getMessage())
         // output(getStackTraceString(error))
+      case error: SearchInconclusive =>
+        raise(Source.Typing, error.getMessage())
       case error: Throwable =>
         output(getStackTraceString(error))
         throw error
@@ -144,6 +146,10 @@ class Tester(
       case error: TypeError =>
         val millis = (System.nanoTime() - start).toDouble / 1000000
         this.output(s"@ctml-infer failed $millis 0")
+        throw error
+      case error: SearchInconclusive =>
+        val millis = (System.nanoTime() - start).toDouble / 1000000
+        this.output(s"@ctml-infer inconclusive $millis 0")
         throw error
 
   /** Count type-tree occurrences, including the types in constraint guards. */

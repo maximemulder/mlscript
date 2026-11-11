@@ -126,14 +126,14 @@ class PrettyContext(vars: MutMap[TypeVar, String] = MutMap()):
     // Return the pretty alias of the type variable if it is already in the context.
     this.vars.get(var_) match
       case Some(name) =>
-        return TypeVar(name)
+        return new TypeVar(name, var_.provenance)
       case None =>
 
     // Add a pretty variable alias to the context if there is space remaining.
     this.getNextLetter() match
       case Some(letter) =>
         this.vars.addOne((var_, letter))
-        TypeVar(letter)
+        new TypeVar(letter, var_.provenance)
       case None =>
         var_
 

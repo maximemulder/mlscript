@@ -43,27 +43,30 @@ extension (ctx: SubContext)
   /** Add a new inference type variable declaration to the context. */
   def declInferVar(): TypeVarDecl =
     val var_ = newFreshVar()
+    ctx.trail.search.foreach(session => session.inferCount += 1)
     val decl = TypeVarDecl(var_, TypeVarKind.Flex, None, ctx.level)
     debugInferVar(decl)
     decl
 
   /** Add a new fresh type variable declaration to the context. */
   def declFreshVar(kind: TypeVarKind, original: TypeVar): TypeVarDecl =
-    val decl = TypeVarDecl(newFreshVar(), kind, Some(original), ctx.level)
+    val provenance = original.provenance.copy(role = VarRole.Open(kind),
+      context = original.provenance.context ++ ctx.trail.flow + original.provenance.root)
+    val fresh = new TypeVar(newFreshVarName(), provenance)
+    ctx.trail.search.foreach(_.fresh(provenance))
+    val decl = TypeVarDecl(fresh, kind, Some(original), ctx.level)
     debugFreshVar(decl)
     decl
 
   /** Add a new freshened type variable declaration to the context. */
   def declFreshVars(originals: List[TypeVar], kind: TypeVarKind): List[TypeVarDecl] =
-    val decls = originals.map((original) => TypeVarDecl(newFreshVar(), kind, Some(original), ctx.level))
-    for decl <- decls do
-      debugFreshVar(decl)
-
-    decls
+    originals.map(original => ctx.declFreshVar(kind, original))
 
   /** Add a new extruded type variable declaration to the context. */
-  def declExtrudeVar(original: TypeVar, level: Int): TypeVarDecl =
-    val var_ = newFreshVar()
+  def declExtrudeVar(original: TypeVar, level: Int, pol: Polarity): TypeVarDecl =
+    val provenance = original.provenance.copy(role = VarRole.Extrude(pol))
+    val var_ = new TypeVar(newFreshVarName(), provenance)
+    ctx.trail.search.foreach(_.fresh(provenance))
     val decl = TypeVarDecl(var_, TypeVarKind.Flex, Some(original), level)
     debugExtrudeVar(decl)
     decl

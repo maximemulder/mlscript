@@ -59,19 +59,7 @@ Carrier <:< B
 // Repeating a target witness cannot justify a circular proof through rigid bounds.
 :te
 Carrier <:< ([A <:< Carrier] => Str)
-//│ ═══[TYPE ERROR] Judgment A ≤ Str repeats a judgment in progress through a cycle of bounds.
-//│ Typing error tree:
-//│   Carrier ≤ {A ≤ Carrier} ⟹ Str
-//│     ∀X. {X ≥ A} ⟹ X ≤ {A ≤ Carrier} ⟹ Str
-//│       ∀X. {X ≥ A} ⟹ X ≤ Str
-//│         {α ≥ A} ⟹ α ≤ Str
-//│           α ≤ Str
-//│             A ≤ Str
-//│               Carrier ≤ Str
-//│                 ∀X. {X ≥ A} ⟹ X ≤ Str
-//│                   {β ≥ A} ⟹ β ≤ Str
-//│                     β ≤ Str
-//│                       A ≤ Str
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: a variable-bound search repeats up to provenance
 
 // Substituting the free Y for X must rename the inner binder Y.
 type Y

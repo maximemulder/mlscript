@@ -1,5 +1,7 @@
 package hkmc2.ctml.config
 
+import hkmc2.ctml.core.subtyping.ProvenancePolicy
+
 /** Debugging information. */
 class Config:
   /** The global debug print function. */
@@ -29,6 +31,18 @@ class Config:
 
   /** Whether the diff-test entry point reports inference time and final type size. */
   var profileInfer = false
+
+  /** Whether to report deterministic solver resource measurements for each operation. */
+  var profileSearch = false
+
+  /** The provenance revisit policy, independent of concrete variable equality. */
+  var provenancePolicy = ProvenancePolicy.Cut
+
+  /** Optional maximum solver calls per operation, independent of the provenance policy. */
+  var searchSteps: Option[Int] = None
+
+  /** Optional maximum solver calls per proof query, independent of the provenance policy. */
+  var checkSteps: Option[Int] = None
 
   /** The current call depth. */
   var currentCallDepth = 0

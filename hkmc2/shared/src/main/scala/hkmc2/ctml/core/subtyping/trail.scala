@@ -17,16 +17,16 @@ import hkmc2.ctml.types.*
  *  of the search rather than the whole search: a judgment that repeats one of another branch of the
  *  search is resolved again, in the context of that branch.
  *
- *  This is the trail of the paper's algorithm restricted to exact repeats. The judgments are
- *  compared syntactically, in particular without their context, so that a judgment also repeats
- *  one that was resolved in a context with fewer bounds, which the paper tells apart by the keys of
- *  its trail. The paper also defers the judgments that repeat one in progress up to the variables
- *  created by the search, which cuts the chain of instantiations of self-application: a universal
- *  type recorded as a bound of a variable is checked against the opposite bounds of the variable,
- *  which contain an instance of the type, and this check opens another instance. This trail does
- *  not need to: a new bound of a flexible variable is checked against the opposite bounds of the
- *  variable before being recorded (see `subtypeFlexVar`), so that the check does not meet the type
- *  being recorded.
+ *  The exact judgments are compared syntactically, without their contexts. Flexible repeats use
+ *  the pending-bound rule described in `subtypeTrail`. Checking opposite bounds before recording
+ *  a flexible bound avoids some self-application loops, but does not bound fresh instantiation.
+ *
+ *  The separate provenance keys recognize paths up to the origins of newly opened variables and
+ *  a bounded description of their goals and side bounds. Input variables are anchored at each
+ *  subtyping entry, not at the enclosing inference entry: constructor instances created while
+ *  inferring an argument are already distinct inputs when that argument is checked. A collision
+ *  reports an inconclusive search; unlike an exact flexible repeat, it never supplies a proof or
+ *  discards an obligation. These keys omit parts of the context and cannot cache completed proofs.
  *
  *  The separate `instances` set tracks target-directed universal witnesses, which can repeat
  *  without a variable side. A repeated witness is skipped rather than used as a hypothesis. */
@@ -36,6 +36,17 @@ case class SubtypingTrail(
   /** Target-directed universal instances being checked on this path. A revisit skips that
    *  witness; it does not establish the judgment. */
   val instances: Set[(Type, Type)] = Set(),
+  /** Stable binder marks opened along this search path. */
+  flow: Set[VarOrigin] = Set.empty,
+  /** Resource accounting shared by descendants of one inference or subtyping operation. */
+  search: Option[SearchSession] = None,
+  /** Variables present at entry to this subtyping search, including instances already created by
+   *  argument inference. These are anchors, even when the enclosing inference session is older. */
+  roots: Option[Set[TypeVar]] = None,
+  /** Abstract variable-side judgments on this path; collisions do not discharge constraints. */
+  provenanceKeys: Set[ProvenanceKey] = Set.empty,
+  /** A budget for nested optional queries; absent in required constraint solving. */
+  checking: Option[CheckingBudget] = None,
 ):
   /** Check whether a judgment repeats a judgment in progress. */
   def contains(sub: Type, sup: Type): Boolean =

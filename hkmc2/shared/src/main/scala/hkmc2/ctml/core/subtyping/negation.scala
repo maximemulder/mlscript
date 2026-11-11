@@ -90,10 +90,12 @@ extension (type_ : Type)
       case _ =>
         Nil
 
-  /** Check whether a class splits this type `τ`, that is, whether neither `τ ≤ C` nor `τ ≤ ¬C`, so
-   *  that both `τ ∧ C` and `τ ∧ ¬C` are smaller than `τ`. */
+  /** Check whether a class may split this type `τ`: neither `τ ≤ C` nor `τ ≤ ¬C` was proved.
+   *  An inconclusive query does not justify attempting more case splits; the type may already
+   *  lie entirely in one case, so splitting again could reproduce the same search. */
   def isSplitBy(class_ : TClass)(using ctx: SubContext): Boolean =
-    !checkSubtype(type_, class_) && !checkSubtype(type_, class_.negate())
+    checkSubtypeResult(type_, class_) == SubtypeCheck.NotProved &&
+      checkSubtypeResult(type_, class_.negate()) == SubtypeCheck.NotProved
 
 extension (constraint: Constraint)
   /** Get the upper bound of a type variable that this constraint is, if any. */

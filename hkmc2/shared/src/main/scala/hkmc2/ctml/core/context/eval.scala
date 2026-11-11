@@ -1,6 +1,7 @@
 package hkmc2.ctml.core.context
 
 import hkmc2.ctml.core.clauses.*
+import hkmc2.ctml.core.subtyping.SearchInconclusive
 import hkmc2.ctml.types.*
 import scala.collection.mutable.ListBuffer
 
@@ -17,6 +18,7 @@ extension (ctx: SubContext)
   /** Evaluate some functions and join the bounds returned. */
   def any(fs: (SubContext ?=> SubClauses)*): SubClauses =
     val errorTrees = ListBuffer[ProofTree]()
+    var inconclusive: Option[SearchInconclusive] = None
 
     // A left fold preserves the arguments order if they are passed from left to right, which
     // should be the case if they are statically written inline, but should not the case if they.
@@ -34,12 +36,16 @@ extension (ctx: SubContext)
         case error: TypeError =>
           errorTrees.appendAll(error.trees)
           result
+        case error: SearchInconclusive if !error.global =>
+          inconclusive = Some(error)
+          result
     )
 
     result match
       case Some(bounds) =>
         bounds
       case None =>
+        inconclusive.foreach(throw _)
         throw TypeError(None, errorTrees.toList)
 
   /** Sequentially evaluate a function in a subtyping context and get its return value. */

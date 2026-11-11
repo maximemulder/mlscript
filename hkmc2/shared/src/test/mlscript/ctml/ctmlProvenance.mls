@@ -1,0 +1,96 @@
+:ctml
+:ctml-cfg provenance-cut profile-search
+
+type F
+
+// A polymorphic bound recursively requires a new instance of itself, without term recursion.
+:te
+F <:< ([F <:< ([X] -> ([F <:< (X -> X)] => (X -> X)))] => Int)
+//│ @ctml-search calls=8 checks=0 fresh=2 infer=0 origins=1 groups=1 max-per-group=2 exact=0 abstract=1 cuts=1 max-clauses=31 max-goal-nodes=13
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: a variable-bound search repeats up to provenance
+
+// The target-witness path grows exponentially; ordinary-instantiation fallbacks also recur.
+:te
+F <:< ([F <:< ([X] -> ([F <:< (X -> X)] => X))] => Int)
+//│ @ctml-search calls=322 checks=0 fresh=80 infer=0 origins=1 groups=1 max-per-group=80 exact=0 abstract=81 cuts=81 max-clauses=31 max-goal-nodes=1024
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: a variable-bound search repeats up to provenance
+
+// Independent uses of one binder retain distinct concrete instances.
+fun ident(x) = x
+//│ @ctml-search calls=6 checks=6 fresh=0 infer=1 origins=0 groups=0 max-per-group=0 exact=0 abstract=0 cuts=0 max-clauses=29 max-goal-nodes=2
+//│ ident: ∀α. α → α
+
+[ident(1), ident("a")]
+//│ @ctml-search calls=28 checks=14 fresh=2 infer=2 origins=1 groups=1 max-per-group=2 exact=0 abstract=0 cuts=0 max-clauses=40 max-goal-nodes=7
+//│ ⟨Int, Str⟩
+
+// Rigid universal variables cannot be identified by their origin.
+:te
+([A] -> (A -> A)) <:< ([B] -> (B -> ([C] -> C)))
+//│ @ctml-search calls=13 checks=3 fresh=3 infer=0 origins=3 groups=3 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=33 max-goal-nodes=9
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. A → A ≤ ∀B. B → (∀C. C).
+//│ Typing error tree:
+//│   ∀A. A → A ≤ ∀B. B → (∀C. C)
+//│     ∀A. A → A ≤ α → (∀C. C)
+//│       β → β ≤ α → (∀C. C)
+//│         β ≤ ∀C. C
+//│           α ≤ ∀C. C
+//│             α ≤ γ
+//│               α ≤ ⊥
+//│                 ⊤ ≤ ⊥
+
+// Constructor instances allocated during argument inference are fixed inputs to subtyping.
+data class Stop()
+data class Next(tail)
+type Chain = [X restricts (Stop | (Next & {tail: X}))] -> X
+//│ @ctml-search calls=0 checks=0 fresh=0 infer=0 origins=0 groups=0 max-per-group=0 exact=0 abstract=0 cuts=0 max-clauses=0 max-goal-nodes=0
+//│ Stop: Unit → Stop
+//│ @ctml-search calls=22 checks=22 fresh=0 infer=1 origins=0 groups=0 max-per-group=0 exact=0 abstract=0 cuts=0 max-clauses=31 max-goal-nodes=3
+//│ Next: ∀α. α → (Next ∧ {tail: α})
+//│ Chain = ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
+
+Next(Next(Next(Stop()))) as Chain
+//│ @ctml-search calls=154 checks=67 fresh=5 infer=4 origins=2 groups=2 max-per-group=3 exact=0 abstract=0 cuts=0 max-clauses=66 max-goal-nodes=14
+//│ Chain
+
+:te
+Next(Next(false)) as Chain
+//│ @ctml-search calls=67 checks=17 fresh=3 infer=2 origins=2 groups=2 max-per-group=2 exact=0 abstract=0 cuts=0 max-clauses=47 max-goal-nodes=14
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Chain.
+//│ Typing error tree:
+//│   α ≤ Chain
+//│     Next ∧ {tail: β} ≤ Chain
+//│       Next ∧ {tail: β} ≤ ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
+//│         Next ∧ {tail: β} ≤ {γ ≥ Stop ∨ (Next ∧ {tail: γ})} ⟹ γ
+//│           Next ∧ {tail: β} ≤ γ
+//│             Next ∧ {tail: β} ≤ Stop
+//│               Next ≤ Stop
+//│               {tail: β} ≤ Stop
+//│                 β ≤ ⊥
+//│                   δ ≤ ⊥
+//│                     Next ∧ {tail: ε} ≤ ⊥
+//│                       Next ≤ ⊥
+//│                       {tail: ε} ≤ ⊥
+//│                         ε ≤ ⊥
+//│                           Bool ≤ ⊥
+//│             Next ∧ {tail: β} ≤ Next ∧ {tail: γ}
+//│               Next ∧ {tail: β} ≤ {tail: γ}
+//│                 Next ≤ {tail: γ}
+//│                 {tail: β} ≤ {tail: γ}
+//│                   β ≤ γ
+//│                     δ ≤ γ
+//│                       Next ∧ {tail: ε} ≤ γ
+//│                         Next ∧ {tail: ε} ≤ Stop
+//│                           Next ≤ Stop
+//│                           {tail: ε} ≤ Stop
+//│                             ε ≤ ⊥
+//│                               Bool ≤ ⊥
+//│                         Next ∧ {tail: ε} ≤ Next ∧ {tail: γ}
+//│                           Next ∧ {tail: ε} ≤ {tail: γ}
+//│                             Next ≤ {tail: γ}
+//│                             {tail: ε} ≤ {tail: γ}
+//│                               ε ≤ γ
+//│                                 Bool ≤ γ
+//│                                   Bool ≤ Stop
+//│                                   Bool ≤ Next ∧ {tail: γ}
+//│                                     Bool ≤ Next

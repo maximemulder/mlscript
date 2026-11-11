@@ -165,7 +165,8 @@ extension (type_ : Type)
 /** Check whether a subtyping judgment is refuted, that is, whether it is between decided types and
  *  does not hold (see `assume`). */
 private def isRefuted(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
-  sub.isDecided && sup.isDecided && !checkSubtype(sub, sup)
+  sub.isDecided && sup.isDecided &&
+    checkSubtypeResult(sub, sup) == SubtypeCheck.NotProved
 
 /** Check whether a subtyping judgment in a given typing direction is refuted (see `isRefuted`). */
 private def isRefutedDir(left: Type, right: Type, dir: Direction)(using ctx: SubContext): Boolean =

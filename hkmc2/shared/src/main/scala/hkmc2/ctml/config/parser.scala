@@ -3,6 +3,7 @@ package hkmc2.ctml.config
 import scala.collection.mutable.ListBuffer
 
 import hkmc2.ctml.utils.*
+import hkmc2.ctml.core.subtyping.ProvenancePolicy
 
 def applyConfigArguments(arguments: List[String]): Unit =
   try
@@ -31,6 +32,23 @@ def applyConfigArguments(arguments: List[String]): Unit =
           config.dewrapUcsIfs = false
         case "profile-infer" =>
           config.profileInfer = true
+        case "profile-search" =>
+          config.profileSearch = true
+        case "provenance-observe" =>
+          config.provenancePolicy = ProvenancePolicy.Observe
+        case "provenance-cut" =>
+          config.provenancePolicy = ProvenancePolicy.Cut
+        case "no-provenance" =>
+          config.provenancePolicy = ProvenancePolicy.Off
+        case "no-search-limit" =>
+          config.searchSteps = None
+        case "no-check-limit" =>
+          config.checkSteps = None
+        case option @ ("search-steps" | "check-steps") =>
+          val value = buffer.popFront.map(_.toInt).filter(_ > 0)
+            .getOrElse(throw Exception(s"$option requires a positive integer"))
+          if option == "search-steps" then config.searchSteps = Some(value)
+          else config.checkSteps = Some(value)
         case argument =>
           throw Exception(s"unknown argument '${argument}'")
   catch

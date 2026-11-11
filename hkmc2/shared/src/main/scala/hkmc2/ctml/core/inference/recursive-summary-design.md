@@ -1,5 +1,10 @@
 # Recursive summaries with local branch refinement
 
+For the agreed general solver direction, see the
+[provenance investigation and handoff](../subtyping/provenance-design.md). This document describes
+the recursive-summary option; its implementation is on `backup/fix-recursion-1`. It remains a
+comparison and potential invariant-synthesis layer, rather than the selected general cycle policy.
+
 ## Recommendation
 
 Prototype candidate synthesis followed by checking the original recursive body against the

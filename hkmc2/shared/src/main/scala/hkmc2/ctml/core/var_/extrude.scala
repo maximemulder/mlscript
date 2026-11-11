@@ -86,7 +86,7 @@ private def extrudeConstraint(constraint: Constraint)(using ctx: SubContext, lev
 
 private def extrudeVar(var_ : TypeVar)(using ctx: SubContext, level: Int, pol: Polarity, cache: ExtrudeCache): (Type, SubClauses) =
   // Create new fresh type variable at the right level.
-  val freshDecl = ctx.declExtrudeVar(var_, level)
+  val freshDecl = ctx.declExtrudeVar(var_, level, pol)
   val freshVar  = freshDecl.var_
   val freshType = TVar(freshVar)
 

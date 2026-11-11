@@ -1,5 +1,10 @@
 # Functions and bindings
 
+The [provenance investigation](../subtyping/provenance-design.md) records the comparison of Scala,
+Lean, FCCTI(+), and `backup/fix-recursion-1`, and the agreed direction for general cycle handling.
+The [experiment report](../subtyping/provenance-experiment.md) describes the implemented cuts,
+resource controls, measurements, and remaining recursive-inference failures.
+
 The parser retains the elaborator's term-variable identities. Names are for display; resolved
 references use identity for lookup. Synthetic literal, operator, and fixed-point references select
 their prelude declarations, independently of local shadowing.

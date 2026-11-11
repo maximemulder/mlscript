@@ -48,7 +48,13 @@ def subtypeDirSeq(left: Type, right: Type, dir: Direction, ins: SubClauses)(usin
 /** Constrain a type to be a subtype of another type in a context. */
 def subtype(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   try
-    subtypeWithDebug(subtypeTrail)(sub, sup)
+    withSearchSession: operation =>
+      val active = if config.provenancePolicy != ProvenancePolicy.Off &&
+          operation.trail.roots.isEmpty then
+        operation.mapTrail(_.copy(roots = Some(operation.typeVarDecls.map(_.var_).toSet)))
+      else operation
+      active.trail.search.foreach(_.enter(sub, sup)(using active))
+      subtypeWithDebug(subtypeTrail(_, _)(using active))(using active)(sub, sup)
   catch
     case error: TypeError =>
       error.addStep(SubtypingJudgment(sub, sup))
@@ -70,6 +76,7 @@ def subtype(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
  *    mechanization does on the exact repeats of its trail. */
 def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   if ctx.trail.contains(sub, sup) then
+    ctx.trail.search.foreach(session => session.exactRepeats += 1)
     val discharged = sub.lookupVar.exists(_.isFlex) || sup.lookupVar.exists(_.isFlex)
     debugTrail(sub, sup, discharged)
     if !discharged then
@@ -78,7 +85,25 @@ def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
       ))
     return SubClauses.empty
 
-  subtypeImpl(sub, sup)(using ctx.mapTrail(_.add(sub, sup)))
+  val trail = ctx.trail.add(sub, sup)
+  if config.provenancePolicy != ProvenancePolicy.Off &&
+      (sub.lookupVar.isDefined || sup.lookupVar.isDefined) then
+    // Immediate proofs do not need a search cut, even if their abstract key collides.
+    if holdsByAtoms(sub, sup) || (config.hypothesis && ctx.hypotheses.contains(sub, sup)) then
+      return SubClauses.empty
+    val session = ctx.trail.search.getOrElse(
+      throw IllegalStateException("Provenance search requires an operation session"))
+    val key = ProvenanceKey(sub, sup, ctx.trail.roots.getOrElse(
+      throw IllegalStateException("Provenance search requires input-variable anchors")))
+    if trail.provenanceKeys(key) then
+      session.abstractRepeats += 1
+      if config.provenancePolicy == ProvenancePolicy.Cut then
+        session.cuts += 1
+        throw SearchInconclusive("a variable-bound search repeats up to provenance")
+    subtypeImpl(sub, sup)(using ctx.mapTrail(_ =>
+      trail.copy(provenanceKeys = trail.provenanceKeys + key)))
+  else
+    subtypeImpl(sub, sup)(using ctx.mapTrail(_ => trail))
 
 /** Implementation of `subtype` by the subtyping rules. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
@@ -241,9 +266,7 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
       // variables first hides that witness, even though right introduction remains sound.
       sub match
         case sub: TUniv =>
-          subtypeTargetInstance(sub, sup) match
-            case Some(clauses) => return clauses
-            case None =>
+          return withTargetInstance(sub, sup)(subtypeUnivSup(sub, sup))
         case _ =>
       return subtypeUnivSup(sub, sup)
     case _ =>
@@ -272,10 +295,11 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   // guards before exposing a rigid target or choosing one branch of a target union.
   sub match
     case sub: TUniv =>
-      subtypeTargetInstance(sub, sup) match
-        case Some(clauses) => return clauses
-        case None =>
-    case _ =>
+      withTargetInstance(sub, sup)(subtypeStructural(sub, sup))
+    case _ => subtypeStructural(sub, sup)
+
+/** Apply structural and bound-lookup rules after primitive and right-binder rules. */
+private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 
   // Subtyping of union and intersection types.
 
@@ -493,7 +517,9 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
     case _ =>
 
   val (univVars, univBody) = sub.getUnivComponents
-  ctx.withSubtypingLevel((ctx) =>
+  val opening = ctx.mapTrail(trail => trail.copy(
+    flow = trail.flow ++ univVars.map(_.provenance.root)))
+  opening.withSubtypingLevel((ctx) =>
     val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)(using ctx)
     subtypeSeq(instanceBody, sup, outs)(using ctx)
   )
@@ -511,10 +537,29 @@ private def subtypeTargetInstance(sub: TUniv, sup: Type)(using ctx: SubContext):
   catch
     case _: TypeError => None
 
+/** A cut in the target-witness heuristic leaves ordinary instantiation available. If that also
+ *  fails, retain the inconclusive outcome rather than reporting a completed search failure. */
+private def withTargetInstance(sub: TUniv, sup: Type)(fallback: => SubClauses)
+    (using ctx: SubContext): SubClauses =
+  var inconclusive: Option[SearchInconclusive] = None
+  val candidate = try subtypeTargetInstance(sub, sup)
+  catch
+    case error: SearchInconclusive if !error.global =>
+      inconclusive = Some(error)
+      None
+  candidate match
+    case Some(clauses) => clauses
+    case None =>
+      try fallback
+      catch
+        case error: TypeError => throw inconclusive.getOrElse(error)
+
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: SubContext): SubClauses =
   val (univVars, univBody) = sup.getUnivComponents
-  ctx.withSubtypingLevel((ctx) =>
+  val opening = ctx.mapTrail(trail => trail.copy(
+    flow = trail.flow ++ univVars.map(_.provenance.root)))
+  opening.withSubtypingLevel((ctx) =>
     val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Rigid)(using ctx)
     subtypeSeq(sub, instanceBody, outs)(using ctx)
   )
@@ -575,15 +620,31 @@ def subtypeApp(sub: TApp, sup: TApp)(using ctx: SubContext): SubClauses =
     subtype(sub.arg, sup.arg),
   )
 
-/** Check whether a type is a subtype of another type without requiring any additional constraint. */
-def checkSubtype(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
-  try
-    withCheckingMode(subtype(sub, sup)(using ctx.rigidify()))
-  catch
-    case _: TypeError =>
-      return false
+/** Outcome of an optional proof query. Failure is not generally a semantic refutation, and a
+ *  resource cut is never a refutation, even in a fragment with complete subtyping rules. */
+enum SubtypeCheck:
+  /** The solver completed the proof query. */
+  case Proven
+  /** The solver explored its rules and found no proof. */
+  case NotProved
+  /** The query was stopped before completing its search. */
+  case Inconclusive
 
-  return true
+/** Run an optional proof query without conflating a search cut with a completed failure. */
+def checkSubtypeResult(sub: Type, sup: Type)(using ctx: SubContext): SubtypeCheck =
+  val checking = ctx.rigidify().mapTrail(trail =>
+    trail.copy(checking = Some(trail.checking.getOrElse(CheckingBudget()))))
+  try
+    withCheckingMode(subtype(sub, sup)(using checking))
+    SubtypeCheck.Proven
+  catch
+    case _: TypeError => SubtypeCheck.NotProved
+    case error: SearchInconclusive if !error.global => SubtypeCheck.Inconclusive
+
+/** Check whether a subtype query completes successfully, for optional simplifications. An
+ *  inconclusive query supplies no permission to simplify or to discard a constraint. */
+def checkSubtype(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
+  checkSubtypeResult(sub, sup) == SubtypeCheck.Proven
 
 /** Check whether a type is a subtype or supertype of another type according to a typing direction
  *  without requiring any additional constraint. */

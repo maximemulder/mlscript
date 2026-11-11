@@ -12,8 +12,11 @@ import hkmc2.ctml.core.var_.declInferVar
 def inferSeq(expr: Expr, ins: SubClauses)(using ctx: TypeContext): (Type, SubClauses) =
   ctx.seq(infer(expr), ins)
 
+/** Infer and close a top-level expression, sharing resource accounting across its solver calls. */
 def inferTopLevel(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
-  (ctx.withInferLevel((ctx) => infer(expr)(using ctx)), SubClauses.empty)
+  withSearchSession(active =>
+    (ctx.copy(sub = active).withInferLevel((ctx) => infer(expr)(using ctx)), SubClauses.empty)
+  )(using ctx.sub)
 
 /** Infer the type of an expression. */
 def infer(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =

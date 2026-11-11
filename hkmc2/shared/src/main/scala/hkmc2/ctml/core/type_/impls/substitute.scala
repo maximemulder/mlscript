@@ -36,7 +36,7 @@ object TypeSubstitute2 extends TypeChainApplicator[Id, Id, TypeSubstituteParams]
       case TVar(var_) if var_ == params.var_ =>
         params.substitute
       case TUniv(var_, body) if params.substitute.hasVar(var_) && body.hasVar(params.var_) =>
-        val fresh = newFreshVar()
+        val fresh = new TypeVar(newFreshVarName(), var_.provenance)
         TUniv(fresh, first.apply(body.substitute(var_, TVar(fresh)), params))
       case _ =>
         next.apply(type_, params)

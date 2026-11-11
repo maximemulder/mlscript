@@ -1,5 +1,7 @@
 package hkmc2.ctml.parser
 
+import hkmc2.asInt
+
 import hkmc2.ctml.test.*
 import hkmc2.ctml.types.*
 import hkmc2.semantics.Annot
@@ -159,8 +161,10 @@ def parseExprDecl(mlSymbol: BlockMemberSymbol, mlParams: List[ParamList], mlType
       case Nil => TLam(TClass(ClassVar("Unit")), ret)
       case params => params.foldRight(ret): (param, ret) =>
         TLam(param.sign.map(parseType(_)).getOrElse(TTop), ret)
-  val type_ = typeParamNames.foldRight(function): (typeParamName, body) =>
-    TUniv(TypeVar(typeParamName), body)
+  val type_ = mlTypeParams.foldRight(function): (param, body) =>
+    val variable = new TypeVar(param.sym.nme,
+      VarProvenance(VarOrigin.Source(param.sym.uid.asInt), VarRole.Root, Set.empty))
+    TUniv(variable, body)
 
   StmtExprDecl(variable, type_)
 

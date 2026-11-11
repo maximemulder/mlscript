@@ -114,12 +114,24 @@ server when finished. Do not include unrelated golden-output changes.
 | File or area | State |
 | --- | --- |
 | [gcd.mls](gcd.mls) | Source translation complete, inference coverage partial: `g` and `gcdE` infer successfully. `max_` inference alone exceeds the 25-second limit; the extracted nested comprehension also times out. Both are retained as commented reproducers. `test`, `testGcd_nofib`, and `main` are translated but disabled because of these dependencies. Independent checks of both tuple-mapping stages compose successfully through the trusted `map` contract, with an integer-list result assertion and an invalid-input test. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. |
+| [cryptarithm1.mls](cryptarithm1.mls) | Source translation complete, inference coverage partial: `expand` and the exact ten-element `condition` pattern infer successfully. `addj` exceeds the 25-second test limit and is retained as a commented reproducer. `permutations`, `testCryptarithm_nofib`, and `main` are translated but disabled because they depend on `addj`. The source input remains `1`. The MLscript runtime reference reports a stack overflow, not a successful benchmark result. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | Diagnostic `firstOrZero` composes imprecisely with the inferred producer. Unannotated `length` inference times out and is retained as a commented reproducer. These are deferred inference issues. |
 
-**Next task: choose the next benchmark, or explicitly prioritize the GCD inference blockers.**
+**Next task: start the `cse.mls` port with its state-computation combinators.**
+The nonrecursive `retURN`, `bind`, `join`, `mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`,
+`update`, and `set_` definitions exercise higher-order inference and pair destructuring without
+requiring additional list consumers. Preserve the later recursive/tree stages for subsequent
+increments and report any new representation choice before implementing it.
+
+Cryptarithm's shared `take` and `filter` contracts have caller checks in `preludeTests.mls`.
+Their implementations time out during inference. Implicit `take`/range composition retains
+an active `:fixme`, with an explicit range witness tested separately as a diagnostic control.
+The benchmark-local `addj` timeout blocks permutation generation and the entry point; no trusted
+signature substitutes for that benchmark computation.
+
 GCD's source translation is complete, including the original `testGcd_nofib(40)` entry point.
 The kernel and tuple-mapping stages are active; the maximum and nested-comprehension inference
 reproducers exceed the test time limit. These are benchmark-local functions, so the current
@@ -142,6 +154,9 @@ toy; it is not the source to copy. `max_` is partial on empty lists. The source 
 Paths below are relative to this directory:
 
 - [Original benchmark](../../../mlscript-compile/nofib/gcd.mls).
+- [Original cryptarithm benchmark](../../../mlscript-compile/nofib/cryptarithm1.mls) and
+  [runtime reference](../../nofib/cryptarithm1.mls).
+- [Next benchmark: CSE](../../../mlscript-compile/nofib/cse.mls).
 - [Original standard helpers](../../../mlscript-compile/nofib/NofibPrelude.mls).
 - [MLscript runtime reference](../../nofib/gcd.mls).
 - [Producer inference reproductions](../ctmlRecursiveProducerInference.mls) and

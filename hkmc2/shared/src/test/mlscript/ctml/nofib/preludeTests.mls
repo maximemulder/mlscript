@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 13 member(s)
+//│ Imported 15 member(s)
 
 // Integer helpers accept negative, zero, and positive inputs.
 [abs(0 - 3), [abs(0), abs(3)]] as [Int, [Int, Int]]
@@ -221,3 +221,206 @@ map(x => "bad", LCons(1, LNil())) as IntList
 //│                     ε ≤ LCons
 //│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ε}) ≤ LCons
 //│                         LNil ≤ LCons
+
+// Take's manual contract retains element types for empty and nonempty inputs.
+take(0, LCons(1, LNil())) as IntList
+//│ IntList
+
+take(0 - 1, LNil()) as IntList
+//│ IntList
+
+take(3, LCons(1, LCons(2, LNil()))) as IntList
+//│ IntList
+
+:te
+take("bad", LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) ≤ Str → α.
+//│ Typing error tree:
+//│   ∀A. Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) ≤ Str → α
+//│     Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) ≤ Str → α
+//│       Str ≤ Int
+
+:te
+take(1, LCons(1, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                 LCons ∧ {head: ε} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     Bool ≤ ⊥
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {tail: η}
+//│                   LCons ∧ {head: ε} ≤ {tail: η}
+//│                     LCons ≤ {tail: η}
+//│                     {head: ε} ≤ {tail: η}
+//│                       ε ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ζ} ≤ {tail: η}
+//│                     ζ ≤ η
+//│                       Bool ≤ η
+//│                         Bool ≤ LNil
+//│                         Bool ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                           Bool ≤ LCons ∧ {head: δ}
+//│                             Bool ≤ LCons
+
+:te
+take(1, LCons("bad", LNil())) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ IntList
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│               {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│                 δ ≤ LNil
+//│                   LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                     (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: β} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: β} ≤ LNil
+//│                           β ≤ ⊥
+//│                             ε ≤ ⊥
+//│                               Str ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                     ζ ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ}) ≤ LCons
+//│                         LNil ≤ LCons
+
+// Filter's contract requires a Boolean predicate and preserves its input element type.
+filter(x => x <= 2, LCons(1, LCons(3, LNil()))) as IntList
+//│ IntList
+
+filter(x => x <= 2, LNil()) as IntList
+//│ IntList
+
+map(x => x + 1, filter(x => x <= 2, take(2, LCons(1, LNil())))) as IntList
+//│ IntList
+
+:te
+filter(x => x + 1, LCons(1, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) ≤ (Int → Int) → α.
+//│ Typing error tree:
+//│   ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) ≤ (Int → Int) → α
+//│     (β → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) ≤ (Int → Int) → α
+//│       Int → Int ≤ β → Bool
+//│         Int ≤ Bool
+
+:te
+filter(x => x <= 2, LCons("bad", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                 LCons ∧ {head: ε} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       Str ≤ ⊥
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     θ ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: δ}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: δ}
+//│                     LCons ∧ {head: ε} ≤ {head: δ}
+//│                       LCons ≤ {head: δ}
+//│                       {head: ε} ≤ {head: δ}
+//│                         ε ≤ δ
+//│                           ε ≤ Int
+//│                             Str ≤ Int
+//│                     {tail: ζ} ≤ {head: δ}
+//│                       ζ ≤ ⊥
+//│                         θ ≤ ⊥
+//│                           LNil ≤ ⊥
+
+:te
+filter(x => true, LCons("bad", LNil())) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ IntList
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│               {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│                 δ ≤ LNil
+//│                   LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                     (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: β} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: β} ≤ LNil
+//│                           β ≤ ⊥
+//│                             ε ≤ ⊥
+//│                               Str ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                     ζ ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ}) ≤ LCons
+//│                         LNil ≤ LCons
+
+// Diagnostic control for the range used by cryptarithm1; ordinary range uses remain implicit.
+take(10, enumFromTo[IntList](0, 10)) as IntList
+//│ IntList
+
+:fixme // FIXME: Implicit range instantiation cannot solve the recursive list bound.
+take(10, enumFromTo(0, 10)) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ ζ
+//│             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ζ
+//│               (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ ζ
+//│                 (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ LNil
+//│                   LCons ∧ {head: Int} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Int} ≤ LNil
+//│                       Int ≤ ⊥
+//│                   {tail: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ (LCons ∧ {head: δ}) ∧ {tail: ζ}
+//│                   (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                     LCons ∧ {head: Int} ≤ {tail: ζ}
+//│                       LCons ≤ {tail: ζ}
+//│                       {head: Int} ≤ {tail: ζ}
+//│                         Int ≤ ⊥
+//│                     {tail: ε} ≤ {tail: ζ}
+//│                       ε ≤ ζ
+//│                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ζ

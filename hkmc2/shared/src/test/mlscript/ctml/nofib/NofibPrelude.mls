@@ -59,3 +59,25 @@ fun enumFromTo(a, b) =
  */
 declare fun map[A, B]: (A -> B) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y)
 //│ map: ∀A, B. (A → B) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y)
+
+// FIXME: Inference of unannotated take exceeds the 25-second diff-test limit.
+// /** Source take returns empty for nonpositive counts and preserves shorter lists. */
+// fun take(n, ls) = if ls is
+//   LNil() then LNil()
+//   LCons(h, t) then
+//     if n <= 0 then LNil() else LCons(h, take(n - 1, t))
+
+/** Trusted take contract; the source implementation above is not checked by this declaration. */
+declare fun take[A]: Int -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ take: ∀A. Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+// FIXME: Inference of unannotated filter exceeds the 25-second diff-test limit.
+// /** Source filter preserves the order of elements satisfying the predicate. */
+// fun filter(f, ls) = if ls is
+//   LNil() then LNil()
+//   LCons(h, t) then
+//     if f(h) then LCons(h, filter(f, t)) else filter(f, t)
+
+/** Trusted filter contract; the source implementation above is not checked by this declaration. */
+declare fun filter[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ filter: ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)

@@ -1,0 +1,91 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 15 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm1.mls.
+// Source lists use LNil()/LCons; the fixed-length digit pattern is preserved.
+
+/** Assemble the six source digits without changing their decimal positions. */
+fun expand(a, b, c, d, e, f) = f + (e * 10) + (d * 100) + (c * 1000) + (b * 10000) + (a * 100000)
+//│ expand: Int → Int → Int → Int → Int → Int → Int
+
+/** Test THIRTY + 5 * TWELVE = NINETY on exactly ten digit bindings. */
+fun condition(thirywelvn) = if thirywelvn is
+  LCons(t, LCons(h, LCons(i, LCons(r, LCons(y, LCons(w, LCons(e, LCons(l, LCons(v, LCons(n, LNil())))))))))) then
+    (expand(t, h, i, r, t, y) + 5 * expand(t, w, e, l, v, e)) == expand(n, i, n, e, t, y)
+//│ condition: (({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons) → Bool
+
+expand(1, 2, 3, 4, 5, 6) as Int
+//│ Int
+
+condition(LCons(0, LCons(1, LCons(2, LCons(3, LCons(4, LCons(5, LCons(6, LCons(7, LCons(8, LCons(9, LNil()))))))))))) as Bool
+//│ Bool
+
+:te
+expand(1, 2, 3, 4, 5, "bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+:te
+condition(LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment (({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons) → Bool ≤ α → β.
+//│ Typing error tree:
+//│   (({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons) → Bool ≤ α → β
+//│     α ≤ ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons
+//│       LNil ≤ ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons
+//│         LNil ≤ {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}
+//│           LNil ≤ {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}
+//│             LNil ≤ {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}
+//│               LNil ≤ {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}}
+//│                 LNil ≤ {tail: {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}}
+//│                   LNil ≤ {tail: {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}}}
+//│                     LNil ≤ {tail: {tail: {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}}}
+//│                       LNil ≤ {tail: {tail: {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}}}}
+//│                         LNil ≤ {tail: {tail: {tail: {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}}}}
+//│                           LNil ≤ {tail: {tail: {tail: {tail: {tail: ({tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}}}}}
+//│                             LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}}}}}
+//│                               LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: ({tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}}}}}}
+//│                                 LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}}}}}}
+//│                                   LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: ({tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}) ∧ LCons}}}}}}}
+//│                                     LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons} ∧ {head: Int}}}}}}}}
+//│                                       LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: ({tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}) ∧ LCons}}}}}}}}
+//│                                         LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}} ∧ {head: Int}}}}}}}}}
+//│                                           LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: ({head: Int} ∧ LCons) ∧ {tail: LNil}}}}}}}}}}
+//│                                             LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {head: Int} ∧ LCons}}}}}}}}}
+//│                                               LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {head: Int}}}}}}}}}}
+
+// FIXME: Inference of addj exceeds the 25-second diff-test limit.
+// /** Insert j at every position, preserving the source order of generated lists. */
+// fun addj(j, ls) = if ls is
+//   LNil() then LCons(LCons(j, LNil()), LNil())
+//   LCons(k, ks) then
+//     fun lscomp(p1) = if p1 is
+//       LNil() then LNil()
+//       LCons(h1, t1) then LCons(LCons(k, h1), lscomp(t1))
+//     LCons(LCons(j, LCons(k, ks)), lscomp(addj(j, ks)))
+
+// FIXME: Permutation generation and entry points depend on the disabled addj definition.
+// /** Enumerate permutations by inserting the head into each permutation of the tail. */
+// fun permutations(ls) = if ls is
+//   LNil() then LCons(LNil(), LNil())
+//   LCons(j, js) then
+//     fun lscomp1(p1) = if p1 is
+//       LNil() then LNil()
+//       LCons(pjs, t1) then
+//         fun lscomp2(p2) = if p2 is
+//           LNil() then lscomp1(t1)
+//           LCons(r, t2) then LCons(r, lscomp2(t2))
+//         lscomp2(addj(j, pjs))
+//     lscomp1(permutations(js))
+
+// /** Preserve the source's inclusive ranges and ten-digit truncation for every iteration. */
+// fun testCryptarithm_nofib(n) =
+//   map(i =>
+//     let p0 = take(10, enumFromTo(0, 9 + i))
+//     filter(condition, permutations(p0)), enumFromTo(1, n))
+
+// /** Source benchmark input. */
+// fun main() = testCryptarithm_nofib(1)

@@ -1,0 +1,109 @@
+:ctml
+
+// Recursive consumer diagnostics; no encoded recursive type is needed for the timeout.
+
+/** Empty list. */
+data class LNil()
+/** A list cell with unrestricted constructor fields. */
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** Traverse a list using a supplied recursive call, without arithmetic or reconstruction. */
+fun walkStep(self, xs) = if xs is
+  LNil() then 0
+  LCons(_, t) then self(t)
+//│ walkStep: ∀α, β, γ, δ. {α ≤ ¬({β ≤ LNil, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ({tail: δ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(δ → γ)), β ≤ ¬({γ ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≤ δ → γ} ⟹ ¬(({tail: δ} ∧ LCons) ∧ {head: ⊤})), γ ≥ ({β ≤ LNil} ⟹ Int) ∧ ({α ≤ δ → γ, β ≤ ({tail: δ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)} ⟹ α → β → γ
+
+/** Count cells using a supplied recursive call. */
+fun lengthStep(self, xs) = if xs is
+  LNil() then 0
+  LCons(_, t) then 1 + self(t)
+//│ lengthStep: ∀α, β, γ. {α ≤ ¬({β ≤ LNil} ⟹ ⊥) ∨ ¬({β ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(γ → Int)), β ≤ LNil ∨ ¬({α ≤ γ → Int} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))} ⟹ α → β → (({β ≤ LNil} ⟹ Int) ∧ ({α ≤ γ → Int, β ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ Int))
+
+/** Reconstruct cells using a supplied recursive call. */
+fun copyStep(self, xs) = if xs is
+  LNil() then LNil()
+  LCons(h, t) then LCons(h, self(t))
+//│ copyStep: ∀α, β, γ, δ, ε, ζ. {α ≤ ¬({β ≤ LNil, γ ≥ LNil} ⟹ ⊥) ∨ ¬({β ≤ ({head: δ} ∧ {tail: ε}) ∧ LCons, γ ≥ (LCons ∧ {head: δ}) ∧ {tail: ζ}} ⟹ ¬(ε → ζ)), β ≤ ¬({γ ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ε → ζ, γ ≥ (LCons ∧ {head: δ}) ∧ {tail: ζ}} ⟹ ¬(({head: δ} ∧ {tail: ε}) ∧ LCons)), γ ≥ ({β ≤ LNil} ⟹ LNil) ∧ ({α ≤ ε → ζ, β ≤ ({head: δ} ∧ {tail: ε}) ∧ LCons} ⟹ (LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ α → β → γ
+
+/** Map elements using a supplied recursive call. */
+fun mapStep(self, f, xs) = if xs is
+  LNil() then LNil()
+  LCons(h, t) then LCons(f(h), self(f, t))
+//│ mapStep: ∀α, β, γ, δ, ε, ζ, η, θ. {δ ≥ ({γ ≤ LNil} ⟹ LNil) ∧ ({α ≤ β → ζ → θ, β ≤ ε → η, γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons} ⟹ (LCons ∧ {head: η}) ∧ {tail: θ}), γ ≤ ¬({δ ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ β → ζ → θ, β ≤ ε → η, δ ≥ (LCons ∧ {head: η}) ∧ {tail: θ}} ⟹ ¬(({head: ε} ∧ {tail: ζ}) ∧ LCons)), α ≤ ¬({γ ≤ LNil, δ ≥ LNil} ⟹ ⊥) ∨ ¬({β ≤ ε → η, γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons, δ ≥ (LCons ∧ {head: η}) ∧ {tail: θ}} ⟹ ¬(β → ζ → θ)), β ≤ ¬({γ ≤ LNil, δ ≥ LNil} ⟹ ⊥) ∨ ¬({α ≤ β → ζ → θ, γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons, δ ≥ (LCons ∧ {head: η}) ∧ {tail: θ}} ⟹ ¬(ε → η))} ⟹ α → β → γ → δ
+
+// FIXME: Isolated closure of recursion exhausts the 5,000-step subtyping debug budget.
+// fix(walkStep)
+
+// FIXME: Direct recursion also exceeds 25 seconds, without any encoded list signature.
+// fun walk(xs) = if xs is
+//   LNil() then 0
+//   LCons(_, t) then walk(t)
+
+// FIXME: List heads are unnecessary for the timeout; unary constructor traversal suffices.
+// data class Stop()
+// data class Next(tail)
+// fun unaryWalk(xs) = if xs is
+//   Stop() then 0
+//   Next(t) then unaryWalk(t)
+
+/** Recursive field access without a branch retains a compact recursive constraint. */
+fun spin(xs) = spin(xs.tail)
+//│ spin: ∀α. {α ≤ {tail: α}} ⟹ {tail: α} → ⊥
+
+/** Ordinary integer recursion supplies a nonstructural control. */
+fun countdown(n) = if n == 0 then 0 else countdown(n - 1)
+//│ countdown: Int → Int
+
+// Explicit recursive invariants are a separate checking control.
+/** Encoded integer lists for the explicit-invariant control. */
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+/** One exposed layer of an integer list. */
+type IntLayer = LNil | (LCons & {head: Int} & {tail: IntList})
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ IntLayer = LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: IntList})
+
+/** Check the traversal body with an explicit invariant and one exposed list layer. */
+val checkedWalk = fix[IntList -> Int]((self: IntList -> Int) => xs =>
+  if (xs as IntLayer) is
+    LNil() then 0
+    LCons(_, t) then (self as (IntList -> Int))(t))
+//│ checkedWalk: IntList → Int
+
+checkedWalk(LCons(1, LCons(2, LNil()))) as Int
+//│ Int
+
+:te
+checkedWalk(LCons(1, false))
+//│ ═══[TYPE ERROR] Cannot solve judgment IntList → Int ≤ α → β.
+//│ Typing error tree:
+//│   IntList → Int ≤ α → β
+//│     α ≤ IntList
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ IntList
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
+//│                 LCons ∧ {head: γ} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: γ} ≤ LNil
+//│                     γ ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: δ} ≤ LNil
+//│                   δ ≤ ⊥
+//│                     Bool ≤ ⊥
+//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ (LCons ∧ {head: Int}) ∧ {tail: ε}
+//│                 (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {tail: ε}
+//│                   LCons ∧ {head: γ} ≤ {tail: ε}
+//│                     LCons ≤ {tail: ε}
+//│                     {head: γ} ≤ {tail: ε}
+//│                       γ ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: δ} ≤ {tail: ε}
+//│                     δ ≤ ε
+//│                       Bool ≤ ε
+//│                         Bool ≤ LNil
+//│                         Bool ≤ (LCons ∧ {head: Int}) ∧ {tail: ε}
+//│                           Bool ≤ LCons ∧ {head: Int}
+//│                             Bool ≤ LCons

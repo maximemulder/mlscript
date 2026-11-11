@@ -69,8 +69,10 @@ before implementing them. An inference failure alone does not require such a des
   and explicit-instantiation support are implemented; native recursive types are not a
   prerequisite for continuing the port. Generic source-level alias syntax or other missing
   conveniences still need a decision if a port requires them.
-- Defer automatic recursive-witness selection, consumer inference precision, and inference
-  performance investigations. Record their failures while continuing the source translation.
+- Automatic recursive-witness selection and consumer inference precision remain open. The
+  authorized consumer-performance investigation localizes the sampled timeouts to closing
+  recursion over guarded bounds; see the report linked below. Prioritize that bottleneck before
+  adding more list-heavy ports.
 
 ## File-by-file workflow
 
@@ -118,13 +120,25 @@ server when finished. Do not include unrelated golden-output changes.
 | [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
-| List consumers | Diagnostic `firstOrZero` composes imprecisely with the inferred producer. Unannotated `length` inference times out and is retained as a commented reproducer. These are deferred inference issues. |
+| List consumers | The focused investigation reproduces timeouts without encoded list signatures, down to unary constructor traversal. `walk`, `copy`, `map`, and dewrapped `length` samples locate the bottleneck in guarded-bound subtyping at the outer `fix` application. Function bodies with supplied recursive calls infer quickly; explicitly typed fixed-point controls pass. See `ctmlRecursiveConsumerInference.mls` and the performance report. Producer/consumer composition remains a separate precision issue. |
 
-**Next task: start the `cse.mls` port with its state-computation combinators.**
-The nonrecursive `retURN`, `bind`, `join`, `mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`,
-`update`, and `set_` definitions exercise higher-order inference and pair destructuring without
-requiring additional list consumers. Preserve the later recursive/tree stages for subsequent
-increments and report any new representation choice before implementing it.
+**Next task: review the recursive-summary design, then prototype summary checking.**
+The [consumer performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)
+localizes the timeout. The follow-up
+[recursive-summary design](../../../../main/scala/hkmc2/ctml/core/inference/recursive-summary-design.md)
+compares FCCTI+-style instantiation sharing with candidate synthesis and body checking. It recommends
+preserving local branch refinement while using a shared checked contract at recursive calls.
+The new `ctmlRecursiveSummaryChecking.mls` controls expose why neither an ascription around an
+inferred scheme nor the current explicit-invariant idiom alone provides that checking path.
+
+No approximation rule or inference implementation is adopted yet. First establish expected-type
+checking with local refinements using supplied candidates; then infer positive structural candidates
+for `walk` and `length`, followed by `copy` and `map`. Keep the existing recursive representation,
+unannotated benchmarks, and library contracts. Substantial solver design changes still need review.
+
+When porting resumes, `cse.mls` remains the next source: its nonrecursive `retURN`, `bind`, `join`,
+`mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`, `update`, and `set_` combinators exercise
+higher-order inference and pair destructuring before its recursive/tree stages.
 
 Cryptarithm's shared `take` and `filter` contracts have caller checks in `preludeTests.mls`.
 Their implementations time out during inference. Implicit `take`/range composition retains
@@ -164,6 +178,8 @@ Paths below are relative to this directory:
 - [Recursive encoding tests](../ctmlRecursiveEncoding.mls),
   [explicitly typed list controls](../ctmlRecursiveLists.mls), and
   [target-instantiation tests](../ctmlTargetInstantiation.mls).
+- [Consumer inference controls](../ctmlRecursiveConsumerInference.mls) and
+  [timeout investigation](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md).
 - [Deferred producer-inference investigation](../../../../main/scala/hkmc2/ctml/core/inference/nofib-producer-inference.md).
   Its proposed solver work is not the next porting task.
 - [Recursive encoding design and proof report](../../../../main/scala/hkmc2/ctml/core/subtyping/recursive-encoding.md).

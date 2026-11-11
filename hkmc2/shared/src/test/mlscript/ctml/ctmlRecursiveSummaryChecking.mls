@@ -1,0 +1,305 @@
+:ctml
+
+/** Base constructor of a unary chain. */
+data class Stop()
+/** Recursive constructor with an unrestricted tail. */
+data class Next(tail)
+//│ Stop: Unit → Stop
+//│ Next: ∀α. α → (Next ∧ {tail: α})
+
+/** Infer the traversal body independently of its recursive invariant. */
+fun step(self, xs) = if xs is
+  Stop() then 0
+  Next(t) then self(t)
+//│ step: ∀α, β, γ, δ. {α ≤ ¬({β ≤ Stop, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ {tail: δ} ∧ Next} ⟹ ¬(δ → γ)), β ≤ ¬({γ ≥ Int} ⟹ ¬Stop) ∨ ¬({α ≤ δ → γ} ⟹ ¬({tail: δ} ∧ Next)), γ ≥ ({β ≤ Stop} ⟹ Int) ∧ ({α ≤ δ → γ, β ≤ {tail: δ} ∧ Next} ⟹ ⊥)} ⟹ α → β → γ
+
+/** Candidate invariant expressed with the existing least-fixed-point encoding. */
+type Nodes = [X restricts (Stop | (Next & {tail: X}))] -> X
+//│ Nodes = ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
+
+// Checking a compact summary after inferring the guarded scheme is incomplete.
+:fixme // FIXME: The inferred curried scheme does not split the inner input into constructor cases.
+val summary: (Nodes -> Int) -> Nodes -> Int = step
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ. {α ≤ ¬({β ≤ Stop, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ {tail: δ} ∧ Next} ⟹ ¬(δ → γ)), β ≤ ¬({γ ≥ Int} ⟹ ¬Stop) ∨ ¬({α ≤ δ → γ} ⟹ ¬({tail: δ} ∧ Next)), γ ≥ ({β ≤ Stop} ⟹ Int) ∧ ({α ≤ δ → γ, β ≤ {tail: δ} ∧ Next} ⟹ ⊥)} ⟹ α → β → γ ≤ (Nodes → Int) → Nodes → Int.
+//│ Typing error tree:
+//│   ∀α, β, γ, δ. {α ≤ ¬({β ≤ Stop, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ {tail: δ} ∧ Next} ⟹ ¬(δ → γ)), β ≤ ¬({γ ≥ Int} ⟹ ¬Stop) ∨ ¬({α ≤ δ → γ} ⟹ ¬({tail: δ} ∧ Next)), γ ≥ ({β ≤ Stop} ⟹ Int) ∧ ({α ≤ δ → γ, β ≤ {tail: δ} ∧ Next} ⟹ ⊥)} ⟹ α → β → γ ≤ (Nodes → Int) → Nodes → Int
+//│     {ε ≤ ¬({ζ ≤ Stop, η ≥ Int} ⟹ ⊥) ∨ ¬({ζ ≤ {tail: θ} ∧ Next} ⟹ ¬(θ → η)), ζ ≤ ¬({η ≥ Int} ⟹ ¬Stop) ∨ ¬({ε ≤ θ → η} ⟹ ¬({tail: θ} ∧ Next)), η ≥ ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥)} ⟹ ε → ζ → η ≤ (Nodes → Int) → Nodes → Int
+//│       {ζ ≤ ¬({η ≥ Int} ⟹ ¬Stop) ∨ ¬({ε ≤ θ → η} ⟹ ¬({tail: θ} ∧ Next)), η ≥ ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥)} ⟹ ε → ζ → η ≤ (Nodes → Int) → Nodes → Int
+//│         {η ≥ ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥)} ⟹ ε → ζ → η ≤ (Nodes → Int) → Nodes → Int
+//│           ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥) ≤ η
+//│             ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥) ≤ Int
+//│               {ζ ≤ Stop} ⟹ Int ≤ Int
+//│                 ζ ≤ Stop
+//│                   Nodes ≤ Stop
+//│                     ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ Stop
+//│                       {ι ≥ Stop ∨ (Next ∧ {tail: ι})} ⟹ ι ≤ Stop
+//│                         ι ≤ Stop
+//│                           Stop ∨ (Next ∧ {tail: ι}) ≤ Stop
+//│                             Next ∧ {tail: ι} ≤ Stop
+//│                               Next ≤ Stop
+//│                               {tail: ι} ≤ Stop
+//│                                 ι ≤ ⊥
+//│                                   Stop ∨ (Next ∧ {tail: ι}) ≤ ⊥
+//│                                     Stop ≤ ⊥
+//│               {ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥ ≤ Int
+//│                 {ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥ ≤ Int
+//│                   ζ ≤ {tail: θ} ∧ Next
+//│                     Nodes ≤ {tail: θ} ∧ Next
+//│                       ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ {tail: θ} ∧ Next
+//│                         ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ {tail: θ}
+//│                           {κ ≥ Stop ∨ (Next ∧ {tail: κ})} ⟹ κ ≤ {tail: θ}
+//│                             κ ≤ {tail: θ}
+//│                               Stop ∨ (Next ∧ {tail: κ}) ≤ {tail: θ}
+//│                                 Stop ≤ {tail: θ}
+
+/** One layer of the candidate invariant. */
+type Layer = Stop | (Next & {tail: Nodes})
+//│ Layer = Stop ∨ (Next ∧ {tail: Nodes})
+
+/** Validate a proposed invariant by checking one body layer with a shared recursive contract. */
+val walk = fix[Nodes -> Int]((self: Nodes -> Int) => xs =>
+  if (xs as Layer) is
+    Stop() then 0
+    Next(t) then (self as (Nodes -> Int))(t))
+//│ walk: Nodes → Int
+
+walk(Next(Next(Stop()))) as Int
+//│ Int
+
+:te
+walk(Next(false))
+//│ ═══[TYPE ERROR] Cannot solve judgment Nodes → Int ≤ α → β.
+//│ Typing error tree:
+//│   Nodes → Int ≤ α → β
+//│     α ≤ Nodes
+//│       Next ∧ {tail: γ} ≤ Nodes
+//│         Next ∧ {tail: γ} ≤ ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
+//│           Next ∧ {tail: γ} ≤ {δ ≥ Stop ∨ (Next ∧ {tail: δ})} ⟹ δ
+//│             Next ∧ {tail: γ} ≤ δ
+//│               Next ∧ {tail: γ} ≤ Stop
+//│                 Next ≤ Stop
+//│                 {tail: γ} ≤ Stop
+//│                   γ ≤ ⊥
+//│                     Bool ≤ ⊥
+//│               Next ∧ {tail: γ} ≤ Next ∧ {tail: δ}
+//│                 Next ∧ {tail: γ} ≤ {tail: δ}
+//│                   Next ≤ {tail: δ}
+//│                   {tail: γ} ≤ {tail: δ}
+//│                     γ ≤ δ
+//│                       Bool ≤ δ
+//│                         Bool ≤ Stop
+//│                         Bool ≤ Next ∧ {tail: δ}
+//│                           Bool ≤ Next
+
+// A bad recursive argument must fail inside the recursive branch.
+:te
+val badWalk = fix[Nodes -> Int]((self: Nodes -> Int) => xs =>
+  if (xs as Layer) is
+    Stop() then 0
+    Next(t) then (self as (Nodes -> Int))(false))
+//│ ═══[TYPE ERROR] Cannot solve judgment Nodes → Int ≤ Bool → α.
+//│ Typing error tree:
+//│   Nodes → Int ≤ Bool → α
+//│     Bool ≤ Nodes
+//│       Bool ≤ ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
+//│         Bool ≤ {β ≥ Stop ∨ (Next ∧ {tail: β})} ⟹ β
+//│           Bool ≤ β
+//│             Bool ≤ Stop
+//│             Bool ≤ Next ∧ {tail: β}
+//│               Bool ≤ Next
+
+/** Empty list for the local-refinement control. */
+data class LNil()
+/** A cell whose head may have any type. */
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** Candidate list invariant that permits heterogeneous heads. */
+type AnyList = [X restricts (LNil | (LCons & {head: Top} & {tail: X}))] -> X
+/** Expose one list layer for branch checking. */
+type AnyLayer = LNil | (LCons & {head: Top} & {tail: AnyList})
+//│ AnyList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│ AnyLayer = LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
+
+// Nested refinement of a head exposed as Top needs a locally refinable binding.
+:fixme // FIXME: Matching the exposed head tries to constrain Top to a branch instead of refining it.
+val sumInts = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
+  if (xs as AnyLayer) is
+    LNil() then 0
+    LCons(h, t) then
+      if h is Int then h + (self as (AnyList -> Int))(t)
+      else (self as (AnyList -> Int))(t))
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊤ ≤ ¬Int.
+//│ Typing error tree:
+//│   ⊤ ≤ ¬Int
+
+/** Infer local refinement independently of the recursive summary. */
+fun intOrZero(h) = if h is Int then h else 0
+//│ intOrZero: ∀α, β. {α ≥ ({β ≤ Int} ⟹ β) ∧ ({β ≤ ¬Int} ⟹ Int), β ≤ ¬({α ≥ β} ⟹ ¬Int) ∨ ¬({α ≥ Int} ⟹ Int)} ⟹ β → α
+
+// The helper retains guarded result constraints when used without a summary.
+:fixme // FIXME: Guarded helper requirements are not discharged inside the recursive summary.
+val sumWithHelper = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
+  if (xs as AnyLayer) is
+    LNil() then 0
+    LCons(h, t) then intOrZero(h) + (self as (AnyList -> Int))(t))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, β ≥ Int} ⟹ ¬(¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({β ≥ Int, γ ≤ ¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, γ ≤ ¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int)} ⟹ Int)} ⟹ α → β ≤ AnyLayer → δ.
+//│ Typing error tree:
+//│   ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, β ≥ Int} ⟹ ¬(¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({β ≥ Int, γ ≤ ¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, γ ≤ ¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int)} ⟹ Int)} ⟹ α → β ≤ AnyLayer → δ
+//│     ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, β ≥ Int} ⟹ ¬(¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({β ≥ Int, γ ≤ ¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ ∧ (¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, γ ≤ ¬({γ ≤ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int} ⟹ Int)} ⟹ Int)} ⟹ α → β ≤ ((LCons ∧ {head: ⊤}) ∧ {tail: AnyList}) → δ
+//│       {η ≤ ¬({ε ≤ LNil, ζ ≥ Int} ⟹ ⊥) ∨ ¬({ε ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, ζ ≥ Int} ⟹ ¬(¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))), ε ≤ ¬({ζ ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ Int, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), ζ ≥ ({ε ≤ LNil} ⟹ Int) ∧ ({ε ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ Int)} ⟹ ε → ζ ≤ ((LCons ∧ {head: ⊤}) ∧ {tail: AnyList}) → δ
+//│         {ε ≤ ¬({ζ ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ Int, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), ζ ≥ ({ε ≤ LNil} ⟹ Int) ∧ ({ε ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ Int)} ⟹ ε → ζ ≤ ((LCons ∧ {head: ⊤}) ∧ {tail: AnyList}) → δ
+//│           ε ≤ ¬({ζ ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ Int, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
+//│             (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ζ ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ Int, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
+//│               (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ζ ≥ Int} ⟹ ¬LNil)
+//│                 ¬LNil ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
+//│                   (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ LNil
+//│                     LCons ∧ {head: ⊤} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: ⊤} ≤ LNil
+//│                         ⊤ ≤ ⊥
+//│                     {tail: AnyList} ≤ LNil
+//│                       AnyList ≤ ⊥
+//│                         ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                           {θ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ})} ⟹ θ ≤ ⊥
+//│                             θ ≤ ⊥
+//│                               LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ}) ≤ ⊥
+//│                                 LNil ≤ ⊥
+//│               (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ζ ≥ Int, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
+//│                 {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
+//│                   {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬(LCons ∧ {head: ⊤})
+//│                     {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬LCons
+//│                       ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬LCons
+//│                         LCons ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                           LCons ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                             LCons ≤ {tail: AnyList} ∧ LCons
+//│                               LCons ≤ {tail: AnyList}
+//│                     {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{head: ⊤}
+//│                       ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{head: ⊤}
+//│                         {head: ⊤} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                           {head: ⊤} ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                             {head: ⊤} ≤ {tail: AnyList} ∧ LCons
+//│                               {head: ⊤} ≤ {tail: AnyList}
+//│                                 ⊤ ≤ ⊥
+//│                     ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬(LCons ∧ {head: ⊤})
+//│                       ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬LCons
+//│                         {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬LCons
+//│                           ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬LCons
+//│                             LCons ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                               LCons ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                                 LCons ≤ {tail: AnyList} ∧ LCons
+//│                                   LCons ≤ {tail: AnyList}
+//│                         LCons ≤ ¬LCons
+//│                       ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬{head: ⊤}
+//│                         {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{head: ⊤}
+//│                           ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{head: ⊤}
+//│                             {head: ⊤} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                               {head: ⊤} ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                                 {head: ⊤} ≤ {tail: AnyList} ∧ LCons
+//│                                   {head: ⊤} ≤ {tail: AnyList}
+//│                                     ⊤ ≤ ⊥
+//│                         LCons ≤ ¬{head: ⊤}
+//│                   {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{tail: AnyList}
+//│                     ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{tail: AnyList}
+//│                       {tail: AnyList} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                         {tail: AnyList} ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                           {tail: AnyList} ≤ {tail: AnyList} ∧ LCons
+//│                             {tail: AnyList} ≤ LCons
+//│                               AnyList ≤ ⊥
+//│                                 ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                                   {ι ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ι})} ⟹ ι ≤ ⊥
+//│                                     ι ≤ ⊥
+//│                                       LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ι}) ≤ ⊥
+//│                                         LNil ≤ ⊥
+//│                   ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
+//│                     ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬(LCons ∧ {head: ⊤})
+//│                       ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬LCons
+//│                         {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬LCons
+//│                           ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬LCons
+//│                             LCons ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                               LCons ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                                 LCons ≤ {tail: AnyList} ∧ LCons
+//│                                   LCons ≤ {tail: AnyList}
+//│                         LCons ≤ ¬LCons
+//│                       ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬{head: ⊤}
+//│                         {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{head: ⊤}
+//│                           ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{head: ⊤}
+//│                             {head: ⊤} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                               {head: ⊤} ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                                 {head: ⊤} ≤ {tail: AnyList} ∧ LCons
+//│                                   {head: ⊤} ≤ {tail: AnyList}
+//│                                     ⊤ ≤ ⊥
+//│                         LCons ≤ ¬{head: ⊤}
+//│                     ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬{tail: AnyList}
+//│                       {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{tail: AnyList}
+//│                         ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬{tail: AnyList}
+//│                           {tail: AnyList} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                             {tail: AnyList} ≤ ({tail: AnyList} ∧ LCons) ∧ {head: ⊤}
+//│                               {tail: AnyList} ≤ {tail: AnyList} ∧ LCons
+//│                                 {tail: AnyList} ≤ LCons
+//│                                   AnyList ≤ ⊥
+//│                                     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                                       {κ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ})} ⟹ κ ≤ ⊥
+//│                                         κ ≤ ⊥
+//│                                           LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ}) ≤ ⊥
+//│                                             LNil ≤ ⊥
+//│                       LCons ≤ ¬{tail: AnyList}
+
+/** Validate a nonrecursive summary before composing it with the recursive summary. */
+val checkedIntOrZero: Top -> Int = intOrZero
+//│ checkedIntOrZero: ⊤ → Int
+
+/** Compose checked summaries without retaining the helper's guarded result scheme. */
+val sumWithCheckedHelper = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
+  if (xs as AnyLayer) is
+    LNil() then 0
+    LCons(h, t) then checkedIntOrZero(h) + (self as (AnyList -> Int))(t))
+//│ sumWithCheckedHelper: AnyList → Int
+
+sumWithCheckedHelper(LCons(1, LCons("skip", LNil()))) as Int
+//│ Int
+
+// The summary must not justify an operation on an unrefined head.
+:te
+val badSum = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
+  if (xs as AnyLayer) is
+    LNil() then 0
+    LCons(h, t) then h + (self as (AnyList -> Int))(t))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({β ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int)} ⟹ α → β ≤ AnyLayer → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({β ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int)} ⟹ α → β ≤ AnyLayer → γ
+//│     ∀α, β. {α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({β ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int)} ⟹ α → β ≤ ((LCons ∧ {head: ⊤}) ∧ {tail: AnyList}) → γ
+//│       {δ ≤ ¬({ε ≥ Int} ⟹ ¬LNil) ∨ ¬({ε ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)), ε ≥ ({δ ≤ LNil} ⟹ Int) ∧ ({δ ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int)} ⟹ δ → ε ≤ ((LCons ∧ {head: ⊤}) ∧ {tail: AnyList}) → γ
+//│         δ ≤ ¬({ε ≥ Int} ⟹ ¬LNil) ∨ ¬({ε ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
+//│           (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ε ≥ Int} ⟹ ¬LNil) ∨ ¬({ε ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
+//│             (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ε ≥ Int} ⟹ ¬LNil)
+//│               ¬LNil ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
+//│                 (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ LNil
+//│                   LCons ∧ {head: ⊤} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: ⊤} ≤ LNil
+//│                       ⊤ ≤ ⊥
+//│                   {tail: AnyList} ≤ LNil
+//│                     AnyList ≤ ⊥
+//│                       ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                         {ζ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ})} ⟹ ζ ≤ ⊥
+//│                           ζ ≤ ⊥
+//│                             LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ}) ≤ ⊥
+//│                               LNil ≤ ⊥
+//│             (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ε ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
+//│               ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
+//│                 (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                   (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                     (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ {head: Int}
+//│                       LCons ∧ {head: ⊤} ≤ {head: Int}
+//│                         LCons ≤ {head: Int}
+//│                         {head: ⊤} ≤ {head: Int}
+//│                           ⊤ ≤ Int
+//│                       {tail: AnyList} ≤ {head: Int}
+//│                         AnyList ≤ ⊥
+//│                           ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                             {η ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: η})} ⟹ η ≤ ⊥
+//│                               η ≤ ⊥
+//│                                 LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: η}) ≤ ⊥
+//│                                   LNil ≤ ⊥

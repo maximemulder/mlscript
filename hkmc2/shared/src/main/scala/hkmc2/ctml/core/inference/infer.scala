@@ -35,6 +35,16 @@ def inferImpl(expr: Expr)(using ctx: TypeContext): (Type, SubClauses) =
       val (rightType, rightClauses) = inferSeq(tuple.right, leftClauses)
       (TTuple(leftType, rightType), rightClauses)
 
+    // The unused component is unrestricted, but the input must still be a product.
+    case ETupleProj(tuple, isFirst) =>
+      val (tupleType, tupleClauses) = infer(tuple)
+      val result = ctx.sub.declInferVar()
+      val resultType = TVar(result.var_)
+      val product = if isFirst then TTuple(resultType, TTop) else TTuple(TTop, resultType)
+      val clauses = typingSubtypeSeq(tupleType, product,
+        tupleClauses.concat(result.asSubClauses))
+      (resultType, clauses)
+
     // Record fields are evaluated in order, preserving every initializer obligation.
     case ERecord(tag, fields) =>
       fields.foldLeft((TClass(tag): Type, SubClauses.empty)):

@@ -1,0 +1,150 @@
+:ctml
+
+// Both projections retain independent component types.
+fun swap(pair) = if pair is [left, right] then [right, left]
+swap([1, "hello"]) as [Str, Int]
+swap([true, 1]) as [Int, Bool]
+//│ swap: ∀α, β. ⟨α, β⟩ → ⟨β, α⟩
+//│ ⟨Str, Int⟩
+//│ ⟨Int, Bool⟩
+
+// Nested patterns require the full product shape, including unused components.
+fun middle(triple) = if triple is [_, [value, _]] then value
+middle([true, ["hello", 1]]) as Str
+//│ middle: ∀α. ⟨⊤, ⟨α, ⊤⟩⟩ → α
+//│ Str
+
+:te
+middle([1, 2])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ⟨⊤, ⟨α, ⊤⟩⟩ → α ≤ ⟨Int, Int⟩ → β.
+//│ Typing error tree:
+//│   ∀α. ⟨⊤, ⟨α, ⊤⟩⟩ → α ≤ ⟨Int, Int⟩ → β
+//│     ⟨⊤, ⟨γ, ⊤⟩⟩ → γ ≤ ⟨Int, Int⟩ → β
+//│       ⟨Int, Int⟩ ≤ ⟨⊤, ⟨γ, ⊤⟩⟩
+//│         Int ≤ ⟨γ, ⊤⟩
+
+:te
+swap(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. ⟨α, β⟩ → ⟨β, α⟩ ≤ Int → γ.
+//│ Typing error tree:
+//│   ∀α, β. ⟨α, β⟩ → ⟨β, α⟩ ≤ Int → γ
+//│     ⟨δ, ε⟩ → ⟨ε, δ⟩ ≤ Int → γ
+//│       Int ≤ ⟨δ, ε⟩
+
+:te
+swap([1, "hello"]) as [Int, Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Int, Str⟩.
+//│ Typing error tree:
+//│   α ≤ ⟨Int, Str⟩
+//│     ⟨β, γ⟩ ≤ ⟨Int, Str⟩
+//│       β ≤ Int
+//│         Str ≤ Int
+
+// A failed nested test falls through to the next whole-pattern alternative.
+fun choose(pair) = if pair is
+  [Int, [value, _]] then value
+  [_, value] then value
+choose([1, ["hello", true]]) as Str
+//│ choose: ∀α. (⟨Int, ⟨α, ⊤⟩⟩ ∨ (⟨⊤, α⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → α
+//│ Str
+
+:fixme // FIXME: Subtyping cannot prove disjointness of these product types.
+choose(["hello", 1]) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (⟨Int, ⟨α, ⊤⟩⟩ ∨ (⟨⊤, α⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → α ≤ ⟨Str, Int⟩ → β.
+//│ Typing error tree:
+//│   ∀α. (⟨Int, ⟨α, ⊤⟩⟩ ∨ (⟨⊤, α⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → α ≤ ⟨Str, Int⟩ → β
+//│     (⟨Int, ⟨γ, ⊤⟩⟩ ∨ (⟨⊤, γ⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → γ ≤ ⟨Str, Int⟩ → β
+//│       ⟨Str, Int⟩ ≤ ⟨Int, ⟨γ, ⊤⟩⟩ ∨ (⟨⊤, γ⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)
+//│         ⟨Str, Int⟩ ≤ ⟨Int, ⟨γ, ⊤⟩⟩
+//│           Str ≤ Int
+//│         ⟨Str, Int⟩ ≤ ⟨⊤, γ⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩
+//│           ⟨Str, Int⟩ ≤ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩
+//│             ⟨Str, Int⟩ ≤ ¬⟨Int, ⟨⊤, ⊤⟩⟩
+
+:fixme // FIXME: Subtyping cannot prove disjointness of these product types.
+choose([1, "hello"]) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (⟨Int, ⟨α, ⊤⟩⟩ ∨ (⟨⊤, α⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → α ≤ ⟨Int, Str⟩ → β.
+//│ Typing error tree:
+//│   ∀α. (⟨Int, ⟨α, ⊤⟩⟩ ∨ (⟨⊤, α⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → α ≤ ⟨Int, Str⟩ → β
+//│     (⟨Int, ⟨γ, ⊤⟩⟩ ∨ (⟨⊤, γ⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)) → γ ≤ ⟨Int, Str⟩ → β
+//│       ⟨Int, Str⟩ ≤ ⟨Int, ⟨γ, ⊤⟩⟩ ∨ (⟨⊤, γ⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩)
+//│         ⟨Int, Str⟩ ≤ ⟨Int, ⟨γ, ⊤⟩⟩
+//│           Str ≤ ⟨γ, ⊤⟩
+//│         ⟨Int, Str⟩ ≤ ⟨⊤, γ⟩ ∧ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩
+//│           ⟨Int, Str⟩ ≤ ⟨⊤, ⊤⟩ ∧ ¬⟨Int, ⟨⊤, ⊤⟩⟩
+//│             ⟨Int, Str⟩ ≤ ¬⟨Int, ⟨⊤, ⊤⟩⟩
+
+// Refinement retains the correlation between the components of a union of products.
+:fixme // FIXME: Exhaustiveness requires disjoint-product subtyping.
+fun correlated(pair: [Int, Str] | [Str, Int]) = if pair is
+  [Int, value] then value as Str
+  [Str, value] then value as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({β ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({β ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))), β ≥ ({α ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩} ⟹ Str) ∧ ({α ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩} ⟹ Int)} ⟹ α → β ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) → ⊤.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({β ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({β ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))), β ≥ ({α ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩} ⟹ Str) ∧ ({α ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩} ⟹ Int)} ⟹ α → β ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) → ⊤
+//│     ∀α, β. {α ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({β ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({β ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))), β ≥ ({α ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩} ⟹ Str) ∧ ({α ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩} ⟹ Int)} ⟹ α → β ≤ ⟨Str, Int⟩ → ⊤
+//│       {γ ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))), δ ≥ ({γ ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩} ⟹ Str) ∧ ({γ ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩} ⟹ Int)} ⟹ γ → δ ≤ ⟨Str, Int⟩ → ⊤
+//│         γ ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩)))
+//│           ⟨Str, Int⟩ ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩)))
+//│             ⟨Str, Int⟩ ≤ ¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))
+//│               ⟨Str, Int⟩ ≤ ¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩))
+//│                 ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩) ≤ ¬⟨Str, Int⟩
+//│                   ⟨Str, Int⟩ ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩
+//│                     ⟨Str, Int⟩ ≤ ⟨⊤, Str⟩
+//│                       Int ≤ Str
+//│               ⟨Str, Int⟩ ≤ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))
+//│                 ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩) ≤ ¬⟨Str, Int⟩
+//│                   ⟨Str, Int⟩ ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩
+//│                     ⟨Str, Int⟩ ≤ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩
+//│                       ⟨Str, Int⟩ ≤ ¬⟨Int, ⊤⟩
+
+// Tuple patterns compose with constructor patterns.
+data class Packed(value)
+fun unpack(box) = if box is Packed([left, right]) then [right, left]
+unpack(Packed([1, "hello"])) as [Str, Int]
+//│ Packed: ∀α. α → (Packed ∧ {value: α})
+//│ unpack: ∀β, γ. ({value: ⟨β, γ⟩} ∧ Packed) → ⟨γ, β⟩
+//│ ⟨Str, Int⟩
+
+// Local names, including projection names, cannot capture generated projections.
+fun shadow(pair) =
+  let fst = 0
+  let snd = 0
+  if pair is [fst, snd] then [snd, fst]
+shadow([1, "hello"]) as [Str, Int]
+//│ shadow: ∀α, β. ⟨α, β⟩ → ⟨β, α⟩
+//│ ⟨Str, Int⟩
+
+// Computed scrutinees retain their bindings when projections use them more than once.
+:ctml-cfg dewrap-ucs-ifs
+fun computed(value) = if swap([value, true]) is [left, right] then [right, left]
+computed("hello") as [Str, Bool]
+//│ computed: ∀α. α → ⟨α, Bool⟩
+//│ ⟨Str, Bool⟩
+
+// Unused components do not discard the initializer's typing obligations.
+:te
+if [1 + "hello", true] is [_, _] then 0
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+:ctml-cfg wrap-ucs-ifs
+
+// Product disjointness is also missing independently of pattern translation.
+:fixme // FIXME: Subtyping cannot prove disjointness from a product with disjoint first components.
+[Int, Str] <:< ~[Str, Top]
+//│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Str⟩ ≤ ¬⟨Str, ⊤⟩.
+//│ Typing error tree:
+//│   ⟨Int, Str⟩ ≤ ¬⟨Str, ⊤⟩
+
+// Unsupported arities and spreads must not silently lose components.
+:pe
+fun flatTriple(value) = if value is [a, b, c] then a
+//│ ═══[PARSE ERROR] CTML tuple patterns require exactly two components and no spread.
+
+:pe
+fun spread(value) = if value is [a, ...rest] then a
+//│ ═══[PARSE ERROR] CTML tuple patterns require exactly two components and no spread.

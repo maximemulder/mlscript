@@ -237,6 +237,13 @@ def parsePattern(mlPattern: Pattern, scrutinee: Expr)(using Scope)
   : (Type, List[(TermVar, Expr)]) =
   mlPattern match
     case Pattern.Wildcard() => (TTop, Nil)
+    case Pattern.Tuple(List(left, right), None) =>
+      val (leftType, leftBindings) = parsePattern(left, ETupleProj(scrutinee, isFirst = true))
+      val (rightType, rightBindings) = parsePattern(right, ETupleProj(scrutinee, isFirst = false))
+      (TTuple(leftType, rightType), leftBindings ++ rightBindings)
+    case Pattern.Tuple(_, _) =>
+      throw ParseError(Term.Error(),
+        Some("CTML tuple patterns require exactly two components and no spread."))
     case alias: Pattern.Alias =>
       val (pattern, bindings) = parsePattern(alias.pattern, scrutinee)
       (pattern, (termVar(alias.symbol), scrutinee) :: bindings)

@@ -12,6 +12,9 @@ case class EVar(val variable: TermVar) extends Expr
 /** A tuple introduction */
 case class ETuple(val left: Expr, val right: Expr) extends Expr
 
+/** Project the first component when `isFirst` is true, or the second component otherwise. */
+case class ETupleProj(tuple: Expr, isFirst: Boolean) extends Expr
+
 /** A record with a class tag and distinct immutable fields. */
 case class ERecord(tag: ClassVar, fields: List[(String, Expr)]) extends Expr:
   require(fields.map(_._1).distinct.size == fields.size)
@@ -63,6 +66,7 @@ extension (expr: Expr)
     case EApp(lam, arg) => lam.freeVars ++ arg.freeVars
     case ERecord(_, fields) => fields.flatMap(_._2.freeVars).toSet
     case EProj(record, _) => record.freeVars
+    case ETupleProj(tuple, _) => tuple.freeVars
     case ETuple(left, right) => left.freeVars ++ right.freeVars
     case EAscr(expr, _) => expr.freeVars
     case ETypeApp(expr, _) => expr.freeVars

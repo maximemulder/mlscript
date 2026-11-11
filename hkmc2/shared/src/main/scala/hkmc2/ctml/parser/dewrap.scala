@@ -32,6 +32,7 @@ private def freeOccurrences(expr: Expr, name: TermVar): Int =
     case EApp(lam, arg) => freeOccurrences(lam, name) + freeOccurrences(arg, name)
     case ERecord(_, fields) => fields.map(f => freeOccurrences(f._2, name)).sum
     case EProj(record, _) => freeOccurrences(record, name)
+    case ETupleProj(tuple, _) => freeOccurrences(tuple, name)
     case ETuple(left, right) => freeOccurrences(left, name) + freeOccurrences(right, name)
     case EAscr(expr, _) => freeOccurrences(expr, name)
     case ETypeApp(expr, _) => freeOccurrences(expr, name)
@@ -63,6 +64,8 @@ private def substituteTerm(expr: Expr, name: TermVar, arg: Expr): Option[Expr] =
       .map(ERecord(tag, _))
     case EProj(record, field) =>
       substituteTerm(record, name, arg).map(EProj(_, field))
+    case ETupleProj(tuple, isFirst) =>
+      substituteTerm(tuple, name, arg).map(ETupleProj(_, isFirst))
     case ETuple(left, right) =>
       for
         left <- substituteTerm(left, name, arg)

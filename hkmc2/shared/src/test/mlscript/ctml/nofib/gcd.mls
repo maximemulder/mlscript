@@ -4,21 +4,13 @@
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/gcd.mls.
 // Partial port: the extended Euclidean kernel. The list-based driver is not yet ported.
-// Triples are represented as [a, [b, c]], with fst/snd replacing destructuring.
+// Triples are represented as [a, [b, c]], with nested tuple patterns for destructuring.
 
-fun g(u1u2u3, v1v2v3) =
-  let u1 = fst(u1u2u3)
-  let u2 = fst(snd(u1u2u3))
-  let u3 = snd(snd(u1u2u3))
-  let v1 = fst(v1v2v3)
-  let v2 = fst(snd(v1v2v3))
-  let v3 = snd(snd(v1v2v3))
-  if v3 == 0 then [u3, [u1, u2]]
-  else
-    let qr = quotRem(u3, v3)
-    let q = fst(qr)
-    let r = snd(qr)
-    g([v1, [v2, v3]], [u1 - (q * v1), [u2 - (q * v2), r]])
+fun g(us, vs) =
+  if us is [u1, [u2, u3]] and vs is [v1, [v2, v3]] then
+    if v3 == 0 then [u3, [u1, u2]]
+    else if quotRem(u3, v3) is [q, r] then
+      g([v1, [v2, v3]], [u1 - (q * v1), [u2 - (q * v2), r]])
 //│ g: ⟨Int, ⟨Int, Int⟩⟩ → ⟨Int, ⟨Int, Int⟩⟩ → ⟨Int, ⟨Int, Int⟩⟩
 
 fun gcdE(x, y) =

@@ -11,6 +11,8 @@ extension (type_ : Type)
         true
       case TField(_, value) =>
         value.isPattern
+      case TTuple(left, right) =>
+        left.isPattern && right.isPattern
       case TClass(var_) =>
         true
       case TNeg(body) =>

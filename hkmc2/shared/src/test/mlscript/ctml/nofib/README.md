@@ -41,8 +41,13 @@ before implementing them. An inference failure alone does not require such a des
 - Port one file at a time, starting with `gcd.mls`, and add shared support as it is needed.
 - Keep direct recursion. Mutual recursion and richer binding support are deliberately out of
   scope for now; revisit them only when a concrete source program warrants a decision.
-- Represent triples as nested pairs, `[a, [b, c]]`, using precisely typed trusted `fst` and `snd`
-  primitives. This choice is already approved and used by the GCD kernel.
+- Represent triples as nested pairs, `[a, [b, c]]`, and destructure them with nested tuple
+  patterns. CTML supports binary tuple patterns without spreads in `if ... is ... then` matches;
+  direct parameter and `let` patterns remain outside this port's scope. Precisely typed trusted
+  `fst` and `snd` primitives are also available in the prelude.
+- Tuple-pattern fallthrough can expose missing product-disjointness subtyping. The focused
+  `ctmlTuplePatterns.mls` tests retain these cases as `:fixme`; unconditional destructuring in
+  the GCD kernel does not require these judgments.
 - Use readable constructor patterns for lists. An abstract list API with trusted `caseList`
   callbacks is not the chosen porting approach. CTML supports nonrecursive constructor
   declarations and constructor patterns; the list tail's recursive relationship is a type-level
@@ -94,7 +99,7 @@ server when finished. Do not include unrelated golden-output changes.
 
 | File or area | State |
 | --- | --- |
-| [gcd.mls](gcd.mls) | Partial translation: extended Euclidean kernel `g` and `gcdE` infer successfully; result checks and negative tests are present. The list-based driver is not translated. |
+| [gcd.mls](gcd.mls) | Partial translation: extended Euclidean kernel `g` uses nested tuple patterns; `g` and `gcdE` infer successfully. Result checks and negative tests are present. The list-based driver is not translated. |
 | [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication and quotient; inferred `intRem` and `quotRem`. No shared list definitions yet. |
 | Unannotated `enumFromTo` | Translated in a diagnostic test and infers a recursive constrained scheme. Its implicit uses expose subtyping failures. Not yet incorporated into the Nofib prelude. |
 | List consumers | Diagnostic `firstOrZero` composes imprecisely with the inferred producer. Unannotated `length` inference times out and is retained as a commented reproducer. These are deferred inference issues. |

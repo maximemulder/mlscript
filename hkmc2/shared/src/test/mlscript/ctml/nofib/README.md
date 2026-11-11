@@ -113,20 +113,24 @@ server when finished. Do not include unrelated golden-output changes.
 
 | File or area | State |
 | --- | --- |
-| [gcd.mls](gcd.mls) | Partial translation: extended Euclidean kernel `g` uses nested tuple patterns; `g` and `gcdE` infer successfully. Result checks and negative tests are present. The list-based driver is not translated. |
+| [gcd.mls](gcd.mls) | Source translation complete, inference coverage partial: `g` and `gcdE` infer successfully. `max_` inference alone exceeds the 25-second limit; the extracted nested comprehension also times out. Both are retained as commented reproducers. `test`, `testGcd_nofib`, and `main` are translated but disabled because of these dependencies. Independent checks of both tuple-mapping stages compose successfully through the trusted `map` contract, with an integer-list result assertion and an invalid-input test. |
 | [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | Diagnostic `firstOrZero` composes imprecisely with the inferred producer. Unannotated `length` inference times out and is retained as a commented reproducer. These are deferred inference issues. |
 
-**Next task: translate the remaining GCD helpers and driver under this policy.**
-Translate `max_`, `test` (including its nested list-comprehension helpers),
-`testGcd_nofib`, and `main`. Preserve their unannotated definitions and record inference failures
-instead of fixing the solver first. Use the documented shared `map` contract to check dependent
-code while preserving any independent instantiation or subtyping failures. The rigid-element
-fixed-point implementation in `ctmlRecursiveLists.mls` is a separate checked diagnostic control;
-the unannotated source implementation still exceeds the diff-test time limit.
-Report any genuinely new language or representation decision.
+**Next task: choose the next benchmark, or explicitly prioritize the GCD inference blockers.**
+GCD's source translation is complete, including the original `testGcd_nofib(40)` entry point.
+The kernel and tuple-mapping stages are active; the maximum and nested-comprehension inference
+reproducers exceed the test time limit. These are benchmark-local functions, so the current
+library-signature fallback does not replace them with trusted declarations. Continuing active
+checking of the entire driver would require addressing those inference costs or agreeing to a
+broader signature fallback. The remaining producer-instantiation limitation is independently
+recorded in `preludeTests.mls`.
+
+The rigid-element fixed-point map implementation in `ctmlRecursiveLists.mls` remains a separate
+checked diagnostic control. Tests of the driver's mapping stages use the manually supplied
+library signature and do not establish whole-program inference or runtime equivalence.
 
 The source `enumFromTo(a, b)` includes both endpoints and returns the empty list when `a > b`.
 The explicitly typed range example in `ctmlRecursiveLists.mls` is a different, exclusive-endpoint

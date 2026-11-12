@@ -1,0 +1,75 @@
+:ctml
+
+// The carrier guard forces X = Top, independently of provenance cuts or resource limits.
+type Negative = [X restricts ~X] -> X
+Negative == Top
+//│ Negative = ∀X. {X ≥ ¬X} ⟹ X
+//│ OK
+
+:te
+Negative <:< ~Negative
+//│ ═══[TYPE ERROR] Cannot solve judgment Negative ≤ ¬Negative.
+//│ Typing error tree:
+//│   Negative ≤ ¬Negative
+//│     ∀X. {X ≥ ¬X} ⟹ X ≤ ¬Negative
+//│       {α ≥ ¬α} ⟹ α ≤ ¬Negative
+//│         α ≤ ¬Negative
+//│           ⊤ ≤ ¬Negative
+
+:te
+val invalidNegative = (x: Negative) => (x as ~Negative)
+//│ ═══[TYPE ERROR] Cannot solve judgment ¬Negative → ¬Negative ≤ Negative → ⊤.
+//│ Typing error tree:
+//│   ¬Negative → ¬Negative ≤ Negative → ⊤
+//│     Negative ≤ ¬Negative
+//│       ∀X. {X ≥ ¬X} ⟹ X ≤ ¬Negative
+//│         {α ≥ ¬α} ⟹ α ≤ ¬Negative
+//│           α ≤ ¬Negative
+//│             ⊤ ≤ ¬Negative
+
+:ctml-cfg no-provenance
+
+:te
+Negative <:< ~Negative
+//│ ═══[TYPE ERROR] Cannot solve judgment Negative ≤ ¬Negative.
+//│ Typing error tree:
+//│   Negative ≤ ¬Negative
+//│     ∀X. {X ≥ ¬X} ⟹ X ≤ ¬Negative
+//│       {α ≥ ¬α} ⟹ α ≤ ¬Negative
+//│         α ≤ ¬Negative
+//│           ⊤ ≤ ¬Negative
+
+// Boolean self occurrences can be removed in both bound directions under rigid assumptions.
+type A
+A <:< ([A <:< (~A | Int)] => Int)
+Int <:< ([(~A & Int) <:< A] => A)
+A <:< ([A <:< (A & Int)] => Int)
+Int <:< ([(A | Int) <:< A] => A)
+//│ OK
+//│ OK
+//│ OK
+//│ OK
+
+// A negative self occurrence in a carrier does not admit an arbitrary recursive unfolding.
+type OutsideInt = [X restricts (~X & ~Int)] -> X
+OutsideInt == ~Int
+//│ OutsideInt = ∀X. {X ≥ ¬X ∧ ¬Int} ⟹ X
+//│ OK
+
+:te
+OutsideInt <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment OutsideInt ≤ Int.
+//│ Typing error tree:
+//│   OutsideInt ≤ Int
+//│     ∀X. {X ≥ ¬X ∧ ¬Int} ⟹ X ≤ Int
+//│       {α ≥ ¬α ∧ ¬Int} ⟹ α ≤ Int
+//│         α ≤ Int
+//│           ¬Int ≤ Int
+
+// Independent instantiations of a single binder retain their own concrete variables.
+val id = x => x
+id(1) as Int
+id("a") as Str
+//│ id: ∀α. α → α
+//│ Int
+//│ Str

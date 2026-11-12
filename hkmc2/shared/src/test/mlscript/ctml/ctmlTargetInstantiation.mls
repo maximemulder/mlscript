@@ -81,7 +81,12 @@ Capture <:< ([Y >:> ([Z] -> Z -> Y)] => Y)
 type Negative = [X restricts ~X] -> X
 //│ Negative = ∀X. {X ≥ ¬X} ⟹ X
 
-:breakme // FIXME: Cyclic flexible bounds admit an invalid negative-encoding comparison.
 :te
 Negative <:< ~Negative
-//│ OK
+//│ ═══[TYPE ERROR] Cannot solve judgment Negative ≤ ¬Negative.
+//│ Typing error tree:
+//│   Negative ≤ ¬Negative
+//│     ∀X. {X ≥ ¬X} ⟹ X ≤ ¬Negative
+//│       {α ≥ ¬α} ⟹ α ≤ ¬Negative
+//│         α ≤ ¬Negative
+//│           ⊤ ≤ ¬Negative

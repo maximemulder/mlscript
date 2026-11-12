@@ -471,10 +471,11 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext): SubClaus
 
 /** Constrain a type variable to be subtype or supertype of another type. */
 def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubContext): SubClauses =
+  val normalized = normalizeRecursiveBound(var_, dir, type_)
   val (extrudedType, outs) = if config.extrudeVar then
-    type_.extrude(var_.level, dir.rightPol)
+    normalized.extrude(var_.level, dir.rightPol)
   else
-    (type_, SubClauses.empty)
+    (normalized, SubClauses.empty)
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)

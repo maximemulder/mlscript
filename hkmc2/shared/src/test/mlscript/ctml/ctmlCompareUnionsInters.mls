@@ -246,9 +246,7 @@ type T3 = Int & Str
 //│         ∀X. X → X ≤ (A ∧ A) → B
 //│           β → β ≤ (A ∧ A) → B
 //│             β ≤ B
-//│               A ∧ A ≤ B
-//│                 A ≤ B
-//│                 A ≤ B
+//│               A ≤ B
 
 :te
 (A -> A) <:< ([X extends A | B] -> X -> X)

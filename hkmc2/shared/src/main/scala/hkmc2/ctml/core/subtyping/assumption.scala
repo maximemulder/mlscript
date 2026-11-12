@@ -141,10 +141,11 @@ extension (ctx: SubContext)
   /** Assume a bound of a type variable, or get `None` if the bound is refuted (see `assume`). */
   private def assumeBound(var_ : TypeVar, dir: Direction, type_ : Type): Option[SubContext] =
     given SubContext = ctx
-    if config.exFalso && isRefutedDir(var_.bound(!dir), type_, dir) then
+    val normalized = normalizeRecursiveBound(var_, dir, type_)
+    if config.exFalso && isRefutedDir(var_.bound(!dir), normalized, dir) then
       return None
 
-    Some(ctx.extend(Bound(var_, dir, type_, BoundKind.Asserted)))
+    Some(ctx.extend(Bound(var_, dir, normalized, BoundKind.Asserted)))
 
 extension (type_ : Type)
   /** Check whether this type is decided, that is, whether it is a closed Boolean combination of

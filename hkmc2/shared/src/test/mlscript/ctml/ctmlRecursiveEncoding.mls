@@ -145,26 +145,30 @@ AnyList <:< IntList
 //│       ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
 //│         ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
 //│           ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ α
-//│             ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ LNil
-//│               {β ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})} ⟹ β ≤ LNil
-//│                 β ≤ LNil
-//│                   LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β}) ≤ LNil
-//│                     (LCons ∧ {head: ⊤}) ∧ {tail: β} ≤ LNil
-//│                       LCons ∧ {head: ⊤} ≤ LNil
-//│                         LCons ≤ LNil
-//│                         {head: ⊤} ≤ LNil
-//│                           ⊤ ≤ ⊥
-//│                       {tail: β} ≤ LNil
-//│                         β ≤ ⊥
-//│                           LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β}) ≤ ⊥
-//│                             LNil ≤ ⊥
-//│             ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ (LCons ∧ {head: Int}) ∧ {tail: α}
-//│               ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ LCons ∧ {head: Int}
-//│                 ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ LCons
-//│                   {γ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: γ})} ⟹ γ ≤ LCons
-//│                     γ ≤ LCons
-//│                       LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: γ}) ≤ LCons
-//│                         LNil ≤ LCons
+//│             ∀β. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ α
+//│               ∀β. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ LNil
+//│                 {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})) ∨ γ ≤ δ} ⟹ δ ≤ LNil
+//│                   δ ≤ LNil
+//│                     (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})) ∨ γ ≤ LNil
+//│                       LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ}) ≤ LNil
+//│                         (LCons ∧ {head: ⊤}) ∧ {tail: δ} ≤ LNil
+//│                           LCons ∧ {head: ⊤} ≤ LNil
+//│                             LCons ≤ LNil
+//│                             {head: ⊤} ≤ LNil
+//│                               ⊤ ≤ ⊥
+//│                           {tail: δ} ≤ LNil
+//│                             δ ≤ ⊥
+//│                               (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})) ∨ γ ≤ ⊥
+//│                                 LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ}) ≤ ⊥
+//│                                   LNil ≤ ⊥
+//│               ∀β. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ (LCons ∧ {head: Int}) ∧ {tail: α}
+//│                 ∀β. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ LCons ∧ {head: Int}
+//│                   ∀β. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ LCons
+//│                     {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})) ∨ γ ≤ ε} ⟹ ε ≤ LCons
+//│                       ε ≤ LCons
+//│                         (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})) ∨ γ ≤ LCons
+//│                           LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε}) ≤ LCons
+//│                             LNil ≤ LCons
 
 // A list of union elements can contain both kinds in the same list.
 type StrList = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X

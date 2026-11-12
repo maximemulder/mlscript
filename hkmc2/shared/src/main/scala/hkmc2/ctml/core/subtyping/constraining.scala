@@ -337,6 +337,12 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
       )
     case _ =>
 
+  // Separate target conjuncts may use different universal instances. Within each conjunct, close
+  // the whole local problem before a target choice forgets an operand of its recursive bound.
+  subtypeRecursiveInstance(sub, sup) match
+    case Some(clauses) => return clauses
+    case None =>
+
   // The choice rules are applied last, on what the invertible rules cannot decompose: a right union
   // and a left intersection are each decomposed in two judgments of which either may hold, and which
   // forget the other operand (see `splitAny`).

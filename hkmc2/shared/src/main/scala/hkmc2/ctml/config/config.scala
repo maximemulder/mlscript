@@ -35,6 +35,9 @@ class Config:
   /** Whether to report deterministic solver resource measurements for each operation. */
   var profileSearch = false
 
+  /** Experimentally parameterize a local recursive lower bound during universal instantiation. */
+  var recursiveClosure = true
+
   /** The provenance revisit policy, independent of concrete variable equality. */
   var provenancePolicy = ProvenancePolicy.Cut
 

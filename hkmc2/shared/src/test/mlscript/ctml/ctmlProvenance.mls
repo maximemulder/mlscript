@@ -6,13 +6,13 @@ type F
 // A polymorphic bound recursively requires a new instance of itself, without term recursion.
 :te
 F <:< ([F <:< ([X] -> ([F <:< (X -> X)] => (X -> X)))] => Int)
-//│ @ctml-search calls=8 checks=0 fresh=2 infer=0 origins=1 groups=1 max-per-group=2 exact=0 abstract=1 cuts=1 max-clauses=31 max-goal-nodes=13
+//│ @ctml-search calls=8 checks=0 fresh=4 infer=0 origins=1 groups=1 max-per-group=4 exact=0 abstract=1 cuts=1 max-clauses=31 max-goal-nodes=13
 //│ ═══[TYPE ERROR] Subtyping search inconclusive: a variable-bound search repeats up to provenance
 
 // The target-witness path grows exponentially; ordinary-instantiation fallbacks also recur.
 :te
 F <:< ([F <:< ([X] -> ([F <:< (X -> X)] => X))] => Int)
-//│ @ctml-search calls=322 checks=0 fresh=80 infer=0 origins=1 groups=1 max-per-group=80 exact=0 abstract=81 cuts=81 max-clauses=31 max-goal-nodes=1024
+//│ @ctml-search calls=322 checks=0 fresh=160 infer=0 origins=1 groups=1 max-per-group=160 exact=0 abstract=81 cuts=81 max-clauses=31 max-goal-nodes=1024
 //│ ═══[TYPE ERROR] Subtyping search inconclusive: a variable-bound search repeats up to provenance
 
 // Independent uses of one binder retain distinct concrete instances.
@@ -21,13 +21,13 @@ fun ident(x) = x
 //│ ident: ∀α. α → α
 
 [ident(1), ident("a")]
-//│ @ctml-search calls=28 checks=14 fresh=2 infer=2 origins=1 groups=1 max-per-group=2 exact=0 abstract=0 cuts=0 max-clauses=40 max-goal-nodes=7
+//│ @ctml-search calls=28 checks=14 fresh=4 infer=2 origins=1 groups=1 max-per-group=4 exact=0 abstract=0 cuts=0 max-clauses=40 max-goal-nodes=7
 //│ ⟨Int, Str⟩
 
 // Rigid universal variables cannot be identified by their origin.
 :te
 ([A] -> (A -> A)) <:< ([B] -> (B -> ([C] -> C)))
-//│ @ctml-search calls=13 checks=3 fresh=3 infer=0 origins=3 groups=3 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=33 max-goal-nodes=9
+//│ @ctml-search calls=13 checks=3 fresh=4 infer=0 origins=3 groups=3 max-per-group=2 exact=0 abstract=0 cuts=0 max-clauses=33 max-goal-nodes=9
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀A. A → A ≤ ∀B. B → (∀C. C).
 //│ Typing error tree:
 //│   ∀A. A → A ≤ ∀B. B → (∀C. C)
@@ -50,12 +50,12 @@ type Chain = [X restricts (Stop | (Next & {tail: X}))] -> X
 //│ Chain = ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
 
 Next(Next(Next(Stop()))) as Chain
-//│ @ctml-search calls=152 checks=67 fresh=5 infer=4 origins=2 groups=2 max-per-group=3 exact=0 abstract=0 cuts=0 max-clauses=66 max-goal-nodes=14
+//│ @ctml-search calls=152 checks=67 fresh=8 infer=4 origins=2 groups=2 max-per-group=6 exact=0 abstract=0 cuts=0 max-clauses=66 max-goal-nodes=14
 //│ Chain
 
 :te
 Next(Next(false)) as Chain
-//│ @ctml-search calls=67 checks=17 fresh=3 infer=2 origins=2 groups=2 max-per-group=2 exact=0 abstract=0 cuts=0 max-clauses=47 max-goal-nodes=14
+//│ @ctml-search calls=67 checks=17 fresh=5 infer=2 origins=2 groups=2 max-per-group=4 exact=0 abstract=0 cuts=0 max-clauses=47 max-goal-nodes=14
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Chain.
 //│ Typing error tree:
 //│   α ≤ Chain

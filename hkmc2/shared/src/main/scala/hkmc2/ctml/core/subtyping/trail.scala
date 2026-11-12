@@ -47,6 +47,8 @@ case class SubtypingTrail(
   provenanceKeys: Set[ProvenanceKey] = Set.empty,
   /** A budget for nested optional queries; absent in required constraint solving. */
   checking: Option[CheckingBudget] = None,
+  /** A closure's encoded carrier is checked by ordinary rules, without closing it again. */
+  closingRecursiveInstance: Boolean = false,
 ):
   /** Check whether a judgment repeats a judgment in progress. */
   def contains(sub: Type, sup: Type): Boolean =

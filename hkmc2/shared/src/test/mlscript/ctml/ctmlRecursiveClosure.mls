@@ -1,0 +1,280 @@
+:ctml
+
+:ctml-cfg recursive-closure search-steps 10000
+
+// The same recursive bound is solved independently of the enclosing result shape.
+type F
+type Rec = [X restricts F[X]] -> X
+type Producer = [X restricts F[X]] -> Int -> F[X]
+type Wrapped = [X restricts F[X]] -> ({value: F[X]})
+//│ Rec = ∀X. {X ≥ F[X]} ⟹ X
+//│ Producer = ∀X. {X ≥ F[X]} ⟹ Int → F[X]
+//│ Wrapped = ∀X. {X ≥ F[X]} ⟹ {value: F[X]}
+
+type Widened = [X restricts F[X]] -> Int -> X
+//│ Widened = ∀X. {X ≥ F[X]} ⟹ Int → X
+
+Producer <:< (Int -> Rec)
+//│ OK
+
+Wrapped <:< {value: Rec}
+//│ OK
+
+Widened <:< (Int -> Rec)
+//│ OK
+
+// An upper bound is checked after closure construction; it does not get dropped.
+type BoundedProducer = [X restricts F[X]] -> ([X <:< Rec] => Int -> X)
+//│ BoundedProducer = ∀X. {X ≥ F[X], X ≤ Rec} ⟹ Int → X
+
+BoundedProducer <:< (Int -> Rec)
+//│ OK
+
+// Recursive list layers include a union and several field requirements.
+data class LNil()
+data class LCons(head, tail)
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+type ListScheme = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] ->
+  LNil | (LCons & {head: Int} & {tail: X})
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ ListScheme = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})
+
+ListScheme <:< IntList
+//│ OK
+
+// A carrier larger than the least fixed point is a valid solution too.
+type Consumer = [X restricts {tail: X}] -> X -> Int
+//│ Consumer = ∀X. {X ≥ {tail: X}} ⟹ X → Int
+
+Consumer <:< (Top -> Int)
+//│ OK
+
+// All guards remain obligations, even when the result does not use the recursive variable.
+type Impossible = [X restricts (LNil | {tail: X})] -> ([X <:< Str] => Int -> Int)
+//│ Impossible = ∀X. {X ≥ LNil ∨ {tail: X}, X ≤ Str} ⟹ Int → Int
+
+:te
+Impossible <:< (Int -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment Impossible ≤ Int → Int.
+//│ Typing error tree:
+//│   Impossible ≤ Int → Int
+//│     ∀X. {X ≥ LNil ∨ {tail: X}, X ≤ Str} ⟹ Int → Int ≤ Int → Int
+//│       {∀α. {(LNil ∨ {tail: α}) ∨ β ≤ α} ⟹ α ≤ Str} ⟹ Int → Int ≤ Int → Int
+//│         ∀α. {(LNil ∨ {tail: α}) ∨ β ≤ α} ⟹ α ≤ Str
+//│           {(LNil ∨ {tail: γ}) ∨ β ≤ γ} ⟹ γ ≤ Str
+//│             γ ≤ Str
+//│               (LNil ∨ {tail: γ}) ∨ β ≤ Str
+//│                 LNil ∨ {tail: γ} ≤ Str
+//│                   LNil ≤ Str
+
+// Bounds in the opposite order describe the same impossible local problem.
+type ImpossibleReversed = [X extends Str] -> ([(LNil | {tail: X}) <:< X] => Int -> Int)
+//│ ImpossibleReversed = ∀X. {X ≤ Str, LNil ∨ {tail: X} ≤ X} ⟹ Int → Int
+
+:te
+ImpossibleReversed <:< (Int -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment ImpossibleReversed ≤ Int → Int.
+//│ Typing error tree:
+//│   ImpossibleReversed ≤ Int → Int
+//│     ∀X. {X ≤ Str, LNil ∨ {tail: X} ≤ X} ⟹ Int → Int ≤ Int → Int
+//│       {∀α. {(LNil ∨ {tail: α}) ∨ β ≤ α} ⟹ α ≤ Str} ⟹ Int → Int ≤ Int → Int
+//│         ∀α. {(LNil ∨ {tail: α}) ∨ β ≤ α} ⟹ α ≤ Str
+//│           {(LNil ∨ {tail: γ}) ∨ β ≤ γ} ⟹ γ ≤ Str
+//│             γ ≤ Str
+//│               (LNil ∨ {tail: γ}) ∨ β ≤ Str
+//│                 LNil ∨ {tail: γ} ≤ Str
+//│                   LNil ≤ Str
+
+// An extra lower bound and a negative use require a solution larger than the least carrier.
+type LargerConsumer = [X restricts {tail: X}] -> ([Str <:< X] => X -> Int)
+//│ LargerConsumer = ∀X. {X ≥ {tail: X}, Str ≤ X} ⟹ X → Int
+
+LargerConsumer <:< (Top -> Int)
+//│ OK
+
+// Each conjunct may choose its own carrier; one shared carrier cannot satisfy both arrows.
+type RecursiveId = [X restricts {tail: X}] -> X -> X
+//│ RecursiveId = ∀X. {X ≥ {tail: X}} ⟹ X → X
+
+RecursiveId <:< ((Top -> Top) & (({tail: Top}) -> ({tail: Top})))
+//│ OK
+
+// Inferred producers exercise instantiation before ordinary application opens the binder.
+val (<=): Int -> Int -> Bool
+fun enumFromTo(a, b) =
+  if a <= b then LCons(a, enumFromTo(a + 1, b)) else LNil()
+//│ <=: Int → Int → Bool
+//│ enumFromTo: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
+
+enumFromTo as (Int -> Int -> IntList)
+//│ Int → Int → IntList
+
+enumFromTo(1, 5) as IntList
+//│ IntList
+
+val inferredRange = enumFromTo(1, 5)
+//│ inferredRange: LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}) ≤ α} ⟹ α})
+
+inferredRange as IntList
+//│ IntList
+
+// Element parameters and scoped assumptions remain independent of the recursive variable.
+type A
+type B
+type ListSchemeA = [X restricts (LNil | (LCons & {head: A} & {tail: X}))] ->
+  LNil | (LCons & {head: A} & {tail: X})
+type ListB = [X restricts (LNil | (LCons & {head: B} & {tail: X}))] -> X
+//│ ListSchemeA = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})
+//│ ListB = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: X})} ⟹ X
+
+ListSchemeA <:< ([A <:< B] => ListB)
+//│ OK
+
+:te
+ListSchemeA <:< ListB
+//│ ═══[TYPE ERROR] Cannot solve judgment ListSchemeA ≤ ListB.
+//│ Typing error tree:
+//│   ListSchemeA ≤ ListB
+//│     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X}) ≤ ListB
+//│       ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: X})} ⟹ X
+//│         ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X}) ≤ {α ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: α})} ⟹ α
+//│           ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X}) ≤ α
+//│             LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β}) ≤ α
+//│               (LCons ∧ {head: A}) ∧ {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ α
+//│                 (LCons ∧ {head: A}) ∧ {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ LNil
+//│                   LCons ∧ {head: A} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: A} ≤ LNil
+//│                       A ≤ ⊥
+//│                         ⊤ ≤ ⊥
+//│                   {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ LNil
+//│                     ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ ⊥
+//│                       {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: δ})) ∨ γ ≤ δ} ⟹ δ ≤ ⊥
+//│                         δ ≤ ⊥
+//│                           (LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: δ})) ∨ γ ≤ ⊥
+//│                             LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: δ}) ≤ ⊥
+//│                               LNil ≤ ⊥
+//│                 (LCons ∧ {head: A}) ∧ {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ (LCons ∧ {head: B}) ∧ {tail: α}
+//│                   (LCons ∧ {head: A}) ∧ {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ LCons ∧ {head: B}
+//│                     (LCons ∧ {head: A}) ∧ {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ {head: B}
+//│                       LCons ∧ {head: A} ≤ {head: B}
+//│                         LCons ≤ {head: B}
+//│                         {head: A} ≤ {head: B}
+//│                           A ≤ B
+//│                             A ≤ ⊥
+//│                               ⊤ ≤ ⊥
+//│                       {tail: ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β} ≤ {head: B}
+//│                         ∀β. {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: β})) ∨ γ ≤ β} ⟹ β ≤ ⊥
+//│                           {(LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: ε})) ∨ γ ≤ ε} ⟹ ε ≤ ⊥
+//│                             ε ≤ ⊥
+//│                               (LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: ε})) ∨ γ ≤ ⊥
+//│                                 LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: ε}) ≤ ⊥
+//│                                   LNil ≤ ⊥
+
+:te
+enumFromTo("bad", 5)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β
+//│     Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀γ. {(LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})) ∨ δ ≤ γ} ⟹ γ})) ≤ Str → β
+//│       Str ≤ Int
+
+:te
+LCons("bad", LNil()) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     (LCons ∧ {head: β}) ∧ {tail: γ} ≤ IntList
+//│       (LCons ∧ {head: β}) ∧ {tail: γ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
+//│           (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│               LCons ∧ {head: β} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: β} ≤ LNil
+//│                   β ≤ ⊥
+//│                     Str ≤ ⊥
+//│               {tail: γ} ≤ LNil
+//│                 γ ≤ ⊥
+//│                   ε ≤ ⊥
+//│                     LNil ≤ ⊥
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LCons ∧ {head: Int}
+//│                 (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {head: Int}
+//│                   LCons ∧ {head: β} ≤ {head: Int}
+//│                     LCons ≤ {head: Int}
+//│                     {head: β} ≤ {head: Int}
+//│                       β ≤ Int
+//│                         Str ≤ Int
+//│                   {tail: γ} ≤ {head: Int}
+//│                     γ ≤ ⊥
+//│                       ε ≤ ⊥
+//│                         LNil ≤ ⊥
+
+:te
+LCons(1, "bad") as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     (LCons ∧ {head: β}) ∧ {tail: γ} ≤ IntList
+//│       (LCons ∧ {head: β}) ∧ {tail: γ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
+//│           (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│               LCons ∧ {head: β} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: β} ≤ LNil
+//│                   β ≤ ⊥
+//│                     Int ≤ ⊥
+//│               {tail: γ} ≤ LNil
+//│                 γ ≤ ⊥
+//│                   Str ≤ ⊥
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {tail: δ}
+//│                 LCons ∧ {head: β} ≤ {tail: δ}
+//│                   LCons ≤ {tail: δ}
+//│                   {head: β} ≤ {tail: δ}
+//│                     β ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: γ} ≤ {tail: δ}
+//│                   γ ≤ δ
+//│                     Str ≤ δ
+//│                       Str ≤ LNil
+//│                       Str ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│                         Str ≤ LCons ∧ {head: Int}
+//│                           Str ≤ LCons
+
+// Unrelated payloads and malformed tails must still be rejected.
+:te
+Producer <:< (Int -> Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment Producer ≤ Int → Str.
+//│ Typing error tree:
+//│   Producer ≤ Int → Str
+//│     ∀X. {X ≥ F[X]} ⟹ Int → F[X] ≤ Int → Str
+//│       Int → F[∀α. {F[α] ∨ β ≤ α} ⟹ α] ≤ Int → Str
+//│         F[∀α. {F[α] ∨ β ≤ α} ⟹ α] ≤ Str
+
+:te
+ListScheme <:< Str
+//│ ═══[TYPE ERROR] Cannot solve judgment ListScheme ≤ Str.
+//│ Typing error tree:
+//│   ListScheme ≤ Str
+//│     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X}) ≤ Str
+//│       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {(LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})) ∨ β ≤ α} ⟹ α}) ≤ Str
+//│         LNil ≤ Str
+
+// Negative recursion does not acquire a fixed-point law from the closure experiment.
+type Negative = [X restricts ~X] -> X
+//│ Negative = ∀X. {X ≥ ¬X} ⟹ X
+
+:te
+Negative <:< ~Negative
+//│ ═══[TYPE ERROR] Cannot solve judgment Negative ≤ ¬Negative.
+//│ Typing error tree:
+//│   Negative ≤ ¬Negative
+//│     ∀X. {X ≥ ¬X} ⟹ X ≤ ¬Negative
+//│       {α ≥ ¬α} ⟹ α ≤ ¬Negative
+//│         α ≤ ¬Negative
+//│           ⊤ ≤ ¬Negative

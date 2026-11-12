@@ -32,25 +32,30 @@ val summary: (Nodes -> Int) -> Nodes -> Int = step
 //│                 ζ ≤ Stop
 //│                   Nodes ≤ Stop
 //│                     ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ Stop
-//│                       {ι ≥ Stop ∨ (Next ∧ {tail: ι})} ⟹ ι ≤ Stop
-//│                         ι ≤ Stop
-//│                           Stop ∨ (Next ∧ {tail: ι}) ≤ Stop
-//│                             Next ∧ {tail: ι} ≤ Stop
-//│                               Next ≤ Stop
-//│                               {tail: ι} ≤ Stop
-//│                                 ι ≤ ⊥
-//│                                   Stop ∨ (Next ∧ {tail: ι}) ≤ ⊥
-//│                                     Stop ≤ ⊥
+//│                       ∀ι. {(Stop ∨ (Next ∧ {tail: ι})) ∨ κ ≤ ι} ⟹ ι ≤ Stop
+//│                         {(Stop ∨ (Next ∧ {tail: λ})) ∨ κ ≤ λ} ⟹ λ ≤ Stop
+//│                           λ ≤ Stop
+//│                             (Stop ∨ (Next ∧ {tail: λ})) ∨ κ ≤ Stop
+//│                               Stop ∨ (Next ∧ {tail: λ}) ≤ Stop
+//│                                 Next ∧ {tail: λ} ≤ Stop
+//│                                   Next ≤ Stop
+//│                                   {tail: λ} ≤ Stop
+//│                                     λ ≤ ⊥
+//│                                       (Stop ∨ (Next ∧ {tail: λ})) ∨ κ ≤ ⊥
+//│                                         Stop ∨ (Next ∧ {tail: λ}) ≤ ⊥
+//│                                           Stop ≤ ⊥
 //│               {ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥ ≤ Int
 //│                 {ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥ ≤ Int
 //│                   ζ ≤ {tail: θ} ∧ Next
 //│                     Nodes ≤ {tail: θ} ∧ Next
 //│                       ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ {tail: θ} ∧ Next
 //│                         ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ {tail: θ}
-//│                           {κ ≥ Stop ∨ (Next ∧ {tail: κ})} ⟹ κ ≤ {tail: θ}
-//│                             κ ≤ {tail: θ}
-//│                               Stop ∨ (Next ∧ {tail: κ}) ≤ {tail: θ}
-//│                                 Stop ≤ {tail: θ}
+//│                           ∀μ. {(Stop ∨ (Next ∧ {tail: μ})) ∨ ν ≤ μ} ⟹ μ ≤ {tail: θ}
+//│                             {(Stop ∨ (Next ∧ {tail: ξ})) ∨ ν ≤ ξ} ⟹ ξ ≤ {tail: θ}
+//│                               ξ ≤ {tail: θ}
+//│                                 (Stop ∨ (Next ∧ {tail: ξ})) ∨ ν ≤ {tail: θ}
+//│                                   Stop ∨ (Next ∧ {tail: ξ}) ≤ {tail: θ}
+//│                                     Stop ≤ {tail: θ}
 
 /** One layer of the candidate invariant. */
 type Layer = Stop | (Next & {tail: Nodes})
@@ -162,10 +167,12 @@ val sumWithHelper = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
 //│                     {tail: AnyList} ≤ LNil
 //│                       AnyList ≤ ⊥
 //│                         ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
-//│                           {θ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ})} ⟹ θ ≤ ⊥
-//│                             θ ≤ ⊥
-//│                               LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ}) ≤ ⊥
-//│                                 LNil ≤ ⊥
+//│                           ∀θ. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ})) ∨ ι ≤ θ} ⟹ θ ≤ ⊥
+//│                             {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ})) ∨ ι ≤ κ} ⟹ κ ≤ ⊥
+//│                               κ ≤ ⊥
+//│                                 (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ})) ∨ ι ≤ ⊥
+//│                                   LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ}) ≤ ⊥
+//│                                     LNil ≤ ⊥
 //│               (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ζ ≥ Int, η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
 //│                 {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
 //│                   {η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬(LCons ∧ {head: ⊤})
@@ -208,10 +215,12 @@ val sumWithHelper = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
 //│                             {tail: AnyList} ≤ LCons
 //│                               AnyList ≤ ⊥
 //│                                 ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
-//│                                   {ι ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ι})} ⟹ ι ≤ ⊥
-//│                                     ι ≤ ⊥
-//│                                       LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ι}) ≤ ⊥
-//│                                         LNil ≤ ⊥
+//│                                   ∀λ. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: λ})) ∨ μ ≤ λ} ⟹ λ ≤ ⊥
+//│                                     {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ν})) ∨ μ ≤ ν} ⟹ ν ≤ ⊥
+//│                                       ν ≤ ⊥
+//│                                         (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ν})) ∨ μ ≤ ⊥
+//│                                           LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ν}) ≤ ⊥
+//│                                             LNil ≤ ⊥
 //│                   ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
 //│                     ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬(LCons ∧ {head: ⊤})
 //│                       ({η ≤ ¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int)} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: η ∧ (¬({η ≤ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int} ⟹ Int))} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil)) ∧ LCons ≤ ¬LCons
@@ -240,10 +249,12 @@ val sumWithHelper = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
 //│                                 {tail: AnyList} ≤ LCons
 //│                                   AnyList ≤ ⊥
 //│                                     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
-//│                                       {κ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ})} ⟹ κ ≤ ⊥
-//│                                         κ ≤ ⊥
-//│                                           LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: κ}) ≤ ⊥
-//│                                             LNil ≤ ⊥
+//│                                       ∀ξ. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ξ})) ∨ ο ≤ ξ} ⟹ ξ ≤ ⊥
+//│                                         {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: π})) ∨ ο ≤ π} ⟹ π ≤ ⊥
+//│                                           π ≤ ⊥
+//│                                             (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: π})) ∨ ο ≤ ⊥
+//│                                               LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: π}) ≤ ⊥
+//│                                                 LNil ≤ ⊥
 //│                       LCons ≤ ¬{tail: AnyList}
 
 /** Validate a nonrecursive summary before composing it with the recursive summary. */
@@ -283,10 +294,12 @@ val badSum = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
 //│                   {tail: AnyList} ≤ LNil
 //│                     AnyList ≤ ⊥
 //│                       ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
-//│                         {ζ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ})} ⟹ ζ ≤ ⊥
-//│                           ζ ≤ ⊥
-//│                             LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ}) ≤ ⊥
-//│                               LNil ≤ ⊥
+//│                         ∀ζ. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ})) ∨ η ≤ ζ} ⟹ ζ ≤ ⊥
+//│                           {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ})) ∨ η ≤ θ} ⟹ θ ≤ ⊥
+//│                             θ ≤ ⊥
+//│                               (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ})) ∨ η ≤ ⊥
+//│                                 LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: θ}) ≤ ⊥
+//│                                   LNil ≤ ⊥
 //│             (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ ¬({ε ≥ Int} ⟹ ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil))
 //│               ¬((({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil) ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: AnyList})
 //│                 (LCons ∧ {head: ⊤}) ∧ {tail: AnyList} ≤ (({tail: AnyList} ∧ LCons) ∧ {head: ⊤}) ∧ {head: Int} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
@@ -299,7 +312,9 @@ val badSum = fix[AnyList -> Int]((self: AnyList -> Int) => xs =>
 //│                       {tail: AnyList} ≤ {head: Int}
 //│                         AnyList ≤ ⊥
 //│                           ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X ≤ ⊥
-//│                             {η ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: η})} ⟹ η ≤ ⊥
-//│                               η ≤ ⊥
-//│                                 LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: η}) ≤ ⊥
-//│                                   LNil ≤ ⊥
+//│                             ∀ι. {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ι})) ∨ κ ≤ ι} ⟹ ι ≤ ⊥
+//│                               {(LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: λ})) ∨ κ ≤ λ} ⟹ λ ≤ ⊥
+//│                                 λ ≤ ⊥
+//│                                   (LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: λ})) ∨ κ ≤ ⊥
+//│                                     LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: λ}) ≤ ⊥
+//│                                       LNil ≤ ⊥

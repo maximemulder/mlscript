@@ -154,18 +154,21 @@ fun inferredLength(xs: IntList): Int = if xs is
 //│                                 IntList ∧ ¬LNil ≤ LNil
 //│                                   IntList ≤ LNil
 //│                                     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X ≤ LNil
-//│                                       {μ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ})} ⟹ μ ≤ LNil
-//│                                         μ ≤ LNil
-//│                                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ}) ≤ LNil
-//│                                             (LCons ∧ {head: Int}) ∧ {tail: μ} ≤ LNil
-//│                                               LCons ∧ {head: Int} ≤ LNil
-//│                                                 LCons ≤ LNil
-//│                                                 {head: Int} ≤ LNil
-//│                                                   Int ≤ ⊥
-//│                                               {tail: μ} ≤ LNil
-//│                                                 μ ≤ ⊥
-//│                                                   LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ}) ≤ ⊥
-//│                                                     LNil ≤ ⊥
+//│                                       ∀μ. {(LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ})) ∨ ν ≤ μ} ⟹ μ ≤ LNil
+//│                                         {(LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ξ})) ∨ ν ≤ ξ} ⟹ ξ ≤ LNil
+//│                                           ξ ≤ LNil
+//│                                             (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ξ})) ∨ ν ≤ LNil
+//│                                               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ξ}) ≤ LNil
+//│                                                 (LCons ∧ {head: Int}) ∧ {tail: ξ} ≤ LNil
+//│                                                   LCons ∧ {head: Int} ≤ LNil
+//│                                                     LCons ≤ LNil
+//│                                                     {head: Int} ≤ LNil
+//│                                                       Int ≤ ⊥
+//│                                                   {tail: ξ} ≤ LNil
+//│                                                     ξ ≤ ⊥
+//│                                                       (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ξ})) ∨ ν ≤ ⊥
+//│                                                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ξ}) ≤ ⊥
+//│                                                           LNil ≤ ⊥
 //│                                   ¬LNil ≤ LNil
 //│                                 LCons ≤ LNil
 //│                         {ζ ≤ λ → Int, θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int ≤ Int
@@ -177,10 +180,12 @@ fun inferredLength(xs: IntList): Int = if xs is
 //│                                     IntList ∧ ¬LNil ≤ {tail: λ}
 //│                                       IntList ≤ {tail: λ}
 //│                                         ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X ≤ {tail: λ}
-//│                                           {ν ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ν})} ⟹ ν ≤ {tail: λ}
-//│                                             ν ≤ {tail: λ}
-//│                                               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ν}) ≤ {tail: λ}
-//│                                                 LNil ≤ {tail: λ}
+//│                                           ∀ο. {(LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ο})) ∨ π ≤ ο} ⟹ ο ≤ {tail: λ}
+//│                                             {(LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ρ})) ∨ π ≤ ρ} ⟹ ρ ≤ {tail: λ}
+//│                                               ρ ≤ {tail: λ}
+//│                                                 (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ρ})) ∨ π ≤ {tail: λ}
+//│                                                   LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ρ}) ≤ {tail: λ}
+//│                                                     LNil ≤ {tail: λ}
 //│                                       ¬LNil ≤ {tail: λ}
 //│                                     LCons ≤ {tail: λ}
 

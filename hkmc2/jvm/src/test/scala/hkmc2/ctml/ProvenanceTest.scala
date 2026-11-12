@@ -152,6 +152,25 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
     val result = classes.any(throw SearchInconclusive("test collision"), SubClauses.empty)
     assert(result == SubClauses.empty)
 
+  test("an obligation-free proof makes further divergent alternatives unnecessary"):
+    val result = classes.any(SubClauses.empty, throw SearchInconclusive("unneeded search", true))
+    assert(result == SubClauses.empty)
+
+  test("an obligation-free alternative removes earlier conditional solutions"):
+    val a = TypeVar("A")
+    val ctx = classes.declTypeVar(a, TypeVarKind.Flex)
+    val result = ctx.any(subtype(TVar(a), int), SubClauses.empty)
+    assert(result == SubClauses.empty)
+
+  test("conditional alternatives retain both sets of witnesses"):
+    val a = TypeVar("A")
+    val ctx = classes.declTypeVar(a, TypeVarKind.Flex)
+    val result = ctx.any(subtype(TVar(a), int), subtype(TVar(a), str))
+    val upper = a.upperBound(using ctx.extend(result))
+    assert(checkSubtype(int, upper)(using classes))
+    assert(checkSubtype(str, upper)(using classes))
+    assert(!checkSubtype(TClass(ClassVar("Bool")), upper)(using classes))
+
   test("unsuccessful alternatives preserve an inconclusive outcome"):
     intercept[SearchInconclusive]:
       classes.any(throw SearchInconclusive("test collision"), throw TypeError())

@@ -20,26 +20,27 @@ extension (ctx: SubContext)
     val errorTrees = ListBuffer[ProofTree]()
     var inconclusive: Option[SearchInconclusive] = None
 
-    // A left fold preserves the arguments order if they are passed from left to right, which
-    // should be the case if they are statically written inline, but should not the case if they.
-    // come from a dynamically generated list.
-    val result = fs.foldLeft(None: Option[SubClauses])((result, f) =>
+    // Explore alternatives in source order and join their conditional solutions.
+    var result: Option[SubClauses] = None
+    val remaining = fs.iterator
+    while remaining.hasNext do
+      val f: SubContext ?=> SubClauses = remaining.next()
       try
         given SubContext = ctx
         val bounds = f
+        // An empty solution imposes no obligations, so its disjunction with any other solution
+        // is empty too. No alternative can add a solution that this branch does not already admit.
+        if bounds.elems.isEmpty then return SubClauses.empty
         result match
           case Some(resultBounds) =>
-            Some(SubClauses(ctx.joinBounds(resultBounds, bounds)))
+            result = Some(SubClauses(ctx.joinBounds(resultBounds, bounds)))
           case None =>
-            Some(bounds)
+            result = Some(bounds)
       catch
         case error: TypeError =>
           errorTrees.appendAll(error.trees)
-          result
         case error: SearchInconclusive if !error.global =>
           inconclusive = Some(error)
-          result
-    )
 
     result match
       case Some(bounds) =>

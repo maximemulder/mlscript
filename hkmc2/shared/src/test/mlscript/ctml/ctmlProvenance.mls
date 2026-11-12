@@ -50,7 +50,7 @@ type Chain = [X restricts (Stop | (Next & {tail: X}))] -> X
 //│ Chain = ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X
 
 Next(Next(Next(Stop()))) as Chain
-//│ @ctml-search calls=154 checks=67 fresh=5 infer=4 origins=2 groups=2 max-per-group=3 exact=0 abstract=0 cuts=0 max-clauses=66 max-goal-nodes=14
+//│ @ctml-search calls=152 checks=67 fresh=5 infer=4 origins=2 groups=2 max-per-group=3 exact=0 abstract=0 cuts=0 max-clauses=66 max-goal-nodes=14
 //│ Chain
 
 :te

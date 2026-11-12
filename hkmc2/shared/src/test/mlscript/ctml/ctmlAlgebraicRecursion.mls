@@ -1,0 +1,268 @@
+:ctml
+:ctml-cfg algebraic-recursion search-steps 5000
+
+/** The end of a chain. */
+data class Stop()
+/** A node of a chain. */
+data class Next(tail)
+//│ Stop: Unit → Stop
+//│ Next: ∀α. α → (Next ∧ {tail: α})
+
+/** A consumer's admissible domains are post-fixed points of the chain layer. */
+type Consumer = [A extends (Stop | (Next & {tail: A}))] -> A -> Int
+//│ Consumer = ∀A. {A ≤ Stop ∨ (Next ∧ {tail: A})} ⟹ A → Int
+
+/** A producer with a payload binder preceding its recursive result carrier. */
+type Producer = [P] -> [R restricts (P | (Next & {tail: R}))] -> P -> R
+//│ Producer = ∀P, R. {R ≥ P ∨ (Next ∧ {tail: R})} ⟹ P → R
+
+/** Finite chains ending in Stop. */
+type Chain = [R restricts (Stop | (Next & {tail: R}))] -> R
+//│ Chain = ∀R. {R ≥ Stop ∨ (Next ∧ {tail: R})} ⟹ R
+
+declare fun consume: Consumer
+declare fun produce: Producer
+//│ consume: Consumer
+//│ produce: Producer
+
+produce(Stop()) as Chain
+//│ Chain
+
+consume(Stop()) as Int
+//│ Int
+
+consume(Next(Stop())) as Int
+//│ Int
+
+:te
+consume(true)
+//│ ═══[TYPE ERROR] Cannot solve judgment Consumer ≤ Bool → α.
+//│ Typing error tree:
+//│   Consumer ≤ Bool → α
+//│     ∀A. {A ≤ Stop ∨ (Next ∧ {tail: A})} ⟹ A → Int ≤ Bool → α
+//│       ¬(∀β. {¬(Stop ∨ (Next ∧ {tail: ¬β})) ∨ γ ≤ β} ⟹ β) → Int ≤ Bool → α
+//│         Bool ≤ ¬(∀β. {¬(Stop ∨ (Next ∧ {tail: ¬β})) ∨ γ ≤ β} ⟹ β)
+//│           ∀β. {¬(Stop ∨ (Next ∧ {tail: ¬β})) ∨ γ ≤ β} ⟹ β ≤ ¬Bool
+//│             {¬(Stop ∨ (Next ∧ {tail: ¬δ})) ∨ γ ≤ δ} ⟹ δ ≤ ¬Bool
+//│               δ ≤ ¬Bool
+//│                 ¬(Stop ∨ (Next ∧ {tail: ¬δ})) ∨ γ ≤ ¬Bool
+//│                   ¬(Stop ∨ (Next ∧ {tail: ¬δ})) ≤ ¬Bool
+//│                     Bool ≤ Stop ∨ (Next ∧ {tail: ¬δ})
+//│                       Bool ≤ Stop
+//│                       Bool ≤ Next ∧ {tail: ¬δ}
+//│                         Bool ≤ Next
+
+:te
+consume(Next(true))
+//│ ═══[TYPE ERROR] Cannot solve judgment Consumer ≤ α → β.
+//│ Typing error tree:
+//│   Consumer ≤ α → β
+//│     ∀A. {A ≤ Stop ∨ (Next ∧ {tail: A})} ⟹ A → Int ≤ α → β
+//│       ¬(∀γ. {¬(Stop ∨ (Next ∧ {tail: ¬γ})) ∨ δ ≤ γ} ⟹ γ) → Int ≤ α → β
+//│         α ≤ ¬(∀γ. {¬(Stop ∨ (Next ∧ {tail: ¬γ})) ∨ δ ≤ γ} ⟹ γ)
+//│           ∀γ. {¬(Stop ∨ (Next ∧ {tail: ¬γ})) ∨ δ ≤ γ} ⟹ γ ≤ ¬α
+//│             {¬(Stop ∨ (Next ∧ {tail: ¬ε})) ∨ δ ≤ ε} ⟹ ε ≤ ¬α
+//│               ε ≤ ¬α
+//│                 ¬(Stop ∨ (Next ∧ {tail: ¬ε})) ∨ δ ≤ ¬α
+//│                   α ≤ ¬(¬(Stop ∨ (Next ∧ {tail: ¬ε})) ∨ δ)
+//│                     Next ∧ {tail: ζ} ≤ ¬(¬(Stop ∨ (Next ∧ {tail: ¬ε})) ∨ δ)
+//│                       Next ∧ {tail: ζ} ≤ ¬¬(Stop ∨ (Next ∧ {tail: ¬ε}))
+//│                         Next ∧ {tail: ζ} ≤ Stop ∨ (Next ∧ {tail: ¬ε})
+//│                           Next ∧ {tail: ζ} ≤ Stop
+//│                             Next ≤ Stop
+//│                             {tail: ζ} ≤ Stop
+//│                               ζ ≤ ⊥
+//│                                 Bool ≤ ⊥
+//│                           Next ∧ {tail: ζ} ≤ Next ∧ {tail: ¬ε}
+//│                             Next ∧ {tail: ζ} ≤ {tail: ¬ε}
+//│                               Next ≤ {tail: ¬ε}
+//│                               {tail: ζ} ≤ {tail: ¬ε}
+//│                                 ζ ≤ ¬ε
+//│                                   Bool ≤ ¬ε
+//│                                     ε ≤ ¬Bool
+//│                                       ¬(Stop ∨ (Next ∧ {tail: ¬ε})) ∨ δ ≤ ¬Bool
+//│                                         ¬(Stop ∨ (Next ∧ {tail: ¬ε})) ≤ ¬Bool
+//│                                           Bool ≤ Stop ∨ (Next ∧ {tail: ¬ε})
+//│                                             Bool ≤ Stop
+//│                                             Bool ≤ Next ∧ {tail: ¬ε}
+//│                                               Bool ≤ Next
+
+:fixme // FIXME: Closing recursive branch guards still exceeds the bounded solver search.
+/** A return annotation constrains the result without supplying a recursive domain. */
+fun walk(xs): Int = if xs is
+  Stop() then 0
+  Next(t) then walk(t)
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 5000 solver calls
+
+// FIXME: Enable calls when inference of the definition above succeeds.
+// walk(Next(Stop())) as Int
+
+:ctml-cfg no-algebraic-recursion
+
+:te
+consume(Next(true))
+//│ ═══[TYPE ERROR] Cannot solve judgment Consumer ≤ α → β.
+//│ Typing error tree:
+//│   Consumer ≤ α → β
+//│     ∀A. {A ≤ Stop ∨ (Next ∧ {tail: A})} ⟹ A → Int ≤ α → β
+//│       {γ ≤ Stop ∨ (Next ∧ {tail: γ})} ⟹ γ → Int ≤ α → β
+//│         γ → Int ≤ α → β
+//│           α ≤ γ
+//│             α ≤ Stop ∨ (Next ∧ {tail: γ})
+//│               Next ∧ {tail: δ} ≤ Stop ∨ (Next ∧ {tail: γ})
+//│                 Next ∧ {tail: δ} ≤ Stop
+//│                   Next ≤ Stop
+//│                   {tail: δ} ≤ Stop
+//│                     δ ≤ ⊥
+//│                       Bool ≤ ⊥
+//│                 Next ∧ {tail: δ} ≤ Next ∧ {tail: γ}
+//│                   Next ∧ {tail: δ} ≤ {tail: γ}
+//│                     Next ≤ {tail: γ}
+//│                     {tail: δ} ≤ {tail: γ}
+//│                       δ ≤ γ
+//│                         δ ≤ Stop ∨ (Next ∧ {tail: γ})
+//│                           Bool ≤ Stop ∨ (Next ∧ {tail: γ})
+//│                             Bool ≤ Stop
+//│                             Bool ≤ Next ∧ {tail: γ}
+//│                               Bool ≤ Next
+
+:ctml-cfg algebraic-recursion
+
+/** Empty list. */
+data class LNil()
+/** A list cell. */
+data class LCons(head, tail)
+//│ LNil: Unit → LNil
+//│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** Replicate a payload through a recursive result carrier. */
+fun replicate(n, x) = if n == 0 then LNil() else LCons(x, replicate(n - 1, x))
+//│ replicate: ∀α, β. {β ≥ ((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil} ⟹ Int → α → (((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil)
+
+/** Integer lists. */
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+replicate as (Int -> Int -> IntList)
+//│ Int → Int → IntList
+
+replicate(2, 1) as IntList
+//│ IntList
+
+:te
+replicate(2, true) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ((LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ}) ∨ LNil ≤ IntList
+//│       ((LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ}) ∨ LNil ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε
+//│           ((LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ}) ∨ LNil ≤ ε
+//│             (LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ ε
+//│               (LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ LNil
+//│                 LCons ∧ {head: β} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: β} ≤ LNil
+//│                     β ≤ ⊥
+//│                       Bool ≤ ⊥
+//│                 {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ LNil
+//│                   ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ ≤ ⊥
+//│                     ∀ζ. {((((LCons ∧ {head: β}) ∧ {tail: ζ}) ∨ LNil) ∨ δ) ∨ η ≤ ζ} ⟹ ζ ≤ ⊥
+//│                       {((((LCons ∧ {head: β}) ∧ {tail: θ}) ∨ LNil) ∨ δ) ∨ η ≤ θ} ⟹ θ ≤ ⊥
+//│                         θ ≤ ⊥
+//│                           ((((LCons ∧ {head: β}) ∧ {tail: θ}) ∨ LNil) ∨ δ) ∨ η ≤ ⊥
+//│                             (((LCons ∧ {head: β}) ∧ {tail: θ}) ∨ LNil) ∨ δ ≤ ⊥
+//│                               ((LCons ∧ {head: β}) ∧ {tail: θ}) ∨ LNil ≤ ⊥
+//│                                 LNil ≤ ⊥
+//│               (LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ (LCons ∧ {head: Int}) ∧ {tail: ε}
+//│                 (LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ LCons ∧ {head: Int}
+//│                   (LCons ∧ {head: β}) ∧ {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ {head: Int}
+//│                     LCons ∧ {head: β} ≤ {head: Int}
+//│                       LCons ≤ {head: Int}
+//│                       {head: β} ≤ {head: Int}
+//│                         β ≤ Int
+//│                           Bool ≤ Int
+//│                     {tail: ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ} ≤ {head: Int}
+//│                       ∀γ. {(((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil) ∨ δ ≤ γ} ⟹ γ ≤ ⊥
+//│                         ∀ι. {((((LCons ∧ {head: β}) ∧ {tail: ι}) ∨ LNil) ∨ δ) ∨ κ ≤ ι} ⟹ ι ≤ ⊥
+//│                           {((((LCons ∧ {head: β}) ∧ {tail: λ}) ∨ LNil) ∨ δ) ∨ κ ≤ λ} ⟹ λ ≤ ⊥
+//│                             λ ≤ ⊥
+//│                               ((((LCons ∧ {head: β}) ∧ {tail: λ}) ∨ LNil) ∨ δ) ∨ κ ≤ ⊥
+//│                                 (((LCons ∧ {head: β}) ∧ {tail: λ}) ∨ LNil) ∨ δ ≤ ⊥
+//│                                   ((LCons ∧ {head: β}) ∧ {tail: λ}) ∨ LNil ≤ ⊥
+//│                                     LNil ≤ ⊥
+
+:ctml-cfg no-algebraic-recursion
+
+:fixme // FIXME: Single-binder closure cannot normalize the carrier following the payload binder.
+replicate as (Int -> Int -> IntList)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil} ⟹ Int → α → (((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil) ≤ Int → Int → IntList.
+//│ Typing error tree:
+//│   ∀α, β. {β ≥ ((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil} ⟹ Int → α → (((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil) ≤ Int → Int → IntList
+//│     {δ ≥ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil} ⟹ Int → γ → (((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil) ≤ Int → Int → IntList
+//│       Int → γ → (((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil) ≤ Int → Int → IntList
+//│         γ → (((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil) ≤ Int → IntList
+//│           ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil ≤ IntList
+//│             ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│               ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε
+//│                 ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil ≤ ε
+//│                   (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│                     (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: γ} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: γ} ≤ LNil
+//│                           γ ≤ ⊥
+//│                             Int ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil ≤ ⊥
+//│                             LNil ≤ ⊥
+//│                     (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ (LCons ∧ {head: Int}) ∧ {tail: ε}
+//│                       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {tail: ε}
+//│                         LCons ∧ {head: γ} ≤ {tail: ε}
+//│                           LCons ≤ {tail: ε}
+//│                           {head: γ} ≤ {tail: ε}
+//│                             γ ≤ ⊥
+//│                               Int ≤ ⊥
+//│                         {tail: δ} ≤ {tail: ε}
+//│                           δ ≤ ε
+//│                             ((LCons ∧ {head: γ}) ∧ {tail: δ}) ∨ LNil ≤ ε
+
+:fixme // FIXME: Applying the producer loses the unclosed recursive result carrier.
+replicate(2, 1) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil ≤ IntList
+//│       ((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
+//│           ((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│                 LCons ∧ {head: β} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: β} ≤ LNil
+//│                     β ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     ((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│                 (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {tail: δ}
+//│                   LCons ∧ {head: β} ≤ {tail: δ}
+//│                     LCons ≤ {tail: δ}
+//│                     {head: β} ≤ {tail: δ}
+//│                       β ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: γ} ≤ {tail: δ}
+//│                     γ ≤ δ
+//│                       ((LCons ∧ {head: β}) ∧ {tail: γ}) ∨ LNil ≤ δ
+
+:ctml-cfg algebraic-recursion search-steps 2000
+
+:fixme // FIXME: Inferring an unannotated recursive consumer still exhausts the solver budget.
+fun walkPlain(xs) = if xs is
+  Stop() then 0
+  Next(t) then walkPlain(t)
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 2000 solver calls

@@ -19,10 +19,43 @@ declare fun insert[A]: A -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}
 insert(1, LCons(2, LNil())) as IntLists
 //│ IntLists
 
-:breakme // FIXME: Nested result instantiation loses the element constraint from the first argument.
 :te
 insert("bad", LCons(2, LNil())) as IntLists
-//│ IntLists
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntLists.
+//│ Typing error tree:
+//│   α ≤ IntLists
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ IntLists
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀δ. {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ})) ∨ ε ≤ δ} ⟹ δ ≤ γ
+//│               ∀δ. {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ})) ∨ ε ≤ δ} ⟹ δ ≤ LNil
+//│                 {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ})) ∨ ε ≤ ζ} ⟹ ζ ≤ LNil
+//│                   (LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ})) ∨ ε ≤ ζ
+//│                     (LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ})) ∨ ε ≤ LNil
+//│                       LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ}) ≤ LNil
+//│                         (LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ} ≤ LNil
+//│                           LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z} ≤ LNil
+//│                             LCons ≤ LNil
+//│                             {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z} ≤ LNil
+//│                               ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ ⊥
+//│                                 {η ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η})} ⟹ η ≤ ⊥
+//│                                   η ≤ ⊥
+//│                                     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η}) ≤ ⊥
+//│                                       LNil ≤ ⊥
+//│                           {tail: ζ} ≤ LNil
+//│                             ζ ≤ ⊥
+//│                               (LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ})) ∨ ε ≤ ⊥
+//│                                 LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ}) ≤ ⊥
+//│                                   LNil ≤ ⊥
+//│               ∀δ. {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ})) ∨ ε ≤ δ} ⟹ δ ≤ (LCons ∧ {head: IntList}) ∧ {tail: γ}
+//│                 ∀δ. {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ})) ∨ ε ≤ δ} ⟹ δ ≤ LCons ∧ {head: IntList}
+//│                   ∀δ. {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ})) ∨ ε ≤ δ} ⟹ δ ≤ LCons
+//│                     {(LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: θ})) ∨ ε ≤ θ} ⟹ θ ≤ LCons
+//│                       (LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: θ})) ∨ ε ≤ θ
+//│                         (LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: θ})) ∨ ε ≤ LCons
+//│                           LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: θ}) ≤ LCons
+//│                             LNil ≤ LCons
 
 :te
 LCons(LCons("bad", LNil()), LNil()) as IntLists

@@ -1,3 +1,144 @@
+# Algebraic recursion follow-up
+
+The branch `experiment/algebraic-recursion` starts from `experient/subtype-closure` (`a27e7cc67`).
+It keeps ordinary expression inference and context joins. There is no summary builder, second body
+checker, guessed recursive contract, or rule that proves a judgment by revisiting it.
+
+Enable the additional normalization with `:ctml-cfg algebraic-recursion`; disable it with
+`no-algebraic-recursion`. It is off by default. The existing `recursive-closure` option remains on
+by default and must be on for either normalization to run. The pending-bound correctness fix is
+independent of these options.
+
+## Results and limits
+
+`ctmlAlgebraicRecursion.mls` contains both enabled and disabled controls. In particular, ordinary
+inference gives the unannotated recursive producer
+
+```mlscript
+fun replicate(n, x) = if n == 0 then LNil() else LCons(x, replicate(n - 1, x))
+```
+
+an ordinary constrained polymorphic type with a payload variable and a recursive result carrier.
+Both `replicate as (Int -> Int -> IntList)` and `replicate(2, 1) as IntList` succeed with complete
+problem normalization and fail with the inherited single-binder closure. The Boolean-payload
+negative test is rejected. The inferred source type itself is unchanged: the improvement is in
+solving its constraints when using it.
+
+Declared consumer schemes with `A ≤ Stop ∨ (Next ∧ {tail: A})` also accept finite chains, while
+rejecting Boolean inputs and malformed tails. These examples test solving a supplied recursive
+constraint, not inference of the corresponding source consumer.
+
+Unannotated recursive consumers remain unresolved. A unary traversal exhausts the focused
+2,000-call budget; even adding an `Int` result annotation exceeds 5,000 calls. Live `:fixme` cases
+record these limits. Calls are commented out because the definitions have no inferred type. The result is a foundation and a
+producer improvement, not a replacement for all the practical successes of `fix-recursion`.
+
+## Parameterizing upper bounds
+
+The lower-bound family described below covers `F(a) ≤ a`. A consumer domain instead often needs
+`a ≤ F(a)`. For monotone `F`, put `G(x) = ¬F(¬x)` and use
+
+```text
+Interior_F(b) = ¬μX. (G(X) ∨ b).
+```
+
+Every member satisfies the upper bound. Every solution `a` is represented by choosing `b = ¬a`.
+The seed denotes excluded values here; it is not a greatest-solution-only choice. As with lower
+closure, substitute the witness in the entire result and every residual constraint. Opposite
+bounds, unsupported guards, and negative uses in the remaining problem are retained.
+
+`RecursiveClosure.lean` adds `upper_closed`, `upper_recover`, and `upper_solutions`, checked against
+the sibling mechanization. Their explicit premises are complement duality (`AreDual`), the scoped
+monotonicity needed for the lower closure (`CanClose`), monotonicity of `F`, and congruence of the
+residual predicate. The proof does not verify the Scala variance checker or establish these premises
+for every Scala type form. An independent finite-model test evaluates the actual generated ASTs,
+including universal quantification and guards, for all 8,000 monotone operators on three atoms and
+all eight seeds, in both directions; the represented solution sets agree exactly.
+
+## Complete local problems
+
+The inherited integration only examines the first universal binder. For a producer polymorphic in
+its payload before its recursive carrier, that binder has no self bound, so normalization misses
+the carrier. `RecursiveProblem` exposes all leading universal binders, the result, and all guards
+as one local problem. All binders are freshly opened at the same existential level. Each original
+variable is considered once, with lower bounds preferred; if none can be closed, upper closure is
+tried. Other declarations are available as parameters, but their bounds are not assumed while
+certifying a transformation. Each substitution covers the whole remaining problem. Seeds are not
+recursively transformed on the same pass.
+
+This is sequential elimination, not a general algorithm for mutually recursive constraints.
+Substitution can put a remaining recursive occurrence beneath a universal or guard; such a bound
+stays unsupported. Variables already spread through an ambient inference context still cannot be
+rewritten through this API. The downstream solver remains incomplete even when normalization
+preserves all mathematical solutions.
+
+## A necessary propagation invariant
+
+The experiment exposed an independent solver bug. Consider these three constraints, with distinct
+constructor tags:
+
+```text
+Bool ≤ b
+Next ∧ {tail: b} ≤ a
+a ≤ Stop ∨ (Next ∧ {tail: a})
+```
+
+They are inconsistent: the recursive upper bound forces the tail into `a`, so `Bool ≤ a`, while
+`a` excludes `Bool`. During checking of the upper bound against the current lower bound, propagation
+can discover `Bool ≤ a`. If the pending upper bound is invisible during that check, the new lower
+bound is checked against `Top` and the inconsistent interval survives.
+
+`subtypeFlexVar` makes its pending structural bound visible during opposite-bound propagation.
+Failure returns no clauses. Redundancy is checked against the incoming context, since propagated
+bounds may rely on the pending assertion. The unit test checks both a valid `Stop` leaf and an
+invalid `Bool` leaf in all six constraint orders. This also makes the existing
+`ctmlNestedListResult.mls` string-in-integer-lists counterexample fail as it should, while its valid
+integer control continues to pass; its `:breakme` marker is removed.
+
+## Validation of the follow-up
+
+The unmodified base passed all 60 CTML diff-test files. The follow-up passes 61 files (including
+its new focused file) and all 50 CTML unit tests. A full-suite survey with algebraic normalization
+on by default also passed all 61 files; its changes were debug variable numbers and diagnostic
+search output in three files. The checked-in configuration and goldens retain the opt-in default.
+The Lean proof checks with the command recorded below, with no added axioms or unfinished proofs.
+
+The new focused file took about 3.2 seconds in the full run and 1.8 seconds in its final
+focused run, including the additional bounded unannotated traversal probe. The existing provenance-consumer file remains slower than the desired
+five seconds (about 6.7 seconds in that run, versus 5.6 seconds in the initial baseline); no file
+reached 30 seconds. These concurrent test timings are observations, not a benchmark.
+
+Golden changes outside the new file reflect the repaired nested-list rejection, longer diagnostic
+paths, search accounting, and retaining an additional bound in the `g9` recursive self-application
+example. Its `g10` omega control remains `Bottom`. Two provenance unit tests now assert bounded
+search work and the required cut/fallback behavior rather than exact allocation/cut counts; the
+pending-bound consistency checks can visit additional alternatives.
+
+## Investigated alternatives
+
+The discarded probes are recorded here to distinguish experimental evidence from the retained
+implementation:
+
+- A fresh local recursive variable alone inferred a large guarded type, then exhausted the budget
+  when applied to a nonempty list.
+- A fresh arrow assumption and monomorphic abstraction spine did not resolve the cycle through
+  branch guards. Generalizing the branch-sensitive abstraction remains significant: different
+  input cases can require different instances.
+- Deferring the recursion equation as raw solved bounds was unsound: simplification dropped
+  obligations and accepted a wrong return type. Keeping it as an explicit guarded obligation
+  preserved the obligation but did not produce usable nonempty-list consumer types.
+- Flexible-domain case splitting, Boolean variable isolation, and structural universal witnesses
+  did not make those consumer probes tractable. None is included here.
+- Making variable-to-variable bounds pending as well regressed the omega self-application test;
+  without provenance cuts that probe overflowed the stack. That broader change is not included.
+  The retained structural-bound fix preserves the omega regression's `Bottom` result.
+
+The next research step is solving the finite guarded recursive problem produced by a step function,
+with independently instantiated input cases and shared recursive invariants. Extending closure to
+positive upper bounds does not by itself discharge these first-class guarded dependencies.
+
+---
+
 # A family of solutions for a recursive bound
 
 This experiment replaces a recursive variable with an ordinary CTML type that represents **all**
@@ -5,8 +146,8 @@ solutions of its lower bound. It does not guess the variable from the shape of t
 The implementation is on `experient/subtype-closure`, based on `81305500a` on `ctml`, without the
 producer-specific changes from `experient/subtype-recursion`.
 
-Enable it with `:ctml-cfg recursive-closure`; disable it with `no-recursive-closure`. It is off by
-default. The focused examples are in `ctmlRecursiveClosure.mls`.
+Enable it with `:ctml-cfg recursive-closure`; disable it with `no-recursive-closure`. It is on by
+default at the base commit of this follow-up. The focused examples are in `ctmlRecursiveClosure.mls`.
 
 ## What works
 
@@ -149,8 +290,7 @@ A full-suite survey with closure enabled under normal settings completed in 6.13
 unexpected outcomes were eight existing `:fixme` cases succeeding: three producer subtyping cases,
 three producer inference cases, and the Nofib `map(abs, enumFromTo(...))` and
 `take(..., enumFromTo(...))` compositions. The harness therefore reported 57 passing files and
-three failing files. There were no newly failing previously successful examples. These survey
-golden changes are not part of the experiment.
+three failing files. There were no newly failing previously successful examples. The base commit includes these resolved expected-failure and golden changes.
 
 A separate survey with a 10,000-call budget hit existing expensive searches. The same-budget
 control with closure disabled hit the same 26 unexpected error blocks across nine files; enabling

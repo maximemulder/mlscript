@@ -1,15 +1,16 @@
 package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.config
-import hkmc2.ctml.core.makeJointType
+import hkmc2.ctml.core.{makeJointType, makeNegationType}
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.types.*
 
-/** A local existential problem after replacing `a` by `μX. (F(X) ∨ b)`.
- *  The fresh parameter `b` ranges over all seeds, preserving every solution of `F(a) ≤ a`.
+/** A local existential problem after parameterizing one monotone recursive bound.
+ *  A lower bound uses `μX. (F(X) ∨ b)`; an upper bound uses its complement dual.
+ *  The fresh parameter ranges over all seeds, preserving every solution of the selected bound.
  *  Remaining constraints still need solving; constructing a closure is not a satisfiability test.
  */
 case class RecursiveClosure(
@@ -50,16 +51,17 @@ private def hasRecursiveVariance(
         hasRecursiveVariance(arg, variable, positive)
     case _ => false
 
-/** Parameterize the positive lower self bounds of one locally owned flexible variable.
+/** Parameterize monotone self bounds in one direction of a locally owned flexible variable.
  *  The ambient context must not mention it. The caller supplies its entire remaining problem,
  *  including its result, so substitution cannot leave an independent copy of the old variable.
- *  Other guards, including upper bounds and negative occurrences, are retained and substituted.
+ *  Other guards, including opposite bounds and negative occurrences, are retained and substituted.
  *  `None` means unsupported, not inconsistent. See `recursive-closure-experiment.md` for the proof.
  */
 def closeRecursiveVariable(
   local: TypeVarDecl,
   result: Type,
   constraints: List[Constraint],
+  direction: Direction = Direction.Super,
 )(using ctx: SubContext): Option[RecursiveClosure] =
   if local.kind != TypeVarKind.Flex then return None
   val variable = local.var_
@@ -76,46 +78,89 @@ def closeRecursiveVariable(
   // A seed at the original level cannot carry a dependency on a later rigid variable.
   if free.exists(_.level > local.level) then return None
 
-  /** Read a direct lower bound, irrespective of its written orientation. */
-  def lower(guard: Constraint): Option[Type] =
-    val (sub, sup) = guard.dir match
-      case Direction.Sub => (guard.left, guard.right)
-      case Direction.Super => (guard.right, guard.left)
-    if sup != TVar(variable) then None
+  /** Read a direct bound in the selected direction, irrespective of written orientation. */
+  def selectedBound(guard: Constraint): Option[Type] =
+    val (left, right) = if guard.dir == direction then (guard.left, guard.right)
+      else (guard.right, guard.left)
+    if left != TVar(variable) then None
     else
-      val body = normalizeRecursiveBound(variable, Direction.Super, sub)
+      val body = normalizeRecursiveBound(variable, direction, right)
       Option.when(hasRecursiveVariance(body, variable))(body)
 
-  val selected = constraints.map(lower)
+  val selected = constraints.map(selectedBound)
   val bodies = selected.flatten
   if !bodies.exists(_.hasVar(variable)) then return None
-  val body = bodies.reduce((left, right) => makeJointType(JointMode.Union, left, right))
+  val body = bodies.reduce((left, right) => makeJointType(direction.jointMode, left, right))
   val parameter = ctx.mapLevel(_ => local.level).declFreshVar(TypeVarKind.Flex, variable)
   val carrier = newFreshVar()
-  val layer = makeJointType(JointMode.Union,
-    body.substitute(variable, TVar(carrier)), TVar(parameter.var_))
-  val witness = TUniv(carrier,
+  val recursiveBody = direction match
+    case Direction.Super => body.substitute(variable, TVar(carrier))
+    case Direction.Sub =>
+      makeNegationType(body.substitute(variable, makeNegationType(TVar(carrier))))
+  val layer = makeJointType(JointMode.Union, recursiveBody, TVar(parameter.var_))
+  val closure = TUniv(carrier,
     TConstrained(TVar(carrier), Constraint(layer, Direction.Sub, TVar(carrier))))
+  val witness = if direction == Direction.Super then closure else makeNegationType(closure)
   val remaining = constraints.zip(selected).collect {
     case (guard, None) => guard.substitute(variable, witness)
   }
   Some(RecursiveClosure(parameter, witness, result.substitute(variable, witness), remaining))
 
-/** Solve a freshly opened instance, optionally closing its single local recursive variable.
- *  The scope is complete here: the variable is absent from the target and the ambient context.
- *  Nested comparisons of the synthesized encoding use ordinary instantiation, so the encoding
- *  cannot trigger an unbounded sequence of fresh closure transformations.
+/** A complete local problem after zero or more variables have been parameterized. */
+case class RecursiveProblem(
+  declarations: List[TypeVarDecl],
+  result: Type,
+  constraints: List[Constraint],
+):
+  /** Retain all residual guards without simplifying them as if they were solved bounds. */
+  def guardedResult: Type =
+    constraints.foldRight(result)((guard, body) => TConstrained(body, guard))
+
+/** Normalize a complete local existential problem, keeping its ambient context independent.
+ *  Each substitution reaches the whole remaining problem. Other local declarations are available
+ *  as parameters, but none of their bounds are assumed while certifying a transformation.
+ *  Each original variable is considered once; seeds are never closed again on this pass.
+ *  Lower bounds take priority. An opposite bound remains a substituted obligation.
+ */
+def closeRecursiveProblem(problem: RecursiveProblem)(using ctx: SubContext): Option[RecursiveProblem] =
+  assert(problem.declarations.map(_.var_).distinct.size == problem.declarations.size)
+  assert(!problem.declarations.exists(d => ctx.typeVarDecls.exists(_.var_ == d.var_)))
+  var current = problem
+  var changed = false
+  for local <- problem.declarations do
+    val independent = ctx.extend(current.declarations.filterNot(_.var_ == local.var_))
+    val closed = closeRecursiveVariable(local, current.result, current.constraints)(using independent)
+      .orElse(closeRecursiveVariable(local, current.result, current.constraints, Direction.Sub)
+        (using independent))
+    closed.foreach: closed =>
+      current = RecursiveProblem(
+        current.declarations.map(d => if d.var_ == local.var_ then closed.parameter else d),
+        closed.result, closed.constraints)
+      changed = true
+  Option.when(changed)(current)
+
+/** Solve a freshly opened instance in a complete scope independent of the target and ambient
+ *  context. The algebraic experiment opens all leading binders and supports dual upper closure.
+ *  Generated encodings use ordinary instantiation to avoid repeatedly closing their own carriers.
  */
 private[subtyping] def subtypeRecursiveInstance(sub: Type, target: Type)
     (using ctx: SubContext): Option[SubClauses] =
   if !config.recursiveClosure || ctx.trail.closingRecursiveInstance then return None
   sub match
-    case TUniv(variable, body) =>
+    case univ: TUniv =>
+      val (variables, body) = if config.algebraicRecursion then univ.getUnivComponents
+        else (List(univ.var_), univ.body)
       val opening = ctx.mapLevel(_ + 1).mapTrail(trail => trail.copy(
-        flow = trail.flow + variable.provenance.root, closingRecursiveInstance = true))
-      val local = opening.declFreshVar(TypeVarKind.Flex, variable)
-      val (result, guards) = body.substitute(variable, TVar(local.var_)).getConstrainedComponents
-      closeRecursiveVariable(local, result, guards)(using opening).map(closed =>
-        subtypeSeq(closed.guardedResult, target,
-          SubClauses.single(closed.parameter))(using opening))
+        flow = trail.flow ++ variables.map(_.provenance.root), closingRecursiveInstance = true))
+      val locals = variables.map(opening.declFreshVar(TypeVarKind.Flex, _))
+      val instance = variables.zip(locals).foldLeft(body)((body, entry) =>
+        body.substitute(entry._1, TVar(entry._2.var_)))
+      val (result, guards) = instance.getConstrainedComponents
+      val normalized = if config.algebraicRecursion then
+        closeRecursiveProblem(RecursiveProblem(locals, result, guards))(using opening)
+      else
+        closeRecursiveVariable(locals.head, result, guards)(using opening).map(closed =>
+          RecursiveProblem(List(closed.parameter), closed.result, closed.constraints))
+      normalized.map(closed =>
+        subtypeSeq(closed.guardedResult, target, SubClauses(closed.declarations))(using opening))
     case _ => None

@@ -35,6 +35,9 @@ class Config:
   /** Whether to report deterministic solver resource measurements for each operation. */
   var profileSearch = false
 
+  /** Normalize complete local recursive problems, including monotone upper bounds. */
+  var algebraicRecursion = true
+
   /** Experimentally parameterize a local recursive lower bound during universal instantiation. */
   var recursiveClosure = true
 

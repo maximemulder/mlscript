@@ -46,14 +46,44 @@ r2(1, 1) as Str
 //│     (({γ ≤ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ β, γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ ⊥)) ∨ Int ≤ Str
 //│       ({γ ≤ Int, β ≤ Int} ⟹ Int) ∧ ({γ ≥ β, γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ ⊥) ≤ Str
 //│         {γ ≤ Int, β ≤ Int} ⟹ Int ≤ Str
-//│           {β ≤ Int} ⟹ Int ≤ Str
-//│             Int ≤ Str
+//│           γ ≤ Int
+//│             ({γ ≤ Int} ⟹ ⊥) ∨ Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ Int
+//│               Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ Int
+//│                 ({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β) ≤ Int
+//│                   {γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                     {β ≤ Int, δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                       {δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                         Int ≤ δ
+//│                           Int ≤ α
+//│                             Int ≤ Str
+//│                   {γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β ≤ Int
+//│                     γ ≤ ¬Int
+//│                       ({γ ≤ Int} ⟹ ⊥) ∨ Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ ¬Int
+//│                         Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ ¬Int
+//│                           Int ≤ ¬Int
 //│         {γ ≥ β, γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ ⊥ ≤ Str
 //│           {γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ ⊥ ≤ Str
 //│             γ ≤ ¬Int
 //│               ({γ ≤ Int} ⟹ ⊥) ∨ Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ ¬Int
-//│                 Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ ¬Int
-//│                   Int ≤ ¬Int
+//│                 {γ ≤ Int} ⟹ ⊥ ≤ ¬Int
+//│                   γ ≤ Int
+//│                     ({γ ≤ Int} ⟹ ⊥) ∨ Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ Int
+//│                       Int ∨ (({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β)) ≤ Int
+//│                         ({γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β) ≤ Int
+//│                           {γ ≤ Int, β ≤ Int, δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                             {β ≤ Int, δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                               {δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                                 Int ≤ δ
+//│                                   Int ≤ α
+//│                                     Int ≤ Str
+//│                           {γ ≤ ¬Int, β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β ≤ Int
+//│                             {β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)} ⟹ β ≤ Int
+//│                               β ≤ ¬({γ → β → δ ≤ β → β → δ} ⟹ Int)
+//│                                 γ → β → δ ≤ β → β → δ
+//│                                   β ≤ γ
+//│                                     β ≤ ¬Int ∧ Int
+//│                                       Int ≤ ¬Int ∧ Int
+//│                                         Int ≤ ¬Int
 
 :te
 r2(1, "Hello")
@@ -64,4 +94,17 @@ r2(1, "Hello")
 //│       Str ≤ γ
 //│         Str ≤ (¬({ε ≤ Int} ⟹ ⊥) ∧ Int) ∧ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ γ, ε ≤ ¬Int, ε → γ → δ ≤ γ → γ → δ} ⟹ Int))
 //│           Str ≤ ¬({ε ≤ Int} ⟹ ⊥) ∧ Int
-//│             Str ≤ Int
+//│             Str ≤ ¬({ε ≤ Int} ⟹ ⊥)
+//│               ε ≤ Int
+//│                 ({ε ≤ Int} ⟹ ⊥) ∨ Int ∨ (({ε ≤ Int, γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ ¬Int, γ ≤ ¬({ε → γ → δ ≤ γ → γ → δ} ⟹ Int)} ⟹ γ)) ≤ Int
+//│                   Int ∨ (({ε ≤ Int, γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ ¬Int, γ ≤ ¬({ε → γ → δ ≤ γ → γ → δ} ⟹ Int)} ⟹ γ)) ≤ Int
+//│                     ({ε ≤ Int, γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ ¬Int, γ ≤ ¬({ε → γ → δ ≤ γ → γ → δ} ⟹ Int)} ⟹ γ) ≤ Int
+//│                       {ε ≤ Int, γ ≤ Int, δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                         {γ ≤ Int, δ ≥ Int} ⟹ ⊥ ≤ Int
+//│                           γ ≤ Int
+//│                             Str ≤ Int
+//│                       {ε ≤ ¬Int, γ ≤ ¬({ε → γ → δ ≤ γ → γ → δ} ⟹ Int)} ⟹ γ ≤ Int
+//│                         ε ≤ ¬Int
+//│                           ({ε ≤ Int} ⟹ ⊥) ∨ Int ∨ (({ε ≤ Int, γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ ¬Int, γ ≤ ¬({ε → γ → δ ≤ γ → γ → δ} ⟹ Int)} ⟹ γ)) ≤ ¬Int
+//│                             Int ∨ (({ε ≤ Int, γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∧ ({ε ≤ ¬Int, γ ≤ ¬({ε → γ → δ ≤ γ → γ → δ} ⟹ Int)} ⟹ γ)) ≤ ¬Int
+//│                               Int ≤ ¬Int

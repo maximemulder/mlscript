@@ -485,14 +485,21 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)
-  val clauses = subtypeDirSeq(oppositeBound, extrudedType, dir, outs)
+  // Propagation may discover another opposite bound through a recursive occurrence. That new
+  // bound must see this pending assertion too: checking only the old opposite bound can leave
+  // the new interval inconsistent. The assertion is returned only if propagation succeeds.
+  val pending = Bound(var_, dir, extrudedType, BoundKind.Asserted)
+  val clauses = outs.concat(subtypeDir(oppositeBound, extrudedType, dir)(using
+    ctx.extend(outs.concat(pending.asSubClauses))))
   // The new type is asserted as a bound of the variable, and its combination with the current bound
   // becomes the effective bound of the variable, so that it does not need to be recomputed whenever
   // the variable is used (see `BoundKind`).
   // The new bound is part of the solution, so it is kept as simple as possible: it is not asserted
   // if it is already satisfied in the context, and the effective bound is otherwise simplified
   // using subtyping checks.
-  if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
+  // Propagated bounds may depend on the pending assertion, so redundancy is checked only
+  // against the incoming context.
+  if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(outs)) then
     return clauses
   val effectiveBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
 

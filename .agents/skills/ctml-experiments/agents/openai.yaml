@@ -1,0 +1,4 @@
+interface:
+  display_name: "CTML Experiments"
+  short_description: "Coordinate and critically review CTML experiments"
+  default_prompt: "Use $ctml-experiments to coordinate CTML research agents within this session's budget and report candidate branches and recommendations."

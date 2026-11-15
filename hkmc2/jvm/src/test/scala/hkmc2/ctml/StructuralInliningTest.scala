@@ -35,7 +35,10 @@ class StructuralInliningTest extends AnyFunSuite with BeforeAndAfterEach:
   test("alias substitution preserves the owner beneath every structural position"):
     val shapes: List[Type => Type] = List(
       t => TField("tail", t), t => TTuple(t, TTop),
-      t => TLam(TTop, t), t => TLam(t, TTop), t => TApp(TTop, t))
+      t => TLam(TTop, t), t => TLam(t, TTop), t => TApp(TTop, t),
+      t => TNeg(t),
+      t => TConstrained(TField("value", TTop),
+        Constraint(t, Direction.Sub, TField("guard", TTop))))
     for direction <- Direction.values; shape <- shapes do
       val bound = Bound(owner, direction, shape(TVar(alias)), BoundKind.Asserted)
       val substituted = bound.inline(alias)(using context)
@@ -57,3 +60,11 @@ class StructuralInliningTest extends AnyFunSuite with BeforeAndAfterEach:
       val substituted = bound.inline(alias)(using context)
       val identity = if direction == Direction.Super then TBot else TTop
       assert(substituted.type_ == identity)
+
+  test("self elimination preserves a nonrecursive seed beside a direct reflexive operand"):
+    val seed = TField("payload", TTop)
+    for direction <- Direction.values do
+      val bound = Bound(owner, direction,
+        TJointType(direction.jointMode, TVar(owner), seed), BoundKind.Asserted)
+      val ctx = SubContext.empty.declTypeVar(owner, TypeVarKind.Flex).extend(bound)
+      assert(bound.inline(owner)(using ctx).type_ == seed)

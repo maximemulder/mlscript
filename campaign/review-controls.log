@@ -1,0 +1,25 @@
+[info] entering thin client - BEEP WHIRR
+[info] starting sbt server in the background
+[info] use 'sbt shutdown' to shutdown the server
+[info]  
+[info] welcome to sbt 1.12.12 (Oracle Corporation Java 25.0.1)
+[info] loading settings for project structural-inlining-build from plugins.sbt...
+[info] loading project definition from /tmp/ctml-campaign-20261115/structural-inlining/project
+[info] loading settings for project root from build.sbt...
+[info] resolving key references (11204 settings) ...
+[info] set current project to root (in build file:/tmp/ctml-campaign-20261115/structural-inlining/)
+[info] sbt server started at local:///home/maxime/.sbt/1.0/server/1d60b77d53256216d94a/sock
+[info] compiling 1 Scala source to /tmp/ctml-campaign-20261115/structural-inlining/hkmc2/jvm/target/scala-3.8.4/test-classes ...
+[info] done compiling
+[info] StructuralInliningTest:
+[info] - alias substitution preserves the owner beneath every structural position
+[info] - only a direct reflexive operand is removed after substituting a mixed bound
+[info] - a direct alias relation remains a tautological self bound after elimination
+[info] - self elimination preserves a nonrecursive seed beside a direct reflexive operand
+[info] Run completed in 195 milliseconds.
+[info] Total number of tests run: 4
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 4, failed 0, canceled 0, ignored 0, pending 0
+[info] All tests passed.
+[success] elapsed time: 4 s
+[0J

@@ -32,6 +32,11 @@ simplification must not erase a nonrecursive seed by using the very bound being 
 - `fixed-known-regression.log`: focused recursive-list file passes after adding the explicit
   expected-failure marker, 2.329 seconds. This does not count as fixing the valid call. The
   full suite was not rerun merely to change that marker. The campaign server was stopped.
+- Independent review requested negation, guarded occurrences, and self-elimination coverage.
+  The expanded focused suite passes 4/4 in 195 milliseconds (`review-controls.log`), preserving
+  both recursive occurrences and nonrecursive seeds. Production code is unchanged by this
+  follow-up. The reviewer found no counterexample and agrees the union-input failure concerns
+  completeness, not permission to erase the structural obligation.
 
 ## Precision cost and limits
 

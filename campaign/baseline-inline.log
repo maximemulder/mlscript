@@ -1,0 +1,22 @@
+[info] compiling 8 Scala sources to /tmp/ctml-campaign-20261115/structural-inlining/hkmc2/jvm/target/scala-3.8.4/test-classes ...
+[info] done compiling
+[info] StructuralInliningTest:
+[info] - alias substitution preserves the owner beneath every structural position *** FAILED ***
+[info]   {tail: ⊤} did not equal {tail: Owner} Lost structural obligation: Owner ≤ {tail: Alias} became Owner ≤ {tail: ⊤} (StructuralInliningTest.scala:42)
+[info]   Analysis:
+[info]   TField(value: Type$package$TTop$(var_: -> Owner))
+[info] - only a direct reflexive operand is removed after substituting a mixed bound *** FAILED ***
+[info]   {tail: ⊤} did not equal {tail: Owner} Structural self occurrence was erased with the direct one: Owner ≤ {tail: ⊤} (StructuralInliningTest.scala:51)
+[info]   Analysis:
+[info]   TField(value: Type$package$TTop$(var_: -> Owner))
+[info] - a direct alias relation remains a tautological self bound after elimination
+[info] Run completed in 173 milliseconds.
+[info] Total number of tests run: 3
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 1, failed 2, canceled 0, ignored 0, pending 0
+[info] *** 2 TESTS FAILED ***
+[error] Failed tests:
+[error] 	hkmc2.ctml.core.simplification.StructuralInliningTest
+[error] elapsed time: 1 s
+[error] (hkmc2JVM / Test / testOnly) sbt.TestsFailedException: Tests unsuccessful
+[0J

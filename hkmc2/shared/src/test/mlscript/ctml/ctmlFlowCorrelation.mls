@@ -13,7 +13,7 @@ val int_or_string: Int | Str
 fun g1(a) =
   let x = if a is Int then 1 else "s"
   if a is Int then x + 1 else x ++ "!"
-//│ g1: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ((¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int))) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str)) ∨ (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ
+//│ g1: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int)) ∧ ((¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ Int)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int))) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ Str, γ ≥ Str} ⟹ Int)), γ ≥ (({α ≤ Int, γ ≥ Int} ⟹ Int) ∧ ({α ≤ ¬Int, γ ≥ Str} ⟹ Str)) ∨ (({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)} ⟹ α → γ
 
 g1(1)
 //│ Int
@@ -29,20 +29,20 @@ g1(true)
 fun g2(a) =
   let x = if a is Int then 1 else "s"
   if a is Int then x ++ "!" else x + 1
-//│ g2: ⊥ → ⊥
+//│ g2: ⊥ → Int
 
 :te
 g2(1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ ≤ Int → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → Int ≤ Int → α.
 //│ Typing error tree:
-//│   ⊥ → ⊥ ≤ Int → α
+//│   ⊥ → Int ≤ Int → α
 //│     Int ≤ ⊥
 
 :te
 g2("Hello")
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → ⊥ ≤ Str → α.
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → Int ≤ Str → α.
 //│ Typing error tree:
-//│   ⊥ → ⊥ ≤ Str → α
+//│   ⊥ → Int ≤ Str → α
 //│     Str ≤ ⊥
 
 // The result of a match used outside of any match bounds the parameter by the pattern.
@@ -76,7 +76,7 @@ fun g4(a, b) =
   if a is
     Int then (if b is Int then a + b else a)
     else (if b is Str then b else "none")
-//│ g4: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ ⊥)} ⟹ ¬Int) ∨ ¬({β ≤ Str ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(Str ∨ ¬({γ ≥ Str} ⟹ Str))), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, α ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({β ≤ Str ∨ ¬({γ ≥ Str} ⟹ Str), α ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))} ⟹ α → β → γ
+//│ g4: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬Int) ∨ ¬({β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str), γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ Int), β ≤ ¬({α ≤ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int)) ∨ ¬({α ≤ ¬Int, γ ≥ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str)} ⟹ ¬(¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str))), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬Int, α ≤ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ α)) ∧ ({β ≤ ¬({γ ≥ β} ⟹ ¬Str) ∨ ¬({γ ≥ Str} ⟹ Str), α ≤ ¬Int} ⟹ ({β ≤ Str} ⟹ β) ∧ ({β ≤ ¬Str} ⟹ Str))} ⟹ α → β → γ
 
 g4(1, 2)
 //│ Int
@@ -252,7 +252,7 @@ g10("Hello")
 // the constraints of the function.
 
 fun g11(a) = if pick(a) is Int then a + 1 else a ++ "!"
-//│ g11: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)), γ ≥ ({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ α → γ
+//│ g11: ∀α, β, γ. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ (¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ ¬Str)) ∧ (¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ (¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)) ∧ (¬({β ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)), γ ≥ (({α ≤ Int, γ ≥ Int} ⟹ Int) ∧ ({α ≤ Str, γ ≥ Str} ⟹ Str)) ∨ (({α ≤ Int, β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)), β ≤ ¬({α ≤ Int, γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int)} ⟹ α → γ
 
 g11(1)
 //│ Int

@@ -60,7 +60,7 @@ tbad(int_or_string, "World")
 // A scrutinee passed to a function: the function must accept it in the branch that applies it.
 
 fun tpass(x, f) = if x is Int then f(x) else 0
-//│ tpass: ∀α, β, γ. {α ≤ ¬({β ≤ ⊥ → γ} ⟹ ¬Int) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬(α → γ)) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ α → γ, α ≤ Int} ⟹ ⊥) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
+//│ tpass: ∀α, β, γ. {α ≤ ¬({β ≤ α → γ} ⟹ ¬Int) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬(α → γ)) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ α → γ, α ≤ Int} ⟹ ⊥) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
 
 tpass(1, (y) => y + 1)
 //│ Int
@@ -75,7 +75,7 @@ tpass(1, (y) => y ++ "!")
 //│   α ≤ (Str → Str) → β
 //│     γ → δ ≤ (Str → Str) → β
 //│       Str → Str ≤ γ
-//│         Str → Str ≤ (¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (⊥ → δ)
+//│         Str → Str ≤ (¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (ε → δ)
 //│           Str → Str ≤ ¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│             Str → Str ≤ ¬({ε ≤ Int} ⟹ ¬(ε → δ))
 //│               ¬(ε → δ) ≤ ¬(Str → Str)
@@ -94,7 +94,7 @@ tpass(int_or_string, (y) => y ++ "!")
 //│     (γ → δ) ∨ (ε → ζ) ≤ (Str → Str) → β
 //│       γ → δ ≤ (Str → Str) → β
 //│         Str → Str ≤ γ
-//│           Str → Str ≤ (¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (⊥ → δ)
+//│           Str → Str ≤ (¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (η → δ)
 //│             Str → Str ≤ ¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│               Str → Str ≤ ¬({η ≤ Int} ⟹ ¬(η → δ))
 //│                 ¬(η → δ) ≤ ¬(Str → Str)
@@ -108,7 +108,7 @@ tpass(int_or_string, (y) => y ++ "!")
 // A nested match decided by the bound of the enclosing branch (`t_sel`).
 
 fun tsel(a, b) = if a is Int then (if b is Int then 1 else (a as Str)) else 1
-//│ tsel: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
+//│ tsel: ∀α, β, γ. {α ≤ ¬({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬((¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int)) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int, γ ≥ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ ¬({γ ≥ Int} ⟹ ¬Int) ∨ ¬({α ≤ Str, γ ≥ Str} ⟹ Int), α ≤ (¬({β ≤ Int, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ¬Int, γ ≥ Str} ⟹ ¬Str)) ∧ Int} ⟹ ({β ≤ Int} ⟹ Int) ∧ ({α ≤ Str, β ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ
 
 tsel(1, 1)
 //│ Int

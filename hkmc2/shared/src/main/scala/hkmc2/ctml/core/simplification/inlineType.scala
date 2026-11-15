@@ -14,15 +14,16 @@ extension (type_ : Type)
     inlineType(type_, var_, Polarity.Positive)
 
 extension (bound: Bound)
-  /** Inline a variable in a bound, excluding direct references to the bounded variable from
-   *  its replacement so that the relation between the two variables does not become recursive. */
+  /** Inline a variable in a bound, removing reflexive operands only after substitution.
+   *  A reference inserted beneath a constructor is a structural obligation, not a reflexive
+   *  operand: `R ≥ {tail: T}` with `T ≥ R` must retain `R ≥ {tail: R}`. */
   private[simplification] def inline(var_ : TypeVar)(using ctx: SubContext): Bound =
-    val newUpper = var_.upperBound.removeDirectVar(bound.var_, Polarity.Negative)
-    val newLower = var_.lowerBound.removeDirectVar(bound.var_, Polarity.Positive)
+    val newUpper = var_.upperBound
+    val newLower = var_.lowerBound
     // Simplification must not use the bound being rewritten, even through a cycle. Otherwise
     // rewriting `α ≥ β ∨ Bool` with `β ≥ γ` and `γ ≥ α` could absorb Bool into γ using this very
     // bound, leaving only the cycle and losing the requirement that α contains Bool.
-    // The inlined variable's replacement additionally excludes the bounded variable itself.
+    // Read the replacement before hiding the owner's bounds, preserving its structural uses.
     val newBoundType = inlineType(bound.type_, var_, bound.dir.leftPol)(using
       ctx.overrideVarBounds(bound.var_, TTop, TBot).overrideVarBounds(var_, newUpper, newLower)
     )

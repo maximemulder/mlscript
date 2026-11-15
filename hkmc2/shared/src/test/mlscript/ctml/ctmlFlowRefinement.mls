@@ -126,7 +126,7 @@ f6("Hello")
 // A nested match on a subclass refines the scrutinee further.
 
 fun f7(a) = if a is Int then (if a is Nat then "nat" else a) else unit
-//│ f7: ∀α, β. {β ≥ ({α ≤ (¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬Nat) ∧ Int} ⟹ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ ¬Nat} ⟹ α)) ∧ ({α ≤ ¬Int} ⟹ Unit), α ≤ ¬({β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ ¬Nat} ⟹ α)} ⟹ ¬((¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬Nat) ∧ Int)) ∨ ¬({β ≥ Unit} ⟹ Int)} ⟹ α → β
+//│ f7: ∀α, β. {β ≥ ({α ≤ (¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ α} ⟹ Nat)) ∧ Int} ⟹ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ ¬Nat} ⟹ α)) ∧ ({α ≤ ¬Int} ⟹ Unit), α ≤ ¬({β ≥ ({α ≤ Nat} ⟹ Str) ∧ ({α ≤ ¬Nat} ⟹ α)} ⟹ ¬((¬({β ≥ Str} ⟹ ¬Nat) ∨ ¬({β ≥ α} ⟹ Nat)) ∧ Int)) ∨ ¬({β ≥ Unit} ⟹ Int)} ⟹ α → β
 
 f7(nat)
 //│ Str

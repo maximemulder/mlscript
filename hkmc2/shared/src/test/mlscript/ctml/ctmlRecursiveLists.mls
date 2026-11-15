@@ -29,10 +29,45 @@ roll(unroll(pair)) as IntList
 fun firstOrZero(xs: IntLayer): Int = if xs is
   LNil() then 0
   LCons(head, _) then head
-//│ firstOrZero: IntLayer → Int
+//│ firstOrZero: ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer} ⟹ α → Int
 
+:fixme // FIXME: Retained self guards require one constructor branch for the entire union input.
 firstOrZero(unroll(pair)) as Int
-//│ Int
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer} ⟹ α → Int ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer} ⟹ α → Int ≤ β → γ
+//│     {δ ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer} ⟹ δ → Int ≤ β → γ
+//│       δ ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer
+//│         β ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer
+//│           IntLayer ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer
+//│             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: IntList}) ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer
+//│               LNil ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))) ∧ IntLayer
+//│                 LNil ≤ ¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))
+//│                   LNil ≤ ¬({δ ≤ LNil} ⟹ ¬LNil)
+//│                     δ ≤ LNil
+//│                       β ≤ LNil
+//│                         IntLayer ≤ LNil
+//│                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: IntList}) ≤ LNil
+//│                             (LCons ∧ {head: Int}) ∧ {tail: IntList} ≤ LNil
+//│                               LCons ∧ {head: Int} ≤ LNil
+//│                                 LCons ≤ LNil
+//│                                 {head: Int} ≤ LNil
+//│                                   Int ≤ ⊥
+//│                               {tail: IntList} ≤ LNil
+//│                                 IntList ≤ ⊥
+//│                                   ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│                                     {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
+//│                                       ε ≤ ⊥
+//│                                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ⊥
+//│                                           LNil ≤ ⊥
+//│                   LNil ≤ ¬({δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}} ⟹ ¬(({head: Int} ∧ LCons) ∧ {tail: ⊤}))
+//│                     δ ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}
+//│                       β ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}
+//│                         IntLayer ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}
+//│                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: IntList}) ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}
+//│                             LNil ≤ ({head: Int} ∧ LCons) ∧ {tail: ⊤}
+//│                               LNil ≤ {head: Int} ∧ LCons
+//│                                 LNil ≤ {head: Int}
 
 val enumFromTo = fix[Int -> Int -> IntList](self => a => b =>
   if a == b then LNil() else LCons(a, self(a + 1, b)))

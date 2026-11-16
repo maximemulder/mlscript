@@ -1,0 +1,314 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 20 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/cse.mls.
+// State computations return [new state, answer], preserving the source component order.
+// Ordinary definitions are unannotated; assertions below check their inferred types.
+
+/** Return an answer without changing the state. */
+fun retURN(a) = s => [s, a]
+//│ retURN: ∀α, β. α → β → ⟨β, α⟩
+
+/** Run m, then pass its answer and resulting state to the next computation. */
+fun bind(m, f) = s => if m(s) is [s_, a] then f(a)(s_)
+//│ bind: ∀α, β, γ, δ. (α → ⟨β, γ⟩) → (γ → β → δ) → α → δ
+
+/** Run the state computation returned by m in its resulting state. */
+fun join(m) = s => if m(s) is [s_, ma] then ma(s_)
+//│ join: ∀α, β, γ. (α → ⟨β, β → γ⟩) → α → γ
+
+/** Transform the answer of a computation while preserving its resulting state. */
+fun mmap(f, m) = s => if m(s) is [s_, a] then [s_, f(a)]
+//│ mmap: ∀α, β, γ, δ. (γ → δ) → (α → ⟨β, γ⟩) → α → ⟨β, δ⟩
+
+/** Select a computation using the Boolean answer of c. */
+fun mif(c, t, f) = bind(c, cond => if cond then t else f)
+//│ mif: ∀α, β, γ. (α → ⟨β, Bool⟩) → (β → γ) → (β → γ) → α → γ
+
+/** Run a computation from the supplied state and return its answer. */
+fun startingWith(m, v) = if m(v) is [final, answer] then answer
+//│ startingWith: ∀α, β. (α → ⟨⊤, β⟩) → α → β
+
+/** Read the state without changing it. */
+fun fetch(s) = [s, s]
+//│ fetch: ∀α. α → ⟨α, α⟩
+
+/** Apply f to the state without changing the state. */
+fun fetchWith(f) = s => [s, f(s)]
+//│ fetchWith: ∀α, β. (α → β) → α → ⟨α, β⟩
+
+/** Replace the state using f and return the old state. */
+fun update(f) = s => [f(s), s]
+//│ update: ∀α, β. (α → β) → α → ⟨β, α⟩
+
+/** Replace the state with s_ and return the old state. */
+fun set_(s_) = s => [s_, s]
+//│ set_: ∀α, β. α → β → ⟨α, β⟩
+
+/** Increment the integer state and return its old value. */
+val incr = update(x => x + 1)
+//│ incr: ∀α. {α ≤ Int} ⟹ α → ⟨Int, α⟩
+
+// Distinct component types check the state/answer ordering and polymorphic uses.
+retURN("answer")(1) as [Int, Str]
+retURN(true)("state") as [Str, Bool]
+fetch("state") as [Str, Str]
+fetchWith(x => x + 1)(1) as [Int, Int]
+update(x => x + 1)(1) as [Int, Int]
+set_("new")(1) as [Str, Int]
+incr(1) as [Int, Int]
+//│ ⟨Int, Str⟩
+//│ ⟨Str, Bool⟩
+//│ ⟨Str, Str⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Str, Int⟩
+//│ ⟨Int, Int⟩
+
+// The next computation receives the old answer and the newly installed state.
+bind(set_("new"), old => retURN(old + 1))(1) as [Str, Int]
+join(retURN(set_("new")))(1) as [Str, Int]
+mmap(x => x + 1, set_("new"))(1) as [Str, Int]
+startingWith(set_("new"), 1) as Int
+startingWith(bind(incr, old => fetch), 1) as Int
+mif(retURN(true), retURN(1), retURN(2))("state") as [Str, Int]
+//│ ⟨Str, Int⟩
+//│ ⟨Str, Int⟩
+//│ ⟨Str, Int⟩
+//│ Int
+//│ Int
+//│ ⟨Str, Int⟩
+
+// Invalid inputs must retain the obligations of the supplied state computations.
+:te
+incr("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → ⟨Int, α⟩ ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → ⟨Int, α⟩ ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → ⟨Int, γ⟩ ≤ Str → β
+//│       γ → ⟨Int, γ⟩ ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int
+
+:te
+bind(set_("new"), old => retURN(old + 1))("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → δ ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ Int
+
+:te
+join(retURN(1))(0)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. (α → ⟨β, β → γ⟩) → α → γ ≤ δ → ε.
+//│ Typing error tree:
+//│   ∀α, β, γ. (α → ⟨β, β → γ⟩) → α → γ ≤ δ → ε
+//│     (ζ → ⟨η, η → θ⟩) → ζ → θ ≤ δ → ε
+//│       δ ≤ ζ → ⟨η, η → θ⟩
+//│         ι → ⟨ι, κ⟩ ≤ ζ → ⟨η, η → θ⟩
+//│           ⟨ι, κ⟩ ≤ ⟨η, η → θ⟩
+//│             κ ≤ η → θ
+//│               Int ≤ η → θ
+
+:te
+mmap(x => x + 1, retURN("bad"))(0)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (δ → ⟨ε, ζ⟩) → δ → ⟨ε, η⟩ ≤ β → γ
+//│       β ≤ δ → ⟨ε, ζ⟩
+//│         θ → ⟨θ, ι⟩ ≤ δ → ⟨ε, ζ⟩
+//│           ⟨θ, ι⟩ ≤ ⟨ε, ζ⟩
+//│             ι ≤ ζ
+//│               ι ≤ Int
+//│                 Str ≤ Int
+
+:te
+mif(retURN(1), retURN(1), retURN(2))(0)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. (α → ⟨β, Bool⟩) → (β → γ) → (β → γ) → α → γ ≤ δ → ε.
+//│ Typing error tree:
+//│   ∀α, β, γ. (α → ⟨β, Bool⟩) → (β → γ) → (β → γ) → α → γ ≤ δ → ε
+//│     (ζ → ⟨η, Bool⟩) → (η → θ) → (η → θ) → ζ → θ ≤ δ → ε
+//│       δ ≤ ζ → ⟨η, Bool⟩
+//│         ι → ⟨ι, κ⟩ ≤ ζ → ⟨η, Bool⟩
+//│           ⟨ι, κ⟩ ≤ ⟨η, Bool⟩
+//│             κ ≤ Bool
+//│               Int ≤ Bool
+
+:te
+startingWith(set_("new"), 1) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     Int ≤ Str
+
+:te
+set_("new")(1) as [Int, Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Int, Str⟩.
+//│ Typing error tree:
+//│   α ≤ ⟨Int, Str⟩
+//│     ⟨β, γ⟩ ≤ ⟨Int, Str⟩
+//│       β ≤ Int
+//│         Str ≤ Int
+
+// The source tree tag uses the same structural constructor representation as the shared lists.
+// Recursive tree/list relationships are obligations of consumers, not constructor annotations.
+/** Source Node stores a label and its ordered list of children. */
+data class Node(a, b)
+//│ Node: ∀α, β. α → β → ((Node ∧ {a: α}) ∧ {b: β})
+
+/** Construct the source binary addition node without changing child order. */
+fun plus_(x, y) = Node("+", LCons(x, LCons(y, LNil())))
+//│ plus_: ∀α, β. α → β → ((Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: LNil}}})
+
+/** Construct the source binary multiplication node without changing child order. */
+fun mult_(x, y) = Node("*", LCons(x, LCons(y, LNil())))
+//│ mult_: ∀α, β. α → β → ((Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: LNil}}})
+
+/** Construct the source product node over the supplied children. */
+fun prod(xs) = Node("X", xs)
+//│ prod: ∀α. α → ((Node ∧ {a: Str}) ∧ {b: α})
+
+/** Source zero leaf. */
+val zerO = Node("0", LNil())
+//│ zerO: (Node ∧ {a: Str}) ∧ {b: LNil}
+
+/** Source a leaf. */
+val a = Node("a", LNil())
+//│ a: (Node ∧ {a: Str}) ∧ {b: LNil}
+
+/** Source b leaf. */
+val b = Node("b", LNil())
+//│ b: (Node ∧ {a: Str}) ∧ {b: LNil}
+
+/** Source c leaf. */
+val c = Node("c", LNil())
+//│ c: (Node ∧ {a: Str}) ∧ {b: LNil}
+
+/** Source d leaf. */
+val d = Node("d", LNil())
+//│ d: (Node ∧ {a: Str}) ∧ {b: LNil}
+
+/** Source single-leaf example. */
+val example0 = a
+//│ example0: (Node ∧ {a: Str}) ∧ {b: LNil}
+
+/** Source repeated-leaf example. */
+val example1 = plus_(a, a)
+//│ example1: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}
+
+/** Source repeated-subtree example. */
+val example2 = plus_(mult_(a, b), mult_(a, b))
+//│ example2: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** Source nested repeated-subtree example. */
+val example3 = plus_(mult_(plus_(a, b), c), plus_(a, b))
+//│ example3: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+// These check constructed data, without claiming that the recursive tree consumers infer.
+example0 as Node & {a: Str} & {b: LNil}
+example1.b as LCons & {head: Node} & {tail: LCons & {head: Node} & {tail: LNil}}
+example2 as Node & {a: Str}
+example3 as Node & {a: Str}
+prod(LNil()).b as LNil
+//│ (Node ∧ {a: Str}) ∧ {b: LNil}
+//│ (LCons ∧ {head: Node}) ∧ {tail: (LCons ∧ {head: Node}) ∧ {tail: LNil}}
+//│ Node ∧ {a: Str}
+//│ Node ∧ {a: Str}
+//│ LNil
+
+:te
+example0.a as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Str ≤ Int
+
+:te
+plus_(a, a) as LNil
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ LNil.
+//│ Typing error tree:
+//│   α ≤ LNil
+//│     (Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}}} ≤ LNil
+//│       Node ∧ {a: Str} ≤ LNil
+//│         Node ≤ LNil
+//│         {a: Str} ≤ LNil
+//│           Str ≤ ⊥
+//│       {b: (LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}}} ≤ LNil
+//│         (LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}} ≤ ⊥
+//│           LCons ∧ {head: β} ≤ ⊥
+//│             LCons ≤ ⊥
+//│             {head: β} ≤ ⊥
+//│               β ≤ ⊥
+//│                 (Node ∧ {a: Str}) ∧ {b: LNil} ≤ ⊥
+//│                   Node ∧ {a: Str} ≤ ⊥
+//│                     Node ≤ ⊥
+//│                     {a: Str} ≤ ⊥
+//│                       Str ≤ ⊥
+//│                   {b: LNil} ≤ ⊥
+//│                     LNil ≤ ⊥
+//│           {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}} ≤ ⊥
+//│             (LCons ∧ {head: γ}) ∧ {tail: LNil} ≤ ⊥
+//│               LCons ∧ {head: γ} ≤ ⊥
+//│                 LCons ≤ ⊥
+//│                 {head: γ} ≤ ⊥
+//│                   γ ≤ ⊥
+//│                     (Node ∧ {a: Str}) ∧ {b: LNil} ≤ ⊥
+//│                       Node ∧ {a: Str} ≤ ⊥
+//│                         Node ≤ ⊥
+//│                         {a: Str} ≤ ⊥
+//│                           Str ≤ ⊥
+//│                       {b: LNil} ≤ ⊥
+//│                         LNil ≤ ⊥
+//│               {tail: LNil} ≤ ⊥
+//│                 LNil ≤ ⊥
+
+// FIXME: Source examples 4 and 5 depend on scanl/scanr, which are not yet ported.
+// val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+// val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+
+// FIXME: Inference of source mmapl exceeds the 25-second per-file limit.
+// /** Traverse the source list with state effects from left to right. */
+// fun mmapl(f, aas) = if aas is
+//   LNil() then retURN(LNil())
+//   LCons(a, as_) then
+//     bind(f(a), b => bind(mmapl(f, as_), bs => retURN(LCons(b, bs))))
+
+// FIXME: A 5000-call diagnostic is inconclusive; unrestricted inference is not measured.
+// /** Traverse the source list with state effects from right to left. */
+// fun mmapr(f, xs) = if xs is
+//   LNil() then retURN(LNil())
+//   LCons(x, xs) then
+//     bind(mmapr(f, xs), ys => bind(f(x), y => retURN(LCons(y, ys))))
+
+// FIXME: A 5000-call diagnostic is inconclusive; unrestricted inference is not measured.
+// /** Fold the source list with left-to-right state effects. */
+// fun mfoldl(f, a, xs) = if xs is
+//   LNil() then retURN(a)
+//   LCons(x, xs) then bind(f(a, x), fax => mfoldl(f, fax, xs))
+
+// FIXME: A 5000-call diagnostic is inconclusive; unrestricted inference is not measured.
+// /** Fold the source list with right-to-left state effects. */
+// fun mfoldr(f, a, xs) = if xs is
+//   LNil() then retURN(a)
+//   LCons(x, xs) then bind(mfoldr(f, a, xs), y => f(x, y))
+
+/** Override one source mapping entry without calling f at that entry. */
+fun newlyDefined(x, fx, f, y) = if x === y then fx else f(y)
+//│ newlyDefined: ∀α, β, γ. ⊤ → α → (β → γ) → β → (γ ∨ α)
+
+newlyDefined(1, "replacement", x => "default", 2) as Str
+newlyDefined(1, "replacement", x => x + 1, 2) as Str | Int
+//│ Str
+//│ Str ∨ Int
+
+:te
+newlyDefined(1, "replacement", x => x + 1, "bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → (δ ∨ ε) ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ Int

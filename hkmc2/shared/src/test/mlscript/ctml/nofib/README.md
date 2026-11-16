@@ -117,28 +117,42 @@ server when finished. Do not include unrelated golden-output changes.
 | --- | --- |
 | [gcd.mls](gcd.mls) | Source translation complete, inference coverage partial: `g` and `gcdE` infer successfully. `max_` inference alone exceeds the 25-second limit; the extracted nested comprehension also times out. Both are retained as commented reproducers. `test`, `testGcd_nofib`, and `main` are translated but disabled because of these dependencies. Independent checks of both tuple-mapping stages compose successfully through the trusted `map` contract, with an integer-list result assertion and an invalid-input test. |
 | [cryptarithm1.mls](cryptarithm1.mls) | Source translation complete, inference coverage partial: `expand` and the exact ten-element `condition` pattern infer successfully. `addj` exceeds the 25-second test limit and is retained as a commented reproducer. `permutations`, `testCryptarithm_nofib`, and `main` are translated but disabled because they depend on `addj`. The source input remains `1`. The MLscript runtime reference reports a stack overflow, not a successful benchmark result. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, integer multiplication, quotient, and comparisons; inferred `intRem`, `quotRem`, and integer `abs`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
+| [cse.mls](cse.mls) | Incremental translation: all ten nonrecursive state combinators, `incr`, `newlyDefined`, tree constructors, and examples 0–3 infer without annotations. Twenty positive assertions and ten negative examples check state/answer ordering, composition, mapping callbacks, and constructed data. The four stateful list traversals are translated but commented: `mmapl` exceeds 25 seconds, and all four exhaust a separate 5000-call search diagnostic. The remaining tree stages and driver are not active CTML tests; whole-benchmark inference and runtime equivalence are not established. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, strict equality `===`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | The focused investigation reproduces timeouts without encoded list signatures, down to unary constructor traversal. `walk`, `copy`, `map`, and dewrapped `length` samples locate the bottleneck in guarded-bound subtyping at the outer `fix` application. Function bodies with supplied recursive calls infer quickly; explicitly typed fixed-point controls pass. See `ctmlRecursiveConsumerInference.mls` and the performance report. Producer/consumer composition remains a separate precision issue. |
 
-**Next task: review the recursive-summary design, then prototype summary checking.**
+**Next task: make algebraically inferred recursive schemes usable without annotations.**
 The [consumer performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)
-localizes the timeout. The follow-up
+localizes a timeout at recursive closure. Bounded CSE diagnostics also exhaust their search
+budget before establishing that a traversal's inferred scheme accepts intended calls. Work on
+both guarded-constraint search and scheme application, preserving branch refinements, source
+recursion, and invalid-call rejection. Definition-only inference is insufficient evidence of
+useful recursion support.
+
+The historical
 [recursive-summary design](../../../../main/scala/hkmc2/ctml/core/inference/recursive-summary-design.md)
-compares FCCTI+-style instantiation sharing with candidate synthesis and body checking. It recommends
-preserving local branch refinement while using a shared checked contract at recursive calls.
-The new `ctmlRecursiveSummaryChecking.mls` controls expose why neither an ascription around an
-inferred scheme nor the current explicit-invariant idiom alone provides that checking path.
+compares FCCTI+-style instantiation sharing with candidate synthesis and body checking. Its
+expected-type checking proposal is an alternative experiment, not the preferred implementation
+direction. CTML's intended approach is algebraic inference without ordinary function annotations;
+any departure needs a general semantic justification beyond improved test counts. The
+`ctmlRecursiveSummaryChecking.mls` controls remain useful diagnostics of supplied-contract
+checking and do not establish unannotated inference.
 
-No approximation rule or inference implementation is adopted yet. First establish expected-type
-checking with local refinements using supplied candidates; then infer positive structural candidates
-for `walk` and `length`, followed by `copy` and `map`. Keep the existing recursive representation,
-unannotated benchmarks, and library contracts. Substantial solver design changes still need review.
+No new recursion rule is adopted by this port. Compare proposals on `walk`, `length`, `copy`,
+`map`, and the stateful CSE traversals, including actual valid calls and genuine negative controls.
+Keep resource exhaustion distinct from subtype refutation. Retain the existing recursive
+representation, unannotated benchmarks, and documented library contracts. Substantial solver
+design changes remain experiments for review.
 
-When porting resumes, `cse.mls` remains the next source: its nonrecursive `retURN`, `bind`, `join`,
-`mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`, `update`, and `set_` combinators exercise
-higher-order inference and pair destructuring before its recursive/tree stages.
+The CSE port contains `retURN`, `bind`, `join`, `mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`,
+`update`, `set_`, `incr`, and `newlyDefined`, plus tree constructors and examples 0–3. The source
+`mmapl`, `mmapr`, `mfoldl`, and `mfoldr` translations are retained as inference reproducers.
+Continue with consumer inference and the tree stages, preserving traversal order and the final
+benchmark input `6`. The later `findCommon` error branch and `main` use `throw`/`.toString()`;
+keep these language gaps explicit instead of silently dropping source behavior. The direct
+Boolean parser support required by `mif` is checked in `ctmlBooleanConditions.mls`.
 
 Cryptarithm's shared `take` and `filter` contracts have caller checks in `preludeTests.mls`.
 Their implementations time out during inference. Implicit `take`/range composition retains
@@ -170,7 +184,8 @@ Paths below are relative to this directory:
 - [Original benchmark](../../../mlscript-compile/nofib/gcd.mls).
 - [Original cryptarithm benchmark](../../../mlscript-compile/nofib/cryptarithm1.mls) and
   [runtime reference](../../nofib/cryptarithm1.mls).
-- [Next benchmark: CSE](../../../mlscript-compile/nofib/cse.mls).
+- [CSE source benchmark](../../../mlscript-compile/nofib/cse.mls) and
+  [Boolean-condition tests](../ctmlBooleanConditions.mls).
 - [Original standard helpers](../../../mlscript-compile/nofib/NofibPrelude.mls).
 - [MLscript runtime reference](../../nofib/gcd.mls).
 - [Producer inference reproductions](../ctmlRecursiveProducerInference.mls) and

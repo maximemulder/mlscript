@@ -4,6 +4,10 @@
 // Shared definitions for the CTML Nofib ports.
 // Projections and external integer operations are trusted primitives.
 
+/** Trusted source strict equality, distinct from structural equality on arrays and data fields. */
+val (===): Top -> Top -> Bool
+//│ ===: ⊤ → ⊤ → Bool
+
 declare fun fst[A, B]: ([A, B]) -> A
 declare fun snd[A, B]: ([A, B]) -> B
 //│ fst: ∀A, B. ⟨A, B⟩ → A
@@ -33,6 +37,17 @@ val (<=): Int -> Int -> Bool
 fun abs(x) = if x < 0 then 0 - x else x
 //│ abs: Int → Int
 
+/** Floor division agrees with truncation except for nonintegral quotients with opposite signs. */
+fun intDiv(a, b) =
+  let q = intQuot(a, b)
+  let r = a - (b * q)
+  if r == 0 then q else if (a < 0) == (b < 0) then q else q - 1
+//│ intDiv: Int → Int → Int
+
+/** Source remainder uses the floor quotient, including when operands have opposite signs. */
+fun intMod(a, b) = a - (b * intDiv(a, b))
+//│ intMod: Int → Int → Int
+
 /** Empty list constructor; source Nil is represented by LNil(). */
 data class LNil()
 //│ LNil: Unit → LNil
@@ -40,6 +55,16 @@ data class LNil()
 /** List cell; recursive relationships are inferred through constrained types. */
 data class LCons(head, tail)
 //│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** Source head is partial on empty lists. */
+fun head(l) = if l is LCons(h, t) then h
+//│ head: ∀α. (({tail: ⊤} ∧ {head: α}) ∧ LCons) → α
+
+/** Source null_ returns false for every value other than the empty-list tag. */
+fun null_(ls) = if ls is
+  LNil() then true
+  else false
+//│ null_: ∀α. α → (({α ≤ LNil} ⟹ Bool) ∧ ({α ≤ ¬LNil} ⟹ Bool))
 
 /** Inclusive source range, empty when a > b. */
 fun enumFromTo(a, b) =

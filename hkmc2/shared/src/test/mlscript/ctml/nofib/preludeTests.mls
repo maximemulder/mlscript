@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 15 member(s)
+//│ Imported 20 member(s)
 
 // Integer helpers accept negative, zero, and positive inputs.
 [abs(0 - 3), [abs(0), abs(3)]] as [Int, [Int, Int]]
@@ -424,3 +424,61 @@ take(10, enumFromTo(0, 10)) as IntList
 //│                     {tail: ε} ≤ {tail: ζ}
 //│                       ε ≤ ζ
 //│                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ζ
+
+// Floor division and modulo infer ordinary integer contracts in all operand-sign cases.
+// These are typing checks; campaign/nofib/check-floor-division.py checks the arithmetic model.
+[intDiv(7, 3), intMod(7, 3)] as [Int, Int]
+[intDiv(0 - 7, 3), intMod(0 - 7, 3)] as [Int, Int]
+[intDiv(7, 0 - 3), intMod(7, 0 - 3)] as [Int, Int]
+[intDiv(0 - 7, 0 - 3), intMod(0 - 7, 0 - 3)] as [Int, Int]
+[intDiv(0 - 6, 3), intMod(0 - 6, 3)] as [Int, Int]
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+
+:te
+intDiv("bad", 3)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+:te
+intMod(7, "bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+// Strict equality is a source primitive; head and null_ infer from their ordinary implementations.
+(1 === "other") as Bool
+head(LCons("answer", LNil())) as Str
+null_(LNil()) as Bool
+null_(LCons(1, LNil())) as Bool
+null_(1) as Bool
+//│ Bool
+//│ Str
+//│ Bool
+//│ Bool
+//│ Bool
+
+:te
+head(LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (({tail: ⊤} ∧ {head: α}) ∧ LCons) → α ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (({tail: ⊤} ∧ {head: α}) ∧ LCons) → α ≤ β → γ
+//│     (({tail: ⊤} ∧ {head: δ}) ∧ LCons) → δ ≤ β → γ
+//│       β ≤ ({tail: ⊤} ∧ {head: δ}) ∧ LCons
+//│         LNil ≤ ({tail: ⊤} ∧ {head: δ}) ∧ LCons
+//│           LNil ≤ {tail: ⊤} ∧ {head: δ}
+//│             LNil ≤ {tail: ⊤}
+
+:te
+head(LCons("answer", LNil())) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Str ≤ Int

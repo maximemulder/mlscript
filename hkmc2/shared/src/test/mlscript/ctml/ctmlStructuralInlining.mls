@@ -1,0 +1,9 @@
+:ctml
+
+data class Box(value)
+//│ Box: ∀α. α → (Box ∧ {value: α})
+
+// Eliminating an alias for x preserves x's type inside the box passed to f. The field occurs
+// beneath both a function arrow and a record constructor in f's bound.
+fun applyBoxed(x, f) = if x is Int then f(Box(x)) else 0
+//│ applyBoxed: ∀α, β, γ. {α ≤ ¬({β ≤ (Box ∧ {value: α}) → γ} ⟹ ¬Int) ∨ ¬({γ ≥ Int} ⟹ Int), β ≤ ¬({α ≤ Int} ⟹ ¬((Box ∧ {value: α}) → γ)) ∨ ¬({α ≤ ¬Int, γ ≥ Int} ⟹ ⊥), γ ≥ ({β ≤ (Box ∧ {value: α}) → γ, α ≤ Int} ⟹ ⊥) ∧ ({α ≤ ¬Int} ⟹ Int)} ⟹ α → β → γ

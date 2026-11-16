@@ -301,6 +301,12 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 /** Apply structural and bound-lookup rules after primitive and right-binder rules. */
 private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 
+  // A flexible operand bounds the whole Boolean clause. Choosing a single intersection/union
+  // branch instead can lose solutions where two nonempty types are disjoint or cover a target.
+  isolateFlexibleClause(sub, sup) match
+    case Some(constraint) => return subtypeConstraint(constraint)
+    case None =>
+
   // Subtyping of union and intersection types.
 
   // The invertible rules are applied first, on both sides: a left union and a right intersection
@@ -483,10 +489,16 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
   // The new type is asserted as a bound of the variable, and its combination with the current bound
   // becomes the effective bound of the variable, so that it does not need to be recomputed whenever
   // the variable is used (see `BoundKind`).
-  // The new bound is part of the solution, so it is kept as simple as possible: it is not asserted
-  // if it is already satisfied in the context, and the effective bound is otherwise simplified
-  // using subtyping checks.
-  if checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
+  // Optional checks avoid reasserting bounds already implied by the context and simplify the
+  // effective bound. They are an optimization, not a prerequisite for retaining an obligation.
+  // Retaining a first bound is exact even if the context could prove it redundant. Avoid that
+  // optional search when the old bound is the identity and propagation added no bound in this
+  // direction. The opposite-bound check above and effective-bound construction remain unchanged.
+  val identity = if dir == Direction.Sub then TTop else TBot
+  val firstBound = bound == identity && extrudedType != identity && !clauses.elems.exists:
+    case Bound(other, otherDir, _, _) => other == var_ && otherDir == dir
+    case _ => false
+  if !firstBound && checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
     return clauses
   val effectiveBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
 

@@ -1,0 +1,247 @@
+:ctml
+
+// Existing variables and computed Boolean conditions share the primitive conditional rule.
+/** Select either branch using a directly bound Boolean condition. */
+fun choose(condition, left, right) = if condition then left else right
+//│ choose: ∀α, β. Bool → α → β → (β ∨ α)
+
+choose(true, 1, 2) as Int
+choose(false, "left", "right") as Str
+choose(true, 1, "right") as Int | Str
+//│ Int
+//│ Str
+//│ Int ∨ Str
+
+/** A computed condition introduces an elaborator binding before the Boolean test. */
+fun computed(x) = if x == 0 then "zero" else "other"
+//│ computed: ⊤ → Str
+
+computed(0) as Str
+//│ Str
+
+// A direct non-Boolean condition must be rejected by inference, not accepted as a type test.
+:te
+choose(1, "left", "right")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. Bool → α → β → (β ∨ α) ≤ Int → γ.
+//│ Typing error tree:
+//│   ∀α, β. Bool → α → β → (β ∨ α) ≤ Int → γ
+//│     Bool → δ → ε → (ε ∨ δ) ≤ Int → γ
+//│       Int ≤ Bool
+
+:te
+choose(true, 1, 2) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str.
+//│ Typing error tree:
+//│   α ≤ Str
+//│     β ∨ γ ≤ Str
+//│       β ≤ Str
+//│         Int ≤ Str
+
+// A known Boolean result does not discard obligations in either branch.
+:te
+fun invalidBranch(condition) = if condition then 1 + "bad" else 0
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+/** Direct condition references remain available inside the branches. */
+fun reused(condition) = if condition then condition else false
+//│ reused: Bool → Bool
+
+reused(true) as Bool
+//│ Bool
+
+/** A local condition shadows an unrelated outer argument. */
+fun shadowed(condition) =
+  let condition = true
+  if condition then condition else false
+//│ shadowed: ⊤ → Bool
+
+shadowed(1) as Bool
+//│ Bool
+
+// The inner binding supplies the condition's type, independently of the outer name.
+:te
+fun invalidShadow(condition) =
+  let condition = 1
+  if condition then true else false
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ Int → α.
+//│ Typing error tree:
+//│   Bool → Bool ≤ Int → α
+//│     Int ≤ Bool
+
+/** A Boolean guard nested under a tuple pattern keeps its projected variable bindings. */
+fun tupleGuard(pair) = if pair is [value, condition] and condition then value + 1 else 0
+//│ tupleGuard: ∀α. {α ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int))
+
+tupleGuard([1, true]) as Int
+//│ Int
+
+tupleGuard([1, false]) as Int
+//│ Int
+
+:te
+tupleGuard([1, 1])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Int, Int⟩ → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Int, Int⟩ → β
+//│     {γ ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ γ → (({γ ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Int, Int⟩ → β
+//│       γ → (({γ ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Int, Int⟩ → β
+//│         ⟨Int, Int⟩ ≤ γ
+//│           ⟨Int, Int⟩ ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩
+//│             ⟨Int, Int⟩ ≤ ⟨Int, Bool⟩
+//│               Int ≤ Bool
+//│             ⟨Int, Int⟩ ≤ ¬⟨⊤, ⊤⟩
+
+:te
+tupleGuard(["bad", true])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Bool⟩ → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Bool⟩ → β
+//│     {γ ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ γ → (({γ ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Bool⟩ → β
+//│       γ → (({γ ≤ ⟨Int, Bool⟩} ⟹ Int) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Bool⟩ → β
+//│         ⟨Str, Bool⟩ ≤ γ
+//│           ⟨Str, Bool⟩ ≤ ⟨Int, Bool⟩ ∨ ¬⟨⊤, ⊤⟩
+//│             ⟨Str, Bool⟩ ≤ ⟨Int, Bool⟩
+//│               Str ≤ Int
+//│             ⟨Str, Bool⟩ ≤ ¬⟨⊤, ⊤⟩
+
+/** A computed Boolean guard retains the enclosing pattern's bindings in its result. */
+fun computedGuard(pair) = if pair is [x, y] and x == y then [x, y] else [0, 0]
+//│ computedGuard: ∀α, β, γ, δ. {β ≥ ({α ≤ ⟨γ, δ⟩} ⟹ ⟨γ, δ⟩ ∨ ⟨Int, Int⟩) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ ⟨Int, Int⟩), α ≤ ¬({β ≥ ⟨γ, δ⟩ ∨ ⟨Int, Int⟩} ⟹ ¬⟨γ, δ⟩) ∨ ¬⟨⊤, ⊤⟩} ⟹ α → β
+
+computedGuard([1, 2]) as [Int, Int]
+//│ ⟨Int, Int⟩
+
+/** The matched condition is independent of the preceding local binding. */
+fun separateBinding(condition) = if
+  let kept = true
+  condition then kept
+  else false
+//│ separateBinding: Bool → Bool
+
+separateBinding(true) as Bool
+//│ Bool
+
+:te
+separateBinding(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment Bool → Bool ≤ Int → α.
+//│ Typing error tree:
+//│   Bool → Bool ≤ Int → α
+//│     Int ≤ Bool
+
+/** Pattern-bound conditions shadow unrelated outer variables without capturing them. */
+fun shadowedGuard(condition, pair) = if pair is [condition, value] and condition then value else 0
+//│ shadowedGuard: ∀α, β. {α ≤ ⟨Bool, β⟩ ∨ ¬⟨⊤, ⊤⟩, β ≥ ({α ≤ ⟨Bool, β⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)} ⟹ ⊤ → α → β
+
+shadowedGuard("outer", [true, 1]) as Int
+//│ Int
+
+:te
+shadowedGuard(true, [1, 1])
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Int, Int⟩ → β.
+//│ Typing error tree:
+//│   α ≤ ⟨Int, Int⟩ → β
+//│     γ → δ ≤ ⟨Int, Int⟩ → β
+//│       ⟨Int, Int⟩ ≤ γ
+//│         ⟨Int, Int⟩ ≤ ⟨Bool, δ⟩ ∨ ¬⟨⊤, ⊤⟩
+//│           ⟨Int, Int⟩ ≤ ⟨Bool, δ⟩
+//│             Int ≤ Bool
+//│           ⟨Int, Int⟩ ≤ ¬⟨⊤, ⊤⟩
+
+/** A failed nested type guard reaches the enclosing decision tree's fallback. */
+fun typeGuard(pair) = if pair is [x, y] and y is Int then x else "fallback"
+//│ typeGuard: ∀α, β, γ, δ. {β ≥ ({α ≤ ⟨γ, δ⟩, δ ≤ ¬({β ≥ γ} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ ({δ ≤ Int} ⟹ γ) ∧ ({δ ≤ ¬Int} ⟹ Str)) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Str), α ≤ ¬({β ≥ ({δ ≤ Int} ⟹ γ) ∧ ({δ ≤ ¬Int} ⟹ Str), δ ≤ ¬({β ≥ γ} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ ¬⟨γ, δ⟩) ∨ ¬({β ≥ Str} ⟹ ⟨⊤, ⊤⟩), δ ≤ ¬({α ≤ ⟨γ, δ⟩, β ≥ ({δ ≤ Int} ⟹ γ) ∧ ({δ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({β ≥ γ} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int))) ∨ ¬({α ≤ ¬⟨⊤, ⊤⟩, β ≥ Str} ⟹ ⊥)} ⟹ α → β
+
+typeGuard([true, "other"]) as Str
+//│ Str
+
+/** An explicit condition binding remains in scope when the successful branch uses it. */
+fun keptBinding() = if
+  let condition = true
+  condition then condition
+  else false
+//│ keptBinding: Unit → Bool
+
+keptBinding() as Bool
+//│ Bool
+
+/** A Boolean false path selects the sibling alternative inside a successful tuple match. */
+fun booleanFallback(pair) = if pair is
+  [value, condition] and
+    condition then 0
+    else value + 1
+//│ booleanFallback: ⟨Int, Bool⟩ → Int
+
+booleanFallback([1, false]) as Int
+//│ Int
+
+// Fallback expressions use the outer name, not the successful pattern's same-named binding.
+/** Retain the outer value in the fallback and the inner value in the guarded result. */
+fun outerFallback(value, pair) = if pair is [value, condition] and condition then value else value
+//│ outerFallback: ∀α, β, γ. {β ≤ ⟨γ, Bool⟩ ∨ ¬⟨⊤, ⊤⟩, γ ≥ ({β ≤ ⟨γ, Bool⟩} ⟹ α) ∧ ({β ≤ ¬⟨⊤, ⊤⟩} ⟹ α)} ⟹ α → β → γ
+
+outerFallback("outer", [1, bool]) as Str | Int
+//│ Str ∨ Int
+
+:te
+outerFallback("outer", [1, bool]) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     (({γ ≤ ⟨δ, Bool⟩} ⟹ β) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β)) ∨ Int ≤ Int
+//│       ({γ ≤ ⟨δ, Bool⟩} ⟹ β) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β) ≤ Int
+//│         {γ ≤ ⟨δ, Bool⟩} ⟹ β ≤ Int
+//│           β ≤ Int
+//│             Str ≤ Int
+//│         {γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β ≤ Int
+//│           γ ≤ ¬⟨⊤, ⊤⟩
+//│             ⟨Int, Bool⟩ ≤ ¬⟨⊤, ⊤⟩
+
+// A separately nested if expression has its own exhaustiveness obligation.
+/** The inner partial type match does not inherit the outer if expression's fallback. */
+fun separateIf(pair) = if pair is [x, y] then (if x is Int then x + 1) else 0
+//│ separateIf: ∀α. {α ≤ ⟨Int, ⊤⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, ⊤⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int))
+
+separateIf([1, 0]) as Int
+//│ Int
+
+:te
+separateIf(["bad", 0])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ⟨Int, ⊤⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, ⊤⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Int⟩ → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ⟨Int, ⊤⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ α → (({α ≤ ⟨Int, ⊤⟩} ⟹ Int) ∧ ({α ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Int⟩ → β
+//│     {γ ≤ ⟨Int, ⊤⟩ ∨ ¬⟨⊤, ⊤⟩} ⟹ γ → (({γ ≤ ⟨Int, ⊤⟩} ⟹ Int) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Int⟩ → β
+//│       γ → (({γ ≤ ⟨Int, ⊤⟩} ⟹ Int) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ Int)) ≤ ⟨Str, Int⟩ → β
+//│         ⟨Str, Int⟩ ≤ γ
+//│           ⟨Str, Int⟩ ≤ ⟨Int, ⊤⟩ ∨ ¬⟨⊤, ⊤⟩
+//│             ⟨Str, Int⟩ ≤ ⟨Int, ⊤⟩
+//│               Str ≤ Int
+//│             ⟨Str, Int⟩ ≤ ¬⟨⊤, ⊤⟩
+
+// Guard translation retains ordinary branch-body obligations.
+:te
+fun invalidGuardBody(pair) = if pair is [value, condition] and condition then value + "bad" else 0
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+// A failed outer pattern does not evaluate or require its projected guard variables.
+tupleGuard(1) as Int
+//│ Int
+
+// A let initializer before a guard retains its obligations even when its binding is unused.
+:te
+fun invalidGuardInitializer(condition) = if
+  let unused = 1 + "bad"
+  condition then 0
+  else 0
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int

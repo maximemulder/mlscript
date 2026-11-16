@@ -68,13 +68,6 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
     // compact way to ascribe an intersection or union type.
     case Term.CompType(mlLeft, mlRight, mlPol) =>
       parseAscriptionComposition(mlLeft, mlRight, mlPol)
-    // MLScript binds a scrutinee that is not a variable before matching it, so a conditional is a
-    // binding matched against `true`, while a binding matched against any other pattern is a match.
-    case Term.IfLike(_, IfLikeForm.ReturningIf, SimpleSplit.Cons(SimpleSplit.Head.Let(_, mlCondition), SimpleSplit.Cons(SimpleSplit.Head.Match(_, Pattern.Literal(Tree.BoolLit(true)), SimpleSplit.Else(mlThen)), SimpleSplit.Else(mlElse)))) =>
-      val condition = parseExpr(mlCondition)
-      val then_ = parseExpr(mlThen)
-      val else_ = parseExpr(mlElse)
-      EApp(EApp(EApp(EVar(TermVar("_if_", None)), condition), then_), else_)
     case Term.IfLike(_, IfLikeForm.ReturningIf, mlSplit) =>
       val body = parseSplit(mlSplit)
       mlSplit match
@@ -87,6 +80,10 @@ def parseExpr(mlExpr: Term)(using Scope): Expr =
           body
     case _ =>
       throw new ParseError(mlExpr)
+
+/** Encode a Boolean conditional through the primitive that constrains its condition to Bool. */
+private def makeConditional(condition: Expr, then_ : Expr, else_ : Expr): Expr =
+  EApp(EApp(EApp(EVar(TermVar("_if_", None)), condition), then_), else_)
 
 /** Convert an MLScript expression-level type composition to a CTML ascription. */
 def parseAscriptionComposition(mlLeft: Term, mlRight: Term, mlPol: Boolean)(using Scope): Expr =
@@ -178,47 +175,50 @@ def parseAppLambda(mlLambda: Term, mlArgs: List[Elem])(using Scope): Expr =
           parseExpr(mlLambda)
     case _ => throw ParseError(mlLambda)
 
-/** Convert an MLScript split to a CTML expression */
-def parseSplit(mlSplit: SimpleSplit)(using Scope): Expr =
+/** Convert one decision tree, inheriting fallthrough only within that tree.
+ *  A separate IfLike term enters through parseExpr and starts with no inherited alternative. */
+def parseSplit(mlSplit: SimpleSplit, fallback: Option[Expr] = None)(using Scope): Expr =
   mlSplit match
     case mlCons: SimpleSplit.Cons =>
-      parseCons(mlCons)
+      parseCons(mlCons, fallback)
     case SimpleSplit.Else(mlExpr) =>
       parseExpr(mlExpr)
     case SimpleSplit.End =>
-      throw new ParseError(Term.Error())
+      fallback.getOrElse(throw new ParseError(Term.Error()))
 
 /** Convert an MLScript cons to a CTML expression */
-def parseCons(mlCons: SimpleSplit.Cons)(using Scope): Expr =
+def parseCons(mlCons: SimpleSplit.Cons, fallback: Option[Expr])(using Scope): Expr =
   mlCons match
-    case SimpleSplit.Cons(mlLet @ SimpleSplit.Head.Let(_, _), mlTail: SimpleSplit.Cons) =>
-      parseLet(mlLet, mlTail)
+    case SimpleSplit.Cons(mlLet @ SimpleSplit.Head.Let(_, _), mlTail) =>
+      parseLet(mlLet, mlTail, fallback)
     case SimpleSplit.Cons(mlMatch : SimpleSplit.Head.Match, mlTail) =>
-      parseMatch(mlMatch, mlTail)
-    case _ =>
-      throw new ParseError(Term.Error())
+      parseMatch(mlMatch, mlTail, fallback)
 
 /** Convert an MLScript let binding to a CTML expression */
-def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit.Cons)(using Scope): Expr =
+def parseLet(mlLet: SimpleSplit.Head.Let, mlTail: SimpleSplit, fallback: Option[Expr])
+  (using Scope): Expr =
   val param = termVar(mlLet.binding)
   val arg = parseExpr(mlLet.term)
-  val body = parseCons(mlTail)
+  val body = parseSplit(mlTail, fallback)
   val direct = if config.dewrapUcsIfs then dewrapMatchBinding(param, arg, body) else None
   direct.getOrElse(EApp(ELam(Some(LambdaParam(param, None)), body), arg))
 
-/** Convert an MLScript pattern match to a CTML expression */
-def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit)(using Scope): EMatch =
+/** A failed nested test resumes the surrounding decision tree's next alternative.
+ *  Construct that alternative outside this pattern's bindings, retaining resolved symbol
+ *  identities. */
+def parseMatch(mlMatch: SimpleSplit.Head.Match, mlTail: SimpleSplit, fallback: Option[Expr])
+  (using Scope): Expr =
   val scrutinee = parseExpr(mlMatch.scrutinee)
-  val (pattern, bindings) = parsePattern(mlMatch.pattern, scrutinee)
-  val then_ = bindings.foldRight(parseSplit(mlMatch.consequent)):
-    case ((variable, value), body) => EApp(ELam(Some(LambdaParam(variable, None)), body), value)
   val else_ = mlTail match
-    case mlCons: SimpleSplit.Cons =>
-      Some(parseCons(mlCons))
-    case SimpleSplit.Else(mlElse) =>
-      Some(parseExpr(mlElse))
-    case SimpleSplit.End =>
-      None
+    case SimpleSplit.End => fallback
+    case _ => Some(parseSplit(mlTail, fallback))
+  (mlMatch.pattern, else_) match
+    case (Pattern.Literal(Tree.BoolLit(true)), Some(alternative)) =>
+      return makeConditional(scrutinee, parseSplit(mlMatch.consequent, else_), alternative)
+    case _ => ()
+  val (pattern, bindings) = parsePattern(mlMatch.pattern, scrutinee)
+  val then_ = bindings.foldRight(parseSplit(mlMatch.consequent, else_)):
+    case ((variable, value), body) => EApp(ELam(Some(LambdaParam(variable, None)), body), value)
   EMatch(scrutinee, pattern, then_, else_)
 
 /** Look up the metadata of a supported constructor without confusing shadowing term bindings. */

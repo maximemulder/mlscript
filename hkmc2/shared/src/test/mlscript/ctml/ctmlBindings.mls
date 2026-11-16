@@ -179,12 +179,12 @@ annotatedRec(3)
 
 :te
 fun badRec(x: Int): Str = if x == 0 then x else badRec(x - 1)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Str, γ ≤ α → β, α ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Str, α ≥ Int, γ ≤ α → β} ⟹ ⊥ → Str ≤ Int → ⊤.
 //│ Typing error tree:
-//│   ∀α, β. {β ≤ Str, γ ≤ α → β, α ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│     {ε ≤ Str, γ ≤ δ → ε, δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│       {γ ≤ δ → ε, δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
-//│         {δ ≥ Int} ⟹ ⊥ → Str ≤ Int → ⊤
+//│   ∀α, β. {β ≤ Str, α ≥ Int, γ ≤ α → β} ⟹ ⊥ → Str ≤ Int → ⊤
+//│     {ε ≤ Str, δ ≥ Int, γ ≤ δ → ε} ⟹ ⊥ → Str ≤ Int → ⊤
+//│       {δ ≥ Int, γ ≤ δ → ε} ⟹ ⊥ → Str ≤ Int → ⊤
+//│         {γ ≤ δ → ε} ⟹ ⊥ → Str ≤ Int → ⊤
 //│           ⊥ → Str ≤ Int → ⊤
 //│             Int ≤ ⊥
 

@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 20 member(s)
+//│ Imported 21 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cse.mls.
 // State computations return [new state, answer], preserving the source component order.
@@ -265,36 +265,6 @@ plus_(a, a) as LNil
 //│               {tail: LNil} ≤ ⊥
 //│                 LNil ≤ ⊥
 
-// FIXME: Source examples 4 and 5 depend on scanl/scanr, which are not yet ported.
-// val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
-// val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
-
-// FIXME: Inference of source mmapl exceeds the 25-second per-file limit.
-// /** Traverse the source list with state effects from left to right. */
-// fun mmapl(f, aas) = if aas is
-//   LNil() then retURN(LNil())
-//   LCons(a, as_) then
-//     bind(f(a), b => bind(mmapl(f, as_), bs => retURN(LCons(b, bs))))
-
-// FIXME: A 5000-call diagnostic is inconclusive; unrestricted inference is not measured.
-// /** Traverse the source list with state effects from right to left. */
-// fun mmapr(f, xs) = if xs is
-//   LNil() then retURN(LNil())
-//   LCons(x, xs) then
-//     bind(mmapr(f, xs), ys => bind(f(x), y => retURN(LCons(y, ys))))
-
-// FIXME: A 5000-call diagnostic is inconclusive; unrestricted inference is not measured.
-// /** Fold the source list with left-to-right state effects. */
-// fun mfoldl(f, a, xs) = if xs is
-//   LNil() then retURN(a)
-//   LCons(x, xs) then bind(f(a, x), fax => mfoldl(f, fax, xs))
-
-// FIXME: A 5000-call diagnostic is inconclusive; unrestricted inference is not measured.
-// /** Fold the source list with right-to-left state effects. */
-// fun mfoldr(f, a, xs) = if xs is
-//   LNil() then retURN(a)
-//   LCons(x, xs) then bind(mfoldr(f, a, xs), y => f(x, y))
-
 /** Override one source mapping entry without calling f at that entry. */
 fun newlyDefined(x, fx, f, y) = if x === y then fx else f(y)
 //│ newlyDefined: ∀α, β, γ. ⊤ → α → (β → γ) → β → (γ ∨ α)
@@ -312,3 +282,138 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 //│     γ → (δ ∨ ε) ≤ Str → β
 //│       Str ≤ γ
 //│         Str ≤ Int
+
+// List helpers translated from the source NofibPrelude.mls.
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Compare two lists element by element with source equality. */
+// fun listEq(xs, ys) = if
+//   xs is LNil() and ys is LNil() then true
+//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and (hx == hy) then listEq(tx, ty)
+//   else false
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Test membership using source strict equality. */
+// fun inList(x, ls) = if ls is
+//   LCons(h, t) and
+//     x === h then true
+//     else inList(x, t)
+//   LNil() then false
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Append the second list to the first. */
+// fun append(xs, ys) = if xs is
+//   LNil() then ys
+//   LCons(x, xs) then LCons(x, append(xs, ys))
+
+// FIXME: This helper depends on the disabled append definition.
+// /** Flatten a list of lists in source order. */
+// fun concat(ls) = if ls is
+//   LNil() then LNil()
+//   LCons(x, xs) then append(x, concat(xs))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Collect the initial accumulator and each successive result of folding from the left. */
+// fun scanl(f, q, ls) = if ls is
+//   LNil() then LCons(q, LNil())
+//   LCons(x, xs) then LCons(q, scanl(f, f(q, x), xs))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Collect the right-fold results, ending with the initial accumulator. */
+// fun scanr(f, q, ls) = if ls is
+//   LNil() then LCons(q, LNil())
+//   LCons(x, xs) and scanr(f, q, xs) is LCons(q, t) then LCons(f(x, q), LCons(q, t))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Fold from the right, supplying the current element first. */
+// fun foldr(f, z, xs) = if xs is
+//   LNil() then z
+//   LCons(h, t) then f(h, foldr(f, z, t))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Traverse the source list with state effects from left to right. */
+// fun mmapl(f, aas) = if aas is
+//   LNil() then retURN(LNil())
+//   LCons(a, as_) then
+//     bind(f(a), b => bind(mmapl(f, as_), bs => retURN(LCons(b, bs))))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Traverse the source list with state effects from right to left. */
+// fun mmapr(f, xs) = if xs is
+//   LNil() then retURN(LNil())
+//   LCons(x, xs) then
+//     bind(mmapr(f, xs), ys => bind(f(x), y => retURN(LCons(y, ys))))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Fold the source list with left-to-right state effects. */
+// fun mfoldl(f, a, xs) = if xs is
+//   LNil() then retURN(a)
+//   LCons(x, xs) then bind(f(a, x), fax => mfoldl(f, fax, xs))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Fold the source list with right-to-left state effects. */
+// fun mfoldr(f, a, xs) = if xs is
+//   LNil() then retURN(a)
+//   LCons(x, xs) then bind(mfoldr(f, a, xs), y => f(x, y))
+
+// FIXME: The tree labelling stage depends on the disabled mmapl definition.
+// /** Label the tree in preorder using the stateful left-to-right traversal. */
+// fun labelTree(t) =
+//   fun label(t) = if t is Node(x, xs) then
+//     bind(incr, n => bind(mmapl(label, xs), ts => retURN(Node([n, x], ts))))
+//   startingWith(label(t), 0)
+
+// FIXME: Graph construction depends on the disabled concat definition.
+// /** Emit graph entries in preorder, encoding each source triple as a nested pair. */
+// fun ltGraph(t) =
+//   fun labelOf(t) = if t is Node([n, x], xs) then n
+//   if t is Node([n, x], xs) then
+//     LCons([n, [x, map(labelOf, xs)]], concat(map(ltGraph, xs)))
+
+// FIXME: The visited-state check depends on the disabled inList definition.
+// /** Report whether the label was visited, adding it to the state on the first visit. */
+// fun visited(n) =
+//   bind(fetch, us => if inList(n, us) then retURN(true)
+//     else bind(set_(LCons(n, us)), _p => retURN(false)))
+
+// FIXME: This stage depends on the disabled foldr and listEq definitions.
+// /** Merge entries with the same symbol and the same redirected child labels. */
+// fun findCommon(ls) =
+//   fun sim(n_s_cs, r_lg) = if n_s_cs is [n, [s, cs]] and r_lg is [r, lg] then
+//     let rcs = map(r, cs)
+//     fun lscomp(ls) = if ls is
+//       LNil() then LNil()
+//       LCons([m, [s_, cs_]], t) and
+//         s === s_ and listEq(cs_, rcs) then LCons(m, lscomp(t))
+//         else lscomp(t)
+//     let ms = lscomp(lg)
+//     if null_(ms)
+//     then [r, LCons([n, [s, rcs]], lg)]
+//     else [x => newlyDefined(n, head(ms), r, x), lg]
+//   if foldr(sim, [x => x, LNil()], ls) is [a, b] then b else raiseError(ls.toString())
+
+// FIXME: This stage depends on the disabled labelTree, ltGraph, and findCommon definitions.
+// /** Compute the graph with common subexpressions merged. */
+// fun cse(t) = findCommon(ltGraph(labelTree(t)))
+
+// FIXME: This example depends on the disabled scanl definition.
+// /** Construct the example using successive left-fold results. */
+// val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+
+// FIXME: This example depends on the disabled scanr definition.
+// /** Construct the example using successive right-fold results. */
+// val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+
+// FIXME: The benchmark depends on the disabled cse, example4, and example5 definitions.
+// /** Run CSE on the source prefix of examples for each index from one to n. */
+// fun testCse_nofib(n) = map(
+//   i => map(
+//     cse,
+//     take(intMod(i, 6), LCons(example0, LCons(example1, LCons(example2,
+//       LCons(example3, LCons(example4, LCons(example5, LNil())))))))
+//   ),
+//   enumFromTo(1, n)
+// )
+
+// FIXME: The driver depends on testCse_nofib and needs source-format list rendering.
+// /** Run the source benchmark with input 6 and render its result. */
+// fun main() = testCse_nofib(6).toString()

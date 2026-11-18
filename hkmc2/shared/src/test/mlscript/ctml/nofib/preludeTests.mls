@@ -1,6 +1,19 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 20 member(s)
+//│ Imported 21 member(s)
+
+// The error branch contributes no return value to the conditional.
+raiseError("missing result") as Bot
+(if true then 1 else raiseError("missing result")) as Int
+//│ ⊥
+//│ Int
+
+:te
+raiseError(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → ⊥ ≤ Int → α.
+//│ Typing error tree:
+//│   Str → ⊥ ≤ Int → α
+//│     Int ≤ Str
 
 // Integer helpers accept negative, zero, and positive inputs.
 [abs(0 - 3), [abs(0), abs(3)]] as [Int, [Int, Int]]

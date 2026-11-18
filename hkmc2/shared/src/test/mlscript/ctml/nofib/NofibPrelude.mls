@@ -8,6 +8,10 @@
 val (===): Top -> Top -> Bool
 //│ ===: ⊤ → ⊤ → Bool
 
+/** Trusted model of `throw Error(message)`. A runtime implementation must raise without returning. */
+declare fun raiseError: Str -> Bot
+//│ raiseError: Str → ⊥
+
 declare fun fst[A, B]: ([A, B]) -> A
 declare fun snd[A, B]: ([A, B]) -> B
 //│ fst: ∀A, B. ⟨A, B⟩ → A

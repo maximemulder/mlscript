@@ -71,8 +71,7 @@ before implementing them. An inference failure alone does not require such a des
   conveniences still need a decision if a port requires them.
 - Automatic recursive-witness selection and consumer inference precision remain open. The
   authorized consumer-performance investigation localizes the sampled timeouts to closing
-  recursion over guarded bounds; see the report linked below. Prioritize that bottleneck before
-  adding more list-heavy ports.
+  recursion over guarded bounds. Follow up on that bottleneck when expanding inference coverage.
 
 ## File-by-file workflow
 
@@ -88,10 +87,11 @@ before implementing them. An inference failure alone does not require such a des
 4. Mark valid programs rejected by the checker with `:fixme // FIXME: <reason>`. Mark invalid
    programs accepted by it with `:breakme // FIXME: <reason>` followed by `:te`. These commands
    apply to diff-test blocks, so separate successful definitions from failing uses where useful.
-5. For a timeout, isolate and comment out the offending block with a `FIXME` explaining the
-   limitation. Retain the source so the test can be enabled later. If dependent code cannot be
-   checked, use a documented library signature where the fallback policy applies; otherwise
-   preserve the dependent code with an explicit explanation.
+5. Try inference on the translated definitions. For a timeout, isolate and comment out the
+   offending block with a `FIXME` explaining the limitation. A bounded diagnostic can find
+   expensive blocks without waiting for the per-file timeout. If a dependency remains disabled,
+   use a documented library signature where the fallback policy applies or preserve the caller
+   with an explanation.
 6. Run focused tests, review the generated `//│` output, then run the CTML suite for executable
    changes. Follow `AGENTS.md` for baseline comparisons and any shared-code changes. Aim for
    under five seconds per file; exclude known timeout cases from active execution.
@@ -117,13 +117,18 @@ server when finished. Do not include unrelated golden-output changes.
 | --- | --- |
 | [gcd.mls](gcd.mls) | Source translation complete, inference coverage partial: `g` and `gcdE` infer successfully. `max_` inference alone exceeds the 25-second limit; the extracted nested comprehension also times out. Both are retained as commented reproducers. `test`, `testGcd_nofib`, and `main` are translated but disabled because of these dependencies. Independent checks of both tuple-mapping stages compose successfully through the trusted `map` contract, with an integer-list result assertion and an invalid-input test. |
 | [cryptarithm1.mls](cryptarithm1.mls) | Source translation complete, inference coverage partial: `expand` and the exact ten-element `condition` pattern infer successfully. `addj` exceeds the 25-second test limit and is retained as a commented reproducer. `permutations`, `testCryptarithm_nofib`, and `main` are translated but disabled because they depend on `addj`. The source input remains `1`. The MLscript runtime reference reports a stack overflow, not a successful benchmark result. |
-| [cse.mls](cse.mls) | Incremental translation: all ten nonrecursive state combinators, `incr`, `newlyDefined`, tree constructors, and examples 0–3 infer without annotations. Twenty positive assertions and ten negative examples check state/answer ordering, composition, mapping callbacks, and constructed data. The four stateful list traversals are translated but commented: `mmapl` exceeds 25 seconds, and all four exhaust a separate 5000-call search diagnostic. The remaining tree stages and driver are not active CTML tests; whole-benchmark inference and runtime equivalence are not established. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, strict equality `===`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
+| [cse.mls](cse.mls) | All source definitions are present. The state combinators, `incr`, `newlyDefined`, tree constructors, and examples 0–3 infer without annotations. A bounded diagnostic on the current checker exhausts 20,000 solver calls per definition on six recursive list helpers and all four stateful traversals. These definitions, their callers, and the driver are retained as commented source. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, strict equality `===`, `raiseError`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | The focused investigation reproduces timeouts without encoded list signatures, down to unary constructor traversal. `walk`, `copy`, `map`, and dewrapped `length` samples locate the bottleneck in guarded-bound subtyping at the outer `fix` application. Function bodies with supplied recursive calls infer quickly; explicitly typed fixed-point controls pass. See `ctmlRecursiveConsumerInference.mls` and the performance report. Producer/consumer composition remains a separate precision issue. |
 
-**Next task: make algebraically inferred recursive schemes usable without annotations.**
+**Next benchmark: `scc.mls`.** Its depth-first searches and graph representation fit the
+existing recursive functions, list constructors, and binary tuples. It reuses `inList` and
+`append` from the CSE dependency slice and shares the list-rendering question at its entry
+point. The shared helpers remain candidates for the prelude once their definitions can be checked.
+
+**Inference follow-up: make algebraically inferred recursive schemes usable without annotations.**
 The [consumer performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)
 localizes a timeout at recursive closure. Bounded CSE diagnostics also exhaust their search
 budget before establishing that a traversal's inferred scheme accepts intended calls. Work on
@@ -146,13 +151,11 @@ Keep resource exhaustion distinct from subtype refutation. Retain the existing r
 representation, unannotated benchmarks, and documented library contracts. Substantial solver
 design changes remain experiments for review.
 
-The CSE port contains `retURN`, `bind`, `join`, `mmap`, `mif`, `startingWith`, `fetch`, `fetchWith`,
-`update`, `set_`, `incr`, and `newlyDefined`, plus tree constructors and examples 0–3. The source
-`mmapl`, `mmapr`, `mfoldl`, and `mfoldr` translations are retained as inference reproducers.
-Continue with consumer inference and the tree stages, preserving traversal order and the final
-benchmark input `6`. The later `findCommon` error branch and `main` use `throw`/`.toString()`;
-keep these language gaps explicit instead of silently dropping source behavior. The direct
-Boolean parser support required by `mif` is checked in `ctmlBooleanConditions.mls`.
+CSE keeps the final benchmark input `6` and writes graph triples as nested pairs. Its
+`throw Error(message)` branch calls the trusted `raiseError: Str -> Bot` primitive from
+`NofibPrelude.mls`. The declaration models the absence of a normal return value. Rendering the
+error message and the benchmark output still requires preserving the source list and triple format.
+The direct Boolean parser support required by `mif` is checked in `ctmlBooleanConditions.mls`.
 
 Cryptarithm's shared `take` and `filter` contracts have caller checks in `preludeTests.mls`.
 Their implementations time out during inference. Implicit `take`/range composition retains

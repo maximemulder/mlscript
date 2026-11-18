@@ -1,0 +1,139 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 60 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/mandel.mls.
+// RGB triples use nested pairs. Pixel indices convert to Num at the viewport boundary.
+
+/** Recursive list of RGB triples. */
+type Colours = [X restricts (LNil | (LCons & {head: [Int, [Int, Int]]} & {tail: X}))] -> X
+//│ Colours = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: X})} ⟹ X
+
+/** Image width, height, maximum colour and row-major colour list. */
+data class Pixmap(a: Int, b: Int, c: Int, d: Colours)
+//│ Pixmap: ∀α, β, γ, δ. {β ≤ Int, δ ≤ Colours, γ ≤ Int, α ≤ Int} ⟹ α → β → γ → δ → ((((Pixmap ∧ {a: α}) ∧ {b: β}) ∧ {c: γ}) ∧ {d: δ})
+
+/** Package the raster with its dimensions. */
+fun createPixmap(width, height, max, colours) = Pixmap(width, height, max, colours)
+//│ createPixmap: ∀α, β, γ, δ. {δ ≤ Colours, γ ≤ Int, β ≤ Int, α ≤ Int} ⟹ α → β → γ → δ → ((((Pixmap ∧ {a: α}) ∧ {b: β}) ∧ {c: γ}) ∧ {d: δ})
+
+/** Real and imaginary parts of a complex number. */
+data class Complex(r: Num, i: Num)
+//│ Complex: ∀α, β. {β ≤ Num, α ≤ Num} ⟹ α → β → ((Complex ∧ {r: α}) ∧ {i: β})
+
+/** Compute the Euclidean magnitude. */
+fun comp_magnitude(c) = if c is Complex(a, b) then numSqrt(numAdd(numMul(a, a), numMul(b, b)))
+//│ comp_magnitude: (({i: Num} ∧ {r: Num}) ∧ Complex) → Num
+
+/** Multiply two complex numbers. */
+fun comp_times(x, y) = if
+  x is Complex(a, b) and y is Complex(c, d) then
+    Complex(numSub(numMul(a, c), numMul(b, d)), numAdd(numMul(a, d), numMul(b, c)))
+//│ comp_times: (({i: Num} ∧ {r: Num}) ∧ Complex) → (({i: Num} ∧ {r: Num}) ∧ Complex) → ((Complex ∧ {r: Num}) ∧ {i: Num})
+
+/** Add two complex numbers. */
+fun comp_plus(x, y) = if
+  x is Complex(a, b) and y is Complex(c, d) then Complex(numAdd(a, c), numAdd(b, d))
+//│ comp_plus: (({i: Num} ∧ {r: Num}) ∧ Complex) → (({i: Num} ∧ {r: Num}) ∧ Complex) → ((Complex ∧ {r: Num}) ∧ {i: Num})
+
+/** Produce the delayed quadratic orbit starting at c. */
+fun mandel(c) =
+  /** Delay the current node and the mapped orbit. */
+  fun infiniteMandel() = delay(() =>
+    LzCons(c, mapLz(z => comp_plus(comp_times(z, z), c), infiniteMandel()))
+  )
+  infiniteMandel()
+//│ mandel: ⊥ → (Delayed ∧ {resume: Unit → {head: ⊥}})
+
+/** Test whether a complex number has passed the escape radius. */
+fun diverge(cmplx, radius) = numGt(comp_magnitude(cmplx), radius)
+//│ diverge: (({i: Num} ∧ {r: Num}) ∧ Complex) → Num → Bool
+
+comp_magnitude(Complex(3.0, 4.0)) as Num
+comp_times(Complex(1.0, 2.0), Complex(3.0, 4.0)).r as Num
+comp_plus(Complex(1.0, 2.0), Complex(3.0, 4.0)).i as Num
+diverge(Complex(3.0, 4.0), 2.0) as Bool
+createPixmap(1, 1, 75, LCons([1, [74, 74]], LNil())) as Pixmap
+//│ Num
+//│ Num
+//│ Num
+//│ Bool
+//│ Pixmap
+
+:fixme // FIXME: The recursive lazy map call leaves mandel with a bottom input type.
+mandel(Complex(0.0, 0.0))
+//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → (Delayed ∧ {resume: Unit → {head: ⊥}}) ≤ α → β.
+//│ Typing error tree:
+//│   ⊥ → (Delayed ∧ {resume: Unit → {head: ⊥}}) ≤ α → β
+//│     α ≤ ⊥
+//│       (Complex ∧ {r: γ}) ∧ {i: δ} ≤ ⊥
+//│         Complex ∧ {r: γ} ≤ ⊥
+//│           Complex ≤ ⊥
+//│           {r: γ} ≤ ⊥
+//│             γ ≤ ⊥
+//│               Num ≤ ⊥
+//│         {i: δ} ≤ ⊥
+//│           δ ≤ ⊥
+//│             Num ≤ ⊥
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Count the states within the escape radius, bounded by the supplied limit. */
+fun whenDiverge(limit, radius, c) =
+  /** Stop at the first escaped state or at the end of the prefix. */
+  fun walkIt(ls) = if force(ls) is
+    LzNil() then 0
+    LzCons(x, xs) and
+      diverge(x, radius) then 0
+      else 1 + walkIt(xs)
+  walkIt(takeLzLz(limit, mandel(c)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Escape counting is translation-only.
+/** Compute an escape count at each raster position. */
+fun parallelMandel(mat, limit, radius) = map(c => whenDiverge(limit, radius, c), mat)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Escape-count mapping is translation-only.
+/** Render the row-major raster over the given viewport. */
+fun mandelset(x, y, x_, y_, screenX, screenY, lIMIT) =
+  /** Colour an escape count. */
+  fun prettyRGB(s) =
+    let t = lIMIT - s
+    [s, [t, t]]
+  /** Convert the one-based raster indices into complex coordinates. */
+  fun windowToViewport(s, t) =
+    let real = numDiv(numMul(numFromInt(s), numSub(x_, x)), numFromInt(screenX))
+    let imag = numDiv(numMul(numFromInt(t), numSub(y_, y)), numFromInt(screenY))
+    Complex(numAdd(x, real), numAdd(y, imag))
+  /** Traverse the rows in order. */
+  fun lscomp1(ls1) = if ls1 is
+    LNil() then LNil()
+    LCons(t, t1) then
+      /** Traverse this row before continuing with the remaining rows. */
+      fun lscomp2(ls2) = if ls2 is
+        LNil() then lscomp1(t1)
+        LCons(s, t2) then LCons(windowToViewport(s, t), lscomp2(t2))
+      lscomp2(enumFromTo(1, screenX))
+  let points = lscomp1(enumFromTo(1, screenY))
+  let radius = numDiv(numMax(numSub(x_, x), numSub(y_, y)), 2.0)
+  let result = parallelMandel(points, lIMIT, radius)
+  createPixmap(screenX, screenY, lIMIT, map(prettyRGB, result))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Raster construction is translation-only.
+/** Source 25-by-25 grid and iteration limit of 75. */
+fun testMandel_nofib(dummy) =
+  let minx = numSub(0.0, 2.0)
+  let miny = numSub(0.0, 2.0)
+  let maxx = 2.0
+  let maxy = 2.0
+  let screenX = 25
+  let screenY = 25
+  let limit = 75
+  mandelset(minx, miny, maxx, maxy, screenX, screenY, limit)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark harness is translation-only.
+/** Run the source benchmark with its unused argument. */
+fun main() = testMandel_nofib(0)
+//│ CTML translation succeeded.

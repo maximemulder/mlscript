@@ -1,0 +1,236 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 60 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/mandel2.mls.
+// The recursive tree uses disjoint constructor tags with structural child fields.
+
+/** A vertical split. */
+data class NS(l, r)
+/** A horizontal split. */
+data class EW(l, r)
+/** A region of uniform colour. */
+data class Leaf(colour: Int)
+//│ NS: ∀α, β. α → β → ((NS ∧ {l: α}) ∧ {r: β})
+//│ EW: ∀γ, δ. γ → δ → ((EW ∧ {l: γ}) ∧ {r: δ})
+//│ Leaf: ∀ε. {ε ≤ Int} ⟹ ε → (Leaf ∧ {colour: ε})
+
+/** Recursive region tree invariant for assertions. */
+type MandTree = [X restricts (Leaf | (NS & {l: X} & {r: X}) | (EW & {l: X} & {r: X}))] -> X
+//│ MandTree = ∀X. {X ≥ (Leaf ∨ ((NS ∧ {l: X}) ∧ {r: X})) ∨ ((EW ∧ {l: X}) ∧ {r: X})} ⟹ X
+
+/** Source raster size and escape settings. */
+val size = 200
+/** Left viewport boundary. */
+val pmn = numSub(0.0, 2.25)
+/** Right viewport boundary. */
+val pmx = 0.75
+/** Lower viewport boundary. */
+val qmn = numSub(0.0, 1.5)
+/** Upper viewport boundary. */
+val qmx = 1.5
+/** Squared escape threshold. */
+val m = 20
+/** Limit on colour indices. */
+val num_cols = 26
+/** Horizontal viewport spacing. */
+val delta_p = numDiv(numSub(pmx, pmn), numFromInt(size - 1))
+/** Vertical viewport spacing. */
+val delta_q = numDiv(numSub(qmx, qmn), numFromInt(size - 1))
+/** One step upwards. */
+val up = [0, 0 - 1]
+/** One step downwards. */
+val down = [0, 1]
+/** One step left. */
+val left = [0 - 1, 0]
+/** One step right. */
+val right = [1, 0]
+//│ size: Int
+//│ pmn: Num
+//│ pmx: Num
+//│ qmn: Num
+//│ qmx: Num
+//│ m: Int
+//│ num_cols: Int
+//│ delta_p: Num
+//│ delta_q: Num
+//│ up: ⟨Int, Int⟩
+//│ down: ⟨Int, Int⟩
+//│ left: ⟨Int, Int⟩
+//│ right: ⟨Int, Int⟩
+
+/** Compare two raster points componentwise. */
+fun equalp(p1, p2) = if p1 is [x1, x2] and p2 is [y1, y2] then (x1 == y1) && (x2 == y2)
+//│ equalp: ⟨⊤, ⊤⟩ → ⟨⊤, ⊤⟩ → Bool
+
+/** Map a column index to the real axis. */
+fun np(x) = numAdd(pmn, numMul(numFromInt(x), delta_p))
+//│ np: Int → Num
+
+/** Map a row index to the imaginary axis. */
+fun nq(y) = numAdd(qmn, numMul(numFromInt(y), delta_q))
+//│ nq: Int → Num
+
+/** Squared magnitude of the complex state. */
+fun radius(x, y) = numAdd(numMul(x, x), numMul(y, y))
+//│ radius: Num → Num → Num
+
+/** Real part of the next iterate. */
+fun new_x(x, y, p) = numAdd(numSub(numMul(x, x), numMul(y, y)), p)
+//│ new_x: Num → Num → Num → Num
+
+/** Imaginary part of the next iterate. */
+fun new_y(x, y, q) = numAdd(numMul(numMul(2.0, x), y), q)
+//│ new_y: Num → Num → Num → Num
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Recursively check all leaves of the source tree. */
+fun finite(t) = if t is
+  Leaf(c) then c == c
+  NS(t1, t2) then finite(t1) && finite(t2)
+  EW(t1, t2) then finite(t1) && finite(t2)
+//│ CTML translation succeeded.
+
+/** Compute an escape colour using the source iteration limit and threshold. */
+fun check_radius(p, q, k, x, y) =
+  let xn = new_x(x, y, p)
+  let yn = new_y(x, y, q)
+  let r = radius(xn, yn)
+  let kp = k + 1
+  if
+    kp == num_cols then 0
+    numGt(r, numFromInt(m)) then kp
+    else check_radius(p, q, kp, xn, yn)
+//│ check_radius: Num → Num → Int → Num → Num → Int
+
+/** Compute the colour at a particular raster index. */
+fun point_colour(xy) = if xy is [x, y] then check_radius(np(x), nq(y), 0, 0.0, 0.0)
+//│ point_colour: ⟨Int, Int⟩ → Int
+
+/** Return the shared perimeter colour or -1 for a nonuniform perimeter. */
+fun check_perim(x1y1, x2y2) =
+  let col1 = point_colour(x1y1)
+  if x1y1 is [x1, y1] and x2y2 is [x2, y2] then
+    /** Walk one edge until its end or the first differing colour. */
+    fun check_line(xcyc, xdyd) =
+      if xcyc is [xc, yc] and xdyd is [xd, yd] then
+        let finished = if
+          equalp(xdyd, right) then x2 <= xc
+          equalp(xdyd, down) then yc <= y2
+          equalp(xdyd, left) then xc <= x1
+          else y1 <= yc
+        if
+          finished then true
+          point_colour(xcyc) == col1 then check_line([xc + xd, yc + yd], [xd, yd])
+          else false
+    if equalp(x1y1, x2y2) then col1
+    else
+      let col2 = point_colour([x2, y1])
+      let col3 = point_colour(x2y2)
+      let col4 = point_colour([x1, y2])
+      if
+        (col1 == col2) and (col1 == col3) and (col1 == col4) then
+          if check_line([x1 + 1, y1], right) and check_line([x2, y1 + 1], down) and
+              check_line([x2 - 1, y2], left) and check_line([x1, y2 - 1], up) then col1
+          else 0 - 1
+        else 0 - 1
+//│ check_perim: ⟨Int, Int⟩ → ⟨Int, Int⟩ → Int
+
+/** Split a nonuniform rectangle on its longer axis. */
+fun build_tree(x1y1, x2y2) =
+  if x1y1 is [x1, y1] and x2y2 is [x2, y2] then
+    let rec_col = check_perim(x1y1, x2y2)
+    if rec_col == (0 - 1) then
+      let split = if (y2 - y1) <= (x2 - x1) then "NS" else "EW"
+      let split_x = intDiv(x2 + x1, 2)
+      let split_y = intDiv(y2 + y1, 2)
+      if split == "NS" then
+        NS(build_tree(x1y1, [split_x, y2]), build_tree([split_x + 1, y1], x2y2))
+      else EW(build_tree(x1y1, [x2, split_y]), build_tree([x1, split_y + 1], x2y2))
+    else Leaf(rec_col)
+//│ build_tree: ∀α, β, γ, δ. {δ ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), γ ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), β ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), α ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β})} ⟹ ⟨Int, Int⟩ → ⟨Int, Int⟩ → ((Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}))
+
+point_colour([0, 0]) as Int
+check_perim([0, 0], [1, 1]) as Int
+//│ Int
+//│ Int
+
+NS(Leaf(1), EW(Leaf(2), Leaf(3))) as MandTree
+//│ MandTree
+
+build_tree([0, 0], [1, 1]) as (Leaf | NS | EW)
+//│ ∀α, β, γ, δ. {α ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), β ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), γ ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), δ ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β})} ⟹ (Leaf ∨ NS) ∨ EW
+
+:fixme // FIXME: The inferred tree result fails to instantiate at the recursive invariant.
+build_tree([0, 0], [1, 1]) as MandTree
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ MandTree.
+//│ Typing error tree:
+//│   α ≤ MandTree
+//│     (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ MandTree
+//│       (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ∀X. {X ≥ (Leaf ∨ ((NS ∧ {l: X}) ∧ {r: X})) ∨ ((EW ∧ {l: X}) ∧ {r: X})} ⟹ X
+//│         (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ {ζ ≥ (Leaf ∨ ((NS ∧ {l: ζ}) ∧ {r: ζ})) ∨ ((EW ∧ {l: ζ}) ∧ {r: ζ})} ⟹ ζ
+//│           (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ζ
+//│             ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ζ
+//│               (EW ∧ {l: β}) ∧ {r: γ} ≤ ζ
+//│                 (EW ∧ {l: β}) ∧ {r: γ} ≤ Leaf ∨ ((NS ∧ {l: ζ}) ∧ {r: ζ})
+//│                   (EW ∧ {l: β}) ∧ {r: γ} ≤ Leaf
+//│                     EW ∧ {l: β} ≤ Leaf
+//│                       EW ≤ Leaf
+//│                       {l: β} ≤ Leaf
+//│                         β ≤ ⊥
+//│                           (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
+//│                             Leaf ∧ {colour: Int} ≤ ⊥
+//│                               Leaf ≤ ⊥
+//│                               {colour: Int} ≤ ⊥
+//│                                 Int ≤ ⊥
+//│                     {r: γ} ≤ Leaf
+//│                       γ ≤ ⊥
+//│                         (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
+//│                           Leaf ∧ {colour: Int} ≤ ⊥
+//│                             Leaf ≤ ⊥
+//│                             {colour: Int} ≤ ⊥
+//│                               Int ≤ ⊥
+//│                   (EW ∧ {l: β}) ∧ {r: γ} ≤ (NS ∧ {l: ζ}) ∧ {r: ζ}
+//│                     (EW ∧ {l: β}) ∧ {r: γ} ≤ NS ∧ {l: ζ}
+//│                       (EW ∧ {l: β}) ∧ {r: γ} ≤ NS
+//│                         EW ∧ {l: β} ≤ NS
+//│                           EW ≤ NS
+//│                           {l: β} ≤ NS
+//│                             β ≤ ⊥
+//│                               (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
+//│                                 Leaf ∧ {colour: Int} ≤ ⊥
+//│                                   Leaf ≤ ⊥
+//│                                   {colour: Int} ≤ ⊥
+//│                                     Int ≤ ⊥
+//│                         {r: γ} ≤ NS
+//│                           γ ≤ ⊥
+//│                             (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
+//│                               Leaf ∧ {colour: Int} ≤ ⊥
+//│                                 Leaf ≤ ⊥
+//│                                 {colour: Int} ≤ ⊥
+//│                                   Int ≤ ⊥
+//│                 (EW ∧ {l: β}) ∧ {r: γ} ≤ (EW ∧ {l: ζ}) ∧ {r: ζ}
+//│                   (EW ∧ {l: β}) ∧ {r: γ} ≤ EW ∧ {l: ζ}
+//│                     (EW ∧ {l: β}) ∧ {r: γ} ≤ {l: ζ}
+//│                       EW ∧ {l: β} ≤ {l: ζ}
+//│                         EW ≤ {l: ζ}
+//│                         {l: β} ≤ {l: ζ}
+//│                           β ≤ ζ
+//│                             (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ζ
+//│                       {r: γ} ≤ {l: ζ}
+//│                         γ ≤ ⊥
+//│                           (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
+//│                             Leaf ∧ {colour: Int} ≤ ⊥
+//│                               Leaf ≤ ⊥
+//│                               {colour: Int} ≤ ⊥
+//│                                 Int ≤ ⊥
+
+:ctml-parse-only // FIXME: The recursive leaf check is translation-only.
+/** Check the tree built from the source rectangle. */
+fun testMandel2_nofib(n) = finite(build_tree([0, 0], [size, intDiv(size, 2)]))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark harness is translation-only.
+/** Use the unused source argument. */
+fun main() = testMandel2_nofib(0)
+//│ CTML translation succeeded.

@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 45 member(s)
+//│ Imported 60 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 
@@ -214,4 +214,42 @@ fun zipWith(f, xss, yss) = if
 fun nofibListToString(ls) = if ls is
   LNil() then ""
   LCons(h, t) then h ++ nofibListToString(t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The reverse implementation is translation-only in this file.
+/** Collect the two projections in their original order. */
+fun unzip(ls) =
+  /** Accumulate both projections in reverse order. */
+  fun loop(rest, xs, ys) = if rest is
+    LNil() then [reverse(xs), reverse(ys)]
+    LCons([x, y], t) then loop(t, LCons(x, xs), LCons(y, ys))
+  loop(ls, LNil(), LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The unannotated unzip traversal is translation-only.
+/** Transpose rows, skipping empty rows while retaining all elements of ragged input. */
+fun transpose(xss) =
+  /** Extract the head and tail of each nonempty row. */
+  fun splitRows(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) and h is
+      LCons(hd, tl) then LCons([hd, tl], splitRows(t))
+      else splitRows(t)
+  /** Emit one column and transpose the remaining rows. */
+  fun combine(y, h, ys, t) = LCons(LCons(y, h), transpose(LCons(ys, t)))
+  if xss is
+    LNil() then LNil()
+    LCons(LNil(), rows) then transpose(rows)
+    LCons(LCons(x, xs), rows) and unzip(splitRows(rows)) is [hds, tls] then combine(x, hds, xs, tls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Delay a prefix and stop without forcing a node when the count is exhausted. */
+fun takeLzLz(n, ls) = delay(() =>
+  if
+    0 < n and force(ls) is
+      LzNil() then LzNil()
+      LzCons(h, t) then LzCons(h, takeLzLz(n - 1, t))
+    else LzNil()
+)
 //│ CTML translation succeeded.

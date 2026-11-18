@@ -34,6 +34,30 @@ declare fun numMul: Num -> Num -> Num
 //│ numAdd: Num → Num → Num
 //│ numMul: Num → Num → Num
 
+/** Trusted source floating-point subtraction. */
+declare fun numSub: Num -> Num -> Num
+//│ numSub: Num → Num → Num
+
+/** Trusted source floating-point division. */
+declare fun numDiv: Num -> Num -> Num
+//│ numDiv: Num → Num → Num
+
+/** Trusted integer-to-floating-point conversion using JavaScript Number. */
+declare fun numFromInt: Int -> Num
+//│ numFromInt: Int → Num
+
+/** Trusted source floating-point greater-than comparison. */
+declare fun numGt: Num -> Num -> Bool
+//│ numGt: Num → Num → Bool
+
+/** Trusted JavaScript Math.max on two floating-point arguments. */
+declare fun numMax: Num -> Num -> Num
+//│ numMax: Num → Num → Num
+
+/** Trusted JavaScript Math.sqrt, including NaN for negative arguments. */
+declare fun numSqrt: Num -> Num
+//│ numSqrt: Num → Num
+
 fun intRem(a, b) = a - (b * intQuot(a, b))
 //│ intRem: Int → Int → Int
 
@@ -196,6 +220,13 @@ declare fun nofibStringLength: Str -> Int
 declare fun nofibCharAt: Str -> Int -> Str
 //│ nofibCharAt: Str → Int → Str
 
+/**
+ * Trusted first UTF-16 code unit, with -1 for an empty string. The sentinel is outside
+ * every character range tested by Banner and preserves its fallthrough on empty input.
+ */
+declare fun nofibCharCode: Str -> Int
+//│ nofibCharCode: Str → Int
+
 /** Split a string into its successive UTF-16 code units, as in the source charAt traversal. */
 fun nofibStringToList(s) =
   /** Collect the characters starting at index i. */
@@ -204,7 +235,43 @@ fun nofibStringToList(s) =
   go(0)
 //│ nofibStringToList: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
 
-// preludeTests.mls checks the inference failure of concat on a nonempty list.
+/**
+ * Trusted flattening contract. preludeTests.mls checks the unannotated implementation
+ * separately and records its failure on nonempty input.
+ */
+declare fun concat[A]: ([X restricts (LNil | (LCons & {head: ([R restricts (LNil | (LCons & {head: A} & {tail: R}))] -> R)} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ concat: ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+/**
+ * Trusted line assembly contract. Each input row is followed by one newline.
+ * preludeTests.mls records the inference failure of the unannotated implementation.
+ */
+declare fun unlines: ([X restricts (LNil | (LCons & {head: ([R restricts (LNil | (LCons & {head: Str} & {tail: R}))] -> R)} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: Str} & {tail: Y}))] -> Y)
+//│ unlines: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y)
+
+/** Trusted reversal contract. preludeDeferred.mls checks translation of the source traversal. */
+declare fun reverse[A]: ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ reverse: ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+/** Trusted right fold contract. preludeDeferred.mls checks translation of the source traversal. */
+declare fun foldr[A, B]: (A -> B -> B) -> B -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> B
+//│ foldr: ∀A, B. (A → B → B) → B → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → B
+
+/** Trusted fold without a seed. The input is nonempty. See preludeDeferred.mls for the body. */
+declare fun foldr1[A]: (A -> A -> A) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> (LCons & {head: A} & {tail: X})) -> A
+//│ foldr1: ∀A. (A → A → A) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ (LCons ∧ {head: A}) ∧ {tail: X}) → A
+
+/** Trusted ragged transpose. preludeDeferred.mls checks translation of the source traversal. */
+declare fun transpose[A]: ([X restricts (LNil | (LCons & {head: ([R restricts (LNil | (LCons & {head: A} & {tail: R}))] -> R)} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: ([S restricts (LNil | (LCons & {head: A} & {tail: S}))] -> S)} & {tail: Y}))] -> Y)
+//│ transpose: ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀S. {S ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: S})} ⟹ S}) ∧ {tail: Y})} ⟹ Y)
+
+/** Trusted lazy map contract. The body in preludeDeferred.mls checks through translation. */
+declare fun mapLz[A, B]: (A -> B) -> ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: B} & {tail: Y}))})] -> Y)
+//│ mapLz: ∀A, B. (A → B) → (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: B}) ∧ {tail: Y}))}} ⟹ Y)
+
+/** Trusted delayed prefix contract. The source traversal is checked in preludeDeferred.mls. */
+declare fun takeLzLz[A]: Int -> ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Y}))})] -> Y)
+//│ takeLzLz: ∀A. Int → (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Y}))}} ⟹ Y)
 
 /**
  * Trusted scanl contract. The result always starts with the initial accumulator.

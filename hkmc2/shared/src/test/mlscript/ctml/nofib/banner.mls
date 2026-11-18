@@ -1,0 +1,234 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 60 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/banner.mls.
+// Glyphs remain five rows of UTF-16 code units, in source order.
+
+/** Build a glyph from its five source row strings. */
+fun glyph(a, b, c, d, e) =
+  let row1 = nofibStringToList(a)
+  let row2 = nofibStringToList(b)
+  let row3 = nofibStringToList(c)
+  let row4 = nofibStringToList(d)
+  let row5 = nofibStringToList(e)
+  LCons(row1, LCons(row2, LCons(row3, LCons(row4, LCons(row5, LNil())))))
+//│ glyph: ∀α, β, γ, δ, ε. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ Str → Str → Str → Str → Str → ((LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: LNil}}}}})
+
+/** The space glyph. */
+val blank = glyph("     ", "     ", "     ", "     ", "     ")
+//│ blank: ∀α, β, γ, δ, ε. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: LNil}}}}}
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Uppercase glyphs in alphabetic order. */
+val alphas =
+  let alphas0 = glyph("  A  ", " A A ", "AAAAA", "A   A", "A   A")
+  let alphas1 = glyph("BBBB ", "B   B", "BBBB ", "B   B", "BBBB ")
+  let alphas2 = glyph(" CCCC", "C    ", "C    ", "C    ", " CCCC")
+  let alphas3 = glyph("DDDD ", "D   D", "D   D", "D   D", "DDDD ")
+  let alphas4 = glyph("EEEEE", "E    ", "EEEEE", "E    ", "EEEEE")
+  let alphas5 = glyph("FFFFF", "F    ", "FFFF ", "F    ", "F    ")
+  let alphas6 = glyph(" GGGG", "G    ", "G  GG", "G   G", " GGG ")
+  let alphas7 = glyph("H   H", "H   H", "HHHHH", "H   H", "H   H")
+  let alphas8 = glyph("IIIII", "  I  ", "  I  ", "  I  ", "IIIII")
+  let alphas9 = glyph("JJJJJ", "   J ", "   J ", "J  J ", " JJ  ")
+  let alphas10 = glyph("K   K", "K  K ", "KKK  ", "K  K ", "K   K")
+  let alphas11 = glyph("L    ", "L    ", "L    ", "L    ", "LLLLL")
+  let alphas12 = glyph("M   M", "MM MM", "M M M", "M   M", "M   M")
+  let alphas13 = glyph("N   N", "NN  N", "N N N", "N  NN", "N   N")
+  let alphas14 = glyph(" OOO ", "O   O", "O   O", "O   O", " OOO ")
+  let alphas15 = glyph("PPPP ", "P   P", "PPPP ", "P    ", "P    ")
+  let alphas16 = glyph(" QQQ ", "Q   Q", "Q Q Q", "Q  Q ", " QQ Q")
+  let alphas17 = glyph("RRRR ", "R   R", "RRRR ", "R  R ", "R   R")
+  let alphas18 = glyph(" SSSS", "S    ", " SSS ", "    S", "SSSS ")
+  let alphas19 = glyph("TTTTT", "  T  ", "  T  ", "  T  ", "  T  ")
+  let alphas20 = glyph("U   U", "U   U", "U   U", "U   U", " UUU ")
+  let alphas21 = glyph("V   V", "V   V", "V   V", " V V ", "  V  ")
+  let alphas22 = glyph("W   W", "W   W", "W   W", "W W W", " W W ")
+  let alphas23 = glyph("X   X", " X X ", "  X  ", " X X ", "X   X")
+  let alphas24 = glyph("Y   Y", " Y Y ", "  Y  ", "  Y  ", "  Y  ")
+  let alphas25 = glyph("ZZZZZ", "   Z ", "  Z  ", " Z   ", "ZZZZZ")
+  let tail24 = LCons(alphas24, LCons(alphas25, LNil()))
+  let tail20 = LCons(alphas20, LCons(alphas21, LCons(alphas22, LCons(alphas23, tail24))))
+  let tail16 = LCons(alphas16, LCons(alphas17, LCons(alphas18, LCons(alphas19, tail20))))
+  let tail12 = LCons(alphas12, LCons(alphas13, LCons(alphas14, LCons(alphas15, tail16))))
+  let tail8 = LCons(alphas8, LCons(alphas9, LCons(alphas10, LCons(alphas11, tail12))))
+  let tail4 = LCons(alphas4, LCons(alphas5, LCons(alphas6, LCons(alphas7, tail8))))
+  let tail0 = LCons(alphas0, LCons(alphas1, LCons(alphas2, LCons(alphas3, tail4))))
+  tail0
+//│ CTML translation succeeded.
+
+/** The slash glyph. Reversing its rows draws the source equals glyph. */
+val slant = glyph("    ", "   ", "  ", " ", "")
+//│ slant: ∀α, β, γ, δ, ε. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: LNil}}}}}
+
+/** Punctuation glyphs with their lookup keys. */
+val punct =
+  let punct0 = [".", glyph("     ", "     ", "     ", "  .. ", "  .. ")]
+  let punct1 = ["?", glyph(" ??? ", "?   ?", "   ? ", "  ?  ", "  .  ")]
+  let punct2 = ["!", glyph("  !  ", "  !  ", "  !  ", "  !  ", "  .  ")]
+  let punct3 = ["-", glyph("     ", "     ", "-----", "     ", "     ")]
+  let punct4 = ["+", glyph("  +  ", "  +  ", "+++++", "  +  ", "  +  ")]
+  let punct5 = [":", glyph("     ", "  :: ", "     ", "  :: ", "     ")]
+  let punct6 = [";", glyph("     ", "  ;; ", "     ", "  ;; ", " ;;  ")]
+  let tail4 = LCons(punct4, LCons(punct5, LCons(punct6, LNil())))
+  let tail0 = LCons(punct0, LCons(punct1, LCons(punct2, LCons(punct3, tail4))))
+  tail0
+//│ punct: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, π, ρ, σ, τ, υ, φ, χ, ψ, ω, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582. {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ}), θ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ}), κ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ}), ι ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι}), η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η}), π ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: π}), σ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: σ}), υ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: υ}), τ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: τ}), ρ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ρ}), 573 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 573}), 575 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 575}), 577 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 577}), 576 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 576}), 574 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 574}), 579 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 579}), 581 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 581}), 582 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 582}), 580 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 580}), 578 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 578}), χ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: χ}), ω ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ω}), 572 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 572}), ψ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ψ}), φ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: φ}), μ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ}), ξ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ξ}), ο ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ο}), ν ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ν}), λ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ}), β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ν})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ξ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ο})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: π})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ρ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: σ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: τ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: υ})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: φ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: χ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ψ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ω})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 572})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 573})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 574})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 575})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 576})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 577})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 578})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 579})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 580})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 581})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 582})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: LNil}}}}}}}
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Digit glyphs in numeric order. */
+val digits =
+  let digits0 = glyph(" OOO ", "0  00", "0 0 0", "00  0", " 000 ")
+  let digits1 = glyph("  1  ", " 11  ", "  1  ", "  1  ", "11111")
+  let digits2 = glyph(" 222 ", "2   2", "   2 ", "  2  ", "22222")
+  let digits3 = glyph("3333 ", "    3", " 333 ", "    3", "3333 ")
+  let digits4 = glyph("   4 ", "  44 ", " 4 4 ", "44444", "   4 ")
+  let digits5 = glyph("55555", "5    ", "5555 ", "    5", "5555 ")
+  let digits6 = glyph("   66", "  6  ", " 666 ", "6   6", " 666 ")
+  let digits7 = glyph("77777", "    7", "   7 ", "   7 ", "  7  ")
+  let digits8 = glyph(" 888 ", "8   8", " 888 ", "8   8", " 888 ")
+  let digits9 = glyph(" 999 ", "9   9", " 999 ", "  9  ", "99   ")
+  let tail8 = LCons(digits8, LCons(digits9, LNil()))
+  let tail4 = LCons(digits4, LCons(digits5, LCons(digits6, LCons(digits7, tail8))))
+  let tail0 = LCons(digits0, LCons(digits1, LCons(digits2, LCons(digits3, tail4))))
+  tail0
+//│ CTML translation succeeded.
+
+:fixme // FIXME: The inferred callback cannot instantiate the recursive fold element type.
+/** Join glyph rows with a two-character space. */
+fun join(ls) =
+  let gap = LCons(" ", LCons(" ", LNil()))
+  foldr1((xs, ys) => append(xs, append(gap, ys)), ls)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y, δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ (LCons ∧ {head: α}) ∧ {tail: X}, γ ≤ α, α ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}), β ≤ ⊥, γ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ.
+//│ Typing error tree:
+//│   ∀α, β, γ. {α ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y, δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ (LCons ∧ {head: α}) ∧ {tail: X}, γ ≤ α, α ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}), β ≤ ⊥, γ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│     {ι ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: Y})} ⟹ Y, δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ι}) ∧ {tail: X})} ⟹ (LCons ∧ {head: ι}) ∧ {tail: X}, η ≤ ι, ι ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η}), θ ≤ ⊥, η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│       {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ι}) ∧ {tail: X})} ⟹ (LCons ∧ {head: ι}) ∧ {tail: X}, η ≤ ι, ι ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η}), θ ≤ ⊥, η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│         {η ≤ ι, ι ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η}), θ ≤ ⊥, η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│           {ι ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η}), θ ≤ ⊥, η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│             {θ ≤ ⊥, η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│               {η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│                 (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ ε → ζ
+//│                   ε ≤ ∀X. {X ≥ LNil} ⟹ X
+//│                     (LCons ∧ {head: κ}) ∧ {tail: λ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│                       (LCons ∧ {head: κ}) ∧ {tail: λ} ≤ {μ ≥ LNil} ⟹ μ
+//│                         (LCons ∧ {head: κ}) ∧ {tail: λ} ≤ μ
+//│                           LCons ∧ {head: κ} ≤ μ
+//│                             LCons ≤ μ
+//│                               LCons ≤ LNil
+//│                             {head: κ} ≤ μ
+//│                               {head: κ} ≤ LNil
+//│                                 κ ≤ ⊥
+//│                                   Str ≤ ⊥
+//│                           {tail: λ} ≤ μ
+//│                             {tail: λ} ≤ LNil
+//│                               λ ≤ ⊥
+//│                                 ν ≤ ⊥
+//│                                   (LCons ∧ {head: ξ}) ∧ {tail: ο} ≤ ⊥
+//│                                     LCons ∧ {head: ξ} ≤ ⊥
+//│                                       LCons ≤ ⊥
+//│                                       {head: ξ} ≤ ⊥
+//│                                         ξ ≤ ⊥
+//│                                           Str ≤ ⊥
+//│                                     {tail: ο} ≤ ⊥
+//│                                       ο ≤ ⊥
+//│                                         π ≤ ⊥
+//│                                           LNil ≤ ⊥
+
+/** Test for an ASCII uppercase character. */
+fun isUpper(c) =
+  let n = nofibCharCode(c)
+  (65 <= n) && (n <= 90)
+//│ isUpper: Str → Bool
+
+/** Test for an ASCII lowercase character. */
+fun isLower(c) =
+  let n = nofibCharCode(c)
+  (97 <= n) && (n <= 122)
+//│ isLower: Str → Bool
+
+/** Test for an ASCII digit. */
+fun isDigit(c) =
+  let n = nofibCharCode(c)
+  (48 <= n) && (n <= 57)
+//│ isDigit: Str → Bool
+
+/** Test for the ASCII space character. */
+fun isSpace(c) = nofibCharCode(c) == 32
+//│ isSpace: Str → Bool
+
+/** Return the element at a zero-based list index. The source operation is partial. */
+fun atIndex(i, ls) = if ls is
+  LCons(h, t) and
+    i == 0 then h
+    else atIndex(i - 1, t)
+//│ atIndex: ∀α, β. {β ≤ ({tail: β} ∧ {head: α}) ∧ LCons} ⟹ Int → (({tail: β} ∧ {head: α}) ∧ LCons) → α
+
+isUpper("I") as Bool
+isLower("s") as Bool
+isDigit("1") as Bool
+isSpace("") as Bool
+//│ Bool
+//│ Bool
+//│ Bool
+//│ Bool
+
+:fixme // FIXME: The inferred index traversal requires a self-recursive nonempty tail.
+atIndex(0, LCons("first", LNil())) as Str
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (({tail: δ} ∧ {head: ε}) ∧ LCons) → ε ≤ β → γ
+//│       β ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
+//│         (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
+//│           (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {tail: δ} ∧ {head: ε}
+//│             (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {tail: δ}
+//│               LCons ∧ {head: ζ} ≤ {tail: δ}
+//│                 LCons ≤ {tail: δ}
+//│                 {head: ζ} ≤ {tail: δ}
+//│                   ζ ≤ ⊥
+//│                     Str ≤ ⊥
+//│               {tail: η} ≤ {tail: δ}
+//│                 η ≤ δ
+//│                   η ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
+//│                     θ ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
+//│                       LNil ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
+//│                         LNil ≤ {tail: δ} ∧ {head: ε}
+//│                           LNil ≤ {tail: δ}
+
+:ctml-parse-only // FIXME: The alphabet and digit tables are translation-only.
+/** Select a glyph, with an empty row as the default for unsupported characters. */
+fun picChar(c) =
+  /** Collect the punctuation glyphs whose key matches this character. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons([key, letter], t) and
+      key === c then LCons(letter, lscomp(t))
+      else lscomp(t)
+  if
+    isUpper(c) then atIndex(nofibCharCode(c) - nofibCharCode("A"), alphas)
+    isLower(c) then atIndex(nofibCharCode(c) - nofibCharCode("a"), alphas)
+    isSpace(c) then blank
+    isDigit(c) then atIndex(nofibCharCode(c) - nofibCharCode("0"), digits)
+    c === "/" then slant
+    c === "=" then reverse(slant)
+    else head(append(lscomp(punct), LCons(LNil(), LCons(LNil(), LNil()))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Glyph selection is translation-only.
+/** Lay out glyphs side by side and prepend the source leading newline. */
+fun say(s) = LCons("\n", unlines(map(join, transpose(map(picChar, s)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Banner layout is translation-only.
+/** Render n copies of the source sentence. */
+fun testBanner_nofib(n) =
+  let x = nofibStringToList("Is this not a great banner?")
+  say(concat(replicate(n, x)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark harness is translation-only.
+/** Join the characters of the one-copy banner into a string. */
+fun main() = nofibListToString(testBanner_nofib(1))
+//│ CTML translation succeeded.

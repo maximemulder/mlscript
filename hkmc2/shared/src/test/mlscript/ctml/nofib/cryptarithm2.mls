@@ -1,0 +1,263 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 60 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm2.mls.
+// StateT carries its state and result through the run field. The source char type is Str.
+
+/** A successful lookup. */
+data class Some(x)
+//│ Some: ∀α. α → (Some ∧ {x: α})
+
+/** A missing lookup. */
+data class None()
+//│ None: Unit → None
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Find the first strict-equality match in an association list. */
+fun lookup(k, t) = if t is
+  LNil() then None()
+  LCons([x, v], rest) then if k === x then Some(v) else lookup(k, rest)
+//│ CTML translation succeeded.
+
+/** Project the value of a successful lookup. */
+fun fromSome(s) = if s is Some(x) then x
+//│ fromSome: ∀α. ({x: α} ∧ Some) → α
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Remove the first equal element. */
+fun deleteBy(eq, x, ys) = if ys is
+  LNil() then LNil()
+  LCons(y, t) and
+    eq(x, y) then t
+    else LCons(y, deleteBy(eq, x, t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Fold the list from left to right. */
+fun foldl(f, a, xs) = if xs is
+  LNil() then a
+  LCons(h, t) then foldl(f, f(a, h), t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Collect the first occurrence of each element under the supplied equality. */
+fun nubBy(eq, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) then LCons(h, nubBy(eq, filter(y => if eq(h, y) then false else true, t)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Sum integers with the source accumulator traversal. */
+fun sum(xs) =
+  /** Add the remaining elements from left to right. */
+  fun go(rest, a) = if rest is
+    LNil() then a
+    LCons(h, t) then go(t, a + h)
+  go(xs, 0)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The shared deletion traversal is translation-only.
+/** Delete one occurrence using strict equality. */
+fun delete_(xs, e) = deleteBy((x, y) => x === y, e, xs)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Left fold and deletion are translation-only.
+/** Delete each requested element in order. */
+fun listDiff(a, ls) = foldl(delete_, a, ls)
+//│ CTML translation succeeded.
+
+/** Wrap a computation producing a list of result-state pairs. */
+data class StateT(run)
+//│ StateT: ∀α. α → (StateT ∧ {run: α})
+
+/** Run a state computation from a supplied state. */
+fun runStateT(m, s) = if m is StateT(run) then run(s)
+//│ runStateT: ∀α, β. ({run: α → β} ∧ StateT) → α → β
+
+/** Sequence nondeterministic state computations in source list order. */
+fun bind(m, f) =
+  /** Run each continuation from the state produced by its corresponding result. */
+  fun run(s) =
+    /** Apply the continuation to one result-state pair. */
+    fun next(result) = if result is [a, ss] then runStateT(f(a), ss)
+    concat(map(next, runStateT(m, s)))
+  StateT(run)
+//│ bind: ∀α, β. α → β → (StateT ∧ {run: ∀γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο. {ζ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X, ο ≤ {θ ≥ LNil} ⟹ θ, δ ≤ ⟨ι, λ⟩, κ ≥ ι, ξ ≥ μ, ν ≤ {run: ξ → ο} ∧ StateT, β ≤ κ → ν, μ ≥ λ, α ≤ {run: ε → ζ} ∧ StateT, ε ≥ γ} ⟹ γ → ({η ≥ LNil} ⟹ η)})
+
+/** Return a result without changing the state. */
+fun return_(a) = StateT(s => LCons([a, s], LNil()))
+//│ return_: ∀α. α → (StateT ∧ {run: ∀β. β → ((LCons ∧ {head: ⟨α, β⟩}) ∧ {tail: LNil})})
+
+:ctml-parse-only // FIXME: Subtype search repeats on the recursive state-list constraints.
+/** Apply a state computation to each element using the source right fold. */
+fun mapM(f, ls) =
+  /** Prepend the result of the current computation to the remaining results. */
+  fun step(a, r) = bind(f(a), x => bind(r, xs => return_(LCons(x, xs))))
+  foldr(step, return_(LNil()), ls)
+//│ CTML translation succeeded.
+
+/** Lift a list of alternatives into a state computation. */
+fun lift(ls) = StateT(s => concat(map(x => LCons([x, s], LNil()), ls)))
+//│ lift: ∀α. α → (StateT ∧ {run: ∀β, γ, Y. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ⟹ β → ({Y ≥ LNil ∨ ((LCons ∧ {head: ⟨γ, β⟩}) ∧ {tail: Y})} ⟹ Y)})
+
+/** Run a computation and retain the possible final states. */
+fun execStateT(m, s) =
+  /** Collect a final state from one alternative. */
+  fun stateOnly(result) = if result is [a, ss] then LCons(ss, LNil())
+  concat(map(stateOnly, runStateT(m, s)))
+//│ execStateT: ∀α. ({run: ∀X. α → ({X ≥ LNil} ⟹ X)} ∧ StateT) → α → LNil
+
+/** Keep the current state precisely when the guard holds. */
+fun guard(b) = if b then StateT(s => LCons([(), s], LNil())) else StateT(s => LNil())
+//│ guard: Bool → ((StateT ∧ {run: ⊤ → LNil}) ∨ (StateT ∧ {run: ∀α. α → ((LCons ∧ {head: ⟨Unit, α⟩}) ∧ {tail: LNil})}))
+
+/** Replace the current state. */
+fun put(s) = StateT(x => LCons([(), s], LNil()))
+//│ put: ∀α. α → (StateT ∧ {run: ⊤ → ((LCons ∧ {head: ⟨Unit, α⟩}) ∧ {tail: LNil})})
+
+/** Read the current state. */
+val get = StateT(s => LCons([s, s], LNil()))
+//│ get: StateT ∧ {run: ∀α. α → ((LCons ∧ {head: ⟨α, α⟩}) ∧ {tail: LNil})}
+
+/** Proper list of available digits. */
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+/** Proper list of character and digit assignments. */
+type DigitEnv = [X restricts (LNil | (LCons & {head: [Str, Int]} & {tail: X}))] -> X
+//│ DigitEnv = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Str, Int⟩}) ∧ {tail: X})} ⟹ X
+
+/** The remaining digits and the current assignments. */
+data class Digits(i: IntList, c: DigitEnv)
+//│ Digits: ∀α, β. {β ≤ DigitEnv, α ≤ IntList} ⟹ α → β → ((Digits ∧ {i: α}) ∧ {c: β})
+
+/** Project the remaining digits. */
+fun digits(d) = if d is Digits(a, b) then a
+//│ digits: ∀α. (({c: ⊤} ∧ {i: α}) ∧ Digits) → α
+
+/** Project the list of assigned digits. */
+fun digitEnv(d) = if d is Digits(a, b) then b
+//│ digitEnv: ∀α. (({c: α} ∧ {i: ⊤}) ∧ Digits) → α
+
+runStateT(return_(7), "state").head as [Int, Str]
+runStateT(put(7), "state").head as [Unit, Int]
+runStateT(get, 7).head as [Int, Int]
+Digits(LCons(7, LNil()), LCons(["T", 7], LNil())).c.head as [Str, Int]
+//│ ⟨Int, Str⟩
+//│ ⟨Unit, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Str, Int⟩
+
+:fixme // FIXME: The inferred final-state extractor accepts only empty alternative lists.
+execStateT(return_(7), "state")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ({run: ∀X. α → ({X ≥ LNil} ⟹ X)} ∧ StateT) → α → LNil ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. ({run: ∀X. α → ({X ≥ LNil} ⟹ X)} ∧ StateT) → α → LNil ≤ β → γ
+//│     ({run: ∀X. δ → ({X ≥ LNil} ⟹ X)} ∧ StateT) → δ → LNil ≤ β → γ
+//│       β ≤ {run: ∀X. δ → ({X ≥ LNil} ⟹ X)} ∧ StateT
+//│         StateT ∧ {run: ∀ε. ε → ((LCons ∧ {head: ⟨ζ, ε⟩}) ∧ {tail: LNil})} ≤ {run: ∀X. δ → ({X ≥ LNil} ⟹ X)} ∧ StateT
+//│           StateT ∧ {run: ∀ε. ε → ((LCons ∧ {head: ⟨ζ, ε⟩}) ∧ {tail: LNil})} ≤ {run: ∀X. δ → ({X ≥ LNil} ⟹ X)}
+//│             StateT ≤ {run: ∀X. δ → ({X ≥ LNil} ⟹ X)}
+//│             {run: ∀ε. ε → ((LCons ∧ {head: ⟨ζ, ε⟩}) ∧ {tail: LNil})} ≤ {run: ∀X. δ → ({X ≥ LNil} ⟹ X)}
+//│               ∀ε. ε → ((LCons ∧ {head: ⟨ζ, ε⟩}) ∧ {tail: LNil}) ≤ ∀X. δ → ({X ≥ LNil} ⟹ X)
+//│                 ∀ε. ε → ((LCons ∧ {head: ⟨ζ, ε⟩}) ∧ {tail: LNil}) ≤ δ → ({η ≥ LNil} ⟹ η)
+//│                   θ → ((LCons ∧ {head: ⟨ζ, θ⟩}) ∧ {tail: LNil}) ≤ δ → ({η ≥ LNil} ⟹ η)
+//│                     (LCons ∧ {head: ⟨ζ, θ⟩}) ∧ {tail: LNil} ≤ {η ≥ LNil} ⟹ η
+//│                       (LCons ∧ {head: ⟨ζ, θ⟩}) ∧ {tail: LNil} ≤ η
+//│                         LCons ∧ {head: ⟨ζ, θ⟩} ≤ η
+//│                           LCons ≤ η
+//│                             LCons ≤ LNil
+//│                           {head: ⟨ζ, θ⟩} ≤ η
+//│                             {head: ⟨ζ, θ⟩} ≤ LNil
+//│                               ⟨ζ, θ⟩ ≤ ⊥
+//│                         {tail: LNil} ≤ η
+//│                           {tail: LNil} ≤ LNil
+//│                             LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Assign a fresh digit, preserving the order of alternatives. */
+fun permute(c) =
+  /** Enumerate the remaining choices and update the state for each choice. */
+  fun choose(st) =
+    let xs = digits(st)
+    let choices = lift(map(x => [x, listDiff(xs, LCons(x, LNil()))], xs))
+    /** Record the choice and return its digit. */
+    fun update(iis) = if iis is [i, iss] then
+      bind(put(Digits(iss, LCons([c, i], digitEnv(st)))), _p => return_(i))
+    bind(choices, update)
+  bind(get, choose)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Lookup and permutation are translation-only.
+/** Reuse an assignment when present, or choose a fresh digit. */
+fun select(c) =
+  /** Resolve the character in the current environment. */
+  fun find(st) = if lookup(c, digitEnv(st)) is
+    Some(r) then return_(r)
+    None() then permute(c)
+  bind(get, find)
+//│ CTML translation succeeded.
+
+/** Return the tail, with an empty list as the empty case. */
+fun rest(ls) = if ls is
+  LNil() then LNil()
+  LCons(x, xs) then xs
+//│ rest: ∀α, β. {β ≥ ({α ≤ LNil} ⟹ LNil) ∧ ({α ≤ ({tail: β} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ (({tail: β} ∧ LCons) ∧ {head: ⊤})} ⟹ α → β
+
+:ctml-parse-only // FIXME: Digit selection and summation are translation-only.
+/** Solve one column at a time, passing the carry to the next column. */
+fun solve(tops, bots, carry) = if bots is
+  LCons(bot, botss) then
+    let column = if tops is
+      LNil() then return_(carry)
+      LCons(top, _) then bind(mapM(select, top), topNS => return_(sum(topNS) + carry))
+    /** Check the bottom digit before advancing to the next column. */
+    fun checkTop(topN) =
+      /** Require this column to match its bottom digit. */
+      fun checkBottom(botN) =
+        bind(guard(intMod(topN, 10) === botN), _s => solve(rest(tops), botss, intDiv(topN, 10)))
+      bind(select(bot), checkBottom)
+    bind(column, checkTop)
+  LNil() and tops is LNil() and carry === 0 then return_(())
+  else StateT(_p => LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The column solver and its list traversals are translation-only.
+/** Solve the puzzle, validate the equality, and render its first solution. */
+fun puzzle(top, bot) =
+  let solution = solve(transpose(map(reverse, top)), reverse(bot), 0)
+  let answer = if execStateT(solution, Digits(enumFromTo(0, 9), LNil())) is LCons(a, _) then a
+  let env = digitEnv(answer)
+  let look = c => fromSome(lookup(c, env))
+  let expand = ls => foldl((a, b) => a * 10 + look(b), 0, ls)
+  let topVal = sum(map(xs => expand(xs), top))
+  let botVal = expand(bot)
+  /** Format one character-to-digit assignment. */
+  fun renderAssignment(assignment) = if assignment is [c, i] then
+    LCons(c, append(nofibStringToList(" => "), nofibStringToList(stringOfInt(i))))
+  if
+    10 < listLen(nubBy((x, y) => x === y, append(concat(top), bot))) then raiseError("error")
+    topVal == botVal then unlines(map(renderAssignment, env))
+    else raiseError("error")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The puzzle solver is translation-only.
+/** Build the source puzzle, including its large-input perturbation. */
+fun testCryptarithm2_nofib(n) =
+  let thirty = nofibStringToList("THIRTY")
+  let twelve1 = nofibStringToList("TWELVE")
+  let twelve2 = nofibStringToList("TWELVE")
+  let twelve3 = nofibStringToList("TWELVE")
+  let twelve4 = nofibStringToList("TWELVE")
+  let twelve5 = append(nofibStringToList("TWELVE"),
+    if 999999 < n then nofibStringToList("1") else LNil())
+  let args = LCons(thirty, LCons(twelve1, LCons(twelve2, LCons(twelve3, LCons(twelve4,
+    LCons(twelve5, LNil()))))))
+  puzzle(args, nofibStringToList("NINETY"))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark harness is translation-only.
+/** Render the source character-list result for benchmark input 1. */
+fun main() = testCryptarithm2_nofib(1).toString()
+//│ CTML translation succeeded.

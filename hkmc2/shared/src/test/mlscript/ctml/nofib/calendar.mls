@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 60 member(s)
+//│ Imported 64 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/calendar.mls.
 // Pictures are lists of character rows. Month triples use nested pairs.

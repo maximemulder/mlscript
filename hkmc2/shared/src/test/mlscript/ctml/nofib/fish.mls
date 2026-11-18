@@ -1,0 +1,450 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 64 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/fish.mls.
+// Represent each segment [x0, y0, x1, y1] as a pair of endpoint pairs.
+
+/** Add two integer vectors componentwise. */
+fun vec_add(v1, v2) = if v1 is [x1, y1] and v2 is [x2, y2] then [x1 + x2, y1 + y2]
+//│ vec_add: ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩
+
+/** Subtract two integer vectors componentwise. */
+fun vec_sub(v1, v2) = if v1 is [x1, y1] and v2 is [x2, y2] then [x1 - x2, y1 - y2]
+//│ vec_sub: ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩
+
+/** Scale a vector, using the source floor division in each component. */
+fun scale_vec2(v, a, b) = if v is [x, y] then [intDiv(x * a, b), intDiv(y * a, b)]
+//│ scale_vec2: ⟨Int, Int⟩ → Int → Int → ⟨Int, Int⟩
+
+/** An integer point or vector. */
+type Point = [Int, Int]
+//│ Point = ⟨Int, Int⟩
+
+/** A directed segment on the grid. */
+type Segment = [Point, Point]
+//│ Segment = ⟨Point, Point⟩
+
+:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
+/** The first tile consists of the following directed segments. */
+val p_tile =
+  let segments25 =
+    LCons([[12, 7], [16, 6]],
+      LCons([[10, 4], [13, 5]],
+        LCons([[13, 5], [16, 4]],
+          LCons([[11, 0], [14, 2]],
+            LCons([[14, 2], [16, 2]],
+              LNil())))))
+  let segments20 =
+    LCons([[14, 16], [16, 15]],
+      LCons([[8, 12], [16, 10]],
+        LCons([[8, 8], [12, 9]],
+          LCons([[12, 9], [16, 8]],
+            LCons([[9, 6], [12, 7]],
+              segments25)))))
+  let segments15 =
+    LCons([[12, 12], [16, 12]],
+      LCons([[10, 16], [12, 14]],
+        LCons([[12, 14], [16, 13]],
+          LCons([[12, 16], [13, 15]],
+            LCons([[13, 15], [16, 14]],
+              segments20)))))
+  let segments10 =
+    LCons([[8, 8], [4, 13]],
+      LCons([[4, 13], [0, 16]],
+        LCons([[0, 16], [6, 15]],
+          LCons([[6, 15], [8, 16]],
+            LCons([[8, 16], [12, 12]],
+              segments15)))))
+  let segments5 =
+    LCons([[4, 10], [7, 6]],
+      LCons([[7, 6], [4, 5]],
+        LCons([[11, 0], [10, 4]],
+          LCons([[10, 4], [9, 6]],
+            LCons([[9, 6], [8, 8]],
+              segments10)))))
+  LCons([[0, 3], [3, 4]],
+    LCons([[3, 4], [0, 8]],
+      LCons([[0, 8], [0, 3]],
+        LCons([[6, 0], [4, 4]],
+          LCons([[4, 5], [4, 10]],
+            segments5)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
+/** The q tile in source segment order. */
+val q_tile =
+  let segments35 =
+    LCons([[0, 0], [0, 8]],
+      LCons([[0, 12], [0, 16]],
+        LNil()))
+  let segments30 =
+    LCons([[13, 0], [16, 6]],
+      LCons([[14, 0], [16, 4]],
+        LCons([[15, 0], [16, 2]],
+          LCons([[0, 0], [8, 0]],
+            LCons([[12, 0], [16, 0]],
+              segments35)))))
+  let segments25 =
+    LCons([[10, 0], [14, 11]],
+      LCons([[12, 0], [13, 4]],
+        LCons([[13, 4], [16, 8]],
+          LCons([[16, 8], [15, 10]],
+            LCons([[15, 10], [16, 16]],
+              segments30)))))
+  let segments20 =
+    LCons([[4, 5], [4, 7]],
+      LCons([[4, 0], [6, 5]],
+        LCons([[6, 5], [6, 7]],
+          LCons([[6, 0], [8, 5]],
+            LCons([[8, 5], [8, 8]],
+              segments25)))))
+  let segments15 =
+    LCons([[11, 15], [9, 13]],
+      LCons([[10, 10], [8, 12]],
+        LCons([[8, 12], [12, 12]],
+          LCons([[12, 12], [10, 10]],
+            LCons([[2, 0], [4, 5]],
+              segments20)))))
+  let segments10 =
+    LCons([[4, 16], [5, 14]],
+      LCons([[6, 16], [7, 15]],
+        LCons([[0, 10], [7, 11]],
+          LCons([[9, 13], [8, 15]],
+            LCons([[8, 15], [11, 15]],
+              segments15)))))
+  let segments5 =
+    LCons([[0, 12], [3, 13]],
+      LCons([[3, 13], [5, 14]],
+        LCons([[5, 14], [7, 15]],
+          LCons([[7, 15], [8, 16]],
+            LCons([[2, 16], [3, 13]],
+              segments10)))))
+  LCons([[0, 8], [4, 7]],
+    LCons([[4, 7], [6, 7]],
+      LCons([[6, 7], [8, 8]],
+        LCons([[8, 8], [12, 10]],
+          LCons([[12, 10], [16, 16]],
+            segments5)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
+/** The r tile in source segment order. */
+val r_tile =
+  let segments20 =
+    LCons([[11, 16], [12, 12]],
+      LCons([[12, 12], [16, 8]],
+        LCons([[13, 13], [16, 10]],
+          LCons([[14, 14], [16, 12]],
+            LCons([[15, 15], [16, 14]],
+              LNil())))))
+  let segments15 =
+    LCons([[2, 2], [8, 0]],
+      LCons([[3, 3], [8, 2]],
+        LCons([[8, 2], [12, 0]],
+          LCons([[5, 5], [12, 3]],
+            LCons([[12, 3], [16, 0]],
+              segments20)))))
+  let segments10 =
+    LCons([[5, 10], [2, 12]],
+      LCons([[2, 12], [0, 16]],
+        LCons([[16, 8], [12, 12]],
+          LCons([[12, 12], [11, 16]],
+            LCons([[1, 1], [4, 0]],
+              segments15)))))
+  let segments5 =
+    LCons([[16, 6], [11, 10]],
+      LCons([[11, 10], [6, 16]],
+        LCons([[16, 4], [14, 6]],
+          LCons([[14, 6], [8, 8]],
+            LCons([[8, 8], [5, 10]],
+              segments10)))))
+  LCons([[0, 0], [8, 8]],
+    LCons([[12, 12], [16, 16]],
+      LCons([[0, 4], [5, 10]],
+        LCons([[0, 8], [2, 12]],
+          LCons([[0, 12], [1, 14]],
+            segments5)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
+/** The s tile in source segment order. */
+val s_tile =
+  let segments25 =
+    LCons([[15, 5], [13, 7]],
+      LCons([[13, 7], [15, 8]],
+        LCons([[15, 8], [15, 5]],
+          LNil())))
+  let segments20 =
+    LCons([[15, 9], [16, 8]],
+      LCons([[10, 16], [11, 10]],
+        LCons([[12, 4], [10, 6]],
+          LCons([[10, 6], [12, 7]],
+            LCons([[12, 7], [12, 4]],
+              segments25)))))
+  let segments15 =
+    LCons([[7, 8], [7, 13]],
+      LCons([[7, 13], [8, 16]],
+        LCons([[12, 16], [13, 13]],
+          LCons([[13, 13], [14, 11]],
+            LCons([[14, 11], [15, 9]],
+              segments20)))))
+  let segments10 =
+    LCons([[14, 11], [16, 12]],
+      LCons([[15, 9], [16, 10]],
+        LCons([[16, 0], [10, 4]],
+          LCons([[10, 4], [8, 6]],
+            LCons([[8, 6], [7, 8]],
+              segments15)))))
+  let segments5 =
+    LCons([[0, 8], [8, 6]],
+      LCons([[0, 10], [7, 8]],
+        LCons([[0, 12], [7, 10]],
+          LCons([[0, 14], [7, 13]],
+            LCons([[13, 13], [16, 14]],
+              segments10)))))
+  LCons([[0, 0], [4, 2]],
+    LCons([[4, 2], [8, 2]],
+      LCons([[8, 2], [16, 0]],
+        LCons([[0, 4], [2, 1]],
+          LCons([[0, 6], [7, 4]],
+            segments5)))))
+//│ CTML translation succeeded.
+
+/** The empty picture. */
+fun nil(a, b, c) = LNil()
+//│ nil: ⊤ → ⊤ → ⊤ → LNil
+
+/** Make a segment from its two endpoints. */
+fun tup2(a_b, c_d) = if a_b is [a, b] and c_d is [c, d] then [[a, b], [c, d]]
+//│ tup2: ∀α, β, γ, δ. ⟨α, β⟩ → ⟨γ, δ⟩ → ⟨⟨α, β⟩, ⟨γ, δ⟩⟩
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Place tile segments relative to the origin a and axes b and c. */
+fun grid(m, n, segments, a, b, c) =
+  /** Transform the endpoints of every segment. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons([[x0, y0], [x1, y1]], tail) then
+      LCons(
+        tup2(
+          vec_add(vec_add(a, scale_vec2(b, x0, m)), scale_vec2(c, y0, n)),
+          vec_add(vec_add(a, scale_vec2(b, x1, m)), scale_vec2(c, y1, n))
+        ),
+        lscomp(tail)
+      )
+  lscomp(segments)
+//│ CTML translation succeeded.
+
+/** Rotate a picture by transforming its origin and axes. */
+fun rot(p, a, b, c) = p(vec_add(a, b), c, vec_sub([0, 0], b))
+//│ rot: ∀α, β. (⟨Int, Int⟩ → α → ⟨Int, Int⟩ → β) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → α → β
+
+/** Place two pictures side by side with the given width proportions. */
+fun beside(m, n, p, q, a, b, c) = append(
+  p(a, scale_vec2(b, m, m + n), c),
+  q(vec_add(a, scale_vec2(b, m, m + n)), scale_vec2(b, n, n + m), c)
+)
+//│ beside: ∀α, β. {α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. α → ⟨Int, Int⟩ → β → ({X ≥ LNil} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → β → ({Y ≥ LNil} ⟹ Y)) → α → ⟨Int, Int⟩ → β → LNil
+
+/** Stack two pictures with the given height proportions. */
+fun above(m, n, p, q, a, b, c) = append(
+  p(vec_add(a, scale_vec2(c, n, m + n)), b, scale_vec2(c, m, n + m)),
+  q(a, b, scale_vec2(c, n, m + n))
+)
+//│ above: ∀α, β. {α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. ⟨Int, Int⟩ → β → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → (∀Y. α → β → ⟨Int, Int⟩ → ({Y ≥ LNil} ⟹ Y)) → α → β → ⟨Int, Int⟩ → LNil
+
+:ctml-parse-only // FIXME: The grid traversal is translation-only.
+/** Place segments whose tile coordinates use a 16 by 16 grid. */
+fun tile_to_grid(arg, arg2, arg3, arg4) = grid(16, 16, arg, arg2, arg3, arg4)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+/** Draw the first fish tile. */
+fun p(a, b, c) = tile_to_grid(p_tile, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+/** Draw the second fish tile. */
+fun q(a, b, c) = tile_to_grid(q_tile, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+/** Draw the third fish tile. */
+fun r(a, b, c) = tile_to_grid(r_tile, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+/** Draw the fourth fish tile. */
+fun s(a, b, c) = tile_to_grid(s_tile, a, b, c)
+//│ CTML translation succeeded.
+
+/** Combine four pictures in a two-by-two grid. */
+fun quartet(a, b, c, d, origin, xAxis, yAxis) =
+  above(
+    1,
+    1,
+    (o, x, y) => beside(1, 1, a, b, o, x, y),
+    (o, x, y) => beside(1, 1, c, d, o, x, y),
+    origin,
+    xAxis,
+    yAxis
+  )
+//│ quartet: ∀α. {α ≤ ⟨Int, Int⟩} ⟹ (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil} ⟹ Y)) → (∀X. α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil} ⟹ Y)) → α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil
+
+:ctml-parse-only // FIXME: The tile pictures are translation-only.
+/** Combine the four source tiles. */
+fun t(a, b, c) = quartet(p, q, r, s, a, b, c)
+//│ CTML translation succeeded.
+
+/** Arrange a picture and its three successive rotations. */
+fun cycle_(p1, origin, xAxis, yAxis) =
+  quartet(
+    p1,
+    (a, b, c) => rot((a, b, c) => rot((a, b, c) => rot(p1, a, b, c), a, b, c), a, b, c),
+    (a, b, c) => rot(p1, a, b, c),
+    (a, b, c) => rot((a, b, c) => rot(p1, a, b, c), a, b, c),
+    origin,
+    xAxis,
+    yAxis
+  )
+//│ cycle_: (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil
+
+:ctml-parse-only // FIXME: The second tile picture is translation-only.
+/** Cycle a rotated copy of the second tile. */
+fun u(a, b, c) = cycle_((a, b, c) => rot(q, a, b, c), a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The combined tile picture is translation-only.
+/** The first side pattern. */
+fun side1(a, b, c) = quartet(nil, nil, (a, b, c) => rot(t, a, b, c), t, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The side and combined tile pictures are translation-only.
+/** The second side pattern. */
+fun side2(a, b, c) = quartet(side1, side1, (a, b, c) => rot(t, a, b, c), t, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The rotated tile picture is translation-only.
+/** The first corner pattern. */
+fun corner1(a, b, c) = quartet(nil, nil, nil, u, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The side and corner pictures are translation-only.
+/** The second corner pattern. */
+fun corner2(a, b, c) = quartet(corner1, side1, (a, b, c) => rot(side1, a, b, c), u, a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The side and corner pictures are translation-only.
+/** The corner used by the pseudolimit. */
+fun pseudocorner(a, b, c) =
+  quartet(corner2, side2, (a, b, c) => rot(side2, a, b, c), (a, b, c) => rot(t, a, b, c), a, b, c)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The corner picture is translation-only.
+/** Assemble the complete pattern from rotations of a corner. */
+fun pseudolimit(a, b, c) = cycle_(pseudocorner, a, b, c)
+//│ CTML translation succeeded.
+
+:fixme // FIXME: append cannot instantiate the inferred recursive character lists.
+/** Format a segment in the source flat-coordinate format. */
+fun showFourTupleofInt(segment) = if segment is [[a, b], [c, d]] then
+  append(nofibStringToList("("),
+    append(nofibStringToList(stringOfInt(a)),
+      append(nofibStringToList(","),
+        append(nofibStringToList(stringOfInt(b)),
+          append(nofibStringToList(","),
+            append(nofibStringToList(stringOfInt(c)),
+              append(nofibStringToList(","),
+                nofibStringToList(stringOfInt(d)))))))))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+:ctml-parse-only // FIXME: The source formatter uses a string as the final list tail.
+/** Format a list of segments with the source separators and suffix. */
+fun fmt(ls) = if ls is
+  LNil() then nofibStringToList("[]")
+  LCons(x, xs) then
+    /** Render the remaining segments, ending with the source string tail. */
+    fun showl(ls, s) = if ls is
+      LNil() then LCons("]", s)
+      LCons(x, xs) then
+        append(nofibStringToList(",|"), append(showFourTupleofInt(x), showl(xs, s)))
+    append(nofibStringToList("[|"), append(showFourTupleofInt(x), showl(xs, "")))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The complete picture drawing is translation-only.
+/** Draw the source sequence of pictures for indices zero through n, inclusive. */
+fun testFish_nofib(n) =
+  map(
+    i => let n = if i < 0 then i else 0 in pseudolimit([0, 0], [640 + n, 0], [0, 640 + n]),
+    enumFromTo(0, n)
+  )
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The workload is translation-only.
+/** Render the source workload with input 1. */
+fun main() = testFish_nofib(1)
+//│ CTML translation succeeded.
+
+vec_add([2, 3], [4, 1]) as Point
+scale_vec2([7, 9], 2, 3) as Point
+tup2([0, 3], [3, 4]) as Segment
+//│ Point
+//│ Point
+//│ Segment
+
+rot((origin, xAxis, yAxis) => origin, [2, 3], [4, 1], [0, 2]) as Point
+cycle_(nil, [0, 0], [16, 0], [0, 16]) as LNil
+//│ Point
+//│ LNil
+
+/** A picture consisting of a single concrete segment, independent of grid traversal. */
+fun oneSegment(a, b, c) = LCons([[0, 3], [3, 4]], LNil())
+//│ oneSegment: ⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil})
+
+:fixme // FIXME: The inferred picture combinator accepts callbacks producing only empty lists.
+cycle_(oneSegment, [0, 0], [16, 0], [0, 16])
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil ≤ (⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil})) → α.
+//│ Typing error tree:
+//│   (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil ≤ (⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil})) → α
+//│     ⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)
+//│       ⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({β ≥ LNil} ⟹ β)
+//│         ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({β ≥ LNil} ⟹ β)
+//│           ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ⟨Int, Int⟩ → ({β ≥ LNil} ⟹ β)
+//│             (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil} ≤ {β ≥ LNil} ⟹ β
+//│               (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil} ≤ β
+//│                 LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩} ≤ β
+//│                   LCons ≤ β
+//│                     LCons ≤ LNil
+//│                   {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩} ≤ β
+//│                     {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩} ≤ LNil
+//│                       ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩ ≤ ⊥
+//│                 {tail: LNil} ≤ β
+//│                   {tail: LNil} ≤ LNil
+//│                     LNil ≤ ⊥

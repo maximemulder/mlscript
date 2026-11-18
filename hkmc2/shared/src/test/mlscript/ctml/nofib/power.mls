@@ -1,0 +1,273 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 64 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/power.mls.
+// Coefficients use Num throughout, including integral constants. Series use the source
+// constructor tags and memoized delays; an extra source delay remains an extra handle.
+
+/** The zero series. */
+data class Pz()
+/** One coefficient and the delayed remainder. */
+data class Pc(f: Num, s)
+//│ Pz: Unit → Pz
+//│ Pc: ∀α, β. {α ≤ Num} ⟹ α → β → ((Pc ∧ {f: α}) ∧ {s: β})
+
+/** A delayed series of numeric coefficients. */
+type Series = [X restricts (Delayed & {resume: () -> (Pz | (Pc & {f: Num} & {s: X}))})] -> X
+//│ Series = ∀X. {X ≥ Delayed ∧ {resume: Unit → (Pz ∨ ((Pc ∧ {f: Num}) ∧ {s: X}))}} ⟹ X
+
+delay(() => Pc(1.0, delay(() => Pz()))) as Series
+//│ Series
+
+:te
+Pc("coefficient", delay(() => Pz()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Num} ⟹ α → β → ((Pc ∧ {f: α}) ∧ {s: β}) ≤ Str → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ Num} ⟹ α → β → ((Pc ∧ {f: α}) ∧ {s: β}) ≤ Str → γ
+//│     {δ ≤ Num} ⟹ δ → ε → ((Pc ∧ {f: δ}) ∧ {s: ε}) ≤ Str → γ
+//│       δ → ε → ((Pc ∧ {f: δ}) ∧ {s: ε}) ≤ Str → γ
+//│         Str ≤ δ
+//│           Str ≤ Num
+
+/** The infinite series whose coefficients are all one. */
+fun list() = delay(() => Pc(1.0, list()))
+//│ list: ∀α. {α ≥ Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: α})}} ⟹ Unit → (Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: α})})
+
+/** The series for x. */
+fun x_() = delay(() => Pc(0.0, delay(() => Pc(1.0, delay(() => Pz())))))
+//│ x_: Unit → (Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: Delayed ∧ {resume: Unit → Pz}})}})})
+
+/** The series for a constant, with the zero series represented separately. */
+fun fromIntegerPs(c) = if
+  c == 0.0 then delay(() => Pz())
+  else delay(() => Pc(c, delay(() => Pz())))
+//│ fromIntegerPs: ∀α. {α ≤ Num} ⟹ α → ((Delayed ∧ {resume: Unit → ((Pc ∧ {f: α}) ∧ {s: Delayed ∧ {resume: Unit → Pz}})}) ∨ (Delayed ∧ {resume: Unit → Pz}))
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Extract the first n coefficients, stopping at the end of a finite series. */
+fun extract(n, ps) = if
+  n == 0 then LNil()
+  force(ps) is
+    Pz() then LNil()
+    Pc(x, tail) then LCons(x, extract(n - 1, tail))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Scale every coefficient by c. */
+fun dotMult(c, ps) = delay(() => if force(ps) is
+  Pz() then Pz()
+  Pc(f, tail) then Pc(numMul(c, f), dotMult(c, tail))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Coefficient scaling is translation-only.
+/** Scale a series whose initial handle is itself delayed. */
+fun dotMultSndLz(c, ps) = delay(() => if force(force(ps)) is
+  Pz() then Pz()
+  Pc(f, tail) then Pc(numMul(c, f), dotMult(c, tail))
+)
+//│ CTML translation succeeded.
+
+/** Negate every coefficient. */
+fun negatePs(ps) = delay(() => if force(ps) is
+  Pz() then Pz()
+  Pc(f, tail) then Pc(numMul(numSub(0.0, 1.0), f), negatePs(tail))
+)
+//│ negatePs: ∀α, β, γ, δ. {β ≥ ({α ≤ Pz} ⟹ Pz) ∧ ({α ≤ ({f: Num} ∧ {s: γ}) ∧ Pc, γ ≤ Delayed ∧ {resume: Unit → α}, δ ≥ Delayed ∧ {resume: Unit → β}} ⟹ (Pc ∧ {f: Num}) ∧ {s: δ}), α ≤ (¬({β ≥ Pz} ⟹ ¬Pz) ∨ ¬({β ≥ (Pc ∧ {f: Num}) ∧ {s: δ}, γ ≤ Delayed ∧ {resume: Unit → α}, δ ≥ Delayed ∧ {resume: Unit → β}} ⟹ ¬(({f: Num} ∧ {s: γ}) ∧ Pc))) ∧ (¬({β ≥ Pz} ⟹ ¬Pz) ∨ ¬({(Delayed ∧ {resume: Unit → α}) → (Delayed ∧ {resume: Unit → β}) ≤ γ → δ, β ≥ (Pc ∧ {f: Num}) ∧ {s: δ}} ⟹ ¬(({f: Num} ∧ {s: γ}) ∧ Pc))), γ ≤ ¬({α ≤ Pz, β ≥ Pz} ⟹ ⊥) ∨ ¬({α ≤ ({f: Num} ∧ {s: γ}) ∧ Pc, β ≥ (Pc ∧ {f: Num}) ∧ {s: δ}, δ ≥ Delayed ∧ {resume: Unit → β}} ⟹ ¬(Delayed ∧ {resume: Unit → α})), δ ≥ ({α ≤ Pz, β ≥ Pz} ⟹ ⊥) ∧ ({α ≤ ({f: Num} ∧ {s: γ}) ∧ Pc, β ≥ (Pc ∧ {f: Num}) ∧ {s: δ}, γ ≤ Delayed ∧ {resume: Unit → α}} ⟹ Delayed ∧ {resume: Unit → β})} ⟹ (Delayed ∧ {resume: Unit → α}) → (Delayed ∧ {resume: Unit → β})
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Add the two series coefficientwise. */
+fun addPs(fss, gss) = delay(() => if force(fss) is
+  Pz() then force(gss)
+  Pc(f, fs_) and force(gss) is
+    Pz() then force(fss)
+    Pc(g, gs) then Pc(numAdd(f, g), addPs(fs_, gs))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series addition is translation-only.
+/** Subtract the second series from the first. */
+fun minusPs(a, b) = addPs(a, negatePs(b))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series addition and scaling are translation-only.
+/** Multiply the first coefficients and form the product of the tails. */
+fun multPs(fss, gss) = delay(() => if force(fss) is
+  Pz() then Pz()
+  Pc(f, fs_) and force(gss) is
+    Pz() then Pz()
+    Pc(g, gs) then
+      Pc(numMul(f, g), addPs(addPs(dotMult(f, gs), dotMult(g, fs_)), multPs(multPs(x_(), fs_), gs)))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series arithmetic is translation-only.
+/** Multiply when the first series has an extra delay. */
+fun multPsFstLz(fss, gss) = delay(() => if force(force(fss)) is
+  Pz() then Pz()
+  Pc(f, fs_) and force(gss) is
+    Pz() then Pz()
+    Pc(g, gs) then
+      Pc(numMul(f, g), addPs(addPs(dotMult(f, gs), dotMult(g, fs_)), multPs(multPs(x_(), fs_), gs)))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series multiplication is translation-only.
+/** Raise a series to the given nonnegative integer power. */
+fun powerPs(a, n) = if n <= 0 then fromIntegerPs(1.0) else multPs(a, powerPs(a, n - 1))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Divide two series, removing common leading zero coefficients. */
+fun divPs(fss, gss) = delay(() => if force(fss) is
+  Pz() and force(gss) is
+    Pz() then raiseError("power series 0/0")
+    Pc(g, gs) and g == 0.0 then force(divPs(delay(() => Pz()), gs))
+    else Pz()
+  Pc(f, fs_) and force(gss) is Pc(g, gs) and
+    f == 0.0 and g == 0.0 then force(divPs(fs_, gs))
+    f == 0.0 then
+      let q = 0.0
+      Pc(q, divPs(addPs(fs_, negatePs(dotMult(q, gs))), delay(() => Pc(g, gs))))
+    else
+      let q = numDiv(f, g)
+      Pc(q, divPs(addPs(fs_, negatePs(dotMult(q, gs))), delay(() => Pc(g, gs))))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series multiplication and addition are translation-only.
+/** Compose the first series with the second. */
+fun compose_(fss, gss) = delay(() => if force(fss) is
+  Pz() then Pz()
+  Pc(f, fs_) and force(gss) is
+    Pz() then Pc(f, delay(() => Pz()))
+    Pc(g, gs) and g == 0.0 then Pc(f, multPs(gs, compose_(fs_, delay(() => Pc(0.0, gs)))))
+    else force(addPs(delay(() => Pc(f, delay(() => Pz()))), multPs(gss, compose_(fs_, gss))))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series arithmetic and composition are translation-only.
+/** Compose when the second series has an extra delay. */
+fun composeSndLz_(fss, gss) = delay(() => if force(fss) is
+  Pz() then Pz()
+  Pc(f, fs_) and force(force(gss)) is
+    Pz() then Pc(f, delay(() => Pz()))
+    Pc(g, gs) and g == 0.0 then Pc(f, multPs(gs, compose_(fs_, delay(() => Pc(0.0, gs)))))
+    else force(addPs(delay(() => Pc(f, delay(() => Pz()))), multPs(gss, composeSndLz_(fs_, gss))))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series division and composition are translation-only.
+/** Compute the inverse series using the source zero and linear cases. */
+fun revert(fss) = delay(() => if force(fss) is
+  Pc(f0, tail) and
+    f0 == 0.0 then
+      /** Tie the inverse series to the recursive composition. */
+      fun rs() = delay(() => Pc(0.0, divPs(fromIntegerPs(1.0), compose_(tail, rs()))))
+      force(rs())
+    force(tail) is Pc(f1, gs) and force(gs) is Pz() then
+      Pc(numDiv(numSub(0.0, 1.0), f1), delay(() => Pc(numDiv(1.0, f1), delay(() => Pz()))))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Differentiate the series, starting with its linear coefficient. */
+fun deriv(fss) = delay(() => if force(fss) is
+  Pz() then Pz()
+  Pc(_, fs_) then
+    /** Multiply each coefficient by its degree. */
+    fun deriv1(gss, n) = delay(() => if force(gss) is
+      Pz() then Pz()
+      Pc(f, tail) then Pc(numMul(numFromInt(n), f), deriv1(tail, n + 1))
+    )
+    force(deriv1(fs_, 1))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Integrate the series with zero constant of integration. */
+fun integral(fs_) =
+  /** Divide each successive coefficient by its new degree. */
+  fun int1(fss, n) = delay(() => if force(fss) is
+    Pz() then Pz()
+    Pc(f, tail) then Pc(numDiv(f, numFromInt(n)), int1(tail, n + 1))
+  )
+  delay(() => Pc(0.0, int1(fs_, 1)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Integrate with the input supplied as an unevaluated function. */
+fun integralLz(fs_) =
+  /** Divide each successive coefficient by its new degree. */
+  fun int1(fss, n) = delay(() => if force(fss) is
+    Pz() then Pz()
+    Pc(f, tail) then Pc(numDiv(f, numFromInt(n)), int1(tail, n + 1))
+  )
+  delay(() => Pc(0.0, int1(fs_(), 1)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series addition, division, and integration are translation-only.
+/** Compute the square root of a series with the source leading coefficients. */
+fun sqrtPs(fss) = delay(() => if force(fss) is
+  Pz() then Pz()
+  Pc(f, tail) and
+    f == 0.0 and force(tail) is Pc(g, fs_) and g == 0.0 then Pc(0.0, sqrtPs(fs_))
+    f == 1.0 then
+      /** Express the square root through the integral of its derivative. */
+      fun qs() = delay(() =>
+        addPs(fromIntegerPs(1.0), integral(divPs(deriv(delay(() => Pc(1.0, tail))), dotMultSndLz(2.0, qs()))))
+      )
+      force(force(qs()))
+    else raiseError("match error")
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series multiplication is translation-only.
+/** The tree-counting series expressed through multiplication. */
+fun ts() = delay(() => Pc(1.0, multPs(ts(), ts())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Delayed composition is translation-only.
+/** The tree-counting series expressed through delayed composition. */
+fun tree() = delay(() => Pc(0.0, composeSndLz_(list(), delay(() => tree()))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series integration and subtraction are translation-only.
+/** The cosine series. */
+fun cosx() = minusPs(delay(() => Pc(1.0, delay(() => Pz()))), integral(integralLz(cosx)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series integration and subtraction are translation-only.
+/** The sine series. */
+fun sinx() = integral(minusPs(delay(() => Pc(1.0, delay(() => Pz()))), integralLz(sinx)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Series extraction and arithmetic are translation-only.
+/** Evaluate all four extractions in source order and return the last. */
+fun testPower_nofib(p) =
+  let sine = extract(p, minusPs(sinx(), sqrtPs(minusPs(fromIntegerPs(1.0), powerPs(cosx(), 2)))))
+  let tangent = extract(p, minusPs(
+    divPs(sinx(), cosx()),
+    revert(integral(divPs(fromIntegerPs(1.0), addPs(fromIntegerPs(1.0), powerPs(x_(), 2)))))
+  ))
+  let product = extract(p, ts())
+  extract(p, tree())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The workload is translation-only and list rendering has no CTML method.
+/** Render the first fourteen coefficients of the final series in source list format. */
+fun main() = testPower_nofib(14).toString()
+//│ CTML translation succeeded.
+
+/** Force two successive coefficients of the infinite producer. */
+fun firstTwoCoefficients() =
+  if force(list()) is Pc(f, fs_) and force(fs_) is Pc(g, gs) then [f, g]
+//│ firstTwoCoefficients: Unit → ⟨Num, Num⟩
+
+firstTwoCoefficients() as [Num, Num]
+x_() as Series
+fromIntegerPs(7.0) as Series
+//│ ⟨Num, Num⟩
+//│ Series
+//│ Series

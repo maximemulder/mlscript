@@ -1,0 +1,280 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 64 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/primetest.mls.
+// Lists use LNil and LCons, and random streams use the shared memoizing delay and force.
+// Decimal input consists of nonempty UTF-16 code units produced by nofibStringToList.
+
+/** Test divisibility by two. */
+fun even(x) = intMod(x, 2) == 0
+//│ even: Int → Bool
+
+/** Convert a decimal code unit to its digit value. */
+fun int_val_of_char(x) = nofibCharCode(x) - 48
+//│ int_val_of_char: Str → Int
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Interpret the entire character list in base ten. */
+fun int_val_of_string(s) =
+  /** Accumulate decimal digits in source order. */
+  fun f(l, a) = if l is
+    LNil() then a
+    LCons(h, t) then f(t, 10 * a + int_val_of_char(h))
+  f(s, 0)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursing on the predicate split exceeds a 20000-call solver budget.
+/** Split the source input at pipe characters. */
+fun lines(s) = if break_(x => x == "|", s) is [l, s_] then
+  let tt = if s_ is
+    LNil() then LNil()
+    LCons(_, s__) then lines(s__)
+  LCons(l, tt)
+//│ CTML translation succeeded.
+
+/** Interpret a digit list in the given radix. */
+fun makeNumber(b, ls) = foldl((a, x) => a * b + x, 0, ls)
+//│ makeNumber: ∀α. {α ≤ Int} ⟹ Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Int
+
+/** Decompose a number into radix digits with the most significant digit first. */
+fun chop(b, n) =
+  /** Prepend each successive remainder to the digits already collected. */
+  fun chop_(a, n) = if divMod(n, b) is [q, r] and
+    n == 0 then a
+    else chop_(LCons(r, a), q)
+  chop_(LNil(), n)
+//│ chop: ∀α. {α ≥ ((LCons ∧ {head: Int}) ∧ {tail: α}) ∨ LNil} ⟹ Int → Int → α
+
+/** Compute a modular power by repeated squaring. */
+fun powerMod(a, b, m) =
+  /** Reduce the exponent while carrying the modular product. */
+  fun f(a, b, c) =
+    /** Square through the even exponents before the next multiplication. */
+    fun g(a, b) =
+      if even(b) then g(intMod(a * a, m), intDiv(b, 2))
+      else f(a, b - 1, intMod(a * c, m))
+    if b == 0 then c else g(a, b)
+  if
+    b == 0 then 1
+    let a_ = intMod(a, m)
+    else f(a_, b - 1, a_)
+//│ powerMod: Int → Int → Int → Int
+
+:fixme // FIXME: listLen cannot instantiate the inferred recursive digit list.
+/** Count the source binary digits. */
+fun log2(x) = listLen(chop(2, x))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│       ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})} ⟹ δ
+//│           ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ δ
+//│             (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ δ
+//│               (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ LNil
+//│                 LCons ∧ {head: Int} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: Int} ≤ LNil
+//│                     Int ≤ ⊥
+//│                 {tail: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: δ}
+//│                 (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ {tail: δ}
+//│                   LCons ∧ {head: Int} ≤ {tail: δ}
+//│                     LCons ≤ {tail: δ}
+//│                     {head: Int} ≤ {tail: δ}
+//│                       Int ≤ ⊥
+//│                   {tail: γ} ≤ {tail: δ}
+//│                     γ ≤ δ
+//│                       ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ δ
+
+/** Produce the source combined pseudorandom stream from two seed states. */
+fun rands(s1, s2) =
+  let k = intDiv(s1, 53668)
+  let s1_ = (40014 * (s1 - k * 53668)) - k * 12211
+  let s1__ = if s1_ < 0 then s1_ + 2147483563 else s1_
+  let k_ = intDiv(s2, 52774)
+  let s2_ = (40692 * (s2 - k_ * 52774)) - k_ * 3791
+  let s2__ = if s2_ < 0 then s2_ + 2147483399 else s2_
+  let z = s1__ - s2__
+  if z < 1 then delay(() => LzCons(z + 2147483562, rands(s1__, s2__)))
+  else delay(() => LzCons(z, rands(s1__, s2__)))
+//│ rands: ∀α, β. {β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})})} ⟹ Int → Int → ((Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}))
+
+/** Start the generator for seeds inside the source bounds. */
+fun randomInts(s1, s2) =
+  if (1 <= s1) and (s1 <= 2147483562) and (1 <= s2) and (s2 <= 2147483398)
+  then rands(s1, s2)
+  else raiseError("match error")
+//│ randomInts: ∀α, β. {α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})})} ⟹ Int → Int → ((Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}))
+
+/** Factor n - 1 as a power of two times an odd quotient. */
+fun findKQ(n) =
+  /** Repeatedly divide the quotient by two while it is even. */
+  fun f(k, q) = if divMod(q, 2) is [d, r] and
+    r == 0 then f(k + 1, d)
+    else [k, q]
+  f(0, n - 1)
+//│ findKQ: Int → ⟨Int, Int⟩
+
+/** Return the strict prefix and the remaining delayed stream. */
+fun splitAtLz(n, ls) = [takeLz(n, ls), leaveLz(n, ls)]
+//│ splitAtLz: ∀α, β. Int → ((∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: α}) ∧ {tail: X}))}} ⟹ X) ∧ (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: β}) ∧ {tail: X}))}} ⟹ X)) → ⟨∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y, ∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: β}) ∧ {tail: Y}))}} ⟹ Y⟩
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Sample radix digits bounded by the given digit sequence. */
+fun uniform(nns, rrs) = if
+  nns is LCons(n, LNil()) and rrs is LCons(r, rs) then LCons(intMod(r, n), LNil())
+  nns is LCons(n, ns) and rrs is LCons(r, rs) and
+    let t = intMod(r, n + 1)
+    t == n then LCons(t, uniform(ns, rs))
+    else LCons(t, map(x => intMod(x, 65536), rs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The digit selection traversal is translation-only.
+/** Draw one bounded random number and return the unused stream. */
+fun random(n, rs) =
+  let ns = chop(65536, n)
+  if splitAtLz(listLen(ns), rs) is [rs1, rs2] then [makeNumber(65536, uniform(ns, rs1)), rs2]
+//│ CTML translation succeeded.
+
+:fixme // FIXME: takeLz cannot instantiate the inferred stream from iterate.
+/** Test whether a supplied base passes the modular witness test. */
+fun singleTestX(n, kq, x) =
+  /** Square a residue modulo the candidate prime. */
+  fun square(x) = intMod(x * x, n)
+  /** Stop at the first residue equal to n - 1 or 1. */
+  fun witness(ls) = if ls is
+    LNil() then false
+    LCons(t, ts) and
+      t == (n - 1) then true
+      t == 1 then false
+      else witness(ts)
+  if kq is [k, q] and takeLz(k, iterate(square, powerMod(x, q, n))) is LCons(t, ts) then
+    (t == 1) || (t == (n - 1)) || witness(ts)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       β ≤ ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X
+//│         Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X
+//│           Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {η ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: η}))}} ⟹ η
+//│             Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ η
+//│               Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: η}))}
+//│                 Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {resume: Unit → (LzNil ∨ {tail: η})}
+//│                   Delayed ≤ {resume: Unit → (LzNil ∨ {tail: η})}
+//│                   {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {resume: Unit → (LzNil ∨ {tail: η})}
+//│                     Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ≤ Unit → (LzNil ∨ {tail: η})
+//│                       (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LzNil ∨ {tail: η}
+//│                         (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LzNil
+//│                           LzCons ∧ {head: ε} ≤ LzNil
+//│                             LzCons ≤ LzNil
+//│                             {head: ε} ≤ LzNil
+//│                               ε ≤ ⊥
+//│                                 θ ≤ ⊥
+//│                                   Int ≤ ⊥
+//│                           {tail: ζ} ≤ LzNil
+//│                             ζ ≤ ⊥
+//│                               Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ ⊥
+//│                                 Delayed ≤ ⊥
+//│                                 {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ ⊥
+//│                                   Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ≤ ⊥
+//│                         (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {tail: η}
+//│                           LzCons ∧ {head: ε} ≤ {tail: η}
+//│                             LzCons ≤ {tail: η}
+//│                             {head: ε} ≤ {tail: η}
+//│                               ε ≤ ⊥
+//│                                 θ ≤ ⊥
+//│                                   Int ≤ ⊥
+//│                           {tail: ζ} ≤ {tail: η}
+//│                             ζ ≤ η
+//│                               Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ η
+
+:ctml-parse-only // FIXME: The random draw and witness test have no inferred types.
+/** Draw a base, test it, and return the remaining stream. */
+fun singleTest(n, kq, rs) = if random(n - 2, rs) is [x, rs_] then
+  [singleTestX(n, kq, 2 + x), rs_]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The individual trial is translation-only.
+/** Run at most k trials and keep the remaining random state. */
+fun multiTest(k, rs, n) =
+  /** Stop at the first witness of compositeness. */
+  fun mTest(k, rs) = if
+    k == 0 then [true, rs]
+    singleTest(n, findKQ(n), rs) is [t, rs_] and
+      t then mTest(k - 1, rs_)
+      else [false, rs_]
+  if ((n <= 1) || even(n)) then [n == 2, rs] else mTest(k, rs)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Decimal parsing and repeated trials are translation-only.
+/** Parse and classify one candidate before continuing with its remaining stream. */
+fun doLine(cs, cont, rs) =
+  let n = int_val_of_string(cs)
+  if multiTest(100, rs, n) is [t, rs_] and
+    t then LCons("Probably prime", cont(rs_))
+    else LCons("Composite", cont(rs_))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The line classifier is translation-only.
+/** Classify the input candidates while threading the random state between lines. */
+fun doInput(state, lls) = if lls is
+  LNil() then LNil()
+  LCons(l, ls) then doLine(l, state => doInput(state, ls), state)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The input traversal is translation-only.
+/** Seed the stream with the two source constants. */
+fun process(process_arg1) = doInput(randomInts(111, 47), process_arg1)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The classification pipeline is translation-only.
+/** Run the source pipe-separated workload. */
+fun testPrimetest_nofib(d) =
+  let cts = nofibStringToList("24|48|47|1317|8901")
+  process(lines(cts))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The workload is translation-only and list rendering has no CTML method.
+/** Render the five classifications in source list format. */
+fun main() = testPrimetest_nofib(0).toString()
+//│ CTML translation succeeded.
+
+int_val_of_char("7") as Int
+makeNumber(10, LCons(4, LCons(7, LNil()))) as Int
+powerMod(3, 5, 7) as Int
+findKQ(47) as [Int, Int]
+//│ Int
+//│ Int
+//│ Int
+//│ ⟨Int, Int⟩
+
+/** Check the seed validation and force two successive random cells. */
+fun firstTwoRandoms(s1, s2) =
+  if force(randomInts(s1, s2)) is LzCons(h, t) and force(t) is LzCons(next, rest)
+  then [h, next]
+//│ firstTwoRandoms: ∀α, β. {α ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed, β ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed, β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})})} ⟹ Int → Int → ⟨Int, Int⟩
+
+firstTwoRandoms(111, 47) as [Int, Int]
+//│ ∀α, β. {α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), β ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed, α ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed} ⟹ ⟨Int, Int⟩
+
+/** A proper strict list of integer digits. */
+type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+/** A proper delayed list of integer digits. */
+type IntStream = [X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: Int} & {tail: X}))})] -> X
+//│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ IntStream = ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: X}))}} ⟹ X
+
+splitAtLz(1, delay(() => LzCons(7, delay(() => LzNil())))) as [IntList, IntStream]
+//│ ⟨IntList, IntStream⟩
+
+:te
+powerMod("bad", 5, 7)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int → Int → Int ≤ Str → α
+//│     Str ≤ Int

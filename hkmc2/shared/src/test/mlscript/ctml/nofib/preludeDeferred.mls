@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 60 member(s)
+//│ Imported 64 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 
@@ -149,6 +149,13 @@ fun listEqBy(eq, xs, ys) = if
   else false
 //│ CTML translation succeeded.
 
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Fold the list from left to right. */
+fun foldl(f, a, xs) = if xs is
+  LNil() then a
+  LCons(h, t) then foldl(f, f(a, h), t)
+//│ CTML translation succeeded.
+
 :ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
 /** Fold a strict list from the right. */
 fun foldr(f, z, ls) = if ls is
@@ -252,4 +259,23 @@ fun takeLzLz(n, ls) = delay(() =>
       LzCons(h, t) then LzCons(h, takeLzLz(n - 1, t))
     else LzNil()
 )
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Split at the first element satisfying the predicate, leaving it in the suffix. */
+fun break_(p, ls) = if ls is
+  LNil() then [LNil(), LNil()]
+  LCons(x, xs) and
+    p(x) then [LNil(), LCons(x, xs)]
+    break_(p, xs) is [ys, zs] then [LCons(x, ys), zs]
+//│ CTML translation succeeded.
+
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Drop a prefix of a lazy stream, returning the original handle for nonpositive counts. */
+fun leaveLz(n, ls) = if
+  n <= 0 then ls
+  force(ls) is
+    LzNil() then delay(() => LzNil())
+    LzCons(h, t) then leaveLz(n - 1, t)
 //│ CTML translation succeeded.

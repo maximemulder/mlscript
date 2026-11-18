@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 60 member(s)
+//│ Imported 64 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm2.mls.
 // StateT carries its state and result through the run field. The source char type is Str.
@@ -34,13 +34,6 @@ fun deleteBy(eq, x, ys) = if ys is
 //│ CTML translation succeeded.
 
 :ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
-/** Fold the list from left to right. */
-fun foldl(f, a, xs) = if xs is
-  LNil() then a
-  LCons(h, t) then foldl(f, f(a, h), t)
-//│ CTML translation succeeded.
-
-:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
 /** Collect the first occurrence of each element under the supplied equality. */
 fun nubBy(eq, ls) = if ls is
   LNil() then LNil()
@@ -62,7 +55,7 @@ fun sum(xs) =
 fun delete_(xs, e) = deleteBy((x, y) => x === y, e, xs)
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: Left fold and deletion are translation-only.
+:ctml-parse-only // FIXME: Deletion is translation-only.
 /** Delete each requested element in order. */
 fun listDiff(a, ls) = foldl(delete_, a, ls)
 //│ CTML translation succeeded.

@@ -86,6 +86,10 @@ fun intDiv(a, b) =
 fun intMod(a, b) = a - (b * intDiv(a, b))
 //│ intMod: Int → Int → Int
 
+/** Pair the source floor quotient with its corresponding remainder. */
+fun divMod(a, b) = [intDiv(a, b), intMod(a, b)]
+//│ divMod: Int → Int → ⟨Int, Int⟩
+
 /** Empty list constructor; source Nil is represented by LNil(). */
 data class LNil()
 //│ LNil: Unit → LNil
@@ -253,6 +257,10 @@ declare fun unlines: ([X restricts (LNil | (LCons & {head: ([R restricts (LNil |
 declare fun reverse[A]: ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
 //│ reverse: ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
 
+/** Trusted left fold over a proper list. The unannotated body is in preludeDeferred.mls. */
+declare fun foldl[A, B]: (B -> A -> B) -> B -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> B
+//│ foldl: ∀A, B. (B → A → B) → B → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → B
+
 /** Trusted right fold contract. preludeDeferred.mls checks translation of the source traversal. */
 declare fun foldr[A, B]: (A -> B -> B) -> B -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> B
 //│ foldr: ∀A, B. (A → B → B) → B → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → B
@@ -280,3 +288,13 @@ declare fun takeLzLz[A]: Int -> ([X restricts (Delayed & {resume: () -> (LzNil |
  */
 declare fun scanl[A, B]: (B -> A -> B) -> B -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> (LCons & {head: B} & {tail: Y}))
 //│ scanl: ∀A, B. (B → A → B) → B → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ (LCons ∧ {head: B}) ∧ {tail: Y})
+
+/** Trusted predicate split of a proper list, with the first matching element in the suffix.
+ * The unannotated implementation is in preludeDeferred.mls. */
+declare fun break_[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> [([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y), ([Z restricts (LNil | (LCons & {head: A} & {tail: Z}))] -> Z)]
+//│ break_: ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → ⟨∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y, ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z⟩
+
+/** Trusted lazy prefix drop, returning the original handle for a nonpositive count.
+ * The unannotated implementation is in preludeDeferred.mls. */
+declare fun leaveLz[A]: Int -> ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Y}))})] -> Y)
+//│ leaveLz: ∀A. Int → (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Y}))}} ⟹ Y)

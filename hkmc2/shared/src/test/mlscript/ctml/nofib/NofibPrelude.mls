@@ -316,3 +316,51 @@ declare fun all[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {t
   */
 declare fun sum: ([X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X) -> Int
 //│ sum: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X) → Int
+
+/** Return the tail of a nonempty list, preserving its inferred type. */
+fun tail(ls) = if ls is LCons(h, t) then t
+//│ tail: ∀α. (({tail: α} ∧ {head: ⊤}) ∧ LCons) → α
+
+/**
+ * Trusted prefix drop on proper lists. A nonpositive count returns the input.
+ * The unannotated traversal in preludeDeferred.mls is unchecked by this declaration.
+ */
+declare fun leave[A]: Int -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ leave: ∀A. Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+/**
+ * Trusted predicate drop on proper lists. It keeps the first element failing the predicate.
+ * The unannotated traversal in preludeDeferred.mls is unchecked by this declaration.
+ */
+declare fun leaveWhile[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ leaveWhile: ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+/** Split at the given count using the source take and drop operations. */
+fun splitAt(n, ls) = [take(n, ls), leave(n, ls)]
+//│ splitAt: ∀α, β. Int → ((∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → ⟨∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y⟩
+
+/**
+ * Trusted elementwise equality on proper lists, using source structural equality at each head.
+ * The unannotated traversal in preludeDeferred.mls is unchecked by this declaration.
+ */
+declare fun listEq: ([X restricts (LNil | (LCons & {head: Top} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: Top} & {tail: Y}))] -> Y) -> Bool
+//│ listEq: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y) → Bool
+
+/** Minimum on the integer arguments used by the source layout. */
+fun intMin(a, b) = if a < b then a else b
+//│ intMin: ∀α, β. {β ≤ Int, α ≤ Int} ⟹ α → β → (β ∨ α)
+
+/**
+ * Trusted zero-based indexing on a nonempty proper list. A negative index or an index past
+ * the end raises the source match error. preludeTests.mls checks the unannotated traversal
+ * separately and records its failure on a concrete singleton.
+ */
+declare fun atIndex[A]: Int -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> (LCons & {head: A} & {tail: X})) -> A
+//│ atIndex: ∀A. Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ (LCons ∧ {head: A}) ∧ {tail: X}) → A
+
+/**
+ * Trusted concatenation of two proper lazy lists, with the source forcing order.
+ * The unannotated traversal in preludeDeferred.mls is unchecked by this declaration.
+ */
+declare fun appendLzLz[A]: ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Y}))})] -> Y) -> ([Z restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Z}))})] -> Z)
+//│ appendLzLz: ∀A. (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Y}))}} ⟹ Y) → (∀Z. {Z ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Z}))}} ⟹ Z)

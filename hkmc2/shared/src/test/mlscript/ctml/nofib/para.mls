@@ -1,0 +1,409 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 75 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/para.mls.
+// The deque remains a pair of lists, and layout triples use nested pairs.
+// Splitting and line assembly use the equivalent shared break_, all, and unlines.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Join words with one space between each pair. */
+fun unwords(ws) = if ws is
+  LNil() then LNil()
+  LCons(w, rest) then
+    /** Prefix each remaining word with a space. */
+    fun go(vs) = if vs is
+      LNil() then LNil()
+      LCons(v, tail_) then LCons(" ", append(v, go(tail_)))
+    append(w, go(rest))
+//│ CTML translation succeeded.
+
+/** Recognize the source word separator. */
+fun isSpace(c) = c === " "
+//│ isSpace: ⊤ → Bool
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Skip leading spaces and extract one word at a time. */
+fun words(s) = if leaveWhile(isSpace, s) is
+  LNil() then LNil()
+  LCons(h, t) and
+    break_(isSpace, LCons(h, t)) is [w, rest] then LCons(w, words(rest))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Split into lines, including the empty last line after a final newline. */
+fun lines(s) = if break_(x => x === "\n", s) is [l, rest] then
+  LCons(l, if rest is
+    LNil() then LNil()
+    LCons(h, t) then lines(t)
+  )
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Fold a nonempty list from the right, using g for the last element. */
+fun fold1(f, g, xs) = if xs is
+  LCons(a, LNil()) then g(a)
+  LCons(a, x) then f(a, fold1(f, g, x))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Collect all the suffix results of fold1. */
+fun scan1(f, g, xs) = fold1((a, s) => LCons(f(a, head(s)), s), a => LCons(g(a), LNil()), xs)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The suffix scan is translation-only.
+/** Collect all the nonempty suffixes of a nonempty list. */
+fun tails(xs) = scan1((a, s) => LCons(a, s), a => LCons(a, LNil()), xs)
+//│ CTML translation succeeded.
+
+/** Test whether a list has exactly one element. */
+fun single(xs) = if xs is LCons(a, LNil()) then true else false
+//│ single: ∀α. α → (({α ≤ (LCons ∧ {head: ⊤}) ∧ {tail: LNil}} ⟹ Bool) ∧ ({α ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: LNil})} ⟹ Bool))
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Select the least costly element, taking the later one on ties. */
+fun minWith(f, xs) = fold1((a, b) => if f(a) < f(b) then a else b, x => x, xs)
+//│ CTML translation succeeded.
+
+/** Prepend w as a new line. */
+fun new_(w, ls) = LCons(LCons(w, LNil()), ls)
+//│ new_: ∀α, β. α → β → ((LCons ∧ {head: (LCons ∧ {head: α}) ∧ {tail: LNil}}) ∧ {tail: β})
+
+/** Prepend w to the first existing line. */
+fun glue(w, ls) = if ls is LCons(l, rest) then LCons(LCons(w, l), rest)
+//│ glue: ∀α, β, γ. α → (({tail: γ} ∧ {head: β}) ∧ LCons) → ((LCons ∧ {head: (LCons ∧ {head: α}) ∧ {tail: β}}) ∧ {tail: γ})
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Enumerate all line layouts, with the new-line alternatives first. */
+fun formats(txt) = fold1(
+  (w, ps) => append(map(p => new_(w, p), ps), map(p => glue(w, p), ps)),
+  x => LCons(LCons(LCons(x, LNil()), LNil()), LNil()),
+  txt
+)
+//│ CTML translation succeeded.
+
+/** Maximum line width. */
+val maxw = 70
+//│ maxw: Int
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Count the characters and intervening spaces on a nonempty line. */
+fun width(ls) =
+  /** Count one word and its separator. */
+  fun plus(w, n) = listLen(w) + 1 + n
+  fold1(plus, listLen, ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The width fold is translation-only.
+/** Test the maximum line width. */
+fun fits(xs) = width(xs) <= maxw
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The line-width check is translation-only.
+/** Test that every line of a layout fits. */
+fun feasible(a) = all(fits, a)
+//│ CTML translation succeeded.
+
+/** Preferred line width. */
+val optw = 63
+//│ optw: Int
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Measure squared deviation from the preferred width, omitting the last line. */
+fun cost(ls) =
+  /** Measure one line's squared deviation. */
+  fun linc(l) = let a = optw - width(l) in a * a
+  /** Add one line's cost. */
+  fun plus(l, n) = linc(l) + n
+  fold1(plus, x => 0, ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Exhaustive layout enumeration and scoring are translation-only.
+/** Select the cheapest feasible layout by exhaustive search. */
+fun par0(x) = minWith(cost, filter(feasible, formats(x)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The line-width check is translation-only.
+/** Test the width of the first line. */
+fun fitH(ls) = fits(head(ls))
+//│ CTML translation succeeded.
+
+/** Project the first element of a nested-pair triple. */
+fun fst3(x) = if x is [a, [b, c]] then a
+//│ fst3: ∀α. ⟨α, ⟨⊤, ⊤⟩⟩ → α
+
+/** Project the second element of a nested-pair triple. */
+fun snd3(x) = if x is [a, [b, c]] then b
+//│ snd3: ∀α. ⟨⊤, ⟨α, ⊤⟩⟩ → α
+
+/** Project the third element of a nested-pair triple. */
+fun thd3(x) = if x is [a, [b, c]] then c
+//│ thd3: ∀α. ⟨⊤, ⟨⊤, α⟩⟩ → α
+
+/** Read the suffix width from a layout candidate. */
+fun width_tl(x) = fst3(x)
+//│ width_tl: ∀α. ⟨α, ⟨⊤, ⊤⟩⟩ → α
+
+/** Read the suffix cost from a layout candidate. */
+fun cost_tl(x) = snd3(x)
+//│ cost_tl: ∀α. ⟨⊤, ⟨α, ⊤⟩⟩ → α
+
+/** Read the suffix length from a layout candidate. */
+fun len_tl(x) = thd3(x)
+//│ len_tl: ∀α. ⟨⊤, ⟨⊤, α⟩⟩ → α
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Split words into lines using the decreasing suffix lengths. */
+fun tile(ws, suffix) = if suffix is
+  [LNil(), n] then LNil()
+  [LCons(m, ms), n] then
+    let l = n - m
+    if splitAt(l, ws) is [ws1, ws2] then
+      LCons(ws1, tile(ws2, [leave(l, LCons(m, ms)), m]))
+//│ CTML translation succeeded.
+
+/** Test whether both sides of the deque are empty. */
+fun null__(q) = if q is [LNil(), LNil()] then true else false
+//│ null__: ∀α. α → (({α ≤ ⟨LNil, LNil⟩} ⟹ Bool) ∧ ({α ≤ ¬⟨LNil, LNil⟩} ⟹ Bool))
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Test whether exactly one side of the deque has exactly one element. */
+fun single_(q) = if q is [x, y] then (null_(x) && single(y)) || (single(x) && null_(y))
+//│ CTML translation succeeded.
+
+/** The empty deque. */
+val nil_ = [LNil(), LNil()]
+//│ nil_: ⟨LNil, LNil⟩
+
+/** Read the front of the deque. */
+fun head_(q) = if q is [x, y] then
+  if null_(x) then head(y) else head(x)
+//│ head_: ∀α, β, γ. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ ⊥)) ∧ ({tail: ⊤} ∧ {head: γ}) ∧ LCons} ⟹ ⟨α, ({tail: ⊤} ∧ {head: β}) ∧ LCons⟩ → (γ ∨ β)
+
+/** Read the back of the deque. */
+fun last_(q) = if q is [y, x] then
+  if null_(x) then head(y) else head(x)
+//│ last_: ∀α, β, γ. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ ⊥)) ∧ ({tail: ⊤} ∧ {head: γ}) ∧ LCons} ⟹ ⟨({tail: ⊤} ∧ {head: β}) ∧ LCons, α⟩ → (γ ∨ β)
+
+/** Add to the front, keeping the old front as the back when needed. */
+fun cons_(a, q) = if q is [x, y] then
+  if null_(y) then [LCons(a, LNil()), x] else [LCons(a, x), y]
+//│ cons_: ∀α, β, γ. {γ ≤ ¬({γ ≤ LNil} ⟹ ¬LNil) ∨ ¬({γ ≤ ¬LNil} ⟹ LNil)} ⟹ α → ⟨β, γ⟩ → (⟨(LCons ∧ {head: α}) ∧ {tail: LNil}, β⟩ ∨ ⟨(LCons ∧ {head: α}) ∧ {tail: β}, γ⟩)
+
+/** Add to the back, keeping the old back as the front when needed. */
+fun snoc_(a, q) = if q is [y, x] then
+  if null_(y) then [x, LCons(a, LNil())] else [y, LCons(a, x)]
+//│ snoc_: ∀α, β, γ. {β ≤ ¬({β ≤ LNil} ⟹ ¬LNil) ∨ ¬({β ≤ ¬LNil} ⟹ LNil)} ⟹ α → ⟨β, γ⟩ → (⟨γ, (LCons ∧ {head: α}) ∧ {tail: LNil}⟩ ∨ ⟨β, (LCons ∧ {head: α}) ∧ {tail: γ}⟩)
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Drop the front, rebalancing from the back when the front runs out. */
+fun tail_(q) = if q is [x, y] then
+  if
+    null_(x) then [LNil(), LNil()]
+    single(x) and splitAt(intDiv(listLen(y), 2), y) is [y0, y1] then [reverse(y1), y0]
+    else [tail(x), y]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Drop the back, rebalancing from the front when the back runs out. */
+fun init_(q) = if q is [y, x] then
+  if
+    null_(x) then [LNil(), LNil()]
+    single(x) and splitAt(intDiv(listLen(y), 2), y) is [y0, y1] then [y0, reverse(y1)]
+    else [y, tail(x)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Join nonempty groups with a separator between adjacent groups. */
+fun unformat(a, l) = fold1((xs, ys) => append(xs, append(LCons(a, LNil()), ys)), x => x, l)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The nonempty right fold is translation-only.
+/** Split into groups, preserving empty groups at separators. */
+fun format(a, x) = if x is LNil() then LCons(LNil(), LNil())
+  else
+    /** Match the source singleton Nil by tag and other separators by strict equality. */
+    fun separatorEq(a, b) = if a is LNil() and b is LNil() then true else a === b
+    /** Start a group at the separator or prepend to the current group. */
+    fun breakk(a, b, xs) =
+      if separatorEq(a, b) then LCons(LNil(), xs)
+      else LCons(LCons(b, head(xs)), tail(xs))
+    /** Initialize the group for the final element. */
+    fun start(a, b) = breakk(a, b, LCons(LNil(), LNil()))
+    fold1((x, y) => breakk(a, x, y), y => start(a, y), x)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Joining groups is translation-only.
+/** Join paragraphs with an empty line as separator. */
+fun unparas(ls) = unformat(LNil(), ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Splitting into groups is translation-only.
+/** Split at empty lines and discard empty paragraphs. */
+fun paras(ls) = filter(x => listEq(LNil(), x) == false, format(LNil(), ls))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Word, line, and group splitting are translation-only.
+/** Parse characters into paragraphs of lines and words. */
+fun parse(ls) = paras(map(words, lines(ls)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Word and paragraph joining are translation-only.
+/** Render paragraphs into characters. */
+fun unparse(ls) = unlines(map(unwords, unparas(ls)))
+//│ CTML translation succeeded.
+
+/** Introduce the first word and the initial candidate. */
+fun startr(a) = if a <= maxw then [cons_([0, [0, 0]], nil_), [a, 1]]
+  else raiseError("startr param error")
+//│ startr: ∀α. {α ≤ Int} ⟹ α → ⟨⟨(LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}, LNil⟩, ⟨α, Int⟩⟩
+
+/** Divide with the source integer ceiling formula. */
+fun ceildiv(n, m) = intDiv(n + m - 1, m)
+//│ ceildiv: Int → Int → Int
+
+:ctml-parse-only // FIXME: Parsing and rendering are translation-only.
+/** Preserve the unused source helper's use of par as both parser input and formatter. */
+fun fmtWith(par) = unparse(map(x => par(concat(x)), parse(par)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Deque rebalancing and its singleton check are translation-only.
+/** Prepend one word and maintain the deque of candidate suffix layouts. */
+fun stepr(w, state) = if state is [ps, [tw, tl]] then
+  let tot_width = w + 1 + tw
+  let tot_len = 1 + tl
+  /** Test for a candidate with no suffix. */
+  fun single(p) = len_tl(p) === 0
+  /** Measure the new first line. */
+  fun width_hd(p) = if single(p) then tot_width else tot_width - width_tl(p) - 1
+  /** The total cost after prepending the word. */
+  fun cost(p) = if single(p) then 0 else cost_tl(p) + (let a = optw - width_hd(p) in a * a)
+  /** Measure the former first line. */
+  fun old_width_hd(p) = if single(p) then tw else tw - width_tl(p) - 1
+  /** Introduce a candidate with a new first line. */
+  fun new_(p) =
+    if single(p) then [tw, [0, tl]]
+    else [tw, [cost_tl(p) + (let x = optw - old_width_hd(p) in x * x), tl]]
+  /** Discard back candidates dominated by the preceding candidate. */
+  fun trim(ps_pq) = if
+    null__(ps_pq) then ps_pq
+    single_(ps_pq) then ps_pq
+    else
+      let ps_p = init_(ps_pq)
+      let q = last_(ps_pq)
+      let p = last_(ps_p)
+      if cost(p) <= cost(q) then trim(ps_p) else ps_pq
+  /** Discard back candidates whose first lines are too wide. */
+  fun leave_nofit(ps_p) = if
+    null__(ps_p) then ps_p
+    maxw < width_hd(last_(ps_p)) then leave_nofit(init_(ps_p))
+    else ps_p
+  /** Find the width at which the two candidates exchange preference. */
+  fun bf(p, q) =
+    let wqh = width_hd(q)
+    let rqh = maxw - wqh + 1
+    if
+      single(q) && (cost_tl(p) === 0) then intMin(optw - width_hd(p), rqh)
+      single(q) then rqh
+      else intMin(ceildiv(cost(p) - cost(q), 2 * (wqh - width_hd(p))), rqh)
+  /** Add the new candidate, removing any front candidates it dominates. */
+  fun myAdd(p, qr_rs) =
+    if single_(qr_rs) || null__(qr_rs) then cons_(p, qr_rs)
+    else
+      let q = head_(qr_rs)
+      let r_rs = tail_(qr_rs)
+      let r = head_(r_rs)
+      if bf(p, q) <= bf(q, r) then myAdd(p, r_rs) else cons_(p, qr_rs)
+  [trim(leave_nofit(myAdd(new_(last_(ps)), ps))), [tot_width, tot_len]]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The layout scan and tiling are translation-only.
+/** Compute candidate layouts for each suffix, then recover the optimal lines. */
+fun par3(ws) =
+  let zs = scan1(stepr, startr, map(listLen, ws))
+  tile(ws, [map(x => len_tl(last_(fst3(x))), zs), thd3(head(zs))])
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Parsing, layout, and rendering are translation-only.
+/** Parse, lay out, and render the input. */
+fun fmt(x) = unparse(map(par3, concat(parse(x))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Flattening the paragraph exceeds the 20000-call solver budget.
+/** Source paragraph, including trailing blank lines. */
+val test =
+  let part1 = nofibStringToList("In the constructive programming community it is commonplace to see ")
+  let part2 = nofibStringToList("formal developments of textbook algorithms. In the algorithm design ")
+  let part3 = nofibStringToList("community, on the other hand, it may be well known that the textbook ")
+  let part4 = nofibStringToList("solution to a problem is not the most efficient possible. However, in ")
+  let part5 = nofibStringToList("presenting the more efficient solution, the algorithm designer will ")
+  let part6 = nofibStringToList("usually omit some of the implementation details, this creating an ")
+  let part7 = nofibStringToList("algorithm gap between the abstract algorithm and its concrete ")
+  let part8 = nofibStringToList("implementation. This is in contrast to the formal development, which ")
+  let part9 = nofibStringToList("usually presents the complete concrete implementation of the less ")
+  let part10 = nofibStringToList("efficient solution.\n\n")
+  let lastParts = LCons(part8, LCons(part9, LCons(part10, LNil())))
+  let middleParts = LCons(part5, LCons(part6, LCons(part7, lastParts)))
+  concat(LCons(part1, LCons(part2, LCons(part3, LCons(part4, middleParts)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The formatting pipeline is translation-only.
+/** Preserve the source empty-input guard. */
+fun testPara_nofib() = if null_(test) then LNil() else fmt(test)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The formatting pipeline is translation-only.
+/** Render the formatted paragraph as one string. */
+fun main() = nofibListToString(testPara_nofib())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The formatting pipeline is translation-only.
+main()
+//│ CTML translation succeeded.
+
+isSpace(" ") as Bool
+single(LCons("word", LNil())) as Bool
+ceildiv(64, 2) as Int
+null__(nil_) as Bool
+//│ Bool
+//│ Bool
+//│ Int
+//│ Bool
+
+width_tl([22, [3, 1]]) as Int
+cost_tl([22, [3, 1]]) as Int
+len_tl([22, [3, 1]]) as Int
+//│ Int
+//│ Int
+//│ Int
+
+val seeded = startr(15)
+snd(seeded) as [Int, Int]
+fst(fst(seeded)) as (LCons & {head: [Int, [Int, Int]]} & {tail: LNil})
+//│ seeded: ⟨⟨(LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}, LNil⟩, ⟨Int, Int⟩⟩
+//│ ⟨Int, Int⟩
+//│ (LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}
+
+new_("word", LNil()) as (LCons & {head: LCons & {head: Str} & {tail: LNil}} & {tail: LNil})
+snd(snoc_(1, nil_)) as (LCons & {head: Int} & {tail: LNil})
+//│ (LCons ∧ {head: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {tail: LNil}
+//│ (LCons ∧ {head: Int}) ∧ {tail: LNil}
+
+:te
+startr("fifteen")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → ⟨⟨(LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}, LNil⟩, ⟨α, Int⟩⟩ ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → ⟨⟨(LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}, LNil⟩, ⟨α, Int⟩⟩ ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → ⟨⟨(LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}, LNil⟩, ⟨γ, Int⟩⟩ ≤ Str → β
+//│       γ → ⟨⟨(LCons ∧ {head: ⟨Int, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}, LNil⟩, ⟨γ, Int⟩⟩ ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int
+
+:te
+len_tl([[22, 3], 1])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ⟨⊤, ⟨⊤, α⟩⟩ → α ≤ ⟨⟨Int, Int⟩, Int⟩ → β.
+//│ Typing error tree:
+//│   ∀α. ⟨⊤, ⟨⊤, α⟩⟩ → α ≤ ⟨⟨Int, Int⟩, Int⟩ → β
+//│     ⟨⊤, ⟨⊤, γ⟩⟩ → γ ≤ ⟨⟨Int, Int⟩, Int⟩ → β
+//│       ⟨⟨Int, Int⟩, Int⟩ ≤ ⟨⊤, ⟨⊤, γ⟩⟩
+//│         Int ≤ ⟨⊤, γ⟩

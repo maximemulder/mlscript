@@ -1,0 +1,668 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 75 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/knights.mls.
+// Directions use nullary tags. Board positions are pairs of integers, and the oldest
+// position stays delayed. The driver supplies ASCII digit lists split into UTF-16 units.
+
+/** Test whether the first character represents an ASCII digit. */
+fun myIsDigit(c) =
+  let n = nofibCharCode(c)
+  (48 <= n) && (n <= 57)
+//│ myIsDigit: Str → Bool
+
+/** Compare two integer pairs lexicographically. */
+fun intintComp(ab, cd) = if ab is [a, b] and cd is [c, d] then
+  (a < c) || ((a === c) && (b < d))
+//│ intintComp: ⟨Int, Int⟩ → ⟨Int, Int⟩ → Bool
+
+/** Compare two weighted boards by their weights. */
+fun intChessSetComp(ab, cd) = if ab is [a, b] and cd is [c, d] then a < c
+//│ intChessSetComp: ⟨Int, ⊤⟩ → ⟨Int, ⊤⟩ → Bool
+
+/** Compare the two coordinates of each square. */
+fun eqTup2(ab, cd) = if ab is [a, b] and cd is [c, d] then (a == c) && (b == d)
+//│ eqTup2: ⟨⊤, ⊤⟩ → ⟨⊤, ⊤⟩ → Bool
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Drop the last entry of a nonempty list. */
+fun myInit(xs) = if xs is
+  LCons(a, LNil()) then LNil()
+  LCons(a, t) then LCons(a, myInit(t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Read the last entry of a nonempty list. */
+fun myLast(xs) =
+  /** Carry the preceding element until the remainder is empty. */
+  fun go(h, t) = if t is
+    LNil() then h
+    LCons(x, rest) then go(x, rest)
+  if xs is LCons(a, t) then go(a, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Sort the numbered squares using the two source partitions. */
+fun quickSortIntInt(xs) = if xs is
+  LNil() then LNil()
+  LCons(x, rest) then
+    /** Keep pairs strictly below the pivot. */
+    fun lscomp1(ls) = if ls is
+      LNil() then LNil()
+      LCons(h, t) and
+        intintComp(h, x) then LCons(h, lscomp1(t))
+        else lscomp1(t)
+    /** Keep pairs at or above the pivot. */
+    fun lscomp2(ls) = if ls is
+      LNil() then LNil()
+      LCons(h, t) and
+        intintComp(h, x) then lscomp2(t)
+        else LCons(h, lscomp2(t))
+    append(quickSortIntInt(lscomp1(rest)), LCons(x, quickSortIntInt(lscomp2(rest))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call budget with the lazy append contract.
+/** Sort by number of onward moves, delaying the pivot and following partition. */
+fun quickSortIntChessSet(xs) = if force(xs) is
+  LzNil() then delay(() => LzNil())
+  LzCons(x, rest) then
+    /** Keep boards with fewer onward moves than the pivot. */
+    fun lscomp1(ls) = if force(ls) is
+      LzNil() then delay(() => LzNil())
+      LzCons(h, t) and
+        intChessSetComp(h, x) then delay(() => LzCons(h, lscomp1(t)))
+        else lscomp1(t)
+    /** Keep boards with at least as many onward moves as the pivot. */
+    fun lscomp2(ls) = if force(ls) is
+      LzNil() then delay(() => LzNil())
+      LzCons(h, t) and
+        intChessSetComp(h, x) then lscomp2(t)
+        else delay(() => LzCons(h, lscomp2(t)))
+    appendLzLz(quickSortIntChessSet(lscomp1(rest)),
+      delay(() => LzCons(x, quickSortIntChessSet(lscomp2(rest)))))
+//│ CTML translation succeeded.
+
+/** Count entries in a strict queue. */
+fun sizeQueue(xs) = listLen(xs)
+//│ sizeQueue: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int
+
+/** Compare the strict queue with the empty list. */
+fun emptyQueue(x) = listEq(x, LNil())
+//│ emptyQueue: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Remove the final entry of a nonempty strict queue. */
+fun removeBack(xs) = if xs is
+  LCons(x, LNil()) then LNil()
+  LCons(x, rest) then LCons(x, removeBack(rest))
+//│ CTML translation succeeded.
+
+/** Remove the first entry of a nonempty strict queue. */
+fun removeFront(xs) = if xs is LCons(h, t) then t
+//│ removeFront: ∀α. (({tail: α} ∧ {head: ⊤}) ∧ LCons) → α
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Read the last entry of a nonempty strict queue. */
+fun inquireBack(xs) = if xs is
+  LCons(x, LNil()) then x
+  LCons(x, rest) then inquireBack(rest)
+//│ CTML translation succeeded.
+
+/** Read the first entry of a nonempty strict queue. */
+fun inquireFront(xs) = head(xs)
+//│ inquireFront: ∀α. (({tail: ⊤} ∧ {head: α}) ∧ LCons) → α
+
+/** Append a list to the back of a strict queue. */
+fun addAllBack(list, q) = append(q, list)
+//│ addAllBack: ∀α, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Z
+
+/** Prepend a list to the front of a strict queue. */
+fun addAllFront(list, q) = append(list, q)
+//│ addAllFront: ∀α, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Z
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Add an entry at the back of a strict queue. */
+fun addBack(x, q) = append(q, LCons(x, LNil()))
+//│ CTML translation succeeded.
+
+/** Add an entry at the front of a strict queue. */
+fun addFront(x, q) = LCons(x, q)
+//│ addFront: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** The empty strict queue. */
+val createQueue = LNil()
+//│ createQueue: LNil
+
+/** A list of board coordinates in newest-first order. */
+type Trail = [X restricts (LNil | (LCons & {head: [Int, Int]} & {tail: X}))] -> X
+//│ Trail = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: X})} ⟹ X
+
+/** Board size, number of visited squares, delayed first square, and trail. */
+data class Board(a: Int, b: Int, c: Delayed & {resume: () -> [Int, Int]}, d: Trail)
+//│ Board: ∀α, β, γ, δ. {β ≤ Int, δ ≤ Trail, γ ≤ Delayed ∧ {resume: Unit → ⟨Int, Int⟩}, α ≤ Int} ⟹ α → β → γ → δ → ((((Board ∧ {a: α}) ∧ {b: β}) ∧ {c: γ}) ∧ {d: δ})
+
+/** Start the trail at the given square. */
+fun createBoard(x, t) = Board(x, 1, delay(() => t), LCons(t, LNil()))
+//│ createBoard: ∀α, β. {β ≤ ⟨Int, Int⟩, α ≤ Int} ⟹ α → β → ((((Board ∧ {a: α}) ∧ {b: Int}) ∧ {c: Delayed ∧ {resume: Unit → β}}) ∧ {d: (LCons ∧ {head: β}) ∧ {tail: LNil}})
+
+/** Read the board size. */
+fun sizeBoard(b) = if b is Board(a, count, first, trail) then a
+//│ sizeBoard: ∀α. (((({b: ⊤} ∧ {d: ⊤}) ∧ {c: ⊤}) ∧ {a: α}) ∧ Board) → α
+
+/** Count the squares in the current trail. */
+fun noPieces(b) = if b is Board(size, n, first, trail) then n
+//│ noPieces: ∀α. (((({b: α} ∧ {d: ⊤}) ∧ {c: ⊤}) ∧ {a: ⊤}) ∧ Board) → α
+
+/** Extend the trail with one square. */
+fun addPiece(t, b) = if b is Board(s, n, f, ts) then Board(s, n + 1, f, LCons(t, ts))
+//│ addPiece: ∀α, β, γ, δ. {α ≤ ((¬({δ ≤ ¬({α ≤ ⊥} ⟹ ⊥), α ≤ ¬({δ ≤ ⊥} ⟹ ⊥)} ⟹ ⊥) ∨ ¬({δ ≤ ¬({α ≤ ⟨Int, Int⟩} ⟹ ⊥)} ⟹ ¬(⟨Int, Int⟩ ∨ ¬({δ ≤ ⊥} ⟹ ⊥)))) ∧ (¬({α ≤ ¬({δ ≤ ⊥} ⟹ ⊥), δ ≤ ¬({α ≤ ⊥} ⟹ ⊥)} ⟹ ⊥) ∨ ¬({α ≤ ¬({α ≤ ⟨Int, Int⟩} ⟹ ¬⟨Int, Int⟩) ∨ ¬({δ ≤ ⊥} ⟹ ⊥), δ ≤ ¬({α ≤ ⟨Int, Int⟩} ⟹ ⊥)} ⟹ ¬(⟨Int, Int⟩ ∨ ¬({δ ≤ ⊥} ⟹ ⊥))))) ∧ ⟨Int, Int⟩, γ ≤ Delayed ∧ {resume: Unit → ⟨Int, Int⟩}, β ≤ Int} ⟹ α → (((({b: Int} ∧ {d: δ}) ∧ {c: γ}) ∧ {a: β}) ∧ Board) → ((((Board ∧ {a: β}) ∧ {b: Int}) ∧ {c: γ}) ∧ {d: (LCons ∧ {head: α}) ∧ {tail: δ}})
+
+:ctml-parse-only // FIXME: The list initialization and last-element traversals are translation-only.
+/** Remove the starting square and delay finding the new starting square. */
+fun deleteFirst(b) = if b is Board(s, n, f, ts) then
+  let ts_ = myInit(ts)
+  Board(s, n - 1, delay(() => myLast(ts_)), ts_)
+//│ CTML translation succeeded.
+
+/** Fetch the square visited on move x. */
+fun positionPiece(x, b) = if b is Board(size, n, first, ts) then atIndex(n - x, ts)
+//│ positionPiece: ∀α. Int → (((({b: Int} ∧ {d: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ (LCons ∧ {head: α}) ∧ {tail: X}}) ∧ {c: ⊤}) ∧ {a: ⊤}) ∧ Board) → α
+
+/** Fetch the most recently visited square. */
+fun lastPiece(b) = if b is Board(size, count, first, LCons(t, ts)) then t
+//│ lastPiece: ∀α. (((({b: ⊤} ∧ {d: ({tail: ⊤} ∧ {head: α}) ∧ LCons}) ∧ {c: ⊤}) ∧ {a: ⊤}) ∧ Board) → α
+
+/** Fetch the starting square by forcing its handle. */
+fun firstPiece(b) = if b is Board(size, count, f, trail) then force(f)
+//│ firstPiece: ∀α. (((({b: ⊤} ∧ {d: ⊤}) ∧ {c: Delayed ∧ {resume: Unit → α}}) ∧ {a: ⊤}) ∧ Board) → α
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Read the move number for a previously visited square. */
+fun pieceAtTile(x, b) = if b is Board(size, count, first, ts) then
+  /** Search the trail and count from the end. */
+  fun find(x, xs) = if xs is
+    LNil() then raiseError("Tile not used")
+    LCons(y, rest) then if eqTup2(x, y) then 1 + listLen(rest) else find(x, rest)
+  find(x, ts)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Test whether the trail contains a given square. */
+fun tup2InList(y, xs) = if xs is
+  LNil() then false
+  LCons(x, rest) and
+    eqTup2(y, x) then true
+    else tup2InList(y, rest)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The trail membership traversal is translation-only.
+/** Test whether the square has yet to be visited. */
+fun isSquareFree(x, b) = if b is Board(size, count, first, ts) then tup2InList(x, ts) == false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Pair every visited square's linear index with its move number. */
+fun assignMoveNo(t, size, z) = if t is
+  LNil() then LNil()
+  LCons([x, y], rest) then LCons([(y - 1) * size + x, z], assignMoveNo(rest, size, z - 1))
+//│ CTML translation succeeded.
+
+/** Pad a rendered move number to the width of the board's largest number. */
+fun spaces(s, y) =
+  /** Count decimal digits by dividing by ten. */
+  fun logTen(x) = if x === 0 then 0 else 1 + logTen(intDiv(x, 10))
+  replicate((logTen(s) - logTen(y)) + 1, " ")
+//│ spaces: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
+
+:fixme // FIXME: append cannot consume the inferred character or padding lists.
+/** Render occupied and unoccupied squares in row order. */
+fun printBoard(s, n, xs) = if xs is
+  LNil() and
+    (s * s) < n then LNil()
+    (intMod(n, s) == 0) == false then
+      LCons("*", append(spaces(s * s, 1), printBoard(s, n + 1, LNil())))
+    intMod(n, s) === 0 then
+      append(nofibStringToList("*\n"), printBoard(s, n + 1, LNil()))
+    else raiseError("printBoard empty list error")
+  LCons([i, j], rest) and
+    i === n and intMod(n, s) === 0 then
+      append(nofibStringToList(stringOfInt(j)),
+        append(nofibStringToList("\n"), printBoard(s, n + 1, rest)))
+    i === n and (intMod(n, s) == 0) == false then
+      append(nofibStringToList(stringOfInt(j)), append(spaces(s * s, j), printBoard(s, n + 1, rest)))
+    (intMod(n, s) == 0) == false then
+      LCons("*", append(spaces(s * s, 1), printBoard(s, n + 1, LCons([i, j], rest))))
+    intMod(n, s) === 0 then
+      append(nofibStringToList("*\n"), printBoard(s, n + 1, LCons([i, j], rest)))
+    else raiseError("printBoard non-empty list error")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ε
+
+/** Move up two rows and left one column. */
+data class UL()
+/** Move up two rows and right one column. */
+data class UR()
+/** Move down two rows and left one column. */
+data class DL()
+/** Move down two rows and right one column. */
+data class DR()
+/** Move left two columns and up one row. */
+data class LU()
+/** Move left two columns and down one row. */
+data class LD()
+/** Move right two columns and up one row. */
+data class RU()
+/** Move right two columns and down one row. */
+data class RD()
+//│ UL: Unit → UL
+//│ UR: Unit → UR
+//│ DL: Unit → DL
+//│ DR: Unit → DR
+//│ LU: Unit → LU
+//│ LD: Unit → LD
+//│ RU: Unit → RU
+//│ RD: Unit → RD
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Compute the square reached by a move. */
+fun move(d, xy) = if xy is [x, y] and d is
+  UL() then [x - 1, y - 2]
+  UR() then [x + 1, y - 2]
+  DL() then [x - 1, y + 2]
+  DR() then [x + 1, y + 2]
+  LU() then [x - 2, y - 1]
+  LD() then [x - 2, y + 1]
+  RU() then [x + 2, y - 1]
+  RD() then [x + 2, y + 1]
+//│ CTML translation succeeded.
+
+/** Start a tour on an even-sized board. */
+fun startTour(st, size) =
+  if intMod(size, 2) === 0 then createBoard(size, st)
+  else raiseError("Tour doesnt exist for odd size board")
+//│ startTour: ∀α, β. {α ≤ ⟨Int, Int⟩, β ≤ Int} ⟹ α → β → ((((Board ∧ {a: β}) ∧ {b: Int}) ∧ {c: Delayed ∧ {resume: Unit → α}}) ∧ {d: (LCons ∧ {head: α}) ∧ {tail: LNil}})
+
+:ctml-parse-only // FIXME: The direction dispatch is translation-only.
+/** Extend the board by moving from its most recent square. */
+fun moveKnight(board, dir) = addPiece(move(dir, lastPiece(board)), board)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The trail membership traversal is translation-only.
+/** Check the board bounds and whether the target square is free. */
+fun canMoveTo(xy, board) = if xy is [x, y] then
+  let sze = sizeBoard(board)
+  if (1 <= x) && (x <= sze) && (1 <= y) && (y <= sze) then isSquareFree(xy, board)
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The direction dispatch and square availability check are translation-only.
+/** Test whether a move from the current square is legal. */
+fun canMove(board, dir) = canMoveTo(move(dir, lastPiece(board)), board)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Deleting the initial square and checking move legality are translation-only.
+/** Test whether the tour can jump back to its starting square. */
+fun canJumpFirst(board) = canMoveTo(firstPiece(board), deleteFirst(board))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Testing for a jump back to the first square is translation-only.
+/** A completed tour visits every square and jumps back to the start. */
+fun tourFinished(board) =
+  let sze = sizeBoard(board)
+  if noPieces(board) === (sze * sze) then canJumpFirst(board) else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The move legality check is translation-only.
+/** Enumerate the legal moves using the source direction order. */
+fun possibleMoves(board) =
+  /** Filter the remaining directions. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) and
+      canMove(board, x) then LCons(x, lscomp(t))
+      else lscomp(t)
+  lscomp(LCons(UL(), LCons(UR(), LCons(DL(), LCons(DR(),
+    LCons(LU(), LCons(LD(), LCons(RU(), LCons(RD(), LNil())))))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Enumerating legal moves is translation-only.
+/** Test whether the current square has any legal moves. */
+fun deadEnd(board) = listLen(possibleMoves(board)) === 0
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Enumerating legal moves and extending the board are translation-only.
+/** Build successor boards in the order returned by possibleMoves. */
+fun allDescend(board) = map(b => moveKnight(board, b), possibleMoves(board))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Successor enumeration is translation-only.
+/** Delay pairing each successor with the number of legal moves from its shortened trail. */
+fun descAndNo(board) =
+  /** Produce the next weighted board on demand. */
+  fun lscomp(ls) = if ls is
+    LNil() then delay(() => LzNil())
+    LCons(x, t) then delay(() =>
+      LzCons([listLen(possibleMoves(deleteFirst(x))), x], lscomp(t)))
+  lscomp(allDescend(board))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Weighted successor enumeration is translation-only.
+/** Find all successor boards with just one onward move. */
+fun singleDescend(board) =
+  /** Keep forced successors with weight one. */
+  fun lscomp(ls) = if force(ls) is
+    LzNil() then LNil()
+    LzCons([y, x], t) and
+      y === 1 then LCons(x, lscomp(t))
+      else lscomp(t)
+  lscomp(descAndNo(board))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Successor enumeration and lazy quicksort are translation-only.
+/** Reject a dead-end cycle, prefer a forced move, or sort the possible successors. */
+fun descendents(board) =
+  if canJumpFirst(board) and deadEnd(addPiece(firstPiece(board), board)) then delay(() => LzNil())
+  else
+    let singles = singleDescend(board)
+    let scrut = listLen(singles)
+    if
+      scrut === 0 then mapLz(snd, quickSortIntChessSet(descAndNo(board)))
+      scrut === 1 then
+        if singles is LCons(h, LNil()) then delay(() => LzCons(h, delay(() => LzNil())))
+        else raiseError("unreachable")
+      else delay(() => LzNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Numbering and sorting the board trail are translation-only.
+/** Render the numbered tour sorted into ascending square order. */
+fun showChessSet(b) = if b is Board(sze, n, first, ts) then
+  let sortedTrail = quickSortIntInt(assignMoveNo(ts, sze, n))
+  printBoard(sze, 1, sortedTrail)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Force both heads before returning a delay that pairs them. */
+fun zipLzLz(xs, ys) = if
+  force(xs) is LzCons(x, xt) and force(ys) is LzCons(y, yt) then
+    delay(() => LzCons([x, y], zipLzLz(xt, yt)))
+  else delay(() => LzNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Wait until demanded to force the next heads and combine them. */
+fun zipWithLzLz(f, xs, ys) = delay(() =>
+  if force(xs) is LzCons(x, xt) and force(ys) is LzCons(y, yt) then
+    LzCons(f(x, y), zipWithLzLz(f, xt, yt))
+  else LzNil()
+)
+//│ CTML translation succeeded.
+
+/** Produce an infinite lazy list of one repeated value. */
+fun repeat(x) = delay(() => LzCons(x, repeat(x)))
+//│ repeat: ∀α, β. {β ≥ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}} ⟹ α → (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})})
+
+/** Produce n delayed copies of a value. */
+fun replicateLz(n, x) = if n == 0 then delay(() => LzNil())
+  else delay(() => LzCons(x, replicateLz(n - 1, x)))
+//│ replicateLz: ∀α, β. {β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → LzNil})} ⟹ Int → α → ((Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → LzNil}))
+
+:ctml-parse-only // FIXME: The lazy zip traversals are translation-only.
+/** Enumerate the starting tours, each with the starting backtracking count. */
+fun root(sze) =
+  /** Advance through the first coordinate. */
+  fun lscomp1(ls) = if ls is
+    LNil() then delay(() => LzNil())
+    LCons(h1, t1) then
+      /** Advance through the second coordinate before returning to the outer loop. */
+      fun lscomp2(inner) = if inner is
+        LNil() then lscomp1(t1)
+        LCons(h2, t2) then delay(() => LzCons([h1, h2], lscomp2(t2)))
+      lscomp2(enumFromTo(1, sze))
+  appendLzLz(
+    zipLzLz(
+      repeat(1 - (sze * sze)),
+      zipWithLzLz(startTour, lscomp1(enumFromTo(1, sze)), replicateLz(sze * sze, sze))
+    ),
+    delay(() => LzNil())
+  )
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Lazy zip and successor selection are translation-only.
+/** Extend one search entry and increment the backtracking count for its successors. */
+fun grow(xy) = if xy is [x, y] then zipLzLz(repeat(x + 1), descendents(y))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tour completion check is translation-only.
+/** Test whether the search entry's trail is a closed tour. */
+fun isFinished(xy) = if xy is [x, y] then tourFinished(y)
+//│ CTML translation succeeded.
+
+/** Check the head of a lazy queue for emptiness. */
+fun emptyQueueLz(x) = if force(x) is LzNil() then true else false
+//│ emptyQueueLz: ∀α. (Delayed ∧ {resume: Unit → α}) → (({α ≤ LzNil} ⟹ Bool) ∧ ({α ≤ ¬LzNil} ⟹ Bool))
+
+/** Return the delayed remainder of a nonempty queue. */
+fun removeFrontLz(xs) = if force(xs) is LzCons(h, t) then t
+//│ removeFrontLz: ∀α. (Delayed ∧ {resume: Unit → (({tail: α} ∧ {head: ⊤}) ∧ LzCons)}) → α
+
+/** Read the first entry of a nonempty lazy queue. */
+fun inquireFrontLz(xs) = if force(xs) is LzCons(h, t) then h
+//│ inquireFrontLz: ∀α. (Delayed ∧ {resume: Unit → (({tail: ⊤} ∧ {head: α}) ∧ LzCons)}) → α
+
+/** Place all new entries before the remaining lazy queue. */
+fun addAllFrontLz(list, q) = appendLzLz(list, q)
+//│ addAllFrontLz: ∀α, Z. {Z ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: α}) ∧ {tail: Z}))}} ⟹ (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: α}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: α}) ∧ {tail: Y}))}} ⟹ Y) → Z
+
+:fixme // FIXME: The emptiness check does not refine the delayed queue for recursion.
+/** Search depth-first, delaying the remainder after each completed tour. */
+fun depthSearch(q, growFn, finFn) = if
+  emptyQueueLz(q) then delay(() => LzNil())
+  finFn(inquireFrontLz(q)) then
+    delay(() => LzCons(inquireFrontLz(q), depthSearch(removeFrontLz(q), growFn, finFn)))
+  else depthSearch(addAllFrontLz(growFn(inquireFrontLz(q)), removeFrontLz(q)), growFn, finFn)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (A → A) → A ≤ (∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ. {β ≤ ∀X. θ → ({X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: X}))}} ⟹ X), κ ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: κ}))}, α ≤ (ζ → β → γ → η) ∧ (κ → β → γ → λ), γ ≤ δ → Bool} ⟹ α → ({resume: Unit → (({head: δ ∧ ε ∧ θ} ∧ {tail: ζ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → β → γ → ((λ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: η})})) ∨ (Delayed ∧ {resume: Unit → LzNil}))) → μ.
+//│ Typing error tree:
+//│   ∀A. (A → A) → A ≤ (∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ. {β ≤ ∀X. θ → ({X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: X}))}} ⟹ X), κ ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: κ}))}, α ≤ (ζ → β → γ → η) ∧ (κ → β → γ → λ), γ ≤ δ → Bool} ⟹ α → ({resume: Unit → (({head: δ ∧ ε ∧ θ} ∧ {tail: ζ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → β → γ → ((λ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: η})})) ∨ (Delayed ∧ {resume: Unit → LzNil}))) → μ
+//│     (ν → ν) → ν ≤ (∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ. {β ≤ ∀X. θ → ({X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: X}))}} ⟹ X), κ ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: κ}))}, α ≤ (ζ → β → γ → η) ∧ (κ → β → γ → λ), γ ≤ δ → Bool} ⟹ α → ({resume: Unit → (({head: δ ∧ ε ∧ θ} ∧ {tail: ζ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → β → γ → ((λ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: η})})) ∨ (Delayed ∧ {resume: Unit → LzNil}))) → μ
+//│       ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ. {β ≤ ∀X. θ → ({X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: X}))}} ⟹ X), κ ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: κ}))}, α ≤ (ζ → β → γ → η) ∧ (κ → β → γ → λ), γ ≤ δ → Bool} ⟹ α → ({resume: Unit → (({head: δ ∧ ε ∧ θ} ∧ {tail: ζ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: ι}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → β → γ → ((λ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: η})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν → ν
+//│         {υ ≤ ∀X. ρ → ({X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: X}))}} ⟹ X), ω ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))}, ξ ≤ (σ → υ → φ → ψ) ∧ (ω → υ → φ → χ), φ ≤ ο → Bool} ⟹ ξ → ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν → ν
+//│           {ω ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))}, ξ ≤ (σ → υ → φ → ψ) ∧ (ω → υ → φ → χ), φ ≤ ο → Bool} ⟹ ξ → ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν → ν
+//│             {ξ ≤ (σ → υ → φ → ψ) ∧ (ω → υ → φ → χ), φ ≤ ο → Bool} ⟹ ξ → ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν → ν
+//│               {φ ≤ ο → Bool} ⟹ ξ → ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν → ν
+//│                 ξ → ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν → ν
+//│                   ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ν
+//│                     ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ (σ → υ → φ → ψ) ∧ (ω → υ → φ → χ)
+//│                       ({resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed) → υ → φ → ((χ ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: π}) ∧ {tail: ψ})})) ∨ (Delayed ∧ {resume: Unit → LzNil})) ≤ ω → υ → φ → χ
+//│                         ω ≤ {resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed
+//│                           Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))} ≤ {resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)} ∧ Delayed
+//│                             Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))} ≤ {resume: Unit → (({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)}) ∧ LzCons)}
+//│                               Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))} ≤ {resume: Unit → ({head: ο ∧ π ∧ ρ} ∧ {tail: σ ∧ (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: Y}))}} ⟹ Y)})}
+//│                                 Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))} ≤ {resume: Unit → {head: ο ∧ π ∧ ρ}}
+//│                                   Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))} ≤ {resume: Unit → {head: ο}}
+//│                                     Delayed ≤ {resume: Unit → {head: ο}}
+//│                                     {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}))} ≤ {resume: Unit → {head: ο}}
+//│                                       Unit → (LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω})) ≤ Unit → {head: ο}
+//│                                         LzNil ∨ ((LzCons ∧ {head: τ}) ∧ {tail: ω}) ≤ {head: ο}
+//│                                           LzNil ≤ {head: ο}
+
+:ctml-parse-only // FIXME: Search and board rendering are translation-only.
+/** Parse the two arguments, take the requested tours, and render them. */
+fun printTour(ss) =
+  /** Accumulate the already validated decimal digits. */
+  fun strToInt(y, xs) = if xs is
+    LNil() then y
+    LCons(x, rest) then strToInt((10 * y) + (nofibCharCode(x) - 48), rest)
+  /** Render each tour with its backtracking count and board. */
+  fun pp(xs) = if xs is
+    LNil() then LNil()
+    LCons([x, y], rest) then
+      append(nofibStringToList("\nKnights tour with "),
+        append(nofibStringToList(stringOfInt(x)),
+          append(nofibStringToList(" backtracking moves\n"), append(showChessSet(y), pp(rest)))))
+  if map(x => strToInt(0, x), ss) is
+    LCons(size, LCons(number, LNil())) then pp(takeLz(number, depthSearch(root(size), grow, isFinished)))
+    else raiseError("printTour error")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tour search and rendering are translation-only.
+/** Check the source argument format before looking for tours. */
+fun testKnights_nofib(ss) =
+  let usageString = "\nUsage: knights <board size> <no solutions> \n"
+  /** Test each character of one argument. */
+  fun all_digits(s) = foldr((a, b) => myIsDigit(a) && b, true, s)
+  /** Require precisely two digit lists. */
+  fun argsOk(ss) = (listLen(ss) === 2) && foldr((a, b) => all_digits(a) && b, true, ss)
+  if argsOk(ss) then printTour(ss) else raiseError(usageString)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tour search and rendering are translation-only.
+/** Request one tour of an eight-by-eight board. */
+fun main() = nofibListToString(testKnights_nofib(
+  LCons(nofibStringToList("8"), LCons(nofibStringToList("1"), LNil()))
+))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tour search and rendering are translation-only.
+main()
+//│ CTML translation succeeded.
+
+myIsDigit("8") as Bool
+myIsDigit("") as Bool
+intintComp([1, 2], [1, 3]) as Bool
+intChessSetComp([1, "first"], [2, true]) as Bool
+eqTup2([1, 2], [1, 2]) as Bool
+//│ Bool
+//│ Bool
+//│ Bool
+//│ Bool
+//│ Bool
+
+val started = startTour([1, 1], 8)
+sizeBoard(started) as Int
+noPieces(started) as Int
+firstPiece(started) as [Int, Int]
+lastPiece(started) as [Int, Int]
+//│ started: (((Board ∧ {a: Int}) ∧ {b: Int}) ∧ {c: Delayed ∧ {resume: Unit → ⟨Int, Int⟩}}) ∧ {d: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}
+//│ Int
+//│ Int
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+
+val extended = addPiece([2, 3], started)
+positionPiece(2, extended) as [Int, Int]
+lastPiece(extended) as [Int, Int]
+firstPiece(extended) as [Int, Int]
+//│ extended: (((Board ∧ {a: Int}) ∧ {b: Int}) ∧ {c: Delayed ∧ {resume: Unit → ⟨Int, Int⟩}}) ∧ {d: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+
+:te
+createBoard(8, ["one", 1])
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Str, Int⟩ → β.
+//│ Typing error tree:
+//│   α ≤ ⟨Str, Int⟩ → β
+//│     γ → ((((Board ∧ {a: δ}) ∧ {b: Int}) ∧ {c: Delayed ∧ {resume: Unit → γ}}) ∧ {d: (LCons ∧ {head: γ}) ∧ {tail: LNil}}) ≤ ⟨Str, Int⟩ → β
+//│       ⟨Str, Int⟩ ≤ γ
+//│         ⟨Str, Int⟩ ≤ ⟨Int, Int⟩
+//│           Str ≤ Int
+
+:te
+Board(8, 1, delay(() => [1, 1]), LCons([1, 1], LCons("not a square", LNil())))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ((((Board ∧ {a: ε}) ∧ {b: ζ}) ∧ {c: η}) ∧ {d: δ}) ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ Trail
+//│           (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ Trail
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: X})} ⟹ X
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: κ})} ⟹ κ
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                     LCons ∧ {head: θ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: θ} ≤ LNil
+//│                         θ ≤ ⊥
+//│                           ⟨Int, Int⟩ ≤ ⊥
+//│                     {tail: ι} ≤ LNil
+//│                       ι ≤ ⊥
+//│                         λ ≤ ⊥
+//│                           (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ⊥
+//│                             LCons ∧ {head: μ} ≤ ⊥
+//│                               LCons ≤ ⊥
+//│                               {head: μ} ≤ ⊥
+//│                                 μ ≤ ⊥
+//│                                   Str ≤ ⊥
+//│                             {tail: ν} ≤ ⊥
+//│                               ν ≤ ⊥
+//│                                 ξ ≤ ⊥
+//│                                   LNil ≤ ⊥
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: κ}
+//│                     (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {tail: κ}
+//│                       LCons ∧ {head: θ} ≤ {tail: κ}
+//│                         LCons ≤ {tail: κ}
+//│                         {head: θ} ≤ {tail: κ}
+//│                           θ ≤ ⊥
+//│                             ⟨Int, Int⟩ ≤ ⊥
+//│                       {tail: ι} ≤ {tail: κ}
+//│                         ι ≤ κ
+//│                           λ ≤ κ
+//│                             (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ κ
+//│                               (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ LNil
+//│                                 LCons ∧ {head: μ} ≤ LNil
+//│                                   LCons ≤ LNil
+//│                                   {head: μ} ≤ LNil
+//│                                     μ ≤ ⊥
+//│                                       Str ≤ ⊥
+//│                                 {tail: ν} ≤ LNil
+//│                                   ν ≤ ⊥
+//│                                     ξ ≤ ⊥
+//│                                       LNil ≤ ⊥
+//│                               (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: κ}
+//│                                 (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ LCons ∧ {head: ⟨Int, Int⟩}
+//│                                   (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ {head: ⟨Int, Int⟩}
+//│                                     LCons ∧ {head: μ} ≤ {head: ⟨Int, Int⟩}
+//│                                       LCons ≤ {head: ⟨Int, Int⟩}
+//│                                       {head: μ} ≤ {head: ⟨Int, Int⟩}
+//│                                         μ ≤ ⟨Int, Int⟩
+//│                                           Str ≤ ⟨Int, Int⟩
+//│                                     {tail: ν} ≤ {head: ⟨Int, Int⟩}
+//│                                       ν ≤ ⊥
+//│                                         ξ ≤ ⊥
+//│                                           LNil ≤ ⊥
+
+val repeatSq = repeat([1, 1])
+inquireFrontLz(repeatSq) as [Int, Int]
+inquireFrontLz(removeFrontLz(repeatSq)) as [Int, Int]
+emptyQueueLz(delay(() => LzNil())) as Bool
+//│ repeatSq: ∀α. {α ≥ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: α})}} ⟹ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: α})}
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ Bool

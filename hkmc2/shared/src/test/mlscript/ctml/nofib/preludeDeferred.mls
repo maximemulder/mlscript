@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 67 member(s)
+//│ Imported 75 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 
@@ -295,4 +295,13 @@ fun sum(xs) =
     LNil() then a
     LCons(h, t) then go(t, a + h)
   go(xs, 0)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Concatenate two lazy lists when the next node is demanded. */
+fun appendLzLz(xs, ys) = delay(() =>
+  if force(xs) is
+    LzNil() then force(ys)
+    LzCons(h, t) then LzCons(h, appendLzLz(t, ys))
+)
 //│ CTML translation succeeded.

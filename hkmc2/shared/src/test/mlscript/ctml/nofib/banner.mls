@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 67 member(s)
+//│ Imported 75 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/banner.mls.
 // Glyphs remain five rows of UTF-16 code units, in source order.
@@ -74,7 +74,7 @@ val punct =
   let tail4 = LCons(punct4, LCons(punct5, LCons(punct6, LNil())))
   let tail0 = LCons(punct0, LCons(punct1, LCons(punct2, LCons(punct3, tail4))))
   tail0
-//│ punct: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, π, ρ, σ, τ, υ, φ, χ, ψ, ω, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588. {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ}), θ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ}), κ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ}), ι ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι}), η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η}), π ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: π}), σ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: σ}), υ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: υ}), τ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: τ}), ρ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ρ}), 579 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 579}), 581 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 581}), 583 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 583}), 582 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 582}), 580 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 580}), 585 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 585}), 587 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 587}), 588 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 588}), 586 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 586}), 584 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 584}), χ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: χ}), ω ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ω}), 578 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 578}), ψ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ψ}), φ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: φ}), μ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ}), ξ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ξ}), ο ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ο}), ν ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ν}), λ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ}), β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ν})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ξ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ο})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: π})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ρ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: σ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: τ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: υ})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: φ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: χ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ψ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ω})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 578})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 579})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 580})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 581})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 582})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 583})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 584})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 585})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 586})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 587})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 588})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: LNil}}}}}}}
+//│ punct: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, π, ρ, σ, τ, υ, φ, χ, ψ, ω, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696. {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ}), θ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ}), κ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ}), ι ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι}), η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η}), π ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: π}), σ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: σ}), υ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: υ}), τ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: τ}), ρ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ρ}), 687 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 687}), 689 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 689}), 691 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 691}), 690 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 690}), 688 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 688}), 693 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 693}), 695 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 695}), 696 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 696}), 694 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 694}), 692 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 692}), χ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: χ}), ω ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ω}), 686 ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 686}), ψ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ψ}), φ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: φ}), μ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ}), ξ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ξ}), ο ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ο}), ν ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ν}), λ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ}), β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ν})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ξ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ο})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: π})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ρ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: σ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: τ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: υ})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: φ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: χ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ψ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ω})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 686})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 687})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 688})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 689})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 690})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 691})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: (LCons ∧ {head: ⟨Str, (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 692})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 693})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 694})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 695})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: 696})}) ∧ {tail: LNil}}}}}⟩}) ∧ {tail: LNil}}}}}}}
 
 :ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
 /** Digit glyphs in numeric order. */
@@ -158,13 +158,6 @@ fun isDigit(c) =
 fun isSpace(c) = nofibCharCode(c) == 32
 //│ isSpace: Str → Bool
 
-/** Return the element at a zero-based list index. The source operation is partial. */
-fun atIndex(i, ls) = if ls is
-  LCons(h, t) and
-    i == 0 then h
-    else atIndex(i - 1, t)
-//│ atIndex: ∀α, β. {β ≤ ({tail: β} ∧ {head: α}) ∧ LCons} ⟹ Int → (({tail: β} ∧ {head: α}) ∧ LCons) → α
-
 isUpper("I") as Bool
 isLower("s") as Bool
 isDigit("1") as Bool
@@ -173,29 +166,6 @@ isSpace("") as Bool
 //│ Bool
 //│ Bool
 //│ Bool
-
-:fixme // FIXME: The inferred index traversal requires a self-recursive nonempty tail.
-atIndex(0, LCons("first", LNil())) as Str
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
-//│ Typing error tree:
-//│   α ≤ β → γ
-//│     (({tail: δ} ∧ {head: ε}) ∧ LCons) → ε ≤ β → γ
-//│       β ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
-//│         (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
-//│           (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {tail: δ} ∧ {head: ε}
-//│             (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {tail: δ}
-//│               LCons ∧ {head: ζ} ≤ {tail: δ}
-//│                 LCons ≤ {tail: δ}
-//│                 {head: ζ} ≤ {tail: δ}
-//│                   ζ ≤ ⊥
-//│                     Str ≤ ⊥
-//│               {tail: η} ≤ {tail: δ}
-//│                 η ≤ δ
-//│                   η ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
-//│                     θ ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
-//│                       LNil ≤ ({tail: δ} ∧ {head: ε}) ∧ LCons
-//│                         LNil ≤ {tail: δ} ∧ {head: ε}
-//│                           LNil ≤ {tail: δ}
 
 :ctml-parse-only // FIXME: The alphabet and digit tables are translation-only.
 /** Select a glyph, with an empty row as the default for unsupported characters. */

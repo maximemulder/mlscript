@@ -59,35 +59,40 @@ fun findk(k, km, m, ls) = if ls is
     if m <= score then findk(k + 1, k, score, rest) else findk(k + 1, km, m, rest)
 //│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget even with temporary dependency contracts.
-// /** Split at the best score and compose the two subsequence builders. */
-// fun algc(m, n, xs, ys) = if
-//   ys is LNil() then x => x
-//   xs is
-//     LCons(x, LNil()) and
-//       inList(x, ys) then t => LCons(x, t)
-//       else x => x
-//   else
-//     let m2 = intDiv(m, 2)
-//     let xs1 = take(m2, xs)
-//     let xs2 = leave(m2, xs)
-//     let l1 = algb(xs1, ys)
-//     let l2 = reverse(algb(reverse(xs2), reverse(ys)))
-//     let k = findk(0, 0, 0 - 1, zip(l1, l2))
-//     compose(algc(m2, k, xs1, take(k, ys)), algc(m - m2, n - k, xs2, leave(k, ys)))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget even with temporary dependency contracts.
+/** Split at the best score and compose the two subsequence builders. */
+fun algc(m, n, xs, ys) = if
+  ys is LNil() then x => x
+  xs is
+    LCons(x, LNil()) and
+      inList(x, ys) then t => LCons(x, t)
+      else x => x
+  else
+    let m2 = intDiv(m, 2)
+    let xs1 = take(m2, xs)
+    let xs2 = leave(m2, xs)
+    let l1 = algb(xs1, ys)
+    let l2 = reverse(algb(reverse(xs2), reverse(ys)))
+    let k = findk(0, 0, 0 - 1, zip(l1, l2))
+    compose(algc(m2, k, xs1, take(k, ys)), algc(m - m2, n - k, xs2, leave(k, ys)))
+//│ CTML translation succeeded.
 
-// FIXME: This step depends on the disabled algc definition.
-// /** Build the longest common subsequence of two lists. */
-// fun lcss(xs, ys) = algc(listLen(xs), listLen(ys), xs, ys)(LNil())
+:ctml-parse-only // FIXME: The recursive subsequence reconstruction is translation-only.
+/** Build the longest common subsequence of two lists. */
+fun lcss(xs, ys) = algc(listLen(xs), listLen(ys), xs, ys)(LNil())
+//│ CTML translation succeeded.
 
-// FIXME: This step depends on the disabled lcss definition.
-// /** Construct the two source progressions in argument order. */
-// fun lcssMain(a, b, c, d, e, f) = lcss(enumFromThenTo(a, b, c), enumFromThenTo(d, e, f))
+:ctml-parse-only // FIXME: The subsequence builder is translation-only.
+/** Construct the two source progressions in argument order. */
+fun lcssMain(a, b, c, d, e, f) = lcss(enumFromThenTo(a, b, c), enumFromThenTo(d, e, f))
+//│ CTML translation succeeded.
 
-// FIXME: The fixed-input harness depends on the disabled lcssMain definition.
-// /** Run the fixed source progressions. */
-// fun testLCSS_nofib(_input) = lcssMain(1, 2, 60, 30, 31, 90)
+:ctml-parse-only // FIXME: The progression driver is translation-only.
+/** Run the fixed source progressions. */
+fun testLCSS_nofib(_input) = lcssMain(1, 2, 60, 30, 31, 90)
+//│ CTML translation succeeded.
 
-// FIXME: The harness is disabled, and CTML list constructors lack source-format toString.
-// /** Render the subsequence for the source benchmark input. */
-// fun main() = testLCSS_nofib(0).toString()
+:ctml-parse-only // FIXME: The harness is translation-only and list constructors lack the source-format toString.
+/** Render the subsequence for the source benchmark input. */
+fun main() = testLCSS_nofib(0).toString()
+//│ CTML translation succeeded.

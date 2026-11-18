@@ -1,0 +1,384 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 83 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/pretty.mls.
+// The sequence constructors use structural fields for their recursive children.
+// A single dispatcher visits the current fragment or resumes the stack of pending fragments.
+
+/** Append two fragments at the current indentation. */
+data class CAppend(a, b)
+/** Increase indentation within a fragment. */
+data class CIndent(a: Int, b)
+/** A fragment containing a list of source character code units. */
+data class CStr(a: [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X)
+/** A fragment containing one source character code unit. */
+data class CCh(a: Str)
+/** The empty fragment. */
+data class CNil()
+/** A newline fragment. */
+data class CNewline()
+//│ CAppend: ∀α, β. α → β → ((CAppend ∧ {a: α}) ∧ {b: β})
+//│ CIndent: ∀γ, δ. {γ ≤ Int} ⟹ γ → δ → ((CIndent ∧ {a: γ}) ∧ {b: δ})
+//│ CStr: ∀ε. {ε ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ ε → (CStr ∧ {a: ε})
+//│ CCh: ∀ζ. {ζ ≤ Str} ⟹ ζ → (CCh ∧ {a: ζ})
+//│ CNil: Unit → CNil
+//│ CNewline: Unit → CNewline
+
+/** User-facing presentation. */
+data class PprForUser()
+/** Debug presentation. */
+data class PprDebug()
+/** Presentation with all details. */
+data class PprShowAll()
+/** Interface presentation. */
+data class PprInterface()
+//│ PprForUser: Unit → PprForUser
+//│ PprDebug: Unit → PprDebug
+//│ PprShowAll: Unit → PprShowAll
+//│ PprInterface: Unit → PprInterface
+
+/** The empty document fragment. */
+val cNil = CNil()
+//│ cNil: CNil
+
+/** A document fragment ending the current line. */
+val cNL = CNewline()
+//│ cNL: CNewline
+
+/** Concatenate two document fragments. */
+fun cAppend(cs1, cs2) = CAppend(cs1, cs2)
+//│ cAppend: ∀α, β. α → β → ((CAppend ∧ {a: α}) ∧ {b: β})
+
+/** Indent a document fragment. */
+fun cIndent(n, cs) = CIndent(n, cs)
+//│ cIndent: ∀α, β. {α ≤ Int} ⟹ α → β → ((CIndent ∧ {a: α}) ∧ {b: β})
+
+/** Form a fragment from a character list. */
+fun cStr(s) = CStr(s)
+//│ cStr: ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → (CStr ∧ {a: α})
+
+/** Form a fragment from a character. */
+fun cCh(c) = CCh(c)
+//│ cCh: ∀α. {α ≤ Str} ⟹ α → (CCh ∧ {a: α})
+
+/** Prepend tabs of width eight followed by the remaining spaces. */
+fun mkIndent(n, s) = if
+  n === 0 then s
+  8 <= n then LCons("\t", mkIndent(n - 8, s))
+  else LCons(" ", mkIndent(n - 1, s))
+//│ mkIndent: ∀α, β, γ. {α ≤ β ∧ γ, γ ≥ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), β ≥ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ Int → α → ((((LCons ∧ {head: Str}) ∧ {tail: γ}) ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})) ∨ α)
+
+/** Resume the pending stack of column and fragment pairs. */
+data class Pending(seqs)
+/** Process a fragment at the given column before resuming the stack. */
+data class Fragment(col: Int, seq, seqs)
+//│ Pending: ∀α. α → (Pending ∧ {seqs: α})
+//│ Fragment: ∀β, γ, δ. {β ≤ Int} ⟹ β → γ → δ → (((Fragment ∧ {col: β}) ∧ {seq: γ}) ∧ {seqs: δ})
+
+:ctml-parse-only // FIXME: Recursive dispatch through the fragment stack exceeds the 20000-call budget.
+/** Flatten fragments in source order, indenting only at the start of each line. */
+fun flatten(nlp, task) = if task is
+  Pending(seqs) and seqs is
+    LNil() then LNil()
+    LCons([col, seq], rest) then flatten(nlp, Fragment(col, seq, rest))
+  Fragment(n, cseq, seqs) and cseq is
+    CNil() then flatten(nlp, Pending(seqs))
+    CAppend(seq1, seq2) then flatten(nlp, Fragment(n, seq1, LCons([n, seq2], seqs)))
+    CIndent(n_, seq) then flatten(nlp, Fragment(n_ + n, seq, seqs))
+    CNewline() then LCons("\n", flatten(true, Pending(seqs)))
+    CStr(s) then
+      if nlp then mkIndent(n, append(s, flatten(false, Pending(seqs))))
+      else append(s, flatten(false, Pending(seqs)))
+    CCh(c) then
+      if nlp then mkIndent(n, LCons(c, flatten(false, Pending(seqs))))
+      else LCons(c, flatten(false, Pending(seqs)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive fragment dispatcher is translation-only.
+/** Render a fragment at the beginning of a line. */
+fun cShow(seq) = flatten(true, Fragment(0, seq, LNil()))
+//│ CTML translation succeeded.
+
+/** A fragment with its final line length, emptiness, and single-line fit flag. */
+data class MkPrettyRep(cseq, n: Int, b1: Bool, b2: Bool)
+//│ MkPrettyRep: ∀α, β, γ, δ. {β ≤ Int, δ ≤ Bool, γ ≤ Bool} ⟹ α → β → γ → δ → ((((MkPrettyRep ∧ {cseq: α}) ∧ {n: β}) ∧ {b1: γ}) ∧ {b2: δ})
+
+:ctml-parse-only // FIXME: The fragment renderer is translation-only.
+/** Render a printer at the requested width. */
+fun ppShow(width, p) = if p(width, false) is
+  MkPrettyRep(seq, _, _, _) then cShow(seq)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The fragment renderer is translation-only.
+/** Render a printer at the default width of eighty. */
+fun ppUnformatted(p) = if p(80, false) is
+  MkPrettyRep(seq, _, _, _) then cShow(seq)
+//│ CTML translation succeeded.
+
+/** Build the empty document at the given width. */
+fun ppNil(width, is_vert) = MkPrettyRep(cNil, 0, true, 0 <= width)
+//│ ppNil: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CNil}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+ppNil(0, false).b1 as Bool
+//│ Bool
+
+:te
+MkPrettyRep(CNil(), 0, 1, false)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int → β.
+//│ Typing error tree:
+//│   α ≤ Int → β
+//│     γ → δ → ((((MkPrettyRep ∧ {cseq: ε}) ∧ {n: ζ}) ∧ {b1: γ}) ∧ {b2: δ}) ≤ Int → β
+//│       Int ≤ γ
+//│         Int ≤ Bool
+
+/** Build a character-list document at the given width. */
+fun ppStr(s, width, is_vert) =
+  let ls = listLen(s)
+  MkPrettyRep(cStr(s), ls, false, ls <= width)
+//│ ppStr: ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Build a one-character document at the given width. */
+fun ppChar(c, width, is_vert) = MkPrettyRep(cCh(c), 1, false, 1 <= width)
+//│ ppChar: ∀α. {α ≤ Str} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+ppChar("@", 80, false).n as Int
+ppChar("@", 80, false).cseq.a as Str
+ppStr(LCons("x", LNil()), 80, false).b2 as Bool
+//│ Int
+//│ Str
+//│ Bool
+
+:te
+cStr(LCons(1, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → (CStr ∧ {a: α}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → (CStr ∧ {a: α}) ≤ β → γ
+//│     {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ δ → (CStr ∧ {a: δ}) ≤ β → γ
+//│       δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})} ⟹ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                   LCons ∧ {head: ε} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ζ} ≤ LNil
+//│                     ζ ≤ ⊥
+//│                       θ ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: Str}) ∧ {tail: η}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: Str}
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: Str}
+//│                       LCons ∧ {head: ε} ≤ {head: Str}
+//│                         LCons ≤ {head: Str}
+//│                         {head: ε} ≤ {head: Str}
+//│                           ε ≤ Str
+//│                             Int ≤ Str
+//│                       {tail: ζ} ≤ {head: Str}
+//│                         ζ ≤ ⊥
+//│                           θ ≤ ⊥
+//│                             LNil ≤ ⊥
+
+:fixme // FIXME: The inferred string producer cannot instantiate ppStr's recursive list input.
+/** Render an integer as a document. */
+fun ppInt(n, width, is_vert) = ppStr(nofibStringToList(stringOfInt(n)), width, is_vert)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
+//│     {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ δ → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: δ}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
+//│       δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})} ⟹ ζ
+//│               LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
+//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
+//│                     LCons ∧ {head: Str} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: Str} ≤ LNil
+//│                         Str ≤ ⊥
+//│                     {tail: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
+//│                           LNil ≤ ⊥
+//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: Str}) ∧ {tail: ζ}
+//│                     (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                       LCons ∧ {head: Str} ≤ {tail: ζ}
+//│                         LCons ≤ {tail: ζ}
+//│                         {head: Str} ≤ {tail: ζ}
+//│                           Str ≤ ⊥
+//│                       {tail: ε} ≤ {tail: ζ}
+//│                         ε ≤ ζ
+//│                           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+
+:fixme // FIXME: The inferred string producer cannot instantiate ppStr's recursive list input.
+/** Print a comma followed by a space. */
+fun pp_SP(a, b) = ppStr(nofibStringToList(", "), a, b)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
+//│     {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ δ → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: δ}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
+//│       δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})} ⟹ ζ
+//│               LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
+//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
+//│                     LCons ∧ {head: Str} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: Str} ≤ LNil
+//│                         Str ≤ ⊥
+//│                     {tail: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
+//│                           LNil ≤ ⊥
+//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: Str}) ∧ {tail: ζ}
+//│                     (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                       LCons ∧ {head: Str} ≤ {tail: ζ}
+//│                         LCons ≤ {tail: ζ}
+//│                         {head: Str} ≤ {tail: ζ}
+//│                           Str ≤ ⊥
+//│                       {tail: ε} ≤ {tail: ζ}
+//│                         ε ≤ ζ
+//│                           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+
+/** Print a space. */
+fun ppSP(a, b) = ppChar(" ", a, b)
+//│ ppSP: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Print an opening square bracket. */
+fun ppLbrack(a, b) = ppChar("[", a, b)
+//│ ppLbrack: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Print a closing square bracket. */
+fun ppRbrack(a, b) = ppChar("]", a, b)
+//│ ppRbrack: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Print an opening parenthesis. */
+fun ppLparen(a, b) = ppChar("(", a, b)
+//│ ppLparen: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Print a closing parenthesis. */
+fun ppRparen(a, b) = ppChar(")", a, b)
+//│ ppRparen: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Print a semicolon. */
+fun ppSemi(a, b) = ppChar(";", a, b)
+//│ ppSemi: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Print a comma. */
+fun ppComma(a, b) = ppChar(",", a, b)
+//│ ppComma: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CCh ∧ {a: Str}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+/** Select the second value if the first is true. */
+fun andL(a, b) = if a then b else false
+//│ andL: ∀α. Bool → α → (α ∨ Bool)
+
+/** Select the second value if the first is false. */
+fun orL(a, b) = if a then true else b
+//│ orL: ∀α. Bool → α → (α ∨ Bool)
+
+/** Put two documents beside each other without a separator. */
+fun ppBeside(p1, p2, width, is_vert) = if p1(width, false) is
+  MkPrettyRep(seq1, ll1, emp1, sl1) and p2(width - ll1, false) is
+    MkPrettyRep(seq2, ll2, emp2, sl2) then
+      MkPrettyRep(cAppend(seq1, cIndent(ll1, seq2)), ll1 + ll2,
+        andL(emp1, emp2), andL(0 <= width, andL(sl1, sl2)))
+//│ ppBeside: ∀α, β, γ, δ. {γ ≤ Int, α ≤ Int} ⟹ (α → Bool → (((({n: γ} ∧ {b2: Bool}) ∧ {b1: Bool}) ∧ {cseq: β}) ∧ MkPrettyRep)) → (Int → Bool → (((({n: Int} ∧ {b2: Bool}) ∧ {b1: Bool}) ∧ {cseq: δ}) ∧ MkPrettyRep)) → α → ⊤ → ((((MkPrettyRep ∧ {cseq: (CAppend ∧ {a: β}) ∧ {b: (CIndent ∧ {a: γ}) ∧ {b: δ}}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+:ctml-parse-only // FIXME: The nonempty printer fold exceeds the 20000-call budget.
+/** Arrange the documents horizontally in order, with no separators. */
+fun ppBesides(ps) = if ps is
+  LNil() then ppNil
+  LCons(_, _) then foldr1((a, b) => (c, d) => ppBeside(a, b, c, d), ps)
+//│ CTML translation succeeded.
+
+/** Put two documents beside each other with a space when both are nonempty. */
+fun ppBesideSP(p1, p2, width, is_vert) = if p1(width, false) is
+  MkPrettyRep(seq1, ll1, emp1, sl1) then
+    let li = if emp1 then 0 else ll1 + 1
+    if p2(width - li, false) is MkPrettyRep(seq2, ll2, emp2, sl2) then
+      let wi = if emp1 then 0 else 1
+      let sp = if orL(emp1, emp2) then cNil else cCh(" ")
+      MkPrettyRep(cAppend(seq1, cAppend(sp, cIndent(li, seq2))), li + ll2,
+        andL(emp1, emp2), andL(wi <= width, andL(sl1, sl2)))
+//│ ppBesideSP: ∀α, β, γ. {α ≤ Int} ⟹ (α → Bool → (((({n: Int} ∧ {b2: Bool}) ∧ {b1: Bool}) ∧ {cseq: β}) ∧ MkPrettyRep)) → (Int → Bool → (((({n: Int} ∧ {b2: Bool}) ∧ {b1: Bool}) ∧ {cseq: γ}) ∧ MkPrettyRep)) → α → ⊤ → ((((MkPrettyRep ∧ {cseq: (CAppend ∧ {a: β}) ∧ {b: (CAppend ∧ {a: (CCh ∧ {a: Str}) ∨ CNil}) ∧ {b: (CIndent ∧ {a: Int}) ∧ {b: γ}}}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+:ctml-parse-only // FIXME: The nonempty printer fold exceeds the 20000-call budget.
+/** Arrange the documents horizontally, separating nonempty items with spaces. */
+fun ppCat(ps) = if ps is
+  LNil() then ppNil
+  LCons(_, _) then foldr1((a, b) => (c, d) => ppBesideSP(a, b, c, d), ps)
+//│ CTML translation succeeded.
+
+/** Stack two documents vertically, with a newline when both are nonempty. */
+fun ppAbove(p1, p2, width, is_vert) = if p1(width, true) is
+  MkPrettyRep(seq1, ll1, emp1, sl1) and p2(width, true) is
+    MkPrettyRep(seq2, ll2, emp2, sl2) then
+      let nl = if orL(emp1, emp2) then cNil else cNL
+      MkPrettyRep(cAppend(seq1, cAppend(nl, seq2)), ll2, andL(emp1, emp2), false)
+//│ ppAbove: ∀α, β, γ, δ. {δ ≤ Int} ⟹ (α → Bool → (((({n: ⊤} ∧ {b2: ⊤}) ∧ {b1: Bool}) ∧ {cseq: β}) ∧ MkPrettyRep)) → (α → Bool → (((({n: δ} ∧ {b2: ⊤}) ∧ {b1: Bool}) ∧ {cseq: γ}) ∧ MkPrettyRep)) → α → ⊤ → ((((MkPrettyRep ∧ {cseq: (CAppend ∧ {a: β}) ∧ {b: (CAppend ∧ {a: CNil ∨ CNewline}) ∧ {b: γ}}}) ∧ {n: δ}) ∧ {b1: Bool}) ∧ {b2: Bool})
+
+:ctml-parse-only // FIXME: The nonempty printer fold exceeds the 20000-call budget.
+/** Stack the documents vertically in order. */
+fun ppAboves(ps, a, b) = if ps is
+  LNil() then ppNil(a, b)
+  LCons(_, _) then foldr1((a, b) => (c, d) => ppAbove(a, b, c, d), ps)(a, b)
+//│ CTML translation succeeded.
+
+ppBeside(ppLparen, ppRparen, 80, false).n as Int
+ppBesideSP(ppLparen, ppRparen, 80, false).b2 as Bool
+ppAbove(ppLparen, ppRparen, 80, false).cseq.b.a as (CNil | CNewline)
+//│ Int
+//│ Bool
+//│ CNil ∨ CNewline
+
+:ctml-parse-only // FIXME: Combining the vertical and horizontal layouts exceeds the 20000-call budget.
+/** Indent a printer when laying out vertically. */
+fun ppNest(n, p, width, is_vert) = if
+  is_vert and p(width - n, true) is MkPrettyRep(seq, ll, emp, sl) then
+    MkPrettyRep(cIndent(n, seq), ll + n, emp, sl)
+  else p(width, false)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The fit tests and three layouts exceed the 20000-call budget.
+/** Place a hanging document beside its label if selected by the source fit rule. */
+fun ppHang(p1, n, p2, width, is_vert) = if p1(width, false) is
+  MkPrettyRep(seq1, ll1, emp1, sl1) and p2(width - (ll1 + 1), false) is
+    MkPrettyRep(seq2, ll2, emp2, sl2) and p2(width - n, false) is
+      MkPrettyRep(seq2_, ll2_, emp2_, sl2_) then
+        if
+          emp1 then p2(width, is_vert)
+          orL(ll1 <= n, sl2) then
+            MkPrettyRep(cAppend(seq1, cAppend(cCh(" "), cIndent(ll1 + 1, seq2))),
+              ll1 + 1 + ll2, false, andL(sl1, sl2))
+          else MkPrettyRep(cAppend(seq1, cAppend(cNL, cIndent(n, seq2_))), ll2_, false, false)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The printer folds and final rendering are translation-only.
+/** Render the three source documents and add the trailing newline. */
+fun testPretty_nofib() =
+  /** Print one repeated word. */
+  fun pp_word(a, b) = ppStr(nofibStringToList("xxxxx"), a, b)
+  let pp_words = replicate(50, pp_word)
+  /** Stack the three sections of the source document. */
+  fun pretty_stuff(a, b) =
+    let first = ppBesides(LCons((a, b) => ppInt(0 - 42, a, b),
+      LCons((a, b) => ppChar("@", a, b),
+        LCons((a, b) => ppStr(nofibStringToList("This is a string"), a, b), LNil()))))
+    /** Hang the repeated words from the label. */
+    fun third(a, b) = ppHang(
+      (a, b) => ppStr(nofibStringToList("This is the label"), a, b), 8, ppCat(pp_words), a, b)
+    ppAboves(LCons(first, LCons((a, b) => pp_SP(a, b), LCons(third, LNil()))), a, b)
+  append(ppShow(80, pretty_stuff), nofibStringToList("\n"))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full benchmark layout is translation-only.
+/** Join the source output's character list into a string. */
+fun main() = nofibListToString(testPretty_nofib())
+//│ CTML translation succeeded.

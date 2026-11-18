@@ -1,0 +1,500 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 83 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/constraints.mls.
+// The quicksort group uses one recursive dispatcher. Node's structural fields carry the
+// label and children as the solvers transform the tree. Known and Unknown tag search results.
+
+/** Assign a value to a one-based variable. */
+data class Assign(varr: Int, value: Int)
+//│ Assign: ∀α, β. {β ≤ Int, α ≤ Int} ⟹ α → β → ((Assign ∧ {varr: α}) ∧ {value: β})
+
+/** An assignment with both integer fields available to the relation. */
+type Assignment = Assign & {varr: Int} & {value: Int}
+//│ Assignment = (Assign ∧ {varr: Int}) ∧ {value: Int}
+
+/** A constraint problem with variable and value counts and a compatibility predicate. */
+data class CSP(vars: Int, vals: Int, rel: Assignment -> Assignment -> Bool)
+//│ CSP: ∀α, β, γ. {β ≤ Int, γ ≤ Assignment → Assignment → Bool, α ≤ Int} ⟹ α → β → γ → (((CSP ∧ {vars: α}) ∧ {vals: β}) ∧ {rel: γ})
+
+/** Sort a list in the forward mode. */
+data class Sort(ls, acc)
+/** Partition around the pivot in the forward mode. */
+data class Part(pivot, ls, smaller, greaterEqual, acc)
+/** Sort a list in the reverse mode. */
+data class ReverseSort(ls, acc)
+/** Partition around the pivot in the reverse mode. */
+data class ReversePart(pivot, ls, smallerEqual, greater, acc)
+//│ Sort: ∀α, β. α → β → ((Sort ∧ {ls: α}) ∧ {acc: β})
+//│ Part: ∀γ, δ, ε, ζ, η. γ → δ → ε → ζ → η → (((((Part ∧ {pivot: γ}) ∧ {ls: δ}) ∧ {smaller: ε}) ∧ {greaterEqual: ζ}) ∧ {acc: η})
+//│ ReverseSort: ∀θ, ι. θ → ι → ((ReverseSort ∧ {ls: θ}) ∧ {acc: ι})
+//│ ReversePart: ∀κ, λ, μ, ν, ξ. κ → λ → μ → ν → ξ → (((((ReversePart ∧ {pivot: κ}) ∧ {ls: λ}) ∧ {smallerEqual: μ}) ∧ {greater: ν}) ∧ {acc: ξ})
+
+:ctml-parse-only // FIXME: Recursive dispatch across the four partition modes exceeds the 20000-call budget.
+/** Run the source quicksort and partition modes with their respective accumulators. */
+fun quicksort(le, task) = if task is
+  Sort(ls, r) and ls is
+    LNil() then r
+    LCons(x, LNil()) then LCons(x, r)
+    LCons(x, xs) then quicksort(le, Part(x, xs, LNil(), LNil(), r))
+  Part(x, ls, rlt, rge, r) and ls is
+    LNil() then quicksort(le, ReverseSort(rlt, LCons(x, quicksort(le, ReverseSort(rge, r)))))
+    LCons(y, ys) then
+      if le(x, y) then quicksort(le, Part(x, ys, rlt, LCons(y, rge), r))
+      else quicksort(le, Part(x, ys, LCons(y, rlt), rge, r))
+  ReverseSort(ls, r) and ls is
+    LNil() then r
+    LCons(x, LNil()) then LCons(x, r)
+    LCons(x, xs) then quicksort(le, ReversePart(x, xs, LNil(), LNil(), r))
+  ReversePart(x, ls, rle, rgt, r) and ls is
+    LNil() then quicksort(le, ReverseSort(rle, LCons(x, quicksort(le, Sort(rgt, r)))))
+    LCons(y, ys) then
+      if le(y, x) then quicksort(le, ReversePart(x, ys, LCons(y, rle), rgt, r))
+      else quicksort(le, ReversePart(x, ys, rle, LCons(y, rgt), r))
+//│ CTML translation succeeded.
+
+/** Extract the variable number of an assignment. */
+fun level(a) = if a is Assign(v, _) then v
+//│ level: ∀α. (({varr: α} ∧ Assign) ∧ {value: ⊤}) → α
+
+/** Extract the assigned value. */
+fun value(a) = if a is Assign(_, v) then v
+//│ value: ∀α. (({value: α} ∧ Assign) ∧ {varr: ⊤}) → α
+
+/** Read the level of the latest assignment, or zero at the root. */
+fun maxLevel(ls) = if ls is
+  LNil() then 0
+  LCons(Assign(v, _), _) then v
+//│ maxLevel: ∀α, β. {β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ ({head: ({varr: β} ∧ Assign) ∧ {value: ⊤}} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ (({head: ({varr: β} ∧ Assign) ∧ {value: ⊤}} ∧ LCons) ∧ {tail: ⊤})} ⟹ α → β
+
+/** Test whether each variable has been assigned. */
+fun complete(csp, s) = if csp is CSP(v, _, _) then maxLevel(s) == v
+//│ complete: ((({vars: ⊤} ∧ CSP) ∧ {vals: ⊤}) ∧ {rel: ⊤}) → (LNil ∨ (({head: ({varr: ⊤} ∧ Assign) ∧ {value: ⊤}} ∧ LCons) ∧ {tail: ⊤})) → Bool
+
+/** Test that two queens share neither a column nor a diagonal. */
+fun safe(as1, as2) = if as1 is Assign(i, m) and as2 is Assign(j, n) then
+  (if m == n then false else true) && (if abs(i - j) == abs(m - n) then false else true)
+//│ safe: (({value: Int} ∧ {varr: Int}) ∧ Assign) → (({value: Int} ∧ {varr: Int}) ∧ Assign) → Bool
+
+/** Form the n-queens problem. */
+fun queens(n) = CSP(n, n, safe)
+//│ queens: ∀α. {α ≤ Int} ⟹ α → (((CSP ∧ {vars: α}) ∧ {vals: α}) ∧ {rel: (({value: Int} ∧ {varr: Int}) ∧ Assign) → (({value: Int} ∧ {varr: Int}) ∧ Assign) → Bool})
+
+queens(6).vars as Int
+queens(6).vals as Int
+queens(6).rel(Assign(1, 1), Assign(2, 3)) as Bool
+//│ Int
+//│ Int
+//│ Bool
+
+:te
+CSP(6, 6, (a, b) => 0)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ (⊤ → ⊤ → Int) → β.
+//│ Typing error tree:
+//│   α ≤ (⊤ → ⊤ → Int) → β
+//│     γ → (((CSP ∧ {vars: δ}) ∧ {vals: ε}) ∧ {rel: γ}) ≤ (⊤ → ⊤ → Int) → β
+//│       ⊤ → ⊤ → Int ≤ γ
+//│         ⊤ → ⊤ → Int ≤ Assignment → Assignment → Bool
+//│           ⊤ → Int ≤ Assignment → Bool
+//│             Int ≤ Bool
+
+/** A search tree node with its label and child list. */
+data class Node(lab, children)
+//│ Node: ∀α, β. α → β → ((Node ∧ {lab: α}) ∧ {children: β})
+
+/** Extract the label of one node. */
+fun label(n) = if n is Node(l, _) then l
+//│ label: ∀α. (({lab: α} ∧ Node) ∧ {children: ⊤}) → α
+
+/** Apply a function to every node's label. */
+fun mapTree(f, n) = if n is Node(l, c) then Node(f(l), map(x => mapTree(f, x), c))
+//│ mapTree: ∀α, β, γ, δ. {δ ≥ (Node ∧ {lab: β}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y}, γ ≤ ({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node} ⟹ (α → β) → (({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node) → ((Node ∧ {lab: β}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y})
+
+mapTree(stringOfInt, Node(42, LNil())).lab as Str
+mapTree(stringOfInt, Node(0, LCons(Node(42, LNil()), LNil()))).lab as Str
+//│ Str
+//│ Str
+
+/** Fold from the children up, passing the child results in source order. */
+fun foldTree(f, n) = if n is Node(l, c) then f(l, map(x => foldTree(f, x), c))
+//│ foldTree: ∀α, β, γ, δ. {γ ≥ δ, β ≤ ({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node} ⟹ (α → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → δ) → (({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node) → δ
+
+/** Keep only children whose folded node labels satisfy the predicate. */
+fun filterTree(p, t) =
+  /** Rebuild the node with the children that meet the predicate. */
+  fun f1(a, cs) = Node(a, filter(x => p(label(x)), cs))
+  foldTree(f1, t)
+//│ filterTree: (⊥ → Bool) → {lab: ⊥} → {lab: ⊥}
+
+/** Remove children whose labels satisfy the pruning predicate. */
+fun prune(p, t) = filterTree(x => if p(x) then false else true, t)
+//│ prune: (⊥ → Bool) → {lab: ⊥} → {lab: ⊥}
+
+:fixme // FIXME: The inferred prune function requires a node labelled with bottom.
+prune(x => x == 0, Node(1, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     {lab: ⊥} → {lab: ⊥} ≤ β → γ
+//│       β ≤ {lab: ⊥}
+//│         (Node ∧ {lab: δ}) ∧ {children: ε} ≤ {lab: ⊥}
+//│           Node ∧ {lab: δ} ≤ {lab: ⊥}
+//│             Node ≤ {lab: ⊥}
+//│             {lab: δ} ≤ {lab: ⊥}
+//│               δ ≤ ⊥
+//│                 Int ≤ ⊥
+//│           {children: ε} ≤ {lab: ⊥}
+//│             ε ≤ ⊥
+//│               ζ ≤ ⊥
+//│                 LNil ≤ ⊥
+
+/** Collect leaf labels from left to right. */
+fun leaves(t) = if t is
+  Node(leaf, LNil()) then LCons(leaf, LNil())
+  Node(_, cs) then concat(map(leaves, cs))
+//│ leaves: ∀α. (({lab: α} ∧ Node) ∧ {children: LNil}) → ((LCons ∧ {head: α}) ∧ {tail: LNil})
+
+head(leaves(Node(42, LNil()))) as Int
+//│ Int
+
+:fixme // FIXME: The inferred leaves function accepts only nodes without children.
+leaves(Node(0, LCons(Node(42, LNil()), LNil())))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (({lab: α} ∧ Node) ∧ {children: LNil}) → ((LCons ∧ {head: α}) ∧ {tail: LNil}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (({lab: α} ∧ Node) ∧ {children: LNil}) → ((LCons ∧ {head: α}) ∧ {tail: LNil}) ≤ β → γ
+//│     (({lab: δ} ∧ Node) ∧ {children: LNil}) → ((LCons ∧ {head: δ}) ∧ {tail: LNil}) ≤ β → γ
+//│       β ≤ ({lab: δ} ∧ Node) ∧ {children: LNil}
+//│         (Node ∧ {lab: ε}) ∧ {children: ζ} ≤ ({lab: δ} ∧ Node) ∧ {children: LNil}
+//│           (Node ∧ {lab: ε}) ∧ {children: ζ} ≤ {children: LNil}
+//│             Node ∧ {lab: ε} ≤ {children: LNil}
+//│               Node ≤ {children: LNil}
+//│               {lab: ε} ≤ {children: LNil}
+//│                 ε ≤ ⊥
+//│                   Int ≤ ⊥
+//│             {children: ζ} ≤ {children: LNil}
+//│               ζ ≤ LNil
+//│                 η ≤ LNil
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                     LCons ∧ {head: θ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: θ} ≤ LNil
+//│                         θ ≤ ⊥
+//│                           κ ≤ ⊥
+//│                             (Node ∧ {lab: λ}) ∧ {children: μ} ≤ ⊥
+//│                               Node ∧ {lab: λ} ≤ ⊥
+//│                                 Node ≤ ⊥
+//│                                 {lab: λ} ≤ ⊥
+//│                                   λ ≤ ⊥
+//│                                     Int ≤ ⊥
+//│                               {children: μ} ≤ ⊥
+//│                                 μ ≤ ⊥
+//│                                   ν ≤ ⊥
+//│                                     LNil ≤ ⊥
+//│                     {tail: ι} ≤ LNil
+//│                       ι ≤ ⊥
+//│                         ξ ≤ ⊥
+//│                           LNil ≤ ⊥
+
+/** Expand each seed with the child seeds it produces. */
+fun initTree(f, x) = Node(x, map(y => initTree(f, y), f(x)))
+//│ initTree: ∀α, β. {β ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y}} ⟹ (∀X. α → ({X ≥ LNil} ⟹ X)) → α → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y})
+
+:ctml-parse-only // FIXME: Recursive enumeration of candidate assignments exceeds the 20000-call budget.
+/** Enumerate assignment paths in increasing order of each variable's candidate values. */
+fun mkTree(csp) = if csp is CSP(vars, vals, _) then
+  /** Generate candidates for the next level of the assignment path. */
+  fun next(ss) =
+    if maxLevel(ss) < vars then
+      /** Build one child path for each candidate value. */
+      fun lscomp1(ls) = if ls is
+        LNil() then LNil()
+        LCons(j, t1) then LCons(LCons(Assign(maxLevel(ss) + 1, j), ss), lscomp1(t1))
+      lscomp1(enumFromTo(1, vals))
+    else LNil()
+  initTree(next, LNil())
+//│ CTML translation succeeded.
+
+/** No conflicting earlier assignment was found. */
+data class None()
+/** The latest assignment conflicts with the given earlier assignment. */
+data class Some(levels: [Int, Int])
+//│ None: Unit → None
+//│ Some: ∀α. {α ≤ ⟨Int, Int⟩} ⟹ α → (Some ∧ {levels: α})
+
+:ctml-parse-only // FIXME: Filtering the reversed assignment path exceeds the 20000-call budget.
+/** Find the earliest conflict with the latest assignment. */
+fun earliestInconsistency(csp, aas) = if csp is CSP(_, _, rel) and aas is
+  LNil() then None()
+  LCons(a, as_) and filter(x => if rel(a, x) then false else true, reverse(as_)) is
+    LNil() then None()
+    LCons(b, _) then Some([level(a), level(b)])
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The earliest-conflict search is translation-only.
+/** Label each node with its assignments and earliest inconsistency. */
+fun labelInconsistencies(csp, t) =
+  /** Pair the path with its earliest conflict. */
+  fun f2(s) = [s, earliestInconsistency(csp, s)]
+  mapTree(f2, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The assignment tree builder and inconsistency labelling are translation-only.
+/** Solve by pruning inconsistent assignments and retaining complete leaves. */
+fun btsolver0(csp) =
+  let labelled = labelInconsistencies(csp, mkTree(csp))
+  let consistent = prune(x => if snd(x) is None() then false else true, labelled)
+  filter(x => complete(csp, x), leaves(mapTree(fst, consistent)))
+//│ CTML translation succeeded.
+
+/** A known conflict set, empty when the assignment is a solution. */
+data class Known(vs: [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X)
+/** A node without a known outcome. */
+data class Unknown()
+//│ Known: ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X} ⟹ α → (Known ∧ {vs: α})
+//│ Unknown: Unit → Unknown
+
+/** Test whether a node has a known nonempty conflict set. */
+fun knownConflict(c) = if c is
+  Known(LCons(_, _)) then true
+  else false
+//│ knownConflict: ∀α. α → (({α ≤ Known ∧ {vs: (LCons ∧ {head: ⊤}) ∧ {tail: ⊤}}} ⟹ Bool) ∧ ({α ≤ ¬(Known ∧ {vs: (LCons ∧ {head: ⊤}) ∧ {tail: ⊤}})} ⟹ Bool))
+
+/** Test whether a node is a solution. */
+fun knownSolution(c) = if c is
+  Known(LNil()) then true
+  else false
+//│ knownSolution: ∀α. α → (({α ≤ Known ∧ {vs: LNil}} ⟹ Bool) ∧ ({α ≤ ¬(Known ∧ {vs: LNil})} ⟹ Bool))
+
+knownConflict(Known(LCons(2, LNil()))) as Bool
+knownSolution(Known(LNil())) as Bool
+knownConflict(Unknown()) as Bool
+//│ Bool
+//│ Bool
+//│ Bool
+
+:te
+Known(LCons("two", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X} ⟹ α → (Known ∧ {vs: α}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X} ⟹ α → (Known ∧ {vs: α}) ≤ β → γ
+//│     {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X} ⟹ δ → (Known ∧ {vs: δ}) ≤ β → γ
+//│       δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η})} ⟹ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                   LCons ∧ {head: ε} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         Str ≤ ⊥
+//│                   {tail: ζ} ≤ LNil
+//│                     ζ ≤ ⊥
+//│                       θ ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: Int}) ∧ {tail: η}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: Int}
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: Int}
+//│                       LCons ∧ {head: ε} ≤ {head: Int}
+//│                         LCons ≤ {head: Int}
+//│                         {head: ε} ≤ {head: Int}
+//│                           ε ≤ Int
+//│                             Str ≤ Int
+//│                       {tail: ζ} ≤ {head: Int}
+//│                         ζ ≤ ⊥
+//│                           θ ≤ ⊥
+//│                             LNil ≤ ⊥
+
+/** Mark complete assignments as solutions. */
+fun checkComplete(csp, s) = if complete(csp, s) then Known(LNil()) else Unknown()
+//│ checkComplete: ((({vars: ⊤} ∧ CSP) ∧ {vals: ⊤}) ∧ {rel: ⊤}) → (LNil ∨ (({head: ({varr: ⊤} ∧ Assign) ∧ {value: ⊤}} ∧ LCons) ∧ {tail: ⊤})) → (Unknown ∨ (Known ∧ {vs: LNil}))
+
+:ctml-parse-only // FIXME: The assignment tree builder is translation-only.
+/** Extract solutions after labelling and pruning a problem's assignment tree. */
+fun search(labeler, csp) =
+  let labelled = labeler(csp, mkTree(csp))
+  let viable = prune(x => knownConflict(snd(x)), labelled)
+  map(fst, filter(x => knownSolution(snd(x)), leaves(viable)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The earliest-conflict search is translation-only.
+/** Label tree nodes for ordinary backtracking. */
+fun bt(csp, t) =
+  /** Pair the path with its conflict or completion outcome. */
+  fun f3(s) =
+    let result = if earliestInconsistency(csp, s) is Some([a, b]) then
+      Known(LCons(a, LCons(b, LNil())))
+    else checkComplete(csp, s)
+    [s, result]
+  mapTree(f3, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Nested recursive table initialization exceeds the 20000-call budget.
+/** Initialize the backmarking table, including its leading empty row. */
+fun emptyTable(csp) = if csp is CSP(vars, vals, _) then
+  /** Build one row per variable. */
+  fun lscomp1(ls) = if ls is
+    LNil() then LNil()
+    LCons(_, t1) then
+      /** Set one entry per candidate value to unknown. */
+      fun lscomp2(ls) = if ls is
+        LNil() then LNil()
+        LCons(_, t2) then LCons(Unknown(), lscomp2(t2))
+      LCons(lscomp2(enumFromTo(1, vals)), lscomp1(t1))
+  LCons(LNil(), lscomp1(enumFromTo(1, vars)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Nested ranges and table zipping exceed the 20000-call budget.
+/** Cache new conflicts between the latest assignment and future candidates. */
+fun fillTable(s, csp, tbl) = if s is
+  LNil() then tbl
+  LCons(Assign(var_, val_), _) and csp is CSP(vars, vals, rel) then
+    /** Record a conflict when the candidate has no cached outcome. */
+    fun f4(cs, varval) = if varval is [varr, vall] and cs is Unknown() then
+      if rel(Assign(var_, val_), Assign(varr, vall)) then cs
+      else Known(LCons(var_, LCons(varr, LNil())))
+    else cs
+    /** Build a row of candidate assignments for each future variable. */
+    fun lscomp1(ls) = if ls is
+      LNil() then LNil()
+      LCons(varrr, t1) then
+        /** Pair the variable with each candidate value in order. */
+        fun lscomp2(ls) = if ls is
+          LNil() then LNil()
+          LCons(valll, t2) then LCons([varrr, valll], lscomp2(t2))
+        LCons(lscomp2(enumFromTo(1, vals)), lscomp1(t1))
+    zipWith((x, y) => zipWith(f4, x, y), tbl, lscomp1(enumFromTo(var_ + 1, vars)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The lookup and tree mapping exceed the 20000-call budget.
+/** Label the nodes with their cached conflicts, retaining the tables. */
+fun lookupCache(csp, t) =
+  /** Read the selected value's entry from the current table row. */
+  fun f5(csp, tp) = if tp is
+    [LNil(), tbl] then [[LNil(), Unknown()], tbl]
+    [LCons(a, as_), tbl] then
+      let tableEntry = atIndex(value(a) - 1, head(tbl))
+      let cs = if tableEntry is Unknown() then checkComplete(csp, LCons(a, as_)) else tableEntry
+      [[LCons(a, as_), cs], tbl]
+  mapTree(x => f5(csp, x), t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The table update is translation-only.
+/** Carry the cache table along each path, updating it before visiting a child. */
+fun cacheChecks(csp, tbl, n) = if n is Node(s, cs) then
+  Node([s, tbl], map(x => cacheChecks(csp, fillTable(s, csp, tail(tbl)), x), cs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Cache initialization, update, and lookup are translation-only.
+/** Label the tree by backmarking. */
+fun bm(csp, t) = mapTree(fst, lookupCache(csp, cacheChecks(csp, emptyTable(csp), t)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive filtering exceeds the 20000-call budget.
+/** Remove later equal entries using the source predicate order. */
+fun nubBy(eq, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) then LCons(h, nubBy(eq, filter(y => if eq(h, y) then false else true, t)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive list deletion exceeds the 20000-call budget.
+/** Delete the first element that matches x. */
+fun deleteBy(eq, x, ys) = if ys is
+  LNil() then LNil()
+  LCons(y, zs) then if eq(x, y) then zs else LCons(y, deleteBy(eq, x, zs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: List deduplication and deletion are translation-only.
+/** Keep the first conflict list in order and append the unseen elements of the second. */
+fun union(xs, ys) =
+  let eq = (x, y) => x == y
+  append(xs, foldl((acc, y) => deleteBy(eq, y, acc), nubBy(eq, ys), xs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Conflict-set union is translation-only.
+/** Gather conflicts, stopping when one does not involve the latest assignment. */
+fun combine(ls, acc) = if ls is
+  LNil() then acc
+  LCons([s, Known(cs)], css) then
+    if inList(maxLevel(s), cs) then combine(css, union(cs, acc))
+    else cs
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The conflict-set traversal is translation-only.
+/** Propagate conflicts and cut the children of newly identified conflict nodes. */
+fun bj_(csp, t) =
+  /** Retain known outcomes and cut newly conflicted nodes. */
+  fun f7(tp2, chs) = if tp2 is
+    [a, Known(cs)] then Node([a, Known(cs)], chs)
+    [a, Unknown()] then
+      let cs_ = Known(combine(map(label, chs), LNil()))
+      if knownConflict(cs_) then Node([a, cs_], LNil()) else Node([a, cs_], chs)
+  foldTree(f7, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The conflict-set traversal is translation-only.
+/** Propagate conflict sets upward in the tree. */
+fun bj(csp, t) =
+  /** Retain known outcomes and otherwise combine child conflicts. */
+  fun f6(tp2, chs) = if tp2 is
+    [a, Known(cs)] then Node([a, Known(cs)], chs)
+    [a, Unknown()] then Node([a, Known(combine(map(label, chs), LNil()))], chs)
+  foldTree(f6, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The backtracking and backjumping labellers are translation-only.
+/** Backtrack with conflict-directed backjumping. */
+fun bjbt(csp, t) = bj(csp, bt(csp, t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The backtracking and backjumping labellers are translation-only.
+/** Backtrack with conflict-directed backjumping and child removal. */
+fun bjbt_(csp, t) = bj_(csp, bt(csp, t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Conflict-set union is translation-only.
+/** Combine the conflict sets of the table entries. */
+fun collect(ls) = if ls is
+  LNil() then LNil()
+  LCons(Known(cs), css) then union(cs, collect(css))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Collection of the wiped domain's conflicts is translation-only.
+/** Use the first empty domain's conflicts when every value in a domain is excluded. */
+fun domainWipeout(csp, t) = if csp is CSP(_, _, _) then
+  /** Determine the outcome of one node using its table. */
+  fun f8(tp2) = if tp2 is [[as_, cs], tbl] then
+    let wipedDomains =
+      /** Collect the rows in which every candidate is known to conflict. */
+      fun lscomp1(ls) = if ls is
+        LNil() then LNil()
+        LCons(vs, t1) then
+          if all(knownConflict, vs) then LCons(vs, lscomp1(t1)) else lscomp1(t1)
+      lscomp1(tbl)
+    let cs_ = if null_(wipedDomains) then cs else Known(collect(head(wipedDomains)))
+    [as_, cs_]
+  mapTree(f8, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Cache labelling and domain-wipeout detection are translation-only.
+/** Label the tree by forward checking. */
+fun fc(csp, t) = domainWipeout(csp, lookupCache(csp, cacheChecks(csp, emptyTable(csp), t)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The assignment-tree search is translation-only.
+/** Count the solutions obtained with one labelling algorithm. */
+fun try_(n, algorithm) = listLen(search(algorithm, queens(n)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The search and labellers are translation-only.
+/** Compare the five algorithms in the source order. */
+fun testConstraints_nofib(n) = map(x => try_(n, x),
+  LCons(bt, LCons(bm, LCons(bjbt, LCons(bjbt_, LCons(fc, LNil()))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The solver comparison and source list rendering lack checked types.
+/** Render the five counts for the six-queens problem in source list format. */
+fun main() = testConstraints_nofib(6).toString()
+//│ CTML translation succeeded.

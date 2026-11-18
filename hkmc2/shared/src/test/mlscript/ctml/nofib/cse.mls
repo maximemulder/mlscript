@@ -291,20 +291,6 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 //   xs is LCons(hx, tx) and ys is LCons(hy, ty) and (hx == hy) then listEq(tx, ty)
 //   else false
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Test membership using source strict equality. */
-// fun inList(x, ls) = if ls is
-//   LCons(h, t) and
-//     x === h then true
-//     else inList(x, t)
-//   LNil() then false
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Append the second list to the first. */
-// fun append(xs, ys) = if xs is
-//   LNil() then ys
-//   LCons(x, xs) then LCons(x, append(xs, ys))
-
 // FIXME: This helper depends on the disabled append definition.
 // /** Flatten a list of lists in source order. */
 // fun concat(ls) = if ls is

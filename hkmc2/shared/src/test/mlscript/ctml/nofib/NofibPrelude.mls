@@ -110,3 +110,17 @@ declare fun take[A]: Int -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}
 /** Trusted filter contract; the source implementation above is not checked by this declaration. */
 declare fun filter[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
 //│ filter: ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Test membership using source strict equality. */
+// fun inList(x, ls) = if ls is
+//   LCons(h, t) and
+//     x === h then true
+//     else inList(x, t)
+//   LNil() then false
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Append the second list to the first. */
+// fun append(xs, ys) = if xs is
+//   LNil() then ys
+//   LCons(x, xs) then LCons(x, append(xs, ys))

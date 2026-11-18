@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 64 member(s)
+//│ Imported 67 member(s)
 
 // The error branch contributes no return value to the conditional.
 raiseError("missing result") as Bot
@@ -1370,3 +1370,127 @@ leaveLz(1, delay(() => LzCons(1, LNil())))
 //│                             {tail: LNil} ≤ {tail: ζ}
 //│                               LNil ≤ ζ
 //│                                 LNil ≤ Delayed
+
+// Membership permits strict comparisons with elements of different types.
+inList("branch", LCons(1, LCons("branch", LNil()))) as Bool
+inList(1, LNil()) as Bool
+all(x => x < 4, LCons(1, LCons(2, LNil()))) as Bool
+all(x => x < 4, LNil()) as Bool
+//│ Bool
+//│ Bool
+//│ Bool
+//│ Bool
+
+:te
+inList(1, LCons(1, "improper tail"))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ζ})} ⟹ ζ
+//│             (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ ζ
+//│               (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ LNil
+//│                 LCons ∧ {head: δ} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       Int ≤ ⊥
+//│                 {tail: ε} ≤ LNil
+//│                   ε ≤ ⊥
+//│                     Str ≤ ⊥
+//│               (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ζ}
+//│                 (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                   LCons ∧ {head: δ} ≤ {tail: ζ}
+//│                     LCons ≤ {tail: ζ}
+//│                     {head: δ} ≤ {tail: ζ}
+//│                       δ ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ε} ≤ {tail: ζ}
+//│                     ε ≤ ζ
+//│                       Str ≤ ζ
+//│                         Str ≤ LNil
+//│                         Str ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ζ}
+//│                           Str ≤ LCons ∧ {head: ⊤}
+//│                             Str ≤ LCons
+
+:te
+all(x => x < 4, LCons("not a number", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → Bool ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                 LCons ∧ {head: ε} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       Str ≤ ⊥
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     θ ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: δ}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: δ}
+//│                     LCons ∧ {head: ε} ≤ {head: δ}
+//│                       LCons ≤ {head: δ}
+//│                       {head: ε} ≤ {head: δ}
+//│                         ε ≤ δ
+//│                           ε ≤ Int
+//│                             Str ≤ Int
+//│                     {tail: ζ} ≤ {head: δ}
+//│                       ζ ≤ ⊥
+//│                         θ ≤ ⊥
+//│                           LNil ≤ ⊥
+
+:te
+all(x => x + 1, LCons(1, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → Bool ≤ (Int → Int) → α.
+//│ Typing error tree:
+//│   ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → Bool ≤ (Int → Int) → α
+//│     (β → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → Bool ≤ (Int → Int) → α
+//│       Int → Int ≤ β → Bool
+//│         Int ≤ Bool
+
+sum(LCons(1, LCons(2, LNil()))) as Int
+sum(LNil()) as Int
+//│ Int
+//│ Int
+
+:te
+sum(LCons("not an integer", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
+//│               LCons ∧ {head: γ} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     Str ≤ ⊥
+//│               {tail: δ} ≤ LNil
+//│                 δ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ (LCons ∧ {head: Int}) ∧ {tail: ε}
+//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LCons ∧ {head: Int}
+//│                 (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {head: Int}
+//│                   LCons ∧ {head: γ} ≤ {head: Int}
+//│                     LCons ≤ {head: Int}
+//│                     {head: γ} ≤ {head: Int}
+//│                       γ ≤ Int
+//│                         Str ≤ Int
+//│                   {tail: δ} ≤ {head: Int}
+//│                     δ ≤ ⊥
+//│                       ζ ≤ ⊥
+//│                         LNil ≤ ⊥

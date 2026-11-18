@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 64 member(s)
+//│ Imported 67 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 
@@ -278,4 +278,21 @@ fun leaveLz(n, ls) = if
   force(ls) is
     LzNil() then delay(() => LzNil())
     LzCons(h, t) then leaveLz(n - 1, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Test the predicate on each element, stopping at the first false result. */
+fun all(p, ls) = if ls is
+  LNil() then true
+  LCons(h, t) then if p(h) then all(p, t) else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
+/** Sum integers with the source accumulator traversal. */
+fun sum(xs) =
+  /** Add the remaining elements from left to right. */
+  fun go(rest, a) = if rest is
+    LNil() then a
+    LCons(h, t) then go(t, a + h)
+  go(xs, 0)
 //│ CTML translation succeeded.

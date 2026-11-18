@@ -1,0 +1,374 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 67 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/cichelli.mls.
+// The source passes character lists into the key's s field. These lists use Str code units.
+
+:ctml-parse-only // FIXME: The keyword table is deferred after the file hit the diff-test limit.
+/** The keywords in search order. */
+val keys =
+  let key_case = nofibStringToList("case")
+  let key_class = nofibStringToList("class")
+  let key_data = nofibStringToList("data")
+  let key_default = nofibStringToList("default")
+  let key_deriving = nofibStringToList("deriving")
+  let key_else = nofibStringToList("else")
+  let key_hiding = nofibStringToList("hiding")
+  let key_if = nofibStringToList("if")
+  let key_import = nofibStringToList("import")
+  let key_in = nofibStringToList("in")
+  let key_infix = nofibStringToList("infix")
+  let key_infixl = nofibStringToList("infixl")
+  let key_instance = nofibStringToList("instance")
+  let key_interface = nofibStringToList("interface")
+  let key_let = nofibStringToList("let")
+  let key_module = nofibStringToList("module")
+  let key_of = nofibStringToList("of")
+  let key_renaming = nofibStringToList("renaming")
+  let key_then = nofibStringToList("then")
+  let key_to = nofibStringToList("to")
+  let key_type = nofibStringToList("type")
+  let key_where = nofibStringToList("where")
+  let tail18 = LCons(key_then, LCons(key_to, LCons(key_type, LCons(key_where, LNil()))))
+  let tail14 = LCons(key_let, LCons(key_module, LCons(key_of, LCons(key_renaming, tail18))))
+  let tail10 = LCons(key_infix, LCons(key_infixl, LCons(key_instance, LCons(key_interface, tail14))))
+  let tail6 = LCons(key_hiding, LCons(key_if, LCons(key_import, LCons(key_in, tail10))))
+  let tail2 = LCons(key_data, LCons(key_default, LCons(key_deriving, LCons(key_else, tail6))))
+  LCons(key_case, LCons(key_class, tail2))
+//│ CTML translation succeeded.
+
+/** Produce a delayed integer range including both endpoints. */
+fun enumFromToLz(a, b) = delay(() =>
+  if a <= b then LzCons(a, enumFromToLz(a + 1, b)) else LzNil()
+)
+//│ enumFromToLz: ∀α. {α ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}} ⟹ Int → Int → (Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))})
+
+:ctml-parse-only // FIXME: Recursive list inference exceeds the 20000-call solver budget.
+/** Return the last element, raising the source error on an empty list. */
+fun last(ls) =
+  /** Walk the remaining cells with the most recent head. */
+  fun go(h, t) = if t is
+    LNil() then h
+    LCons(next, rest) then go(next, rest)
+  if ls is LCons(h, t) then go(h, t) else raiseError("last: empty list")
+//│ CTML translation succeeded.
+
+/** A recursively proper list of string code units. */
+type Chars = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ Chars = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+/** A recursively proper list of hash values. */
+type Hashes = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
+//│ Hashes = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+/** A keyword, its first and last characters, and its length. */
+data class K(s: Chars, c1: Str, c2: Str, i: Int)
+/** A present value. */
+data class Some(value)
+/** A missing value. */
+data class None()
+//│ K: ∀α, β, γ, δ. {β ≤ Str, δ ≤ Int, γ ≤ Str, α ≤ Chars} ⟹ α → β → γ → δ → ((((K ∧ {s: α}) ∧ {c1: β}) ∧ {c2: γ}) ∧ {i: δ})
+//│ Some: ∀ε. ε → (Some ∧ {value: ε})
+//│ None: Unit → None
+
+/** An optional integer bound on the hashes. */
+type Bound = None | (Some & {value: Int})
+//│ Bound = None ∨ (Some ∧ {value: Int})
+
+/** The minimum, maximum, and set of hashes already assigned. */
+data class H(f: Bound, s: Bound, ls: Hashes)
+//│ H: ∀α, β, γ. {β ≤ Bound, γ ≤ Hashes, α ≤ Bound} ⟹ α → β → γ → (((H ∧ {f: α}) ∧ {s: β}) ∧ {ls: γ})
+
+/** Produce the first and last characters in order, including duplicates. */
+fun ends(k) = if k is K(_, a, z, _) then LCons(a, LCons(z, LNil()))
+//│ ends: ∀α, β. (((({c2: β} ∧ {c1: α}) ∧ K) ∧ {s: ⊤}) ∧ {i: ⊤}) → ((LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: LNil}})
+
+:ctml-parse-only // FIXME: Recursive association lookup exceeds the 20000-call solver budget.
+/** Find the value paired with x or raise the source error. */
+fun assoc(x, yz) = if yz is
+  LCons([y, z], yzs) then if x === y then z else assoc(x, yzs)
+  else raiseError("assoc: not found")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive optional lookup exceeds the 20000-call solver budget.
+/** Find the value paired with x and return an option. */
+fun assocm(x, yz) = if yz is
+  LCons([y, z], yzs) then if x === y then Some(z) else assocm(x, yzs)
+  else None()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive histogram insertion exceeds the 20000-call solver budget.
+/** Increment an existing histogram entry or append a new one. */
+fun histins(x, yns) = if yns is
+  LCons([y, n], rest) then
+    if x === y then LCons([y, n + 1], rest) else LCons([y, n], histins(x, rest))
+  else LCons([x, 1], LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Histogram insertion is translation-only.
+/** Count occurrences with the source right fold. */
+fun histo(ls) = foldr(histins, LNil(), ls)
+//│ CTML translation succeeded.
+
+/** Test whether every element of xs is in ys. */
+fun subset(xs, ys) = all(x => inList(x, ys), xs)
+//│ subset: (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool
+
+:ctml-parse-only // FIXME: The list of new members exceeds the 20000-call solver budget.
+/** Append the members of ys that do not occur in xs. */
+fun union(xs, ys) =
+  /** Collect the elements of ys absent from xs, in order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) then if inList(h, xs) then lscomp(t) else LCons(h, lscomp(t))
+  append(xs, lscomp(ys))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The last-element traversal is translation-only.
+/** Attach the characters and length used for hashing each key. */
+fun attribkeys(ks) = map(k => K(k, head(k), last(k), listLen(k)), ks)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full keyword table is translation-only.
+/** The number of keywords in the source table. */
+val numberofkeys = listLen(keys)
+//│ CTML translation succeeded.
+
+/** Take the smaller value, treating a missing bound as y. */
+fun minm(x, y) = if x is
+  None() then y
+  Some(value) then if value < y then value else y
+//│ minm: ∀α, β, γ. {β ≤ ¬({α ≤ None} ⟹ ⊥) ∨ ¬({α ≤ {value: γ ∧ Int} ∧ Some} ⟹ ¬Int), α ≤ None ∨ ¬({β ≤ Int} ⟹ ¬({value: γ ∧ Int} ∧ Some)), γ ≥ ({α ≤ None} ⟹ β) ∧ ({β ≤ Int, α ≤ {value: γ ∧ Int} ∧ Some} ⟹ β)} ⟹ α → β → γ
+
+/** Take the larger value, treating a missing bound as y. */
+fun maxm(x, y) = if x is
+  None() then y
+  Some(value) then intMax(value, y)
+//│ maxm: ∀α, β, γ. {β ≤ ¬({α ≤ None} ⟹ ⊥) ∨ ¬({α ≤ {value: γ ∧ Int} ∧ Some} ⟹ ¬Int), α ≤ None ∨ ¬({β ≤ Int} ⟹ ¬({value: γ ∧ Int} ∧ Some)), γ ≥ ({α ≤ None} ⟹ β) ∧ ({β ≤ Int, α ≤ {value: γ ∧ Int} ∧ Some} ⟹ β)} ⟹ α → β → γ
+
+:ctml-parse-only // FIXME: Association lookup is translation-only.
+/** Hash a keyword using its length and the values of its end characters. */
+fun hash(cvs, k) = if k is K(_, a, z, n) then n + assoc(a, cvs) + assoc(z, cvs)
+//│ CTML translation succeeded.
+
+/** Prepend x to the matching partition. */
+fun select(p, x, ts_fs) = if ts_fs is [ts, fs] then
+  if p(x) then [LCons(x, ts), fs] else [ts, LCons(x, fs)]
+//│ select: ∀α, β, γ. (α → Bool) → α → ⟨β, γ⟩ → (⟨(LCons ∧ {head: α}) ∧ {tail: β}, γ⟩ ∨ ⟨β, (LCons ∧ {head: α}) ∧ {tail: γ}⟩)
+
+/** Partition a list while preserving order within each partition. */
+fun partition_(p, ls) = foldr((x, y) => select(p, x, y), [LNil(), LNil()], ls)
+//│ partition_: ∀α, β, γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ}), β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ (α → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → ((⟨(LCons ∧ {head: α}) ∧ {tail: β}, γ⟩ ∨ ⟨β, (LCons ∧ {head: α}) ∧ {tail: γ}⟩) ∨ ⟨LNil, LNil⟩)
+
+/** Preserve the source benchmark's identity frequency ordering. */
+fun freqsorted(x) = x
+//│ freqsorted: ∀α. α → α
+
+:ctml-parse-only // FIXME: The character union is translation-only.
+/** Group keys whose end characters are already determined. */
+fun blocked_(ds, ls) = if ls is
+  LNil() then LNil()
+  LCons(k, ks) then
+    let ds_ = union(ds, ends(k))
+    if partition_(x => subset(ends(x), ds_), ks) is [det, rest] then
+      LCons(k, append(det, blocked_(ds_, rest)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive key grouping is translation-only.
+/** Group keys with no characters determined initially. */
+fun blocked(ls) = blocked_(LNil(), ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Keyword attribution and histogram insertion are translation-only.
+/** Count the first and last character occurrences across all keywords. */
+val freqtab = histo(concat(map(ends, attribkeys(keys))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full frequency table is translation-only.
+/** The inclusive upper bound for a character's assigned hash value. */
+val maxval = listLen(freqtab)
+//│ CTML translation succeeded.
+
+/** An unsuccessful search with its leaf count. */
+data class NotEver(i: Int)
+/** A successful search with its leaf count and result. */
+data class YesIts(i: Int, t)
+//│ NotEver: ∀α. {α ≤ Int} ⟹ α → (NotEver ∧ {i: α})
+//│ YesIts: ∀β, γ. {β ≤ Int} ⟹ β → γ → ((YesIts ∧ {i: β}) ∧ {t: γ})
+
+:ctml-parse-only // FIXME: The source keyword count is translation-only.
+/** Insert h if it stays unique and the hash range still fits the keywords. */
+fun hinsert(h, hh) = if hh is H(lo, hi, hs) then
+  let lo_ = minm(lo, h)
+  let hi_ = maxm(hi, h)
+  if inList(h, hs) || numberofkeys < 1 + hi_ - lo_
+  then None()
+  else Some(H(Some(lo_), Some(hi_), LCons(h, hs)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursion over delayed attempts exceeds the 20000-call budget.
+/** Find the first success, adding the leaves visited in preceding attempts. */
+fun first(k, ls) = if force(ls) is
+  LzNil() then NotEver(k)
+  LzCons(a, l) and a is
+    YesIts(leaves, y) then YesIts(k + leaves, y)
+    NotEver(leaves) then first(k + leaves, l)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The delayed first-success traversal is translation-only.
+/** Map each attempt lazily and stop at the first success. */
+fun firstSuccess(f, possibles) = first(0, mapLz(f, possibles))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Hash insertion, association lookup, and firstSuccess lack checked types.
+/** Search for character assignments that give distinct, contiguous keyword hashes. */
+fun findhash_(keyHashSet, charAssocs, ks) = if ks is
+  LNil() then YesIts(1, charAssocs)
+  LCons(K(s, a, z, n), rest) then
+    /** Try the additional assignments and recurse if the new hash fits. */
+    fun tryy(newAssocs) =
+      let newCharAssocs = append(newAssocs, charAssocs)
+      if hinsert(hash(newCharAssocs, K(s, a, z, n)), keyHashSet) is
+        None() then NotEver(1)
+        Some(newKeyHashSet) then findhash_(newKeyHashSet, newCharAssocs, rest)
+    if [assocm(a, charAssocs), assocm(z, charAssocs)] is
+      [None(), None()] and
+        a === z then firstSuccess(m => tryy(LCons([a, m], LNil())), enumFromToLz(0, maxval))
+        else
+          /** Enumerate the outer character values in ascending order. */
+          fun lscomp1(ls1) = delay(() =>
+            if force(ls1) is
+              LzNil() then LzNil()
+              LzCons(m, ms) then
+                /** Enumerate the inner values and advance the outer stream on exhaustion. */
+                fun lscomp2(ls2) = if force(ls2) is
+                  LzNil() then lscomp1(ms)
+                  LzCons(n, ns) then delay(() => LzCons([m, n], lscomp2(ns)))
+                force(lscomp2(enumFromToLz(0, maxval)))
+          )
+          firstSuccess(
+            pair => if pair is [m, n] then tryy(LCons([a, m], LCons([z, n], LNil()))),
+            lscomp1(enumFromToLz(0, maxval))
+          )
+      [None(), Some(_)] then firstSuccess(m => tryy(LCons([a, m], LNil())), enumFromToLz(0, maxval))
+      [Some(_), None()] then firstSuccess(n => tryy(LCons([z, n], LNil())), enumFromToLz(0, maxval))
+      [Some(_), Some(_)] then tryy(LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive hash search is translation-only.
+/** Search without any initial hashes or character assignments. */
+fun findhash(keys) = findhash_(H(None(), None(), LNil()), LNil(), keys)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Association lookup and the full frequency table are translation-only.
+/** Look up a character's frequency. */
+fun freq(c) = assoc(c, freqtab)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The frequency lookup is translation-only.
+/** Compare the combined end-character frequencies of two keys. */
+fun morefreq(k1, k2) = if k1 is K(_, a, x, _) and k2 is K(_, b, y, _) then
+  freq(b) + freq(y) < freq(a) + freq(x)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Keyword attribution, grouping, and search are translation-only.
+/** Build and group the source key list before searching. */
+fun cichelli_(n) =
+  let attribkeys_ = attribkeys(append(keys, take(intMod(n, 2), keys)))
+  let hashkeys = blocked(freqsorted(attribkeys_))
+  findhash(hashkeys)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark search is translation-only.
+/** Run the search on the supplied input. */
+fun prog(n) = cichelli_(n)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The search result has no checked toString method.
+/** Render the result of the source workload. */
+fun main() = prog(6).toString()
+//│ CTML translation succeeded.
+
+// Representative keys use the same proper character-list field as the source table.
+ends(K(LCons("i", LCons("f", LNil())), "i", "f", 2)) as Chars
+H(None(), Some(2), LCons(2, LNil())) as H
+//│ Chars
+//│ H
+
+:te
+K("if", "i", "f", 2)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ. {β ≤ Str, δ ≤ Int, γ ≤ Str, α ≤ Chars} ⟹ α → β → γ → δ → ((((K ∧ {s: α}) ∧ {c1: β}) ∧ {c2: γ}) ∧ {i: δ}) ≤ Str → ε.
+//│ Typing error tree:
+//│   ∀α, β, γ, δ. {β ≤ Str, δ ≤ Int, γ ≤ Str, α ≤ Chars} ⟹ α → β → γ → δ → ((((K ∧ {s: α}) ∧ {c1: β}) ∧ {c2: γ}) ∧ {i: δ}) ≤ Str → ε
+//│     {η ≤ Str, ι ≤ Int, θ ≤ Str, ζ ≤ Chars} ⟹ ζ → η → θ → ι → ((((K ∧ {s: ζ}) ∧ {c1: η}) ∧ {c2: θ}) ∧ {i: ι}) ≤ Str → ε
+//│       {ι ≤ Int, θ ≤ Str, ζ ≤ Chars} ⟹ ζ → η → θ → ι → ((((K ∧ {s: ζ}) ∧ {c1: η}) ∧ {c2: θ}) ∧ {i: ι}) ≤ Str → ε
+//│         {θ ≤ Str, ζ ≤ Chars} ⟹ ζ → η → θ → ι → ((((K ∧ {s: ζ}) ∧ {c1: η}) ∧ {c2: θ}) ∧ {i: ι}) ≤ Str → ε
+//│           {ζ ≤ Chars} ⟹ ζ → η → θ → ι → ((((K ∧ {s: ζ}) ∧ {c1: η}) ∧ {c2: θ}) ∧ {i: ι}) ≤ Str → ε
+//│             ζ → η → θ → ι → ((((K ∧ {s: ζ}) ∧ {c1: η}) ∧ {c2: θ}) ∧ {i: ι}) ≤ Str → ε
+//│               Str ≤ ζ
+//│                 Str ≤ Chars
+//│                   Str ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│                     Str ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ})} ⟹ κ
+//│                       Str ≤ κ
+//│                         Str ≤ LNil
+//│                         Str ≤ (LCons ∧ {head: Str}) ∧ {tail: κ}
+//│                           Str ≤ LCons ∧ {head: Str}
+//│                             Str ≤ LCons
+
+:te
+H(None(), Some("bad"), LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ε → (((H ∧ {f: ζ}) ∧ {s: δ}) ∧ {ls: ε}) ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ Bound
+//│           Some ∧ {value: η} ≤ Bound
+//│             Some ∧ {value: η} ≤ None ∨ (Some ∧ {value: Int})
+//│               Some ∧ {value: η} ≤ None
+//│                 Some ≤ None
+//│                 {value: η} ≤ None
+//│                   η ≤ ⊥
+//│                     Str ≤ ⊥
+//│               Some ∧ {value: η} ≤ Some ∧ {value: Int}
+//│                 Some ∧ {value: η} ≤ {value: Int}
+//│                   Some ≤ {value: Int}
+//│                   {value: η} ≤ {value: Int}
+//│                     η ≤ Int
+//│                       Str ≤ Int
+
+// A forced range can be empty or expose a first integer and a delayed remainder.
+val shortRange = enumFromToLz(4, 5)
+force(shortRange) as LzNil | (LzCons & {head: Int} & {tail: Delayed})
+//│ shortRange: ∀α. {α ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}} ⟹ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}
+//│ LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: Delayed})
+
+:fixme // FIXME: The inferred subset function accepts only an empty first list.
+subset(LCons("e", LNil()), LCons("a", LCons("e", LNil()))) as Bool
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil} ⟹ X
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil} ⟹ ε
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│             LCons ∧ {head: γ} ≤ ε
+//│               LCons ≤ ε
+//│                 LCons ≤ LNil
+//│               {head: γ} ≤ ε
+//│                 {head: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     Str ≤ ⊥
+//│             {tail: δ} ≤ ε
+//│               {tail: δ} ≤ LNil
+//│                 δ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
+
+subset(LNil(), LCons("e", LNil())) as Bool
+minm(None(), 0) as Int
+maxm(Some(2), 0) as Int
+//│ Bool
+//│ Int
+//│ Int

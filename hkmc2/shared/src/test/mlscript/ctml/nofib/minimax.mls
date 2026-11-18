@@ -1,0 +1,456 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 67 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/minimax.mls.
+// Pieces and evaluations use constructor tags. Branch's structural fields carry the
+// payload and children, including the change from board payloads to evaluations.
+
+:ctml-parse-only // FIXME: Boolean list traversal exceeds the 20000-call budget.
+/** Test the conjunction of a list of Boolean values. */
+fun andd(ls) = if ls is
+  LNil() then true
+  LCons(b, bs) then b && andd(bs)
+//│ CTML translation succeeded.
+
+/** The first player's piece. */
+data class X()
+/** The second player's piece. */
+data class O()
+/** An unoccupied square. */
+data class Empty()
+//│ X: Unit → X
+//│ O: Unit → O
+//│ Empty: Unit → Empty
+
+:ctml-parse-only // FIXME: Comparing piece tags exceeds the 20000-call solver budget.
+/** Test whether two squares contain the same piece. */
+fun eqPiece(p1, p2) = if p1 is
+  X() and p2 is X() then true
+  O() and p2 is O() then true
+  Empty() and p2 is Empty() then true
+  else false
+//│ CTML translation succeeded.
+
+/** The first player's winning evaluation. */
+data class XWin()
+/** The second player's winning evaluation. */
+data class OWin()
+/** The numeric evaluation of a position without a winner. */
+data class Score(i: Int)
+//│ XWin: Unit → XWin
+//│ OWin: Unit → OWin
+//│ Score: ∀α. {α ≤ Int} ⟹ α → (Score ∧ {i: α})
+
+:ctml-parse-only // FIXME: Comparing evaluations exceeds the 20000-call solver budget.
+/** Test equality of two positional evaluations. */
+fun evaluationEq(x, y) = if x is
+  XWin() and y is XWin() then true
+  OWin() and y is OWin() then true
+  Score(i) and y is Score(j) and i === j then true
+  else false
+//│ CTML translation succeeded.
+
+/** A game-tree position and the list of positions one move away. */
+data class Branch(a, cs)
+//│ Branch: ∀α, β. α → β → ((Branch ∧ {a: α}) ∧ {cs: β})
+
+:fixme // FIXME: append cannot instantiate its recursive input from nofibStringToList.
+/** Render the winning side or the numeric evaluation. */
+fun showEvaluation(e) = if e is
+  XWin() then nofibStringToList("XWin")
+  OWin() then nofibStringToList("OWin")
+  Score(i) then append(nofibStringToList("Score "), nofibStringToList(stringOfInt(i)))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+/** Assemble three pieces or three rows in order. */
+fun triple(a, b, c) = LCons(a, LCons(b, LCons(c, LNil())))
+//│ triple: ∀α, β, γ. α → β → γ → ((LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}}})
+
+/** The first horizontal winning mask. */
+val win1 = triple(triple(1, 1, 1), triple(0, 0, 0), triple(0, 0, 0))
+//│ win1: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The second horizontal winning mask. */
+val win2 = triple(triple(0, 0, 0), triple(1, 1, 1), triple(0, 0, 0))
+//│ win2: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The third horizontal winning mask. */
+val win3 = triple(triple(0, 0, 0), triple(0, 0, 0), triple(1, 1, 1))
+//│ win3: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The first vertical winning mask. */
+val win4 = triple(triple(1, 0, 0), triple(1, 0, 0), triple(1, 0, 0))
+//│ win4: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The second vertical winning mask. */
+val win5 = triple(triple(0, 1, 0), triple(0, 1, 0), triple(0, 1, 0))
+//│ win5: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The third vertical winning mask. */
+val win6 = triple(triple(0, 0, 1), triple(0, 0, 1), triple(0, 0, 1))
+//│ win6: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The descending diagonal winning mask. */
+val win7 = triple(triple(1, 0, 0), triple(0, 1, 0), triple(0, 0, 1))
+//│ win7: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The ascending diagonal winning mask. */
+val win8 = triple(triple(0, 0, 1), triple(0, 1, 0), triple(1, 0, 0))
+//│ win8: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
+
+/** The winning masks in the source scoring order. */
+val wins = LCons(win1, LCons(win2, LCons(win3, LCons(win4,
+  LCons(win5, LCons(win6, LCons(win7, LCons(win8, LNil()))))))))
+//│ wins: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}}}}}
+
+:ctml-parse-only // FIXME: Combining the string-list branches exceeds the 20000-call budget.
+/** Render one square as a single display character. */
+fun showPiece(p) = if p is
+  X() then nofibStringToList("X")
+  O() then nofibStringToList("O")
+  Empty() then nofibStringToList(" ")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The piece formatter lacks a checked type.
+/** Render one three-square row with column separators. */
+fun showRow(ps) = if ps is LCons(p1, LCons(p2, LCons(p3, LNil()))) then
+  append(showPiece(p1), append(nofibStringToList("|"),
+    append(showPiece(p2), append(nofibStringToList("|"), showPiece(p3)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The row formatter is translation-only.
+/** Render a three-row board with row separators and a trailing blank line. */
+fun showBoard(rs) = if rs is LCons(r1, LCons(r2, LCons(r3, LNil()))) then
+  append(showRow(r1), append(nofibStringToList("\n------\n"),
+    append(showRow(r2), append(nofibStringToList("\n------\n"),
+      append(showRow(r3), nofibStringToList("\n\n"))))))
+//│ CTML translation succeeded.
+
+/** Replace the piece at a one-based column within a row. */
+fun insert(p, ps, i) = if ps is LCons(p1, LCons(p2, LCons(p3, LNil()))) then
+  if
+    i === 1 then triple(p, p2, p3)
+    i === 2 then triple(p1, p, p3)
+    i === 3 then triple(p1, p2, p)
+    else raiseError("match error")
+//│ insert: ∀α, β, γ, δ. α → (({tail: ({tail: ({head: δ} ∧ LCons) ∧ {tail: LNil}} ∧ {head: γ}) ∧ LCons} ∧ {head: β}) ∧ LCons) → ⊤ → ((((LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: (LCons ∧ {head: α}) ∧ {tail: LNil}}}) ∨ ((LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: δ}) ∧ {tail: LNil}}})) ∨ ((LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: (LCons ∧ {head: δ}) ∧ {tail: LNil}}}))
+
+:ctml-parse-only // FIXME: The row patterns and column guards exceed the 20000-call solver budget.
+/** Test whether column x of a row is empty. */
+fun empty_(x, r) = if
+  x === 1 and r is LCons(Empty(), LCons(_, LCons(_, LNil()))) then true
+  x === 2 and r is LCons(_, LCons(Empty(), LCons(_, LNil()))) then true
+  x === 3 and r is LCons(_, LCons(_, LCons(Empty(), LNil()))) then true
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The empty-square predicate is translation-only.
+/** Test whether a one-based row and column identify an empty square. */
+fun empty(pos, board) = if board is LCons(r1, LCons(r2, LCons(r3, LNil()))) and
+  pos is [row, x] then
+    if
+      row === 1 then empty_(x, r1)
+      row === 2 then empty_(x, r2)
+      row === 3 then empty_(x, r3)
+      else raiseError("match error")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The empty-square predicate is translation-only.
+/** Enumerate the single resulting board for a legal placement, or no boards. */
+fun placePiece(p, board, pos) =
+  if empty(pos, board) then
+    if board is LCons(r1, LCons(r2, LCons(r3, LNil()))) and pos is [row, x] then
+      if
+        row === 1 then LCons(triple(insert(p, r1, x), r2, r3), LNil())
+        row === 2 then LCons(triple(r1, insert(p, r2, x), r3), LNil())
+        row === 3 then LCons(triple(r1, r2, insert(p, r3, x)), LNil())
+        else raiseError("match error")
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The Boolean list traversal is translation-only.
+/** Test whether every square on the board is occupied. */
+fun fullBoard(b) = andd(map(x => if eqPiece(x, Empty()) then false else true, concat(b)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The single-move generator is translation-only.
+/** Generate the legal boards in row-major order. */
+fun newPositions(piece, board) =
+  /** Generate the positions for the remaining rows. */
+  fun lscomp1(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, xs) then
+      /** Generate positions in this row before proceeding to the remaining rows. */
+      fun lscomp2(ls) = if ls is
+        LNil() then lscomp1(xs)
+        LCons(y, ys) then LCons([x, y], lscomp2(ys))
+      lscomp2(triple(1, 2, 3))
+  concat(map(pos => placePiece(piece, board, pos), lscomp1(triple(1, 2, 3))))
+//│ CTML translation succeeded.
+
+/** The source empty starting board. */
+val initialBoard = replicate(3, replicate(3, Empty()))
+//│ initialBoard: ∀α, β. {β ≥ ((LCons ∧ {head: Empty}) ∧ {tail: β}) ∨ LNil, α ≥ ((LCons ∧ {head: ((LCons ∧ {head: Empty}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil} ⟹ ((LCons ∧ {head: ((LCons ∧ {head: Empty}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil
+
+/** Interpret the two winning scores, keeping other scores as numbers. */
+fun eval(x) = if
+  x === 3 then XWin()
+  x === (0 - 3) then OWin()
+  else Score(x)
+//│ eval: ∀α. {α ≤ Int} ⟹ α → (((Score ∧ {i: α}) ∨ OWin) ∨ XWin)
+
+:ctml-parse-only // FIXME: Traversing the evaluation list exceeds the 20000-call solver budget.
+/** Accumulate scores and stop at the first winning evaluation. */
+fun interpret(x, l) = if l is
+  LNil() then Score(x)
+  LCons(Score(y), ls) then interpret(x + y, ls)
+  LCons(XWin(), _) then XWin()
+  LCons(OWin(), _) then OWin()
+//│ CTML translation succeeded.
+
+/** Weight the square positively for X, negatively for O, and zero for empty. */
+fun scorePiece(p, score) = if p is
+  X() then score
+  Empty() then 0
+  O() then 0 - score
+//│ scorePiece: ∀α, β, γ. {β ≤ ¬({α ≤ X, γ ≥ β} ⟹ ⊥) ∨ ¬({α ≤ Empty ∨ ¬({β ≤ Int} ⟹ ¬O), γ ≥ ({α ≤ Empty} ⟹ Int) ∧ ({β ≤ Int, α ≤ O} ⟹ Int)} ⟹ ¬(¬({α ≤ Empty} ⟹ ⊥) ∨ ¬({α ≤ O} ⟹ ¬Int))), α ≤ ¬({γ ≥ β} ⟹ ¬X) ∨ ¬({β ≤ ¬({α ≤ Empty} ⟹ ⊥) ∨ ¬({α ≤ O} ⟹ ¬Int), γ ≥ ({α ≤ Empty} ⟹ Int) ∧ ({β ≤ Int, α ≤ O} ⟹ Int)} ⟹ ¬(Empty ∨ ¬({β ≤ Int} ⟹ ¬O))), γ ≥ ({α ≤ X} ⟹ β) ∧ ({β ≤ ¬({α ≤ Empty} ⟹ ⊥) ∨ ¬({α ≤ O} ⟹ ¬Int), α ≤ Empty ∨ ¬({β ≤ Int} ⟹ ¬O)} ⟹ ({α ≤ Empty} ⟹ Int) ∧ ({β ≤ Int, α ≤ O} ⟹ Int))} ⟹ α → β → γ
+
+:ctml-parse-only // FIXME: The recursive pairwise traversal exceeds the 20000-call solver budget.
+/** Combine successive elements until either list ends. */
+fun map2(f, xs, ys) = if xs is
+  LNil() then LNil()
+  LCons(x, rest) and ys is
+    LCons(y, right) then LCons(f(x, y), map2(f, rest, right))
+    LNil() then LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The pairwise traversal is translation-only.
+/** Score a board against one winning mask. */
+fun score(board, win) = eval(sum(map(sum, map2((x, y) => map2(scorePiece, x, y), board, win))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Mask scoring and score accumulation are translation-only.
+/** Combine the board's scores over the eight winning masks. */
+fun static(board) = interpret(0, map(x => score(board, x), wins))
+//│ CTML translation succeeded.
+
+/** Generate the game tree, alternating the two move generators at each level. */
+fun repTree(f, g, a) = Branch(a, map(x => repTree(g, f, x), f(a)))
+//│ repTree: ∀α, β. {β ≥ (Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y}} ⟹ (∀X. α → ({X ≥ LNil} ⟹ X)) → (∀X. α → ({X ≥ LNil} ⟹ X)) → α → ((Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y})
+
+/** Transform every game-tree payload, preserving the tree structure. */
+fun mapTree(f, t) = if t is Branch(a, l) then Branch(f(a), map(x => mapTree(f, x), l))
+//│ mapTree: ∀α, β, γ, δ. {δ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y}, γ ≤ ({cs: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ∧ {a: α}) ∧ Branch} ⟹ (α → β) → (({cs: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ∧ {a: α}) ∧ Branch) → ((Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y})
+
+/** Keep nodes down to depth n, or raise the source error on a negative depth. */
+fun prune(n, t) = if t is Branch(a, l) then
+  if
+    n === 0 then Branch(a, LNil())
+    n < 0 then raiseError("Tree.prune: < 0")
+    else Branch(a, map(x => prune(n - 1, x), l))
+//│ prune: ∀α, β, γ. {γ ≥ (Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, β ≤ ({cs: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {a: α}) ∧ Branch} ⟹ Int → (({cs: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {a: α}) ∧ Branch) → ((Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y})
+
+/** Return the other player, raising the source error for an empty square. */
+fun opposite(p) = if p is
+  X() then O()
+  O() then X()
+  else raiseError("opposite")
+//│ opposite: ∀α, β. {β ≥ ({α ≤ X} ⟹ O) ∧ ({α ≤ (¬({β ≥ X} ⟹ ¬O) ∧ ¬X) ∨ (¬O ∧ ¬X)} ⟹ ({α ≤ O} ⟹ X) ∧ ({α ≤ ¬O} ⟹ ⊥)), α ≤ ¬({β ≥ O} ⟹ ¬X) ∨ (¬({β ≥ X} ⟹ ¬O) ∧ ¬X) ∨ (¬O ∧ ¬X)} ⟹ α → β
+
+:ctml-parse-only // FIXME: Evaluation equality is translation-only.
+/** Choose the best paired board and score, preserving the first result on a tie. */
+fun best(f, bs, ss) = if bs is LCons(b, boards) and ss is LCons(s, scores) then
+  /** Replace the current choice only when the scoring function prefers the new score. */
+  fun best_(b, s, ls1, ls2) = if ls1 is
+    LNil() and ls2 is LNil() then [b, s]
+    LCons(b_, bs) and ls2 is LCons(s_, ss) then
+      if evaluationEq(s, f(s, s_)) then best_(b, s, bs, ss) else best_(b_, s_, bs, ss)
+  best_(b, s, boards, scores)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The board and evaluation formatters lack checked types.
+/** Render a move's evaluation followed by its board. */
+fun showMove(m) = if m is [b, e] then
+  append(showEvaluation(e), append(nofibStringToList("\n"), showBoard(b)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Combining the evaluation guards exceeds the 20000-call solver budget.
+/** Prefer an X win, then a numeric score, then an O win. */
+fun max_(e1, e2) = if
+  e1 is XWin() then XWin()
+  e2 is XWin() then XWin()
+  e2 is OWin() then e1
+  e1 is OWin() then e2
+  e1 is Score(x) and e2 is Score(y) then if y < x then Score(x) else Score(y)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Combining the evaluation guards exceeds the 20000-call solver budget.
+/** Prefer an O win, then a numeric score, then an X win. */
+fun min_(e1, e2) = if
+  e1 is OWin() then OWin()
+  e2 is OWin() then OWin()
+  e2 is XWin() then e1
+  e1 is XWin() then e2
+  e1 is Score(x) and e2 is Score(y) then if x < y then Score(x) else Score(y)
+//│ CTML translation succeeded.
+
+/** Evaluate the tree with alternating minimization and maximization. */
+fun mise(f, g, t) = if t is
+  Branch(a, LNil()) then a
+  Branch(_, l) then foldr(f, g(OWin(), XWin()), map(x => mise(g, f, x), l))
+//│ mise: ∀α. ⊤ → ⊤ → (({a: α} ∧ Branch) ∧ {cs: LNil}) → α
+
+:ctml-parse-only // FIXME: The legal-move generator is translation-only.
+/** Generate a search tree and limit it to five moves. */
+fun searchTree(p, board) =
+  prune(5, repTree(x => newPositions(p, x), x => newPositions(opposite(p), x), board))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursion over the transformed children exceeds the 20000-call budget.
+/** Stop expanding each branch at its first winning evaluation. */
+fun cropTree(t) = if t is
+  Branch(a, LNil()) then Branch(a, LNil())
+  Branch(Score(x), l) then Branch(Score(x), map(cropTree, l))
+  Branch(x, l) then Branch(x, LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board evaluation, searchTree, and cropTree are translation-only.
+/** Get the minimax evaluation of a position for the supplied player. */
+fun bestMove(p, f, g, b) =
+  mise(f, g, cropTree(mapTree(static, searchTree(p, b))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board evaluation and move generation are translation-only.
+/** Play consecutive best moves until the board is full or a player wins. */
+fun alternate(player, f, g, board) = if
+  fullBoard(board) then LNil()
+  evaluationEq(static(board), XWin()) then LNil()
+  evaluationEq(static(board), OWin()) then LNil()
+  let opposition = opposite(player)
+  let possibles = newPositions(player, board)
+  let scores = map(x => bestMove(opposition, g, f, x), possibles)
+  let boardd_eval = best(f, possibles, scores)
+  boardd_eval is [boardd, eval] then
+    LCons([boardd, eval], alternate(opposition, g, f, boardd))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The game loop and move display are translation-only.
+/** Play and render the source game from its two occupied squares. */
+fun prog(input) =
+  let testBoard = triple(
+    triple(Empty(), O(), Empty()),
+    triple(Empty(), X(), Empty()),
+    triple(Empty(), Empty(), Empty())
+  )
+  /** Preserve the source branch for its unused input sentinel. */
+  fun board(x) = if x === "doesn't happen" then append(testBoard, testBoard) else testBoard
+  let game = alternate(X(), max_, min_, board(input))
+  append(nofibStringToList("OXO\n"), concat(map(showMove, game)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The game driver is translation-only.
+/** Render the source workload using its original input string. */
+fun main() = nofibListToString(prog("180000"))
+//│ CTML translation succeeded.
+
+/** One of the three source evaluation outcomes. */
+type Evaluation = XWin | OWin | (Score & {i: Int})
+//│ Evaluation = (XWin ∨ OWin) ∨ (Score ∧ {i: Int})
+
+eval(3) as Evaluation
+scorePiece(O(), 2) as Int
+insert(X(), triple(Empty(), O(), Empty()), 1) as LCons
+//│ Evaluation
+//│ Int
+//│ LCons
+
+/** A leaf with a score and no children. */
+val scoredLeaf = Branch(Score(1), LNil())
+//│ scoredLeaf: (Branch ∧ {a: Score ∧ {i: Int}}) ∧ {cs: LNil}
+
+prune(0, scoredLeaf) as Branch & {a: Score}
+mise((x, y) => x, (x, y) => y, scoredLeaf) as Evaluation
+//│ Branch ∧ {a: Score}
+//│ Evaluation
+
+:fixme // FIXME: Mapping over empty children widens the inferred result to an arbitrary list.
+prune(0, scoredLeaf) as Branch & {a: Score} & {cs: LNil}
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}.
+//│ Typing error tree:
+//│   α ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}
+//│     (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}
+//│       (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ {cs: LNil}
+//│         Branch ∧ {a: β} ≤ {cs: LNil}
+//│           Branch ≤ {cs: LNil}
+//│           {a: β} ≤ {cs: LNil}
+//│             β ≤ ⊥
+//│               Score ∧ {i: Int} ≤ ⊥
+//│                 Score ≤ ⊥
+//│                 {i: Int} ≤ ⊥
+//│                   Int ≤ ⊥
+//│         {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ {cs: LNil}
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│             {δ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│               δ ≤ LNil
+//│                 LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ LNil
+//│                   (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
+//│                     LCons ∧ {head: γ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: γ} ≤ LNil
+//│                         γ ≤ ⊥
+//│                           (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ ⊥
+//│                             Branch ∧ {a: β} ≤ ⊥
+//│                               Branch ≤ ⊥
+//│                               {a: β} ≤ ⊥
+//│                                 β ≤ ⊥
+//│                                   Score ∧ {i: Int} ≤ ⊥
+//│                                     Score ≤ ⊥
+//│                                     {i: Int} ≤ ⊥
+//│                                       Int ≤ ⊥
+//│                             {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ ⊥
+//│                               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ ⊥
+//│                                 {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
+//│                                   ε ≤ ⊥
+//│                                     LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ ⊥
+//│                                       LNil ≤ ⊥
+//│                     {tail: δ} ≤ LNil
+//│                       δ ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ ⊥
+//│                           LNil ≤ ⊥
+
+:te
+Score("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → (Score ∧ {i: α}) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → (Score ∧ {i: α}) ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → (Score ∧ {i: γ}) ≤ Str → β
+//│       γ → (Score ∧ {i: γ}) ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int

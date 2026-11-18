@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 64 member(s)
+//│ Imported 67 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/scc.mls.
 // Edges and traversal state are binary tuples; lists use LNil() and LCons.
@@ -19,33 +19,36 @@ fun new_range(edges, vertex) = if edges is
     else new_range(rest, vertex)
 //│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget even with inList and append contracts.
-// /** Visit each reachable vertex once and collect vertices in reverse finishing order. */
-// fun dfs(r, state, vertices) = if state is [visited, order] and
-//   vertices is
-//     LNil() then [visited, order]
-//     LCons(x, rest) and
-//       inList(x, visited) then dfs(r, [visited, order], rest)
-//       dfs(r, [LCons(x, visited), LNil()], r(x)) is [visited_, order_] then
-//         dfs(r, [visited_, append(LCons(x, order_), order)], rest)
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call budget with inList and append.
+/** Visit each reachable vertex once and collect vertices in reverse finishing order. */
+fun dfs(r, state, vertices) = if state is [visited, order] and
+  vertices is
+    LNil() then [visited, order]
+    LCons(x, rest) and
+      inList(x, visited) then dfs(r, [visited, order], rest)
+      dfs(r, [LCons(x, visited), LNil()], r(x)) is [visited_, order_] then
+        dfs(r, [visited_, append(LCons(x, order_), order)], rest)
+//│ CTML translation succeeded.
 
-// FIXME: The second traversal depends on the disabled inList and dfs definitions.
-// /** Run depth-first searches in order, collecting one component per unvisited root. */
-// fun span_tree(r, state, vertices) = if state is [visited, components] and
-//   vertices is
-//     LNil() then [visited, components]
-//     LCons(x, rest) and
-//       inList(x, visited) then span_tree(r, [visited, components], rest)
-//       dfs(r, [LCons(x, visited), LNil()], r(x)) is [visited_, order_] then
-//         span_tree(r, [visited_, LCons(LCons(x, order_), components)], rest)
+:ctml-parse-only // FIXME: The first depth-first traversal is translation-only.
+/** Run depth-first searches in order, collecting one component per unvisited root. */
+fun span_tree(r, state, vertices) = if state is [visited, components] and
+  vertices is
+    LNil() then [visited, components]
+    LCons(x, rest) and
+      inList(x, visited) then span_tree(r, [visited, components], rest)
+      dfs(r, [LCons(x, visited), LNil()], r(x)) is [visited_, order_] then
+        span_tree(r, [visited_, LCons(LCons(x, order_), components)], rest)
+//│ CTML translation succeeded.
 
-// FIXME: This stage depends on the disabled searches and neighbor lookup.
-// /** Traverse the transposed graph in the first search's reverse finishing order. */
-// fun stronglyConnComp(edges, vertices) = snd(span_tree(
-//   x => new_range(map(swap, edges), x),
-//   [LNil(), LNil()],
-//   snd(dfs(x => new_range(edges, x), [LNil(), LNil()], vertices))
-// ))
+:ctml-parse-only // FIXME: Neighbor lookup and both traversals are translation-only.
+/** Traverse the transposed graph in the first search's reverse finishing order. */
+fun stronglyConnComp(edges, vertices) = snd(span_tree(
+  x => new_range(map(swap, edges), x),
+  [LNil(), LNil()],
+  snd(dfs(x => new_range(edges, x), [LNil(), LNil()], vertices))
+))
+//│ CTML translation succeeded.
 
 /** Construct the source benchmark's vertices and edges in traversal order. */
 fun sccInput() =
@@ -83,11 +86,13 @@ type SccEdges = [X restricts (LNil | (LCons & {head: [Int, Int]} & {tail: X}))] 
 map(swap, fst(sccInput())) as SccEdges
 //│ SccEdges
 
-// FIXME: The driver depends on the disabled stronglyConnComp definition.
-// /** Run the fixed source graph, whose input parameter is unused. */
-// fun testScc_nofib(_input) = if sccInput() is [edges, vertices] then
-//   stronglyConnComp(edges, vertices)
+:ctml-parse-only // FIXME: The component search is translation-only.
+/** Run the fixed source graph, whose input parameter is unused. */
+fun testScc_nofib(_input) = if sccInput() is [edges, vertices] then
+  stronglyConnComp(edges, vertices)
+//│ CTML translation succeeded.
 
-// FIXME: The driver is disabled, and the CTML list constructors lack source-format toString.
-// /** Render the components for the source benchmark input. */
-// fun main() = testScc_nofib(0).toString()
+:ctml-parse-only // FIXME: The component list has no checked source-format toString method.
+/** Render the components for the source benchmark input. */
+fun main() = testScc_nofib(0).toString()
+//│ CTML translation succeeded.

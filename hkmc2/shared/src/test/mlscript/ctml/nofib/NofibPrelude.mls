@@ -298,3 +298,21 @@ declare fun break_[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} &
  * The unannotated implementation is in preludeDeferred.mls. */
 declare fun leaveLz[A]: Int -> ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Y}))})] -> Y)
 //│ leaveLz: ∀A. Int → (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Y}))}} ⟹ Y)
+
+/** Trusted source membership contract. Strict equality can compare values of different types.
+  * The recursive list traversal is retained in preludeDeferred.mls and is not checked here.
+  */
+declare fun inList: Top -> ([X restricts (LNil | (LCons & {head: Top} & {tail: X}))] -> X) -> Bool
+//│ inList: ⊤ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool
+
+/** Trusted source universal predicate contract. The unannotated recursive implementation
+  * in preludeDeferred.mls is not checked by this declaration.
+  */
+declare fun all[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> Bool
+//│ all: ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → Bool
+
+/** Trusted integer sum contract, with zero for the empty list. Its unannotated accumulator
+  * traversal in preludeDeferred.mls is not checked by this declaration.
+  */
+declare fun sum: ([X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X) -> Int
+//│ sum: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X) → Int

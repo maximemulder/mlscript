@@ -1,0 +1,326 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 67 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/puzzle.mls.
+// The source singleton objects use nullary constructor tags. The minimum traversal
+// retains direct recursion without the source tail-call optimization annotation.
+
+/** The first member in the source item ordering. */
+data class Bono()
+/** The second member in the source item ordering. */
+data class Edge()
+/** The third member in the source item ordering. */
+data class Larry()
+/** The last member in the source item ordering. */
+data class Adam()
+//│ Bono: Unit → Bono
+//│ Edge: Unit → Edge
+//│ Larry: Unit → Larry
+//│ Adam: Unit → Adam
+
+:ctml-parse-only // FIXME: Comparing item tags exceeds the 20000-call solver budget.
+/** Test whether a and b represent the same band member. */
+fun itemEq(a, b) = if a is
+  Bono() and b is Bono() then true
+  Edge() and b is Edge() then true
+  Larry() and b is Larry() then true
+  Adam() and b is Adam() then true
+  else false
+//│ CTML translation succeeded.
+
+/** Advance one position in the source item ordering. */
+fun succItem(i) = if i is
+  Bono() then Edge()
+  Edge() then Larry()
+  Larry() then Adam()
+//│ succItem: ∀α, β. {β ≥ ({α ≤ Bono} ⟹ Edge) ∧ ({α ≤ ¬({β ≥ Larry} ⟹ ¬Edge) ∨ ¬({β ≥ Adam} ⟹ ¬Larry)} ⟹ ({α ≤ Edge} ⟹ Larry) ∧ ({α ≤ Larry} ⟹ Adam)), α ≤ ¬({β ≥ Edge} ⟹ ¬Bono) ∨ ¬({β ≥ ({α ≤ Edge} ⟹ Larry) ∧ ({α ≤ Larry} ⟹ Adam)} ⟹ ¬(¬({β ≥ Larry} ⟹ ¬Edge) ∨ ¬({β ≥ Adam} ⟹ ¬Larry)))} ⟹ α → β
+
+/** Test whether i is the last item in the ordering. */
+fun isEnd(i) = if i is
+  Bono() then false
+  Edge() then false
+  Larry() then false
+  Adam() then true
+//│ isEnd: ∀α, β. {β ≥ ({α ≤ Bono} ⟹ Bool) ∧ ({α ≤ Edge ∨ ¬({β ≥ ({α ≤ Larry} ⟹ Bool) ∧ ({α ≤ Adam} ⟹ Bool)} ⟹ ¬(Larry ∨ Adam))} ⟹ ({α ≤ Edge} ⟹ Bool) ∧ ({α ≤ Larry ∨ Adam} ⟹ ({α ≤ Larry} ⟹ Bool) ∧ ({α ≤ Adam} ⟹ Bool))), α ≤ Bono ∨ ¬({β ≥ ({α ≤ Edge} ⟹ Bool) ∧ ({α ≤ Larry ∨ Adam} ⟹ ({α ≤ Larry} ⟹ Bool) ∧ ({α ≤ Adam} ⟹ Bool))} ⟹ ¬(Edge ∨ ¬({β ≥ ({α ≤ Larry} ⟹ Bool) ∧ ({α ≤ Adam} ⟹ Bool)} ⟹ ¬(Larry ∨ Adam))))} ⟹ α → β
+
+:ctml-parse-only // FIXME: Item equality is translation-only.
+/** Enumerate the members from a through b, including both endpoints. */
+fun itemFromTo(a, b) = if itemEq(a, b) then LCons(a, LNil())
+  else LCons(a, itemFromTo(succItem(a), b))
+//│ CTML translation succeeded.
+
+/** The starting bank. */
+data class LeftBank()
+/** The destination bank. */
+data class RightBank()
+//│ LeftBank: Unit → LeftBank
+//│ RightBank: Unit → RightBank
+
+/** One of the two banks. */
+type Bank = LeftBank | RightBank
+//│ Bank = LeftBank ∨ RightBank
+
+:ctml-parse-only // FIXME: Comparing bank tags exceeds the 20000-call solver budget.
+/** Test whether two positions name the same bank. */
+fun bankEq(a, b) = if a is
+  LeftBank() and b is LeftBank() then true
+  RightBank() and b is RightBank() then true
+  else false
+//│ CTML translation succeeded.
+
+/** The positions of Bono, the Edge, Larry, and Adam in that order. */
+data class State(b: Bank, e: Bank, l: Bank, a: Bank)
+//│ State: ∀α, β, γ, δ. {β ≤ Bank, δ ≤ Bank, γ ≤ Bank, α ≤ Bank} ⟹ α → β → γ → δ → ((((State ∧ {b: α}) ∧ {e: β}) ∧ {l: γ}) ∧ {a: δ})
+
+:ctml-parse-only // FIXME: Bank equality is translation-only.
+/** Test equality of all four positions. */
+fun stateEq(s1, s2) = if s1 is State(a, b, c, d) and s2 is State(e, f, g, h) then
+  bankEq(a, e) && bankEq(b, f) && bankEq(c, g) && bankEq(d, h)
+//│ CTML translation succeeded.
+
+/** Return Bono's current bank. */
+fun bonoPos(s) = if s is State(a, _, _, _) then a
+//│ bonoPos: ∀α. (((({b: α} ∧ State) ∧ {e: ⊤}) ∧ {l: ⊤}) ∧ {a: ⊤}) → α
+
+/** Return the Edge's current bank. */
+fun edgePos(s) = if s is State(_, b, _, _) then b
+//│ edgePos: ∀α. (((({e: α} ∧ State) ∧ {b: ⊤}) ∧ {l: ⊤}) ∧ {a: ⊤}) → α
+
+/** Return Larry's current bank. */
+fun larryPos(s) = if s is State(_, _, c, _) then c
+//│ larryPos: ∀α. (((({l: α} ∧ State) ∧ {b: ⊤}) ∧ {e: ⊤}) ∧ {a: ⊤}) → α
+
+/** Return Adam's current bank. */
+fun adamPos(s) = if s is State(_, _, _, d) then d
+//│ adamPos: ∀α. (((({a: α} ∧ State) ∧ {b: ⊤}) ∧ {e: ⊤}) ∧ {l: ⊤}) → α
+
+/** Start with everybody on the left. */
+val initialState = State(LeftBank(), LeftBank(), LeftBank(), LeftBank())
+//│ initialState: (((State ∧ {b: LeftBank}) ∧ {e: LeftBank}) ∧ {l: LeftBank}) ∧ {a: LeftBank}
+
+/** Finish with everybody on the right. */
+val finalState = State(RightBank(), RightBank(), RightBank(), RightBank())
+//│ finalState: (((State ∧ {b: RightBank}) ∧ {e: RightBank}) ∧ {l: RightBank}) ∧ {a: RightBank}
+
+:ctml-parse-only // FIXME: Selecting among the field projections exceeds the 20000-call budget.
+/** Find the current bank of the given item. */
+fun position(i, s) = if i is
+  Bono() then bonoPos(s)
+  Edge() then edgePos(s)
+  Larry() then larryPos(s)
+  Adam() then adamPos(s)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Choosing a state update exceeds the 20000-call solver budget.
+/** Move one item to pos, preserving the other three positions. */
+fun updateState(s, i, pos) = if s is State(a, b, c, d) and i is
+  Bono() then State(pos, b, c, d)
+  Edge() then State(a, pos, c, d)
+  Larry() then State(a, b, pos, d)
+  Adam() then State(a, b, c, pos)
+//│ CTML translation succeeded.
+
+/** Return the opposite riverbank. */
+fun opposite(b) = if b is
+  LeftBank() then RightBank()
+  RightBank() then LeftBank()
+//│ opposite: ∀α, β. {β ≥ ({α ≤ LeftBank} ⟹ RightBank) ∧ ({α ≤ RightBank} ⟹ LeftBank), α ≤ ¬({β ≥ RightBank} ⟹ ¬LeftBank) ∨ ¬({β ≥ LeftBank} ⟹ ¬RightBank)} ⟹ α → β
+
+:ctml-parse-only // FIXME: State equality is translation-only.
+/** Test whether the history contains no entry with this state. */
+fun notSeen(state, states) =
+  all(pair => if pair is [_, s] then if stateEq(state, s) then false else true, states)
+//│ CTML translation succeeded.
+
+:fixme // FIXME: append cannot instantiate its recursive input from nofibStringToList.
+/** Prepend the source display line for one member. */
+fun writeItem(i, b, rest) = if i is
+  Bono() and b is LeftBank() then
+    append(nofibStringToList("    Bono |                    |\n"), rest)
+  Edge() and b is LeftBank() then
+    append(nofibStringToList("The Edge |                    |\n"), rest)
+  Larry() and b is LeftBank() then
+    append(nofibStringToList("   Larry |                    |\n"), rest)
+  Adam() and b is LeftBank() then
+    append(nofibStringToList("    Adam |                    |\n"), rest)
+  Bono() and b is RightBank() then
+    append(nofibStringToList("         |                    | Bono\n"), rest)
+  Edge() and b is RightBank() then
+    append(nofibStringToList("         |                    | The Edge\n"), rest)
+  Larry() and b is RightBank() then
+    append(nofibStringToList("         |                    | Larry\n"), rest)
+  Adam() and b is RightBank() then
+    append(nofibStringToList("         |                    | Adam\n"), rest)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+:ctml-parse-only // FIXME: The item formatter has no checked type.
+/** Prepend the display for the entire state. */
+fun writeState(state, s) =
+  append(
+    nofibStringToList("----------------------------------------\n"),
+    writeItem(Bono(), bonoPos(state),
+      writeItem(Edge(), edgePos(state),
+        writeItem(Larry(), larryPos(state),
+          writeItem(Adam(), adamPos(state),
+            append(nofibStringToList("----------------------------------------\n"), s)))))
+  )
+//│ CTML translation succeeded.
+
+/** Read the total crossing time from the most recent entry. */
+fun totalTime(history) = if history is LCons([time, _], _) then time
+//│ totalTime: ∀α. (({head: ⟨α, ⊤⟩} ∧ LCons) ∧ {tail: ⊤}) → α
+
+:ctml-parse-only // FIXME: The state formatter has no checked type.
+/** Display a history with each time relative to the start of the crossing. */
+fun writeHistory(history, x) = if history is
+  LNil() then x
+  else
+    foldr(
+      (timestate, acc) => s => if timestate is [time, state] then
+        append(nofibStringToList("Time: "),
+          append(nofibStringToList(stringOfInt(totalTime(history) - time)),
+            LCons("\n", writeState(state, acc(s))))),
+      x => x,
+      history
+    )(x)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The history formatter has no checked type.
+/** Display every solution with its one-based number. */
+fun writeSolutions(solutions, count, s) = if solutions is
+  LNil() then s
+  LCons(item, next) then
+    append(nofibStringToList("Solution "),
+      append(nofibStringToList(stringOfInt(count)),
+        LCons("\n", writeHistory(item, writeSolutions(next, count + 1, s)))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive minimum traversal exceeds the 20000-call solver budget.
+/** Keep the shortest histories in their original order. */
+fun minSolutions(history) = if history is
+  LNil() then LNil()
+  LCons(first, rest) then
+    /** Collect all histories tied at the best total encountered so far. */
+    fun minAcc(minSoFar, mins, ls) = if ls is
+      LNil() then mins
+      LCons(history, next) then
+        let total = totalTime(history)
+        if
+          minSoFar < total then minAcc(minSoFar, mins, next)
+          minSoFar === total then minAcc(minSoFar, LCons(history, mins), next)
+          else minAcc(total, LCons(history, LNil()), next)
+    reverse(minAcc(totalTime(first), LCons(first, LNil()), rest))
+//│ CTML translation succeeded.
+
+/** The crossing time of each member, in minutes. */
+fun u2times(i) = if i is
+  Bono() then 10
+  Edge() then 5
+  Larry() then 2
+  Adam() then 1
+//│ u2times: ∀α, β. {β ≥ ({α ≤ Bono} ⟹ Int) ∧ ({α ≤ Edge ∨ ¬({β ≥ ({α ≤ Larry} ⟹ Int) ∧ ({α ≤ Adam} ⟹ Int)} ⟹ ¬(Larry ∨ Adam))} ⟹ ({α ≤ Edge} ⟹ Int) ∧ ({α ≤ Larry ∨ Adam} ⟹ ({α ≤ Larry} ⟹ Int) ∧ ({α ≤ Adam} ⟹ Int))), α ≤ Bono ∨ ¬({β ≥ ({α ≤ Edge} ⟹ Int) ∧ ({α ≤ Larry ∨ Adam} ⟹ ({α ≤ Larry} ⟹ Int) ∧ ({α ≤ Adam} ⟹ Int))} ⟹ ¬(Edge ∨ ¬({β ≥ ({α ≤ Larry} ⟹ Int) ∧ ({α ≤ Adam} ⟹ Int)} ⟹ ¬(Larry ∨ Adam))))} ⟹ α → β
+
+:ctml-parse-only // FIXME: The item range and state updates are translation-only.
+/** Enumerate solutions by moving one or two members at a time. */
+fun transfer(source, dest, location, countdown, history) =
+  if stateEq(source, dest) then LCons(LCons([countdown, dest], history), LNil())
+  else
+    let newHistory = LCons([countdown, dest], history)
+    let newLocation = opposite(location)
+    /** Try each single-member move from this bank. */
+    fun lscomp1(ls) = if ls is
+      LNil() then LNil()
+      LCons(item, xs) then
+        if bankEq(position(item, dest), location) then
+          let newDest = updateState(dest, item, newLocation)
+          if notSeen(newDest, history) then
+            let newTime = countdown + u2times(item)
+            LCons(transfer(source, newDest, newLocation, newTime, newHistory), lscomp1(xs))
+          else lscomp1(xs)
+        else lscomp1(xs)
+    let moveOne = concat(lscomp1(itemFromTo(Bono(), Adam())))
+    /** Try each first member of a two-member move. */
+    fun lscomp2(ls) = if ls is
+      LNil() then LNil()
+      LCons(i, xs) then
+        /** Try later members in source order, advancing the first member at the end. */
+        fun lscomp3(ls) = if ls is
+          LNil() then lscomp2(xs)
+          LCons(j, ys) then
+            if bankEq(position(i, dest), location) and bankEq(position(j, dest), location) then
+              let newDest = updateState(updateState(dest, i, newLocation), j, newLocation)
+              if notSeen(newDest, history) then
+                let newTime = countdown + u2times(i)
+                LCons(transfer(source, newDest, newLocation, newTime, newHistory), lscomp3(ys))
+              else lscomp3(ys)
+            else lscomp3(ys)
+        lscomp3(itemFromTo(succItem(i), Adam()))
+    let moveTwo = concat(lscomp2(itemFromTo(Bono(), Larry())))
+    append(moveOne, moveTwo)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Search and formatting are translation-only.
+/** Solve the puzzle and display the optimal crossings. */
+fun testPuzzle_nofib(x) =
+  let time = if listLen(x) === 1 then 0 else raiseError("puzzle expects exactly one argument")
+  let solutions = transfer(initialState, finalState, RightBank(), time, LNil())
+  let mins = minSolutions(solutions)
+  writeSolutions(mins, 1, LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark driver is translation-only.
+/** Run the source workload with its one-element argument list. */
+fun main() = nofibListToString(testPuzzle_nofib(LCons(2, LNil())))
+//│ CTML translation succeeded.
+
+// Check the bank and time fields on concrete puzzle values.
+bonoPos(initialState) as LeftBank
+adamPos(finalState) as RightBank
+opposite(edgePos(initialState)) as RightBank
+u2times(succItem(Bono())) as Int
+totalTime(LCons([17, finalState], LNil())) as Int
+//│ LeftBank
+//│ RightBank
+//│ RightBank
+//│ Int
+//│ Int
+
+:te
+State(LeftBank(), RightBank(), Larry(), LeftBank())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ε → ((((State ∧ {b: ζ}) ∧ {e: η}) ∧ {l: δ}) ∧ {a: ε}) ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ Bank
+//│           Larry ≤ Bank
+//│             Larry ≤ LeftBank ∨ RightBank
+//│               Larry ≤ LeftBank
+//│               Larry ≤ RightBank

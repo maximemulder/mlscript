@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 64 member(s)
+//│ Imported 67 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/power.mls.
 // Coefficients use Num throughout, including integral constants. Series use the source

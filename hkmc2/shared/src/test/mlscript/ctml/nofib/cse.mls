@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 64 member(s)
+//│ Imported 67 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cse.mls.
 // State computations return [new state, answer], preserving the source component order.
@@ -344,18 +344,24 @@ fun labelTree(t) =
   startingWith(label(t), 0)
 //│ CTML translation succeeded.
 
-// FIXME: Graph construction depends on concat, whose inference failure is in preludeTests.mls.
-// /** Emit graph entries in preorder, encoding each source triple as a nested pair. */
-// fun ltGraph(t) =
-//   fun labelOf(t) = if t is Node([n, x], xs) then n
-//   if t is Node([n, x], xs) then
-//     LCons([n, [x, map(labelOf, xs)]], concat(map(ltGraph, xs)))
+/** Emit graph entries in preorder, encoding each source triple as a nested pair. */
+fun ltGraph(t) =
+  fun labelOf(t) = if t is Node([n, x], xs) then n
+  if t is Node([n, x], xs) then
+    LCons([n, [x, map(labelOf, xs)]], concat(map(ltGraph, xs)))
+//│ ltGraph: ∀α, β, γ, δ, ε, ζ. {ζ ≥ ⟨α, ⟨β, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y⟩⟩, ε ≤ ({b: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: X})} ⟹ X)} ∧ {a: ⟨α, β⟩}) ∧ Node, γ ≤ ({b: ⊤} ∧ {a: ⟨⊤, ⊤⟩}) ∧ Node} ⟹ (({b: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: X})} ⟹ X)} ∧ {a: ⟨α, β⟩}) ∧ Node) → ((LCons ∧ {head: ⟨α, ⟨β, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y⟩⟩}) ∧ {tail: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: Y})} ⟹ Y})
 
-// FIXME: The visited-state check depends on the disabled inList definition.
-// /** Report whether the label was visited, adding it to the state on the first visit. */
-// fun visited(n) =
-//   bind(fetch, us => if inList(n, us) then retURN(true)
-//     else bind(set_(LCons(n, us)), _p => retURN(false)))
+/** Report whether the label was visited, adding it to the state on the first visit. */
+fun visited(n) =
+  bind(fetch, us => if inList(n, us) then retURN(true)
+    else bind(set_(LCons(n, us)), _p => retURN(false)))
+//│ visited: ∀α, β. {β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X} ⟹ α → β → (⟨(LCons ∧ {head: α}) ∧ {tail: β}, Bool⟩ ∨ ⟨β, Bool⟩)
+
+// Check graph construction and visited-state tracking on concrete inputs.
+ltGraph(Node([1, "leaf"], LNil())) as LCons & {head: [Int, [Str, LNil | LCons]]}
+visited(1, LCons(2, LNil())) as [LNil | LCons, Bool]
+//│ LCons ∧ {head: ⟨Int, ⟨Str, LNil ∨ LCons⟩⟩}
+//│ ⟨LNil ∨ LCons, Bool⟩
 
 :ctml-parse-only // FIXME: This stage depends on the unchecked foldr and listEq definitions.
 /** Merge entries with the same symbol and the same redirected child labels. */
@@ -374,9 +380,10 @@ fun findCommon(ls) =
   if foldr(sim, [x => x, LNil()], ls) is [a, b] then b else raiseError(ls.toString())
 //│ CTML translation succeeded.
 
-// FIXME: This stage depends on the disabled labelTree, ltGraph, and findCommon definitions.
-// /** Compute the graph with common subexpressions merged. */
-// fun cse(t) = findCommon(ltGraph(labelTree(t)))
+:ctml-parse-only // FIXME: Tree labelling and common-entry merging are translation-only.
+/** Compute the graph with common subexpressions merged. */
+fun cse(t) = findCommon(ltGraph(labelTree(t)))
+//│ CTML translation succeeded.
 
 /** Construct the example using successive left-fold results. */
 val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
@@ -387,17 +394,19 @@ val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil(
 val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
 //│ CTML translation succeeded.
 
-// FIXME: The benchmark depends on the disabled cse and example5 definitions.
-// /** Run CSE on the source prefix of examples for each index from one to n. */
-// fun testCse_nofib(n) = map(
-//   i => map(
-//     cse,
-//     take(intMod(i, 6), LCons(example0, LCons(example1, LCons(example2,
-//       LCons(example3, LCons(example4, LCons(example5, LNil())))))))
-//   ),
-//   enumFromTo(1, n)
-// )
+:ctml-parse-only // FIXME: The CSE traversal and the last example are translation-only.
+/** Run CSE on the source prefix of examples for each index from one to n. */
+fun testCse_nofib(n) = map(
+  i => map(
+    cse,
+    take(intMod(i, 6), LCons(example0, LCons(example1, LCons(example2,
+      LCons(example3, LCons(example4, LCons(example5, LNil())))))))
+  ),
+  enumFromTo(1, n)
+)
+//│ CTML translation succeeded.
 
-// FIXME: The driver depends on testCse_nofib and needs source-format list rendering.
-// /** Run the source benchmark with input 6 and render its result. */
-// fun main() = testCse_nofib(6).toString()
+:ctml-parse-only // FIXME: The result list has no checked source-format toString method.
+/** Run the source benchmark with input 6 and render its result. */
+fun main() = testCse_nofib(6).toString()
+//│ CTML translation succeeded.

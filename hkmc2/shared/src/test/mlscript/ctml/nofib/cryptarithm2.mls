@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 64 member(s)
+//│ Imported 67 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm2.mls.
 // StateT carries its state and result through the run field. The source char type is Str.
@@ -38,16 +38,6 @@ fun deleteBy(eq, x, ys) = if ys is
 fun nubBy(eq, ls) = if ls is
   LNil() then LNil()
   LCons(h, t) then LCons(h, nubBy(eq, filter(y => if eq(h, y) then false else true, t)))
-//│ CTML translation succeeded.
-
-:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
-/** Sum integers with the source accumulator traversal. */
-fun sum(xs) =
-  /** Add the remaining elements from left to right. */
-  fun go(rest, a) = if rest is
-    LNil() then a
-    LCons(h, t) then go(t, a + h)
-  go(xs, 0)
 //│ CTML translation succeeded.
 
 :ctml-parse-only // FIXME: The shared deletion traversal is translation-only.
@@ -198,7 +188,7 @@ fun rest(ls) = if ls is
   LCons(x, xs) then xs
 //│ rest: ∀α, β. {β ≥ ({α ≤ LNil} ⟹ LNil) ∧ ({α ≤ ({tail: β} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ (({tail: β} ∧ LCons) ∧ {head: ⊤})} ⟹ α → β
 
-:ctml-parse-only // FIXME: Digit selection and summation are translation-only.
+:ctml-parse-only // FIXME: Digit selection and monadic traversals are translation-only.
 /** Solve one column at a time, passing the carry to the next column. */
 fun solve(tops, bots, carry) = if bots is
   LCons(bot, botss) then

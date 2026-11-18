@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 37 member(s)
+//│ Imported 38 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm1.mls.
 // Source lists use LNil()/LCons; the fixed-length digit pattern is preserved.

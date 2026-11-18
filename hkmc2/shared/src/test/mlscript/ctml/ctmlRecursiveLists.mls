@@ -164,6 +164,23 @@ val map = fix[MapAB]((self: MapAB) =>
 map as ((A -> B) -> ListA -> ListB)
 //│ (A → B) → ListA → ListB
 
+// A left scan always produces the initial accumulator, even when the input is empty.
+/** A nonempty list of accumulator values for a scan over rigid element types A and B. */
+type ScanResult = LCons & {head: B} & {tail: ListB}
+//│ ScanResult = (LCons ∧ {head: B}) ∧ {tail: ListB}
+
+/** The supplied recursion invariant for the shared Nofib scanl. */
+type ScanAB = (B -> A -> B) -> B -> ListA -> ScanResult
+//│ ScanAB = (B → A → B) → B → ListA → ScanResult
+
+/** Check the scanl implementation with the recursive list invariant supplied. */
+val scanl = fix[ScanAB]((self: ScanAB) =>
+  (f: B -> A -> B) => (q: B) => xs =>
+  if (xs as LayerA) is
+    LNil() then LCons(q, LNil())
+    LCons(x, tail) then LCons(q, (self as ScanAB)(f, (f as (B -> A -> B))(q, x), tail)))
+//│ scanl: ScanAB
+
 // The compact recursive spelling needs the list invariant while checking its pattern branches.
 :fixme // FIXME: Recursive signature inference does not recover the required list invariant.
 fun inferredLength(xs: IntList): Int = if xs is

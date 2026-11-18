@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 37 member(s)
+//│ Imported 38 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cse.mls.
 // State computations return [new state, answer], preserving the source component order.
@@ -298,12 +298,6 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 //   LCons(x, xs) then append(x, concat(xs))
 
 // FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Collect the initial accumulator and each successive result of folding from the left. */
-// fun scanl(f, q, ls) = if ls is
-//   LNil() then LCons(q, LNil())
-//   LCons(x, xs) then LCons(q, scanl(f, f(q, x), xs))
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
 // /** Collect the right-fold results, ending with the initial accumulator. */
 // fun scanr(f, q, ls) = if ls is
 //   LNil() then LCons(q, LNil())
@@ -381,15 +375,15 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 // /** Compute the graph with common subexpressions merged. */
 // fun cse(t) = findCommon(ltGraph(labelTree(t)))
 
-// FIXME: This example depends on the disabled scanl definition.
-// /** Construct the example using successive left-fold results. */
-// val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+/** Construct the example using successive left-fold results. */
+val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+//│ example4: ∀α. {α ≥ ((Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}) ∨ ((Node ∧ {a: Str}) ∧ {b: LNil})} ⟹ (Node ∧ {a: Str}) ∧ {b: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ (LCons ∧ {head: α}) ∧ {tail: Y}}
 
 // FIXME: This example depends on the disabled scanr definition.
 // /** Construct the example using successive right-fold results. */
 // val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
 
-// FIXME: The benchmark depends on the disabled cse, example4, and example5 definitions.
+// FIXME: The benchmark depends on the disabled cse and example5 definitions.
 // /** Run CSE on the source prefix of examples for each index from one to n. */
 // fun testCse_nofib(n) = map(
 //   i => map(

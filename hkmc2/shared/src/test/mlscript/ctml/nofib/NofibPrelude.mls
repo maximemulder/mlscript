@@ -318,3 +318,42 @@ fun nofibStringToList(s) =
 // fun appendNlLz(xs, ys) = if xs is
 //   LNil() then ys
 //   LCons(h, t) then delay(() => LzCons(h, appendNlLz(t, ys)))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Zip three lists into nested pairs, stopping at the shortest list. */
+// fun zip3(xs, ys, zs) = if
+//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and zs is LCons(hz, tz) then
+//     LCons([hx, [hy, hz]], zip3(tx, ty, tz))
+//   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** List the initial accumulator and every subsequent left-fold result. */
+// fun scanl(f, q, ls) = if ls is
+//   LNil() then LCons(q, LNil())
+//   LCons(x, xs) then LCons(q, scanl(f, f(q, x), xs))
+
+/**
+ * Trusted scanl contract. The result always starts with the initial accumulator.
+ * ../ctmlRecursiveLists.mls checks the supplied invariant for rigid element types.
+ * This declaration does not check the unannotated implementation above.
+ */
+declare fun scanl[A, B]: (B -> A -> B) -> B -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> (LCons & {head: B} & {tail: Y}))
+//│ scanl: ∀A, B. (B → A → B) → B → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ (LCons ∧ {head: B}) ∧ {tail: Y})
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Fold a nonempty list from the right, using its final element as the seed. */
+// fun foldr1(f, ls) = if ls is
+//   LCons(x, LNil()) then x
+//   LCons(x, xs) then f(x, foldr1(f, xs))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Combine elements pairwise, stopping at the shorter list. */
+// fun zipWith(f, xss, yss) = if
+//   xss is LCons(x, xs) and yss is LCons(y, ys) then LCons(f(x, y), zipWith(f, xs, ys))
+//   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Join a strict list of characters using source string concatenation. */
+// fun nofibListToString(ls) = if ls is
+//   LNil() then ""
+//   LCons(h, t) then h ++ nofibListToString(t)

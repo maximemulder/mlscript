@@ -1,0 +1,192 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 38 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/calendar.mls.
+// Pictures are lists of character rows. Month triples use nested pairs.
+// The source runtime reference renders the year 1993 for the adapted input 0.
+
+/** Apply the Gregorian century and quadrennial leap-year rules. */
+fun leap(year) = if
+  intMod(year, 100) == 0 then intMod(year, 400) == 0
+  else intMod(year, 4) == 0
+//│ leap: Int → Bool
+
+/** List the month lengths in order, with February set by the leap-year rule. */
+fun monthLengths(year) =
+  let feb = if leap(year) then 29 else 28
+  let octToDec = LCons(31, LCons(30, LCons(31, LNil())))
+  let julToDec = LCons(31, LCons(31, LCons(30, octToDec)))
+  let aprToDec = LCons(30, LCons(31, LCons(30, julToDec)))
+  LCons(31, LCons(feb, LCons(31, aprToDec)))
+//│ monthLengths: Int → ((LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: (LCons ∧ {head: Int}) ∧ {tail: LNil}}}}}}}}}}}})
+
+/** Spell each month name as a list of characters. */
+val monthNames =
+  let january = nofibStringToList("January")
+  let february = nofibStringToList("February")
+  let march = nofibStringToList("March")
+  let april = nofibStringToList("April")
+  let may = nofibStringToList("May")
+  let june = nofibStringToList("June")
+  let july = nofibStringToList("July")
+  let august = nofibStringToList("August")
+  let september = nofibStringToList("September")
+  let october = nofibStringToList("October")
+  let november = nofibStringToList("November")
+  let december = nofibStringToList("December")
+  let octToDec = LCons(october, LCons(november, LCons(december, LNil())))
+  let julToDec = LCons(july, LCons(august, LCons(september, octToDec)))
+  let aprToDec = LCons(april, LCons(may, LCons(june, julToDec)))
+  LCons(january, LCons(february, LCons(march, aprToDec)))
+//│ monthNames: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ}), θ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ}), κ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ}), μ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ}), λ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ}), ι ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι}), η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η}), ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: θ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ι})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: μ})}) ∧ {tail: LNil}}}}}}}}}}}}
+
+/** Compute the weekday of January 1, with Sunday represented by zero. */
+fun jan1st(year) =
+  let last = year - 1
+  intMod(year + intDiv(last, 4) - intDiv(last, 100) + intDiv(last, 400), 7)
+//│ jan1st: Int → Int
+
+/** Keep the weekday for the first day of each of the twelve months. */
+fun firstDays(year) =
+  take(12, map(x => intMod(x, 7), scanl((a, b) => a + b, jan1st(year), monthLengths(year))))
+//│ firstDays: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: Y})} ⟹ Int → Y
+
+firstDays(1993) as (LNil | (LCons & {head: Int}))
+//│ LNil ∨ (LCons ∧ {head: Int})
+
+/** Construct a blank picture of the given height and width. */
+fun emptyPic(hw) = if hw is [h, w] then replicate(h, replicate(w, " "))
+//│ emptyPic: ∀α, β. {β ≥ ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil, α ≥ ((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil} ⟹ ⟨Int, Int⟩ → (((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil)
+
+leap(1900) as Bool
+leap(2000) as Bool
+jan1st(1993) as Int
+monthLengths(2000).tail.head as Int
+//│ Bool
+//│ Bool
+//│ Int
+//│ Int
+
+:te
+jan1st("1993")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int ≤ Str → α
+//│     Str ≤ Int
+
+emptyPic([1, 2]) as (LNil | (LCons & {head: LNil | (LCons & {head: Str})}))
+//│ LNil ∨ (LCons ∧ {head: LNil ∨ (LCons ∧ {head: Str})})
+
+:te
+emptyPic([8, "wide"])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil, α ≥ ((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil} ⟹ ⟨Int, Int⟩ → (((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil) ≤ ⟨Int, Str⟩ → γ.
+//│ Typing error tree:
+//│   ∀α, β. {β ≥ ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil, α ≥ ((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil} ⟹ ⟨Int, Int⟩ → (((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil) ≤ ⟨Int, Str⟩ → γ
+//│     {δ ≥ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil, ε ≥ ((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil}) ∧ {tail: ε}) ∨ LNil} ⟹ ⟨Int, Int⟩ → (((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil}) ∧ {tail: ε}) ∨ LNil) ≤ ⟨Int, Str⟩ → γ
+//│       {ε ≥ ((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil}) ∧ {tail: ε}) ∨ LNil} ⟹ ⟨Int, Int⟩ → (((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil}) ∧ {tail: ε}) ∨ LNil) ≤ ⟨Int, Str⟩ → γ
+//│         ⟨Int, Int⟩ → (((LCons ∧ {head: ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil}) ∧ {tail: ε}) ∨ LNil) ≤ ⟨Int, Str⟩ → γ
+//│           ⟨Int, Str⟩ ≤ ⟨Int, Int⟩
+//│             Str ≤ Int
+
+/** Produce a row of n spaces. */
+fun space(n) = replicate(n, " ")
+//│ space: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
+
+// FIXME: The inferred space list fails to instantiate at an encoded append parameter.
+// /** Pad a row with spaces on the right. */
+// fun ljustify(n, s) = append(s, space(n - listLen(s)))
+//
+// /** Pad a row with spaces on the left. */
+// fun rjustify(n, s) = append(space(n - listLen(s)), s)
+//
+// /** Center a row, putting any odd extra space on the right. */
+// fun cjustify(n, s) =
+//   let m = n - listLen(s)
+//   let halfm = intDiv(m, 2)
+//   append(space(halfm), append(s, space(m - halfm)))
+
+// FIXME: Passing an inferred character list to rjustify fails with a temporary list contract.
+// /** Render an in-month day as a right-aligned cell and an out-of-month day as blanks. */
+// fun date(ml, d) = if
+//   (d < 1) || (ml < d) then LCons(nofibStringToList("   "), LNil())
+//   else LCons(rjustify(3, nofibStringToList(stringOfInt(d))), LNil())
+
+// FIXME: The inferred range fails to instantiate at map even with a temporary date contract.
+// /** Render the 42 cells of a six-week grid, including days outside of the month. */
+// fun dates(fd, ml) = map(d => date(ml, d), enumFromTo(1 - fd, 42 - fd))
+
+// FIXME: These picture operations depend on disabled shared list traversals.
+// /** Flatten the rows, appending a newline to each. */
+// fun unlines(ls) = concat(map(x => append(x, LCons("\n", LNil())), ls))
+//
+// /** Count the rows in the picture. */
+// fun height(p) = listLen(p)
+//
+// /** Count the columns in the first row of a nonempty picture. */
+// fun width(p) = listLen(head(p))
+//
+// /** Stack a nonempty list of pictures vertically. */
+// fun stack(ls) = foldr1(append, ls)
+//
+// /** Place a nonempty list of pictures side by side. */
+// fun spread(ls) = foldr1((a, b) => zipWith(append, a, b), ls)
+//
+// FIXME: With a temporary leave contract, inference only accepts the empty list.
+// /** Split a list into successive blocks of n elements. */
+// fun groop(n, xs) = if xs is
+//   LNil() then LNil()
+//   else LCons(take(n, xs), groop(n, leave(n, xs)))
+//
+// /** Lay out each group horizontally and stack the resulting rows. */
+// fun block(n, t) = stack(map(spread, groop(n, t)))
+//
+// /** Stack within each group and then stack the resulting pictures. */
+// fun blockT(n, t) = stack(map(stack, groop(n, t)))
+//
+// /** Add blank columns to the right and blank rows below. */
+// fun lframe(mn, p) = if mn is [m, n] then
+//   let h = height(p)
+//   let w = width(p)
+//   append(zipWith(append, p, emptyPic([h, n - w])), emptyPic([m - h, n]))
+
+// FIXME: Calendar assembly depends on disabled formatting and picture traversals.
+// /** Assemble the twelve months and the year banner, keeping source row and column sizes. */
+// fun cal(year) =
+//   let side = emptyPic([8, 2])
+//   let bottom = emptyPic([1, 25])
+//   let daynames = LCons(nofibStringToList(" Su Mo Tu We Th Fr Sa"), LNil())
+//
+//   /** Center the year and add a blank row. */
+//   fun banner(yr) = LCons(cjustify(75, nofibStringToList(stringOfInt(yr))), emptyPic([1, 75]))
+//
+//   /** Center a month name above a 21-column grid. */
+//   fun title(mn) = LCons(cjustify(21, mn), LNil())
+//
+//   /** Group the date cells into seven-day rows. */
+//   fun entries(fd, ml) = block(7, dates(fd, ml))
+//
+//   /** Add the weekday labels to the month grid. */
+//   fun table(fd, ml) = append(daynames, entries(fd, ml))
+//
+//   /** Combine a month name, first weekday, and length into a picture. */
+//   fun pic(mnfdml) = if mnfdml is [mn, [fd, ml]] then append(title(mn), table(fd, ml))
+//
+//   /** Add the side margins and bottom row. */
+//   fun pad(p) = append(zipWith(append, zipWith(append, side, p), side), bottom)
+//
+//   /** Pair each month name with its starting weekday and length. */
+//   fun months(yr) = zip3(monthNames, firstDays(yr), monthLengths(yr))
+//
+//   /** Place three padded months in each row. */
+//   fun body(yr) = block(3, map(x => pad(pic(x)), months(yr)))
+//
+//   unlines(append(banner(year), body(year)))
+
+// FIXME: The inclusive year traversal depends on the disabled cal definition.
+// /** Render the years from 1993 through 1993 + n, inclusive. */
+// fun testCalendar_nofib(n) = map(x => cal(x), enumFromTo(1993, 1993 + n))
+
+// FIXME: The driver depends on the disabled year traversal and concatenation.
+// /** Render the calendar for the source benchmark's adapted input. */
+// fun main() = nofibListToString(concat(testCalendar_nofib(0)))

@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 40 member(s)
+//│ Imported 45 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 
@@ -210,7 +210,7 @@ fun zipWith(f, xss, yss) = if
 //│ CTML translation succeeded.
 
 :ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
-/** Join a strict list of characters using source string concatenation. */
+/** Join a strict list of strings using source string concatenation. */
 fun nofibListToString(ls) = if ls is
   LNil() then ""
   LCons(h, t) then h ++ nofibListToString(t)

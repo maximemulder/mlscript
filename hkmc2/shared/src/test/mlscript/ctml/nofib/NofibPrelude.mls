@@ -27,6 +27,13 @@ declare fun intQuot: Int -> Int -> Int
 declare fun divideToNum: Int -> Int -> Num
 //│ divideToNum: Int → Int → Num
 
+/** Trusted floating-point addition using the source + operation. */
+declare fun numAdd: Num -> Num -> Num
+/** Trusted floating-point multiplication using the source * operation. */
+declare fun numMul: Num -> Num -> Num
+//│ numAdd: Num → Num → Num
+//│ numMul: Num → Num → Num
+
 fun intRem(a, b) = a - (b * intQuot(a, b))
 //│ intRem: Int → Int → Int
 
@@ -81,6 +88,14 @@ data class LzNil()
 /** Lazy-list cell; its tail is delayed separately from the node. */
 data class LzCons(head, tail)
 //│ LzCons: ∀α, β. α → β → ((LzCons ∧ {head: α}) ∧ {tail: β})
+
+/**
+ * Trusted takeLz contract. The recursive input carries a delayed node at every tail,
+ * and the result is a strict list with the same element type. preludeDeferred.mls
+ * checks translation of the unannotated implementation.
+ */
+declare fun takeLz[A]: Int -> ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ takeLz: ∀A. Int → (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
 
 /** Source head is partial on empty lists. */
 fun head(l) = if l is LCons(h, t) then h
@@ -161,6 +176,17 @@ fun enumFrom(a) = delay(() => LzCons(a, enumFrom(a + 1)))
 /** Trusted integer-to-string conversion corresponding to the source x + "". */
 declare fun stringOfInt: Int -> Str
 //│ stringOfInt: Int → Str
+
+/** Trusted source stringOfFloat implements JavaScript number-to-string conversion. */
+declare fun stringOfFloat: Num -> Str
+//│ stringOfFloat: Num → Str
+
+/**
+ * Trusted string-list join, also used for source stringListConcat.
+ * preludeDeferred.mls checks translation of the unannotated implementation.
+ */
+declare fun nofibListToString: ([X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X) -> Str
+//│ nofibListToString: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X) → Str
 
 /** Trusted source primitive. Return the number of UTF-16 code units in a source string. */
 declare fun nofibStringLength: Str -> Int

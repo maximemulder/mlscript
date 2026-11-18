@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 40 member(s)
+//│ Imported 45 member(s)
 
 // The error branch contributes no return value to the conditional.
 raiseError("missing result") as Bot
@@ -800,3 +800,99 @@ scanl((total, x) => total + x, 0, LCons("1", LNil()))
 //│                       η ≤ ⊥
 //│                         ι ≤ ⊥
 //│                           LNil ≤ ⊥
+
+// Atom's decimal arithmetic and conversion keep the Num and Str result types.
+numAdd(divideToNum(0 - 1, 1), numMul(0.02, 1.0)) as Num
+stringOfFloat(1.0) as Str
+//│ Num
+//│ Str
+
+:te
+numAdd("bad", 1.0)
+//│ ═══[TYPE ERROR] Cannot solve judgment Num → Num → Num ≤ Str → α.
+//│ Typing error tree:
+//│   Num → Num → Num ≤ Str → α
+//│     Str ≤ Num
+
+:te
+stringOfFloat(true)
+//│ ═══[TYPE ERROR] Cannot solve judgment Num → Str ≤ Bool → α.
+//│ Typing error tree:
+//│   Num → Str ≤ Bool → α
+//│     Bool ≤ Num
+
+// Taking a lazy prefix preserves its element type and gives a strict list.
+takeLz(1, delayedCell) as IntList
+takeLz(0, delay(() => LzNil())) as IntList
+//│ IntList
+//│ IntList
+
+:te
+takeLz(1, delay(() => LzCons(1, LNil())))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       β ≤ ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X
+//│         Delayed ∧ {resume: Unit → ε} ≤ ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X
+//│           Delayed ∧ {resume: Unit → ε} ≤ {ζ ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: ζ}))}} ⟹ ζ
+//│             Delayed ∧ {resume: Unit → ε} ≤ ζ
+//│               Delayed ∧ {resume: Unit → ε} ≤ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: ζ}))}
+//│                 Delayed ∧ {resume: Unit → ε} ≤ {resume: Unit → (LzNil ∨ {tail: ζ})}
+//│                   Delayed ≤ {resume: Unit → (LzNil ∨ {tail: ζ})}
+//│                   {resume: Unit → ε} ≤ {resume: Unit → (LzNil ∨ {tail: ζ})}
+//│                     Unit → ε ≤ Unit → (LzNil ∨ {tail: ζ})
+//│                       ε ≤ LzNil ∨ {tail: ζ}
+//│                         (LzCons ∧ {head: Int}) ∧ {tail: LNil} ≤ LzNil ∨ {tail: ζ}
+//│                           (LzCons ∧ {head: Int}) ∧ {tail: LNil} ≤ LzNil
+//│                             LzCons ∧ {head: Int} ≤ LzNil
+//│                               LzCons ≤ LzNil
+//│                               {head: Int} ≤ LzNil
+//│                                 Int ≤ ⊥
+//│                             {tail: LNil} ≤ LzNil
+//│                               LNil ≤ ⊥
+//│                           (LzCons ∧ {head: Int}) ∧ {tail: LNil} ≤ {tail: ζ}
+//│                             LzCons ∧ {head: Int} ≤ {tail: ζ}
+//│                               LzCons ≤ {tail: ζ}
+//│                               {head: Int} ≤ {tail: ζ}
+//│                                 Int ≤ ⊥
+//│                             {tail: LNil} ≤ {tail: ζ}
+//│                               LNil ≤ ζ
+//│                                 LNil ≤ Delayed
+
+nofibListToString(LNil()) as Str
+nofibListToString(LCons("one", LCons("two", LNil()))) as Str
+//│ Str
+//│ Str
+
+:te
+nofibListToString(LCons(1, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X) → Str ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X) → Str ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε})} ⟹ ε
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
+//│               LCons ∧ {head: γ} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     Int ≤ ⊥
+//│               {tail: δ} ≤ LNil
+//│                 δ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ (LCons ∧ {head: Str}) ∧ {tail: ε}
+//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LCons ∧ {head: Str}
+//│                 (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {head: Str}
+//│                   LCons ∧ {head: γ} ≤ {head: Str}
+//│                     LCons ≤ {head: Str}
+//│                     {head: γ} ≤ {head: Str}
+//│                       γ ≤ Str
+//│                         Int ≤ Str
+//│                   {tail: δ} ≤ {head: Str}
+//│                     δ ≤ ⊥
+//│                       ζ ≤ ⊥
+//│                         LNil ≤ ⊥

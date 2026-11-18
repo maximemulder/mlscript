@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 75 member(s)
+//│ Imported 83 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/knights.mls.
 // Directions use nullary tags. Board positions are pairs of integers, and the oldest
@@ -20,10 +20,6 @@ fun intintComp(ab, cd) = if ab is [a, b] and cd is [c, d] then
 /** Compare two weighted boards by their weights. */
 fun intChessSetComp(ab, cd) = if ab is [a, b] and cd is [c, d] then a < c
 //│ intChessSetComp: ⟨Int, ⊤⟩ → ⟨Int, ⊤⟩ → Bool
-
-/** Compare the two coordinates of each square. */
-fun eqTup2(ab, cd) = if ab is [a, b] and cd is [c, d] then (a == c) && (b == d)
-//│ eqTup2: ⟨⊤, ⊤⟩ → ⟨⊤, ⊤⟩ → Bool
 
 :ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
 /** Drop the last entry of a nonempty list. */
@@ -426,11 +422,6 @@ fun zipWithLzLz(f, xs, ys) = delay(() =>
 /** Produce an infinite lazy list of one repeated value. */
 fun repeat(x) = delay(() => LzCons(x, repeat(x)))
 //│ repeat: ∀α, β. {β ≥ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}} ⟹ α → (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})})
-
-/** Produce n delayed copies of a value. */
-fun replicateLz(n, x) = if n == 0 then delay(() => LzNil())
-  else delay(() => LzCons(x, replicateLz(n - 1, x)))
-//│ replicateLz: ∀α, β. {β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → LzNil})} ⟹ Int → α → ((Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → LzNil}))
 
 :ctml-parse-only // FIXME: The lazy zip traversals are translation-only.
 /** Enumerate the starting tours, each with the starting backtracking count. */

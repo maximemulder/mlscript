@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 75 member(s)
+//│ Imported 83 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 

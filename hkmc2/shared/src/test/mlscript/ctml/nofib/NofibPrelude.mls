@@ -364,3 +364,36 @@ declare fun atIndex[A]: Int -> ([X restricts (LNil | (LCons & {head: A} & {tail:
  */
 declare fun appendLzLz[A]: ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Y}))})] -> Y) -> ([Z restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Z}))})] -> Z)
 //│ appendLzLz: ∀A. (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Y}))}} ⟹ Y) → (∀Z. {Z ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Z}))}} ⟹ Z)
+
+/** Trusted JavaScript String.prototype.toUpperCase on user input. */
+declare fun toUpper: Str -> Str
+//│ toUpper: Str → Str
+
+/** Compare both fields of two pairs using source structural equality. */
+fun eqTup2(ab, cd) = if ab is [a, b] and cd is [c, d] then (a == c) && (b == d)
+//│ eqTup2: ⟨⊤, ⊤⟩ → ⟨⊤, ⊤⟩ → Bool
+
+/** Produce n delayed copies of a value. */
+fun replicateLz(n, x) = if n == 0 then delay(() => LzNil())
+  else delay(() => LzCons(x, replicateLz(n - 1, x)))
+//│ replicateLz: ∀α, β. {β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → LzNil})} ⟹ Int → α → ((Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → LzNil}))
+
+/** Trusted zip contract. Pair elements until either proper list ends. See preludeDeferred.mls. */
+declare fun zip[A, B]: ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y) -> ([Z restricts (LNil | (LCons & {head: [A, B]} & {tail: Z}))] -> Z)
+//│ zip: ∀A, B. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ⟨A, B⟩}) ∧ {tail: Z})} ⟹ Z)
+
+/** Trusted zipWith contract. Combine elements until either list ends. See preludeDeferred.mls. */
+declare fun zipWith[A, B, C]: (A -> B -> C) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y) -> ([Z restricts (LNil | (LCons & {head: C} & {tail: Z}))] -> Z)
+//│ zipWith: ∀A, B, C. (A → B → C) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: C}) ∧ {tail: Z})} ⟹ Z)
+
+/** Trusted maximum contract for nonempty integer lists. See preludeDeferred.mls. */
+declare fun maximumInt: ([X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> (LCons & {head: Int} & {tail: X})) -> Int
+//│ maximumInt: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ (LCons ∧ {head: Int}) ∧ {tail: X}) → Int
+
+/** Trusted lazy filter contract. Every tail stays delayed. See preludeDeferred.mls. */
+declare fun filterLz[A]: (A -> Bool) -> ([X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: X}))})] -> X) -> ([Y restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: A} & {tail: Y}))})] -> Y)
+//│ filterLz: ∀A. (A → Bool) → (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: A}) ∧ {tail: Y}))}} ⟹ Y)
+
+/** Trusted list equality with an element comparator. See preludeDeferred.mls. */
+declare fun listEqBy[A, B]: (A -> B -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y) -> Bool
+//│ listEqBy: ∀A, B. (A → B → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y) → Bool

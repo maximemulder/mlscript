@@ -1,0 +1,742 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 83 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/circsim.mls.
+// Circuits, ports, and packets use right-nested pairs. Signals and component kinds use tags.
+
+/** A leaf in the balanced sweep tree. */
+data class Cell(value)
+//│ Cell: ∀α. α → (Cell ∧ {value: α})
+
+/** An internal sweep node whose payload changes between sweeps. */
+data class Node(value, left, right)
+//│ Node: ∀α, β, γ. α → β → γ → (((Node ∧ {value: α}) ∧ {left: β}) ∧ {right: γ})
+
+/** A placeholder for internal nodes without sweep results. */
+data class TreeUnit()
+//│ TreeUnit: Unit → TreeUnit
+
+/** A padding component. */
+data class None_()
+/** An external input. */
+data class Inp()
+/** An external output. */
+data class Outp()
+/** A delay flip-flop. */
+data class Dff()
+/** An inverter. */
+data class Inv()
+/** A two-input AND gate. */
+data class And2()
+/** A two-input OR gate. */
+data class Or2()
+/** The source XOR gate, whose operation tests signal equality. */
+data class Xor()
+//│ None_: Unit → None_
+//│ Inp: Unit → Inp
+//│ Outp: Unit → Outp
+//│ Dff: Unit → Dff
+//│ Inv: Unit → Inv
+//│ And2: Unit → And2
+//│ Or2: Unit → Or2
+//│ Xor: Unit → Xor
+
+/** A circuit component kind. */
+type Component = None_ | Inp | Outp | Dff | Inv | And2 | Or2 | Xor
+//│ Component = ((((((None_ ∨ Inp) ∨ Outp) ∨ Dff) ∨ Inv) ∨ And2) ∨ Or2) ∨ Xor
+
+/** The low signal. */
+data class F()
+/** The high signal. */
+data class T()
+//│ F: Unit → F
+//│ T: Unit → T
+
+/** The two circuit signals. */
+type Signal = F | T
+//│ Signal = F ∨ T
+
+/** Absence of a new component output. */
+data class None()
+/** A component output for this cycle. */
+data class Some(value)
+//│ None: Unit → None
+//│ Some: ∀α. α → (Some ∧ {value: α})
+
+/** Input records hold the sender id, port id, and payload. */
+type Inport = [Int, [Int, Top]]
+/** Output records hold the port id, payload, and two request/distance pairs. */
+type Outport = [Int, [Top, [Bool, [Int, [Bool, Int]]]]]
+//│ Inport = ⟨Int, ⟨Int, ⊤⟩⟩
+//│ Outport = ⟨Int, ⟨⊤, ⟨Bool, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩⟩
+
+/** A proper list of input ports, with structurally inferred payload types. */
+type Inports = [X restricts (LNil | (LCons & {head: Inport} & {tail: X}))] -> X
+/** A proper list of output ports, with structurally inferred payload types. */
+type Outports = [X restricts (LNil | (LCons & {head: Outport} & {tail: X}))] -> X
+//│ Inports = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Inport}) ∧ {tail: X})} ⟹ X
+//│ Outports = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Outport}) ∧ {tail: X})} ⟹ X
+
+/** Project the component id. */
+fun pid(p) = p.pid
+//│ pid: ∀α. {pid: α} → α
+
+/** Project the gate kind. */
+fun compType(p) = p.compType
+//│ compType: ∀α. {compType: α} → α
+
+/** Project the component's critical path depth. */
+fun pathDepth(p) = p.pathDepth
+//│ pathDepth: ∀α. {pathDepth: α} → α
+
+/** Project the input port list. */
+fun inports(p) = p.inports
+//│ inports: ∀α. {inports: α} → α
+
+/** Project the output port list. */
+fun outports(p) = p.outports
+//│ outports: ∀α. {outports: α} → α
+
+:ctml-parse-only // FIXME: Inference for the state constructor exceeds the 20000-call budget.
+// Keep its constructor pattern in the same block so it is in scope during translation.
+/** Per-component state. Port field refinements retain the types of supplied payloads. */
+data class PS(pid: Int, compType: Component, pathDepth: Int, inports: Inports, outports: Outports)
+/** Replace only the output ports. */
+fun updateOutports(p, noutports) = PS(pid(p), compType(p), pathDepth(p), inports(p), noutports)
+/** Write the same signal to every output port of a state. */
+fun update_outports(state, value) =
+  /** Keep the request fields of each well-shaped output port. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) and
+      h is [p, [m, [ql, [dl, [qr, dr]]]]] then LCons([p, [value, [ql, [dl, [qr, dr]]]]], lscomp(t))
+      else lscomp(t)
+  updateOutports(state, lscomp(outports(state)))
+/** Store a labelled input signal in the output ports of its input component. */
+fun store_inputs(label_inputs, state) = if state is
+  PS(pid_, Inp(), _, _, _) then
+    /** Collect state updates whose input label names this component. */
+    fun lscomp(ls) = if ls is
+      LNil() then LNil()
+      LCons(h, t) and
+        h is [[label, input_pid], value] and pid_ == input_pid then
+          LCons(update_outports(state, value), lscomp(t))
+        else lscomp(t)
+    head(lscomp(label_inputs))
+  else state
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The state constructor is translation-only.
+/** Replace only the input ports. */
+fun updateInports(p, ninports) = PS(pid(p), compType(p), pathDepth(p), ninports, outports(p))
+//│ CTML translation succeeded.
+
+/** Split a nonempty list recursively into a balanced sweep tree. */
+fun put(xs) = if
+  xs is LCons(x, LNil()) then Cell(x)
+  splitAt(intDiv(listLen(xs), 2), xs) is [fstHalf, sndHalf] then
+    Node(TreeUnit(), put(fstHalf), put(sndHalf))
+//│ put: ∀α. (({head: α} ∧ LCons) ∧ {tail: LNil}) → (Cell ∧ {value: α})
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Extract leaves in left-to-right order. */
+fun get(t) = if t is
+  Cell(x) then LCons(x, LNil())
+  Node(_, l, r) then append(get(l), get(r))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Combine sibling results upward while storing their separate values in the tree. */
+fun upsweep(f, t) = if t is
+  Cell(a) then [a, Cell(a)]
+  Node(_, l, r) and upsweep(f, l) is [lv, lt] and upsweep(f, r) is [rv, rt] then
+    [f(lv, rv), Node([lv, rv], lt, rt)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Distribute accumulated values downward using the stored sibling results. */
+fun downsweep(g, d, t) = if t is
+  Cell(_) then Cell(d)
+  Node([lv, rv], l, r) and g(lv, rv, d) is [dl, dr] then
+    Node(TreeUnit(), downsweep(g, dl, l), downsweep(g, dr, r))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The tree sweeps are translation-only.
+/** Return the upward result and the downward tree. */
+fun sweep_ud(up, down, u, t) = if upsweep(up, t) is [ans, ut] then
+  [ans, downsweep(down, u, ut)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The sweep and leaf collection are translation-only.
+/** Scan a tree from left to right. */
+fun scanL(f, u, xs) =
+  /** Give the right subtree the value accumulated over the left subtree. */
+  fun down1(l, r, x) = [x, f(x, l)]
+  if sweep_ud(f, down1, u, put(xs)) is [ans, t] then [ans, get(t)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The sweep and leaf collection are translation-only.
+/** Scan a tree from right to left. */
+fun scanR(f, u, xs) =
+  /** Give the left subtree the value accumulated over the right subtree. */
+  fun down2(l, r, x) = [f(r, x), x]
+  if sweep_ud(f, down2, u, put(xs)) is [ans, t] then [ans, get(t)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The sweep and leaf collection are translation-only.
+/** Scan both directions together, keeping the source order of the two final results. */
+fun scanlr(f, g, lu, ru, xs) =
+  /** Combine the two accumulated directional values independently. */
+  fun up(lxly, rxry) = if lxly is [lx, ly] and rxry is [rx, ry] then [f(lx, rx), g(ly, ry)]
+  /** Pass the rightward accumulator right and the leftward accumulator left. */
+  fun down3(lxly, rxry, ab) = if lxly is [lx, ly] and rxry is [rx, ry] and ab is [a, b] then
+    [[a, g(ry, b)], [f(a, lx), b]]
+  let xs_ = map(x => [x, x], xs)
+  if sweep_ud(up, down3, [lu, ru], put(xs_)) is [[l_ans, r_ans], t] then
+    [[g(r_ans, ru), f(lu, l_ans)], get(t)]
+//│ CTML translation succeeded.
+
+/** Step until the current value satisfies the predicate. */
+fun until(p, f, x) = if p(x) then x else until(p, f, f(x))
+//│ until: ∀α. (α → Bool) → (α → α) → α → α
+
+/** Find the first power of two at least as large as x. */
+fun nearest_power_of_two(x) = until(a => x <= a, a => a * 2, 1)
+//│ nearest_power_of_two: Int → Int
+
+:ctml-parse-only // FIXME: The state constructor is translation-only.
+/** An inactive padding state with no ports. */
+val emptyState = PS(0 - 1, None_(), 0 - 1, LNil(), LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Prepend strict cells, returning the original delayed suffix once they are exhausted. */
+fun appendNlLz(xs, ys) = if xs is
+  LNil() then ys
+  LCons(h, t) then delay(() => LzCons(h, appendNlLz(t, ys)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The strict-to-lazy append and padding state are translation-only.
+/** Round the state count up to a power of two and fill with inactive components. */
+fun pad_circuit(circuit) = if circuit is [size, [ins, [outs, states]]] then
+  let p2 = nearest_power_of_two(size)
+  let states_ = appendNlLz(states, replicateLz(p2, emptyState))
+  [p2, [ins, [outs, takeLz(p2, states_)]]]
+//│ CTML translation succeeded.
+
+/** Test the singleton high signal by its tag. */
+fun isHigh(x) = if x is T() then true else false
+//│ isHigh: ∀α. α → (({α ≤ T} ⟹ Bool) ∧ ({α ≤ ¬T} ⟹ Bool))
+
+/** Invert a signal. */
+fun inv(x) = if isHigh(x) then F() else T()
+//│ inv: ∀α. {α ≤ ¬({α ≤ T} ⟹ ¬T) ∨ ¬({α ≤ ¬T} ⟹ T)} ⟹ α → (T ∨ F)
+
+/** Return high when both signals are high. */
+fun and2(x, y) = if isHigh(x) && isHigh(y) then T() else F()
+//│ and2: ∀α, β. {β ≤ ¬({β ≤ T} ⟹ ¬T) ∨ ¬({β ≤ ¬T} ⟹ T), α ≤ ¬({α ≤ T} ⟹ ¬T) ∨ ¬({α ≤ ¬T} ⟹ T)} ⟹ α → β → (F ∨ T)
+
+/** Return high when either signal is high. */
+fun or2(x, y) = if isHigh(x) || isHigh(y) then T() else F()
+//│ or2: ∀α, β. {β ≤ ¬({β ≤ T} ⟹ ¬T) ∨ ¬({β ≤ ¬T} ⟹ T), α ≤ ¬({α ≤ T} ⟹ ¬T) ∨ ¬({α ≤ ¬T} ⟹ T)} ⟹ α → β → (F ∨ T)
+
+/** Compare the singleton low signal by its tag. */
+fun isLow(x) = if x is F() then true else false
+//│ isLow: ∀α. α → (({α ≤ F} ⟹ Bool) ∧ ({α ≤ ¬F} ⟹ Bool))
+
+/** Preserve the source equality test, with singleton signal equality represented by tags. */
+fun xor(x, y) =
+  if (isHigh(x) && isHigh(y)) || (isLow(x) && isLow(y)) || (x === y) then T() else F()
+//│ xor: ∀α, β. {β ≤ (¬({β ≤ F} ⟹ ¬F) ∨ ¬({β ≤ ¬F} ⟹ F)) ∧ (¬({β ≤ T} ⟹ ¬T) ∨ ¬({β ≤ ¬T} ⟹ T)), α ≤ (¬({α ≤ F} ⟹ ¬F) ∨ ¬({α ≤ ¬F} ⟹ F)) ∧ (¬({α ≤ T} ⟹ ¬T) ∨ ¬({α ≤ ¬T} ⟹ T))} ⟹ α → β → (F ∨ T)
+
+/** A padding packet with no requests and span one. */
+val emptyPacket = [0 - 1, [0 - 1, [F(), [false, [0, [false, [0, 1]]]]]]]
+//│ emptyPacket: ⟨Int, ⟨Int, ⟨F, ⟨Bool, ⟨Int, ⟨Bool, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩
+
+/** Send the left packet rightward if its request spans the right packet. */
+fun send_right(a, b) = if
+  a is [ia, [sa, [ma, [qla, [dla, [qra, [dra, ea]]]]]]] and b is [ib, [sb, [mb, [qlb, [dlb, [qrb, [drb, eb]]]]]]] then
+    if qra && (eb < dra) then [ia, [sa, [ma, [qla, [dla, [qra, [dra - eb, ea + eb]]]]]]]
+    else [ib, [sb, [mb, [qlb, [dlb, [qrb, [drb, ea + eb]]]]]]]
+//│ send_right: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩)
+
+/** Send the right packet leftward if its request spans the left packet. */
+fun send_left(a, b) = if
+  a is [ia, [sa, [ma, [qla, [dla, [qra, [dra, ea]]]]]]] and b is [ib, [sb, [mb, [qlb, [dlb, [qrb, [drb, eb]]]]]]] then
+    if qlb && (ea < dlb) then [ib, [sb, [mb, [qlb, [dlb - ea, [qrb, [drb, ea + eb]]]]]]]
+    else [ia, [sa, [ma, [qla, [dla, [qra, [dra, ea + eb]]]]]]]
+//│ send_left: ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {λ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨η, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨Int, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨Int, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨η, Int⟩⟩⟩⟩⟩⟩⟩)
+
+:ctml-parse-only // FIXME: The bidirectional scan is translation-only.
+/** Scan a row of packets in both directions. */
+fun send(xs) = scanlr(send_right, send_left, emptyPacket, emptyPacket, xs)
+//│ CTML translation succeeded.
+
+:fixme // FIXME: The map contract forgets nonemptiness before maximumInt.
+/** Find the largest component depth in the circuit. */
+fun critical_path_depth(circuit) = if circuit is [size, [ins, [outs, states]]] then
+  maximumInt(map(pathDepth, states))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ (LCons ∧ {head: Int}) ∧ {tail: X}) → Int ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ (LCons ∧ {head: Int}) ∧ {tail: X}) → Int ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ (LCons ∧ {head: Int}) ∧ {tail: X}
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ (LCons ∧ {head: Int}) ∧ {tail: X}
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                 {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ LCons
+//│                   ε ≤ LCons
+//│                     LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ LCons
+//│                       LNil ≤ LCons
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Read each labelled output from its component's first input port. */
+fun collect_outputs(circuit) = if circuit is [size, [ins, [outs, states]]] then
+  /** Project the signal from an input port. */
+  fun third(port) = if port is [_, [_, v]] then v
+  /** Find the input port for the labelled component. */
+  fun get_output(states, labelPort) = if labelPort is [label, p] then
+    /** Collect the first input ports of all states with the given id. */
+    fun lscomp(ls) = if ls is
+      LNil() then LNil()
+      LCons(s, t) and
+        p == pid(s) then LCons(head(inports(s)), lscomp(t))
+        else lscomp(t)
+    third(head(lscomp(states)))
+  map(p => get_output(states, p), outs)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Apply the gate, requiring its source arity and returning an optional signal. */
+fun apply_component(comp, signals) = if comp is
+  Inp() then None()
+  Outp() and signals is LCons(x, LNil()) then Some(x)
+  Dff() and signals is LCons(x, LNil()) then Some(x)
+  Inv() and signals is LCons(x, LNil()) then Some(inv(x))
+  And2() and signals is LCons(x, LCons(y, LNil())) then Some(and2(x, y))
+  Or2() and signals is LCons(x, LCons(y, LNil())) then Some(or2(x, y))
+  Xor() and signals is LCons(x, LCons(y, LNil())) then Some(xor(x, y))
+  None_() then None()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The output traversal is translation-only.
+/** Start every flip-flop at the low signal. */
+fun init_dffs(state) = if compType(state) is Dff() then update_outports(state, F()) else state
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The state update is translation-only.
+/** Restore request flags and routing fields while keeping the new signals. */
+fun restore_requests(old_states, new_states) =
+  /** Combine one old port's routing fields with one new port's signal. */
+  fun restore_outport(pql, mdq) = if
+    pql is [p, [_, [ql, [dl, [qr, dq]]]]] and mdq is [_, [m, [_, [_, [_, _]]]]] then
+      [p, [m, [ql, [dl, [qr, dq]]]]]
+  /** Restore the outputs of a matching pair of states. */
+  fun restore(os, ns) = updateOutports(ns, zipWith(restore_outport, outports(os), outports(ns)))
+  zipWith(restore, old_states, new_states)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The state update is translation-only.
+/** Set both request flags for every well-shaped output port. */
+fun update_requests(b, state) =
+  /** Copy the ports with the two flags replaced. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) and
+      h is [p, [m, [ql, [dl, [qr, dr]]]]] then LCons([p, [m, [b, [dl, [b, dr]]]]], lscomp(t))
+      else lscomp(t)
+  updateOutports(state, lscomp(outports(state)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The request update is translation-only.
+/** Disable routing requests from states outside the current depth. */
+fun check_depth(d, state) = if pathDepth(state) == d then state else update_requests(false, state)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Test whether any flag in the list is set, short-circuiting at the first true flag. */
+fun orList(ls) = if ls is
+  LNil() then false
+  LCons(h, t) then if h then true else orList(t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The depth check and flag traversal are translation-only.
+/** Acknowledge a completed send when no request is pending at this depth. */
+fun acknowledge(d, states) =
+  /** Test the two flags of one port. */
+  fun check_lr_requests(pql) = if pql is [p, [m, [ql, [dl, [qr, dr]]]]] then ql || qr
+  /** Test for any outstanding request in the port list. */
+  fun check_requests(xs) = orList(map(check_lr_requests, xs))
+  let states1 = map(s => check_depth(d, s), states)
+  if orList(map(s => check_requests(outports(s)), states1)) then false else true
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The strict-to-lazy append is translation-only.
+/** Fill each packet row up to the length of the longest row. */
+fun pad_packets(pss) =
+  /** Append delayed padding and take the required strict prefix. */
+  fun pad(xs) =
+    let max_ps = maximumInt(map(x => listLen(x), pss))
+    takeLz(max_ps, appendNlLz(xs, replicateLz(max_ps, emptyPacket)))
+  map(x => pad(x), pss)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Make a packet of span one for every well-shaped output port. */
+fun make_packet(state) =
+  /** Copy routing fields from the ports into the packets. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) and
+      h is [p, [m, [ql, [dl, [qr, dr]]]]] then
+        LCons([pid(state), [p, [m, [ql, [dl, [qr, [dr, 1]]]]]]], lscomp(t))
+      else lscomp(t)
+  lscomp(outports(state))
+//│ CTML translation succeeded.
+
+/** Update an input port if the sender and port identifiers match. */
+fun compare_and_update(ipm, pid_port_m) = if
+  ipm is [i, [p, m_]] and pid_port_m is [pid_, [port, m]] then
+    if eqTup2([i, p], [pid_, port]) then [pid_, [port, m_]]
+    else [pid_, [port, m]]
+//│ compare_and_update: ∀α, β, γ, δ. ⟨⊤, ⟨⊤, α⟩⟩ → ⟨β, ⟨γ, δ⟩⟩ → (⟨β, ⟨γ, α⟩⟩ ∨ ⟨β, ⟨γ, δ⟩⟩)
+
+/** Deliver a packet's signal to the matching input ports. */
+fun up_i(ipm, ins) = if ipm is [i, [p, [m, [_, [_, [_, [_, _]]]]]]] then
+  map(x => compare_and_update([i, [p, m]], x), ins)
+//│ up_i: ∀α, β, γ. {β ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩, γ ≥ LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, α⟩⟩}) ∧ {tail: γ})} ⟹ ⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ
+
+:fixme // FIXME: Implicit instantiation rejects the composition of the two port maps.
+/** Deliver the packet from the right first, then the packet from the left. */
+fun update_i(lr, ins) = if lr is [l, r] then up_i(l, up_i(r, ins))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
+//│             LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ θ
+//│               (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ θ
+//│                 (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ LNil
+//│                   LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ LNil
+//│                       ⟨⊥, ⟨⊥, ζ⟩⟩ ≤ ⊥
+//│                   {tail: η} ≤ LNil
+//│                     η ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
+//│                   (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ {tail: θ}
+//│                     LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ {tail: θ}
+//│                       LCons ≤ {tail: θ}
+//│                       {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ {tail: θ}
+//│                         ⟨⊥, ⟨⊥, ζ⟩⟩ ≤ ⊥
+//│                     {tail: η} ≤ {tail: θ}
+//│                       η ≤ θ
+//│                         LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ θ
+
+/** Clear the output's right request when the packet from the left is done. */
+fun check_left(a, b) = if
+  a is [pid_, [port, [pm, [pql, [pdl, [pqr, [pdr, e]]]]]]] and b is [p, [m, [ql, [dl, [qr, dr]]]]] then
+    if pqr && (0 < pdr) then [p, [m, [ql, [dl, [qr, dr]]]]]
+    else [p, [m, [ql, [dl, [false, dr]]]]]
+//│ check_left: ∀α, β, γ, δ, ε, ζ. ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨Bool, ⟨Int, ⊤⟩⟩⟩⟩⟩⟩⟩ → ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩ ∨ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨Bool, ζ⟩⟩⟩⟩⟩)
+
+/** Clear the output's left request when the packet from the right is done. */
+fun check_right(a, b) = if
+  a is [pid_, [port, [pm, [pql, [pdl, [pqr, [pdr, e]]]]]]] and b is [p, [m, [ql, [dl, [qr, dr]]]]] then
+    if pql && (0 < pdl) then [p, [m, [ql, [dl, [qr, dr]]]]]
+    else [p, [m, [false, [dl, [qr, dr]]]]]
+//│ check_right: ∀α, β, γ, δ, ε, ζ. ⟨⊤, ⟨⊤, ⟨⊤, ⟨Bool, ⟨Int, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩ → ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩ ∨ ⟨α, ⟨β, ⟨Bool, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩)
+
+/** Update output requests in the source order, checking the right packet first. */
+fun update_o(lprp, out_) = if lprp is [lp, rp] then check_left(lp, check_right(rp, out_))
+//│ update_o: ∀α, β, γ, δ, ε, ζ. ⟨⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨Bool, ⟨Int, ⊤⟩⟩⟩⟩⟩⟩⟩, ⟨⊤, ⟨⊤, ⟨⊤, ⟨Bool, ⟨Int, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩⟩ → ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ ∨ Bool, ⟨δ, ⟨ε, ζ⟩⟩⟩⟩⟩ ∨ ⟨α, ⟨β, ⟨γ ∨ Bool, ⟨δ, ⟨Bool, ζ⟩⟩⟩⟩⟩)
+
+:ctml-parse-only // FIXME: The port updates are translation-only.
+/** Deliver all incoming packets and update output requests at the current depth. */
+fun update_io(d, lrps, state) =
+  /** Fold deliveries into the input port list. */
+  fun update_is(s) = updateInports(s, foldr(update_i, inports(s), lrps))
+  /** Update output flags for a component at the current depth. */
+  fun update_os(s) =
+    if pathDepth(s) == d then updateOutports(s, zipWith(update_o, lrps, outports(s))) else s
+  update_os(update_is(state))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The packet traversal and state update are translation-only.
+/** Route one padded and transposed batch of packets. */
+fun do_send(d, states) =
+  let states1 = map(s => check_depth(d, s), states)
+  let send_results = map(x => snd(send(x)), transpose(pad_packets(map(make_packet, states1))))
+  let pss_ = transpose(send_results)
+  zipWith((x, y) => update_io(d, x, y), pss_, states)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The send and acknowledgement passes are translation-only.
+/** Route packets until all requests at this depth are acknowledged. */
+fun do_sends(d, states) = until(s => acknowledge(d, s), x => do_send(d, x), states)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Gate dispatch and output updates are translation-only.
+/** Simulate a component and store any output at the current depth. */
+fun simulate_component(d, state) =
+  /** Keep the signals from well-shaped input ports. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) and
+      h is [_, [_, sig]] then LCons(sig, lscomp(t))
+      else lscomp(t)
+  let out_signals = lscomp(inports(state))
+  let new_value = apply_component(compType(state), out_signals)
+  if d == pathDepth(state) and new_value is Some(v) then update_outports(state, v)
+  else state
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Component simulation is translation-only.
+/** Simulate all components for one depth. */
+fun simulate_components(depth, states) = map(s => simulate_component(depth, s), states)
+//│ CTML translation succeeded.
+
+/**
+ * Trusted JavaScript Error message conversion. Undefined gives an empty message, and conversion
+ * can itself throw.
+ */
+declare fun jsErrorMessage: Top -> Str
+//│ jsErrorMessage: ⊤ → Str
+
+:ctml-parse-only // FIXME: The routing, simulation, and request restoration are translation-only.
+/** Store inputs, simulate each depth, and restore send requests for the next cycle. */
+fun do_cycle(cpd, circuit, inputs) =
+  /** Simulate and send at the next depth. */
+  fun sim_then_send(state, d) = do_sends(d, simulate_components(d, state))
+  if circuit is [size, [ins, [outs, states]]] then
+    let states1 = map(s => store_inputs(zip(ins, inputs), s), states)
+    let states2 = do_sends(0, states1)
+    let states3 = foldl(sim_then_send, states2, enumFromTo(1, cpd))
+    let states4 = restore_requests(states, states3)
+    [size, [ins, [outs, states4]]]
+  else raiseError(jsErrorMessage(circuit))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The cycle and flip-flop initialization are translation-only.
+/** Initialize the flip-flops and scan input lists over the circuit, omitting the initial state. */
+fun simulate(inputs_list, b) = if b is [size, [ins, [outs, states]]] then
+  tail(scanl((x, y) => do_cycle(critical_path_depth([size, [ins, [outs, states]]]), x, y),
+    [size, [ins, [outs, map(init_dffs, states)]]], inputs_list))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The state constructor is translation-only.
+/** Construct the seven component states for one register bit in source order. */
+fun reg(sto, n) =
+  let inp = PS(n, Inp(), 0, LNil(), LCons([0, [F(), [false, [0, [true, 4]]]]], LNil()))
+  let dffIn = LCons([n + 5, [0, F()]], LNil())
+  let dff = PS(n + 1, Dff(), 1, dffIn, LCons([0, [F(), [false, [0, [true, 5]]]]], LNil()))
+  let invIn = LCons([sto, [0, F()]], LNil())
+  let inv_ = PS(n + 2, Inv(), 1, invIn, LCons([0, [F(), [false, [0, [true, 1]]]]], LNil()))
+  let andIn = LCons([n + 1, [0, F()]], LCons([n + 2, [0, F()]], LNil()))
+  let and_ = PS(n + 3, And2(), 2, andIn, LCons([0, [F(), [false, [0, [true, 2]]]]], LNil()))
+  let andIn2 = LCons([sto, [0, F()]], LCons([n, [0, F()]], LNil()))
+  let and_2 = PS(n + 4, And2(), 1, andIn2, LCons([0, [F(), [false, [0, [true, 1]]]]], LNil()))
+  let orIn = LCons([n + 3, [0, F()]], LCons([n + 4, [0, F()]], LNil()))
+  let or_ = PS(n + 5, Or2(), 3, orIn, LCons([0, [F(), [true, [4, [false, 0]]]]], LNil()))
+  let outputState = PS(n + 6, Outp(), 4, LCons([n + 1, [0, F()]], LNil()), LNil())
+  LCons(inp, LCons(dff, LCons(inv_, LCons(and_, LCons(and_2, LCons(or_, LCons(outputState, LNil())))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Combine a lazy left list with a strict right list, forcing the left node first. */
+fun zipWithLzNl(f, xss, yss) = if
+  force(xss) is LzCons(x, xs) and yss is LCons(y, ys) then LCons(f(x, y), zipWithLzNl(f, xs, ys))
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Register construction and the lazy zip are translation-only.
+/** Make the input labels, output labels, and component states for a register. */
+fun regs(bits) =
+  /** Label a register input. */
+  fun ilabel(n, pid_) = ["x" ++ stringOfInt(n), pid_]
+  /** Label a register output. */
+  fun olabel(n, pid_) = ["y" ++ stringOfInt(n), pid_]
+  let is_ = LCons(["sto", 0], zipWithLzNl(ilabel, enumFrom(0), map(x => (7 * x) + 1, enumFromTo(0, bits - 1))))
+  let os = zipWithLzNl(olabel, enumFrom(0), map(x => (7 * x) + 7, enumFromTo(0, bits - 1)))
+  let sto = PS(0, Inp(), 0, LNil(), LCons([0, [F(), [false, [0, [true, (8 * (bits - 1)) + 5]]]]], LNil()))
+  let states = LCons(sto, concat(map(x => reg(0, x), map(x => (7 * x) + 1, enumFromTo(0, bits - 1)))))
+  [1 + (7 * bits), [is_, [os, states]]]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Simulation and output collection are translation-only.
+/** Collect the component outputs after each simulated cycle. */
+fun circuit_simulate(inputs_list, circuit) = map(collect_outputs, simulate(inputs_list, circuit))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Circuit construction and simulation are translation-only.
+/** Simulate the padded register with all input signals high for every cycle. */
+fun run(num_bits, num_cycles) =
+  let example = pad_circuit(regs(num_bits))
+  let inputs = replicate(num_bits + 1, T())
+  let cycles = replicate(num_cycles, inputs)
+  circuit_simulate(cycles, example)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The simulation driver is translation-only.
+/** Run the source eight-bit simulation. */
+fun testCircsim_nofib(n) = run(8, n)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The driver is translation-only and CTML lists lack source rendering.
+/** Render the forty-cycle benchmark result in the source list format. */
+fun main() = testCircsim_nofib(40).toString()
+//│ CTML translation succeeded.
+
+// The complete port shape carries the original routing fields.
+LCons([1, [T(), [false, [0, [true, 4]]]]], LNil()) as Outports
+LCons([2, [0, F()]], LNil()) as Inports
+//│ Outports
+//│ Inports
+
+:te
+LCons([1, [T(), [0, [0, [true, 4]]]]], LNil()) as Outports
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Outports.
+//│ Typing error tree:
+//│   α ≤ Outports
+//│     (LCons ∧ {head: β}) ∧ {tail: γ} ≤ Outports
+//│       (LCons ∧ {head: β}) ∧ {tail: γ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Outport}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Outport}) ∧ {tail: δ})} ⟹ δ
+//│           (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│               LCons ∧ {head: β} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: β} ≤ LNil
+//│                   β ≤ ⊥
+//│                     ⟨Int, ⟨ε, ⟨Int, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩⟩ ≤ ⊥
+//│               {tail: γ} ≤ LNil
+//│                 γ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Outport}) ∧ {tail: δ}
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LCons ∧ {head: Outport}
+//│                 (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {head: Outport}
+//│                   LCons ∧ {head: β} ≤ {head: Outport}
+//│                     LCons ≤ {head: Outport}
+//│                     {head: β} ≤ {head: Outport}
+//│                       β ≤ Outport
+//│                         ⟨Int, ⟨ε, ⟨Int, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩⟩ ≤ Outport
+//│                           ⟨Int, ⟨ε, ⟨Int, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩⟩ ≤ ⟨Int, ⟨⊤, ⟨Bool, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩⟩
+//│                             ⟨ε, ⟨Int, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩ ≤ ⟨⊤, ⟨Bool, ⟨Int, ⟨Bool, Int⟩⟩⟩⟩
+//│                               ⟨Int, ⟨Int, ⟨Bool, Int⟩⟩⟩ ≤ ⟨Bool, ⟨Int, ⟨Bool, Int⟩⟩⟩
+//│                                 Int ≤ Bool
+//│                   {tail: γ} ≤ {head: Outport}
+//│                     γ ≤ ⊥
+//│                       ζ ≤ ⊥
+//│                         LNil ≤ ⊥
+
+:te
+LCons([2, [false, F()]], LNil()) as Inports
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Inports.
+//│ Typing error tree:
+//│   α ≤ Inports
+//│     (LCons ∧ {head: β}) ∧ {tail: γ} ≤ Inports
+//│       (LCons ∧ {head: β}) ∧ {tail: γ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Inport}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Inport}) ∧ {tail: δ})} ⟹ δ
+//│           (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
+//│               LCons ∧ {head: β} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: β} ≤ LNil
+//│                   β ≤ ⊥
+//│                     ⟨Int, ⟨Bool, ε⟩⟩ ≤ ⊥
+//│               {tail: γ} ≤ LNil
+//│                 γ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
+//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Inport}) ∧ {tail: δ}
+//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LCons ∧ {head: Inport}
+//│                 (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {head: Inport}
+//│                   LCons ∧ {head: β} ≤ {head: Inport}
+//│                     LCons ≤ {head: Inport}
+//│                     {head: β} ≤ {head: Inport}
+//│                       β ≤ Inport
+//│                         ⟨Int, ⟨Bool, ε⟩⟩ ≤ Inport
+//│                           ⟨Int, ⟨Bool, ε⟩⟩ ≤ ⟨Int, ⟨Int, ⊤⟩⟩
+//│                             ⟨Bool, ε⟩ ≤ ⟨Int, ⊤⟩
+//│                               Bool ≤ Int
+//│                   {tail: γ} ≤ {head: Inport}
+//│                     γ ≤ ⊥
+//│                       ζ ≤ ⊥
+//│                         LNil ≤ ⊥
+
+put(LCons(1, LNil())).value as Int
+nearest_power_of_two(7) as Int
+//│ Int
+//│ Int
+
+:fixme // FIXME: The inferred put scheme accepts only singleton input.
+put(LCons(1, LCons(2, LNil())))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (({head: α} ∧ LCons) ∧ {tail: LNil}) → (Cell ∧ {value: α}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (({head: α} ∧ LCons) ∧ {tail: LNil}) → (Cell ∧ {value: α}) ≤ β → γ
+//│     (({head: δ} ∧ LCons) ∧ {tail: LNil}) → (Cell ∧ {value: δ}) ≤ β → γ
+//│       β ≤ ({head: δ} ∧ LCons) ∧ {tail: LNil}
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ({head: δ} ∧ LCons) ∧ {tail: LNil}
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {tail: LNil}
+//│             LCons ∧ {head: ε} ≤ {tail: LNil}
+//│               LCons ≤ {tail: LNil}
+//│               {head: ε} ≤ {tail: LNil}
+//│                 ε ≤ ⊥
+//│                   Int ≤ ⊥
+//│             {tail: ζ} ≤ {tail: LNil}
+//│               ζ ≤ LNil
+//│                 η ≤ LNil
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                     LCons ∧ {head: θ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: θ} ≤ LNil
+//│                         θ ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: ι} ≤ LNil
+//│                       ι ≤ ⊥
+//│                         κ ≤ ⊥
+//│                           LNil ≤ ⊥
+
+inv(F()) as Signal
+and2(T(), F()) as Signal
+or2(T(), F()) as Signal
+xor(T(), T()) as Signal
+//│ Signal
+//│ Signal
+//│ Signal
+//│ Signal
+
+/** Packet layout with integer distances and Boolean requests in both directions. */
+type Packet = [Int, [Int, [Signal, [Bool, [Int, [Bool, [Int, Int]]]]]]]
+//│ Packet = ⟨Int, ⟨Int, ⟨Signal, ⟨Bool, ⟨Int, ⟨Bool, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩
+
+send_right([1, [2, [T(), [false, [0, [true, [3, 1]]]]]]], emptyPacket) as Packet
+send_left(emptyPacket, [1, [2, [T(), [true, [3, [false, [0, 1]]]]]]]) as Packet
+//│ Packet
+//│ Packet
+
+:te
+send_right([1, [2, [T(), [false, [0, [3, [3, 1]]]]]]], emptyPacket)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο.
+//│ Typing error tree:
+//│   ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│         ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ≤ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩
+//│           ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩ ≤ ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩
+//│             ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩ ≤ ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩
+//│               ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩ ≤ ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩
+//│                 ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩ ≤ ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩
+//│                   ⟨Int, ⟨Int, Int⟩⟩ ≤ ⟨φ, ⟨Int, Int⟩⟩
+//│                     Int ≤ φ
+//│                       Int ≤ Bool
+
+// The exceptional path can raise for a rejected value with no string type.
+raiseError(jsErrorMessage(42)) as Bot
+//│ ⊥

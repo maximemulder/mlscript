@@ -1,0 +1,517 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 83 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/eliza.mls.
+// The response tables and session state use strict lists, pairs, and delayed response streams.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Map a strict list into a lazy stream, applying f only when a cell is forced. */
+fun lzMap(f, ls) = delay(() =>
+  if ls is
+    LNil() then LzNil()
+    LCons(h, t) then LzCons(f(h), lzMap(f, t))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Delay the prefix and force the continuation to obtain a handle when the prefix ends. */
+fun appendLz(xs, next) = if xs is
+  LNil() then force(next)
+  LCons(h, t) then delay(() => LzCons(h, appendLz(t, next)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The append with a delayed continuation is translation-only.
+/** Cycle through the responses in order. */
+fun cycle(xs) = appendLz(xs, delay(() => cycle(xs)))
+//│ CTML translation succeeded.
+
+/** Test whether the character is an ordinary space. */
+fun isSpace(c) = c === " "
+//│ isSpace: ⊤ → Bool
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Skip spaces and split a character list into words. */
+fun words(s) = if leaveWhile(isSpace, s) is
+  LNil() then LNil()
+  LCons(h, t) and break_(isSpace, LCons(h, t)) is [w, rest] then LCons(w, words(rest))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Join words with one space between consecutive entries. */
+fun unwords(ws) =
+  /** Prepend a separator before each remaining word. */
+  fun go(rest) = if rest is
+    LNil() then LNil()
+    LCons(w, t) then LCons(" ", append(w, go(t)))
+  if ws is
+    LNil() then LNil()
+    LCons(w, t) then append(w, go(t))
+//│ CTML translation succeeded.
+
+/** Test whether forcing the stream produces an empty node. */
+fun nullLz(ls) = if force(ls) is
+  LzNil() then true
+  LzCons(_, _) then false
+//│ nullLz: ∀α. {α ≤ LzNil ∨ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤})} ⟹ (Delayed ∧ {resume: Unit → α}) → (({α ≤ LzNil} ⟹ Bool) ∧ ({α ≤ (LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}} ⟹ Bool))
+
+:fixme // FIXME: Implicit instantiation rejects the string-list producer at inList.
+/** Trim spaces and punctuation from both ends of the input. */
+fun trim(ls) =
+  /** Discard trailing punctuation until a retained character is seen. */
+  fun cons(x, xs) = if inList(x, nofibStringToList(" .!?,")) and null_(xs) then LNil() else LCons(x, xs)
+  foldr(cons, LNil(), leaveWhile(x => inList(x, nofibStringToList(" .!?,")), ls))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+// The source pattern expects a strict list here, although initial stores a delayed stream.
+// A repeated input hits a match error in the source. Keep that pattern for the inference port.
+/** Take the next repeated-input response and advance its cursor. */
+fun repeated(kt_rp) = if kt_rp is [kt, LCons(r, rp)] then [r, [kt, rp]]
+//│ repeated: ∀α, β, γ. ⟨α, ({tail: γ} ∧ {head: β}) ∧ LCons⟩ → ⟨β, ⟨α, γ⟩⟩
+
+/** Replace the keyword table, keeping the repeated-input cursor. */
+fun newKeyTab(kt_, kt_rp) = if kt_rp is [kt, rp] then [kt_, rp]
+//│ newKeyTab: ∀α, β. α → ⟨⊤, β⟩ → ⟨α, β⟩
+
+/** Extract the keyword table from the session state. */
+fun keyTabOf(kt_rp) = if kt_rp is [kt, rp] then kt
+//│ keyTabOf: ∀α. ⟨α, ⊤⟩ → α
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Fill a template that starts with a question mark or period. */
+fun makeResponse(cs, us) = if cs is
+  LCons(c, t) and (c === "?" || c === ".") then
+    append(t, LCons(" ", append(us, LCons(c, LNil()))))
+  else cs
+//│ CTML translation succeeded.
+
+/** Right-associative strict list construction for the source tables. */
+fun (::)(head, tail) = LCons(head, tail)
+//│ ::: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** The repeated-input messages in source order. */
+val repeatMsgs =
+  nofibStringToList("Why did you repeat yourself?") ::
+  nofibStringToList("Do you expect a different answer by repeating yourself?") ::
+  nofibStringToList("Come, come, elucidate your thoughts.") ::
+  nofibStringToList("Please don't repeat yourself!") ::
+  LNil()
+//│ repeatMsgs: ∀α, β, γ, δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: LNil}}}}
+
+:ctml-parse-only // FIXME: Inference for the response table exhausts bounded search.
+/** The source keyword templates, in priority order, ending with the fallback. */
+val respMsgs =
+  let canYou = nofibStringToList("?Don_t you believe that I can") ::
+    nofibStringToList("?Perhaps you would like to be able to") ::
+    nofibStringToList("?You want me to be able to") ::
+    LNil()
+  let canI = nofibStringToList("?Perhaps you don_t want to") ::
+    nofibStringToList("?Do you want to be able to") ::
+    LNil()
+  let youAre = nofibStringToList("?What makes you think I am") ::
+    nofibStringToList("?Does it please you to believe I am") ::
+    nofibStringToList("?Perhaps you would like to be") ::
+    nofibStringToList("?Do you sometimes wish you were") ::
+    LNil()
+  let iDont = nofibStringToList("?Don_t you really") ::
+    nofibStringToList("?Why don_t you") ::
+    nofibStringToList("?Do you wish to be able to") ::
+    nofibStringToList("Does that trouble you?") ::
+    LNil()
+  let iFeel = nofibStringToList("Tell me more about such feelings.") ::
+    nofibStringToList("?Do you often feel") ::
+    nofibStringToList("?Do you enjoy feeling") ::
+    LNil()
+  let whyDont = nofibStringToList("?Do you really believe I don't") ::
+    nofibStringToList(".Perhaps in good time I will") ::
+    nofibStringToList("?Do you want me to") ::
+    LNil()
+  let whyCant = nofibStringToList("?Do you think you should be able to") ::
+    nofibStringToList("?Why can't you") ::
+    LNil()
+  let areYou = nofibStringToList("?Why are you interested in whether or not I am") ::
+    nofibStringToList("?Would you prefer if I were not") ::
+    nofibStringToList("?Perhaps in your fantasies I am") ::
+    LNil()
+  let iCant = nofibStringToList("?How do you know you can't") ::
+    nofibStringToList("Have you tried?") ::
+    nofibStringToList("?Perhaps you can now") ::
+    LNil()
+  let iAm = nofibStringToList("?Did you come to me because you are") ::
+    nofibStringToList("?How long have you been") ::
+    nofibStringToList("?Do you believe it is normal to be") ::
+    nofibStringToList("?Do you enjoy being") ::
+    LNil()
+  let you = nofibStringToList("We were discussing you --not me.") ::
+    nofibStringToList("?Oh,") ::
+    nofibStringToList("You're not really talking about me, are you?") ::
+    LNil()
+  let yes = nofibStringToList("You seem quite positive.") ::
+    nofibStringToList("Are you Sure?") ::
+    nofibStringToList("I see.") ::
+    nofibStringToList("I understand.") ::
+    LNil()
+  let no = nofibStringToList("Are you saying no just to be negative?") ::
+    nofibStringToList("You are being a bit negative.") ::
+    nofibStringToList("Why not?") ::
+    nofibStringToList("Are you sure?") ::
+    nofibStringToList("Why no?") ::
+    LNil()
+  let computer = nofibStringToList("Do computers worry you?") ::
+    nofibStringToList("Are you talking about me in particular?") ::
+    nofibStringToList("Are you frightened by machines?") ::
+    nofibStringToList("Why do you mention computers?") ::
+    nofibStringToList("What do you think machines have to do with your problems?") ::
+    nofibStringToList("Don't you think computers can help people?") ::
+    nofibStringToList("What is it about machines that worries you?") ::
+    LNil()
+  let iWant = nofibStringToList("?Why do you want") ::
+    nofibStringToList("?What would it mean to you if you got") ::
+    nofibStringToList("?Suppose you got") ::
+    nofibStringToList("?What if you never got") ::
+    nofibStringToList(".I sometimes also want") ::
+    LNil()
+  let question = nofibStringToList("Why do you ask?") ::
+    nofibStringToList("Does that question interest you?") ::
+    nofibStringToList("What answer would please you the most?") ::
+    nofibStringToList("What do you think?") ::
+    nofibStringToList("Are such questions on your mind often?") ::
+    nofibStringToList("What is it that you really want to know?") ::
+    nofibStringToList("Have you asked anyone else?") ::
+    nofibStringToList("Have you asked such questions before?") ::
+    nofibStringToList("What else comes to mind when you ask that?") ::
+    LNil()
+  let name = nofibStringToList("Names don't interest me.") ::
+    nofibStringToList("I don't care about names --please go on.") ::
+    LNil()
+  let because = nofibStringToList("Is that the real reason?") ::
+    nofibStringToList("Don't any other reasons come to mind?") ::
+    nofibStringToList("Does that reason explain anything else?") ::
+    nofibStringToList("What other reasons might there be?") ::
+    LNil()
+  let sorry = nofibStringToList("Please don't apologise!") ::
+    nofibStringToList("Apologies are not necessary.") ::
+    nofibStringToList("What feelings do you have when you apologise?") ::
+    nofibStringToList("Don't be so defensive!") ::
+    LNil()
+  let dream = nofibStringToList("What does that dream suggest to you?") ::
+    nofibStringToList("Do you dream often?") ::
+    nofibStringToList("What persons appear in your dreams?") ::
+    nofibStringToList("Are you disturbed by your dreams?") ::
+    LNil()
+  let hello = nofibStringToList("How do you...please state your problem.") ::
+    LNil()
+  let maybe = nofibStringToList("You don't seem quite certain.") ::
+    nofibStringToList("Why the uncertain tone?") ::
+    nofibStringToList("Can't you be more positive?") ::
+    nofibStringToList("You aren't sure?") ::
+    nofibStringToList("Don't you know?") ::
+    LNil()
+  let your = nofibStringToList("?Why are you concerned about my") ::
+    nofibStringToList("?What about your own") ::
+    LNil()
+  let always = nofibStringToList("Can you think of a specific example?") ::
+    nofibStringToList("When?") ::
+    nofibStringToList("What are you thinking of?") ::
+    nofibStringToList("Really, always?") ::
+    LNil()
+  let think = nofibStringToList("Do you really think so?") ::
+    nofibStringToList("?But you are not sure you") ::
+    nofibStringToList("?Do you doubt you") ::
+    LNil()
+  let alike = nofibStringToList("In what way?") ::
+    nofibStringToList("What resemblence do you see?") ::
+    nofibStringToList("What does the similarity suggest to you?") ::
+    nofibStringToList("What other connections do you see?") ::
+    nofibStringToList("Cound there really be some connection?") ::
+    nofibStringToList("How?") ::
+    LNil()
+  let friend = nofibStringToList("Why do you bring up the topic of friends?") ::
+    nofibStringToList("Do your friends worry you?") ::
+    nofibStringToList("Do your friends pick on you?") ::
+    nofibStringToList("Are you sure you have any friends?") ::
+    nofibStringToList("Do you impose on your friends?") ::
+    nofibStringToList("Perhaps your love for friends worries you.") ::
+    LNil()
+  let nokeyMsgs = nofibStringToList("I'm not sure I understand you fully.") ::
+    nofibStringToList("What does that suggest to you?") ::
+    nofibStringToList("I see.") ::
+    nofibStringToList("Can you elaborate on that?") ::
+    nofibStringToList("Say, do you have any psychological problems?") ::
+    LNil()
+  [nofibStringToList("CAN YOU"), canYou] ::
+  [nofibStringToList("CAN I"), canI] ::
+  [nofibStringToList("YOU ARE"), youAre] ::
+  [nofibStringToList("YOU'RE"), youAre] ::
+  [nofibStringToList("I DON'T"), iDont] ::
+  [nofibStringToList("I FEEL"), iFeel] ::
+  [nofibStringToList("WHY DON'T YOU"), whyDont] ::
+  [nofibStringToList("WHY CAN'T I"), whyCant] ::
+  [nofibStringToList("ARE YOU"), areYou] ::
+  [nofibStringToList("I CAN'T"), iCant] ::
+  [nofibStringToList("I AM"), iAm] ::
+  [nofibStringToList("I'M"), iAm] ::
+  [nofibStringToList("YOU"), you] ::
+  [nofibStringToList("YES"), yes] ::
+  [nofibStringToList("NO"), no] ::
+  [nofibStringToList("COMPUTER"), computer] ::
+  [nofibStringToList("COMPUTERS"), computer] ::
+  [nofibStringToList("I WANT"), iWant] ::
+  [nofibStringToList("WHAT"), question] ::
+  [nofibStringToList("HOW"), question] ::
+  [nofibStringToList("WHO"), question] ::
+  [nofibStringToList("WHERE"), question] ::
+  [nofibStringToList("WHEN"), question] ::
+  [nofibStringToList("NAME"), name] ::
+  [nofibStringToList("WHY"), question] ::
+  [nofibStringToList("CAUSE"), because] ::
+  [nofibStringToList("BECAUSE"), because] ::
+  [nofibStringToList("DREAM"), dream] ::
+  [nofibStringToList("SORRY"), sorry] ::
+  [nofibStringToList("HI"), hello] ::
+  [nofibStringToList("DREAMS"), dream] ::
+  [nofibStringToList("MAYBE"), maybe] ::
+  [nofibStringToList("HELLO"), hello] ::
+  [nofibStringToList("ALWAYS"), always] ::
+  [nofibStringToList("YOUR"), your] ::
+  [nofibStringToList("ALIKE"), alike] ::
+  [nofibStringToList("THINK"), think] ::
+  [nofibStringToList("FRIENDS"), friend] ::
+  [nofibStringToList("FRIEND"), friend] ::
+  [LNil(), nokeyMsgs] ::
+  LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Keyword splitting and response cycling are translation-only.
+/** Split keyword phrases and start an independent response cycle for each entry. */
+val initial =
+  /** Prepare all keyword entries in order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons([k, rs], t) then LCons([words(k), cycle(rs)], lscomp(t))
+  [lscomp(respMsgs), cycle(repeatMsgs)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Test a strict prefix against a delayed list of words. */
+fun prefix(xxs, yys) = if xxs is
+  LNil() then true
+  LCons(x, xs) then
+    if force(yys) is
+      LzNil() then false
+      LzCons(y, ys) then listEq(x, y) && prefix(xs, ys)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds the 20000-call solver budget.
+/** Lazily enumerate all nonempty suffixes of a strict list. */
+fun tails(xs) = delay(() =>
+  if xs is
+    LNil() then LzNil()
+    LCons(_, t) then LzCons(xs, tails(t))
+)
+//│ CTML translation succeeded.
+
+/** Convert a whole word to uppercase. */
+fun ucase(ls) = map(toUpper, ls)
+//│ ucase: ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y
+
+:ctml-parse-only // FIXME: The recursive substitution table exhausts the test limit.
+/** The word substitutions, with the reversible pairs in both directions. */
+val conjugates =
+  let oneways = LCons([nofibStringToList("me"), nofibStringToList("you")], LNil())
+  let bothways = [nofibStringToList("are"), nofibStringToList("am")] ::
+    [nofibStringToList("we're"), nofibStringToList("was")] ::
+    [nofibStringToList("you"), nofibStringToList("I")] ::
+    [nofibStringToList("your"), nofibStringToList("my")] ::
+    [nofibStringToList("I've"), nofibStringToList("you've")] ::
+    [nofibStringToList("I'm"), nofibStringToList("you're")] ::
+    LNil()
+  /** Uppercase the lookup side of every substitution. */
+  fun prepare(ls) = map(pair => if pair is [w, r] then [ucase(w), r], ls)
+  /** Produce the two directions of each reversible substitution. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons([x, y], t) then LCons(LCons([x, y], LCons([y, x], LNil())), lscomp(t))
+  prepare(append(oneways, concat(lscomp(bothways))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The substitution table and word join are translation-only.
+/** Substitute words from the user's phrase and join them into a template suffix. */
+fun conjug(d, w) =
+  /** Use the whole input if the phrase after the keyword is empty. */
+  fun maybe(d, xs) = if null_(xs) then d else xs
+  /** Substitute the first matching word or keep the input word. */
+  fun conj(w) =
+    /** Keep substitutions whose uppercase key matches the word. */
+    fun lscomp(ls) = if ls is
+      LNil() then LNil()
+      LCons([w_, m], t) and
+        listEq(ucase(w), w_) then LCons(m, lscomp(t))
+        else lscomp(t)
+    head(append(lscomp(conjugates), LCons(w, LNil())))
+  /** Use “me” when the last substituted word is “I”. */
+  fun trailingI(ls) =
+    /** Choose the final-word form when no words follow it. */
+    fun cons(x, xs) =
+      if listEq(x, nofibStringToList("I")) && null_(xs) then LCons(nofibStringToList("me"), LNil())
+      else LCons(x, xs)
+    foldr(cons, LNil(), ls)
+  unwords(trailingI(map(conj, maybe(d, w))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The branch depends on translation-only conjugation and lazy traversals.
+/** Lazily construct a reply suffix for each match of the keyword. */
+fun replies(key, l) =
+  mapLz(x => conjug(l, leave(listLen(key), x)),
+    filterLz(ls => prefix(key, lzMap(ucase, ls)), tails(l)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Reply construction is translation-only.
+/** Select the first matching keyword and advance only its response cursor. */
+fun answer(st, l) =
+  /** Put an unmatched keyword back at the front of the table. */
+  fun cons(e, r_es) = if r_es is [r, es] then [r, LCons(e, es)]
+  /** Search keyword entries in priority order. */
+  fun ans(e_es, l) = if e_es is
+    LCons([key, cursor], es) and force(cursor) is LzCons(a, rest) then
+      let rs = replies(key, l)
+      if nullLz(rs) then cons([key, cursor], ans(es, l))
+      else if force(rs) is LzCons(reply, _) then
+        [makeResponse(a, reply), LCons([key, rest], es)]
+  if ans(keyTabOf(st), l) is [response, kt] then [response, newKeyTab(kt, st)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Answer generation is translation-only, and repeated expects a strict cursor.
+/** Respond to each input line, keeping two trailing newlines per response. */
+fun session(rs, prev, ls) = if ls is
+  LNil() then LNil()
+  LCons(l, t) and
+    (if listEqBy(listEq, prev, l) then repeated(rs) else answer(rs, l)) is [response, next] then
+      append(response, append(nofibStringToList("\n\n"), session(next, l, t)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Word splitting and the session are translation-only.
+/** Run the source conversation on progressively longer prefixes. */
+fun testEliza_nofib(n) =
+  let input =
+    nofibStringToList("Are we alone?") ::
+    nofibStringToList("That the Roswell event was actually an alien encounter. Do you agreed?") ::
+    nofibStringToList("But why not talk about you, its more fun.") ::
+    nofibStringToList("I dont ask, you do") ::
+    nofibStringToList("do ray me") ::
+    nofibStringToList("Nop, thats because your a computer") ::
+    nofibStringToList("you dont") ::
+    nofibStringToList("Oh, a paranoid computer, ehh?") ::
+    nofibStringToList("Tell me about *your* mother") ::
+    nofibStringToList("No, what what was she like?") ::
+    nofibStringToList("I'm asking questions, not you") ::
+    nofibStringToList("no") ::
+    nofibStringToList("yes") ::
+    nofibStringToList("but I'm not") ::
+    LNil()
+  /** Parse the first i modulo 20 lines and run one conversation. */
+  fun runPrefix(i) =
+    let messages = map(x => words(trim(x)), take(intMod(i, 20), input))
+    let nonempty = filter(x => if null_(x) then false else true, messages)
+    session(initial, LNil(), nonempty)
+  map(runPrefix, enumFromTo(1, n))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The driver is translation-only and CTML lists lack source rendering.
+/** Render the twenty conversations in the source list format. */
+fun main() = map(nofibListToString, testEliza_nofib(20)).toString()
+//│ CTML translation succeeded.
+
+if ucase(LCons("a", LCons("b", LNil()))) is LCons(h, _) then h as Str else ""
+//│ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ({LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}) ≤ ({head: Str} ∧ LCons) ∧ {tail: ⊤}} ⟹ Str) ∧ ({LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}) ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: ⊤})} ⟹ Str)
+
+:te
+ucase(LCons(42, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y ≤ β → γ
+//│     {ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), δ ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
+//│       {δ ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
+//│         (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
+//│           β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│             (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│               (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
+//│                 (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ θ
+//│                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LNil
+//│                     LCons ∧ {head: ζ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: ζ} ≤ LNil
+//│                         ζ ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: η} ≤ LNil
+//│                       η ≤ ⊥
+//│                         ι ≤ ⊥
+//│                           LNil ≤ ⊥
+//│                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
+//│                     (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LCons ∧ {head: δ}
+//│                       (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {head: δ}
+//│                         LCons ∧ {head: ζ} ≤ {head: δ}
+//│                           LCons ≤ {head: δ}
+//│                           {head: ζ} ≤ {head: δ}
+//│                             ζ ≤ δ
+//│                               ζ ≤ Str
+//│                                 Int ≤ Str
+//│                         {tail: η} ≤ {head: δ}
+//│                           η ≤ ⊥
+//│                             ι ≤ ⊥
+//│                               LNil ≤ ⊥
+
+nullLz(delay(() => LzNil())) as Bool
+nullLz(delay(() => LzCons("response", delay(() => LzNil())))) as Bool
+//│ Bool
+//│ Bool
+
+// A strict cursor returns a response and leaves the keyword table unchanged.
+repeated([1, LCons("response", LNil())]) as [Str, [Int, LNil]]
+newKeyTab(2, ["old table", true]) as [Int, Bool]
+keyTabOf([1, true]) as Int
+//│ ⟨Str, ⟨Int, LNil⟩⟩
+//│ ⟨Int, Bool⟩
+//│ Int
+
+// The delayed cursor used by initial cannot satisfy the source repeated pattern.
+:te
+repeated([1, delay(() => LzCons("response", delay(() => LzNil())))])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. ⟨α, ({tail: γ} ∧ {head: β}) ∧ LCons⟩ → ⟨β, ⟨α, γ⟩⟩ ≤ ⟨Int, δ⟩ → ε.
+//│ Typing error tree:
+//│   ∀α, β, γ. ⟨α, ({tail: γ} ∧ {head: β}) ∧ LCons⟩ → ⟨β, ⟨α, γ⟩⟩ ≤ ⟨Int, δ⟩ → ε
+//│     ⟨ζ, ({tail: η} ∧ {head: θ}) ∧ LCons⟩ → ⟨θ, ⟨ζ, η⟩⟩ ≤ ⟨Int, δ⟩ → ε
+//│       ⟨Int, δ⟩ ≤ ⟨ζ, ({tail: η} ∧ {head: θ}) ∧ LCons⟩
+//│         δ ≤ ({tail: η} ∧ {head: θ}) ∧ LCons
+//│           Delayed ∧ {resume: Unit → ι} ≤ ({tail: η} ∧ {head: θ}) ∧ LCons
+//│             Delayed ∧ {resume: Unit → ι} ≤ {tail: η} ∧ {head: θ}
+//│               Delayed ∧ {resume: Unit → ι} ≤ {tail: η}
+//│                 Delayed ≤ {tail: η}
+//│                 {resume: Unit → ι} ≤ {tail: η}
+//│                   Unit → ι ≤ ⊥

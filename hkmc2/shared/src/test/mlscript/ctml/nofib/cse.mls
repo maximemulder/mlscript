@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 24 member(s)
+//│ Imported 30 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cse.mls.
 // State computations return [new state, answer], preserving the source component order.

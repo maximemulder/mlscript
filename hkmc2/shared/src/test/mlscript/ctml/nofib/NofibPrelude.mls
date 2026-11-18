@@ -2,7 +2,6 @@
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/NofibPrelude.mls.
 // Shared definitions for the CTML Nofib ports.
-// Projections and external integer operations are trusted primitives.
 
 /** Trusted source strict equality, distinct from structural equality on arrays and data fields. */
 val (===): Top -> Top -> Bool
@@ -23,6 +22,10 @@ val (*): Int -> Int -> Int
 // Integer division truncates toward zero, as in the source Nofib prelude.
 declare fun intQuot: Int -> Int -> Int
 //│ intQuot: Int → Int → Int
+
+/** Source fractional division of two integer counts, modeled as a numeric result. */
+declare fun divideToNum: Int -> Int -> Num
+//│ divideToNum: Int → Int → Num
 
 fun intRem(a, b) = a - (b * intQuot(a, b))
 //│ intRem: Int → Int → Int
@@ -59,6 +62,25 @@ data class LNil()
 /** List cell; recursive relationships are inferred through constrained types. */
 data class LCons(head, tail)
 //│ LCons: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+/** Runtime tag for a handle with a private cache and a typed, memoized resume function. */
+class Delayed
+
+/** Store an unevaluated initializer in a fresh handle. */
+declare fun delay[A]: (() -> A) -> (Delayed & {resume: () -> A})
+//│ delay: ∀A. (Unit → A) → (Delayed ∧ {resume: Unit → A})
+
+/** Return the cached value, or run the initializer and cache its successful result. */
+declare fun force[A]: (Delayed & {resume: () -> A}) -> A
+//│ force: ∀A. (Delayed ∧ {resume: Unit → A}) → A
+
+/** Empty lazy-list node, returned after forcing the enclosing handle. */
+data class LzNil()
+//│ LzNil: Unit → LzNil
+
+/** Lazy-list cell; its tail is delayed separately from the node. */
+data class LzCons(head, tail)
+//│ LzCons: ∀α, β. α → β → ((LzCons ∧ {head: α}) ∧ {tail: β})
 
 /** Source head is partial on empty lists. */
 fun head(l) = if l is LCons(h, t) then h
@@ -169,3 +191,57 @@ fun enumFromThenTo(a, t, b) =
 // fun zip(xs, ys) = if xs is
 //   LCons(x, xs_) and ys is LCons(y, ys_) then LCons([x, y], zip(xs_, ys_))
 //   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Delay the search for the next node satisfying the predicate. */
+// fun filterLz(p, ls) = delay(() =>
+//   if force(ls) is
+//     LzNil() then LzNil()
+//     LzCons(h, t) and
+//       p(h) then LzCons(h, filterLz(p, t))
+//       else force(filterLz(p, t))
+// )
+
+// FIXME: Inference exceeds a 20000-call budget even with a temporary filterLz contract.
+// /** Keep the first occurrence of each element under the supplied equality. */
+// fun nubByLz(eq, ls) = delay(() =>
+//   if force(ls) is
+//     LzNil() then LzNil()
+//     LzCons(h, t) then LzCons(h, nubByLz(eq, filterLz(y => if eq(h, y) then false else true, t)))
+// )
+
+// FIXME: This specialization depends on the disabled nubByLz definition.
+// /** Keep the first occurrence of each element under source equality. */
+// fun nubLz(ls) = nubByLz((x, y) => x == y, ls)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Take up to n elements without forcing another node when the count is exhausted. */
+// fun takeLz(n, ls) = if
+//   0 < n and force(ls) is
+//     LzNil() then LNil()
+//     LzCons(h, t) then LCons(h, takeLz(n - 1, t))
+//   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Compare lists element by element using source equality. */
+// fun listEq(xs, ys) = if
+//   xs is LNil() and ys is LNil() then true
+//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and hx == hy then listEq(tx, ty)
+//   else false
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Skip the longest prefix satisfying the predicate. */
+// fun leaveWhile(f, ls) = if ls is
+//   LNil() then LNil()
+//   LCons(h, t) and
+//     f(h) then leaveWhile(f, t)
+//     else LCons(h, t)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Fold the integer maximum from the first element; this is partial on empty lists. */
+// fun maximumInt(ls) =
+//   /** Fold the remaining elements from left to right. */
+//   fun loop(acc, rest) = if rest is
+//     LNil() then acc
+//     LCons(h, t) then loop(if h < acc then acc else h, t)
+//   if ls is LCons(h, t) then loop(h, t)

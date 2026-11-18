@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 24 member(s)
+//│ Imported 30 member(s)
 
 // The error branch contributes no return value to the conditional.
 raiseError("missing result") as Bot
@@ -14,6 +14,62 @@ raiseError(1)
 //│ Typing error tree:
 //│   Str → ⊥ ≤ Int → α
 //│     Int ≤ Str
+
+// Forcing carries the result type through the handle, including a delayed tail.
+force(delay(() => 1)) as Int
+force(delay(() => "ready")) as Str
+//│ Int
+//│ Str
+
+val delayedCell = delay(() => LzCons(1, delay(() => LzNil())))
+//│ delayedCell: Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: Delayed ∧ {resume: Unit → LzNil}})}
+
+(if force(delayedCell) is LzCons(h, t) then [h, force(t)]) as [Int, LzNil]
+//│ ⟨Int, LzNil⟩
+
+:te
+delay(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (Unit → A) → (Delayed ∧ {resume: Unit → A}) ≤ Int → α.
+//│ Typing error tree:
+//│   ∀A. (Unit → A) → (Delayed ∧ {resume: Unit → A}) ≤ Int → α
+//│     (Unit → β) → (Delayed ∧ {resume: Unit → β}) ≤ Int → α
+//│       Int ≤ Unit → β
+
+/** A similarly shaped object with a different nominal tag. */
+data class PlainThunk(resume)
+//│ PlainThunk: ∀α. α → (PlainThunk ∧ {resume: α})
+
+:te
+force(PlainThunk(() => 1))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (Delayed ∧ {resume: Unit → A}) → A ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (Delayed ∧ {resume: Unit → A}) → A ≤ α → β
+//│     (Delayed ∧ {resume: Unit → γ}) → γ ≤ α → β
+//│       α ≤ Delayed ∧ {resume: Unit → γ}
+//│         PlainThunk ∧ {resume: δ} ≤ Delayed ∧ {resume: Unit → γ}
+//│           PlainThunk ∧ {resume: δ} ≤ Delayed
+//│             PlainThunk ≤ Delayed
+//│             {resume: δ} ≤ Delayed
+//│               δ ≤ ⊥
+//│                 Unit → Int ≤ ⊥
+
+:te
+force(delay(() => "ready")) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     Str ≤ Int
+
+divideToNum(1, 2) as Num
+//│ Num
+
+:te
+divideToNum(1, "bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Num ≤ Str → β
+//│       Str ≤ Int
 
 // Integer helpers accept negative, zero, and positive inputs.
 [abs(0 - 3), [abs(0), abs(3)]] as [Int, [Int, Int]]

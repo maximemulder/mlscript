@@ -62,6 +62,11 @@ before implementing them. An inference failure alone does not require such a des
 - Tuple-pattern fallthrough can expose missing product-disjointness subtyping. The focused
   `ctmlTuplePatterns.mls` tests retain these cases as `:fixme`; unconditional destructuring in
   the GCD kernel does not require these judgments.
+- Represent source laziness with trusted polymorphic `delay` and `force` in the Nofib prelude.
+  A handle has a nominal `Delayed` tag and carries its result type through the immutable
+  `resume` function. Forcing an uncached handle evaluates its initializer and stores the result
+  on success. Subsequent forces return the cached result. CTML tests check the handle and result
+  types.
 - Use readable constructor patterns for lists. An abstract list API with trusted `caseList`
   callbacks is not the chosen porting approach. CTML supports nonrecursive constructor
   declarations and constructor patterns; the list tail's recursive relationship is a type-level
@@ -122,15 +127,15 @@ server when finished. Do not include unrelated golden-output changes.
 | [scc.mls](scc.mls) | The complete SCC algorithm and input `0` are translated. The fixed graph and edge reversal infer unannotated, and transposing that graph checks against the trusted `map` contract. Neighbor lookup and DFS exhaust a 20,000-call diagnostic, even with temporary `inList` and `append` signatures for DFS. The dependent traversal and driver are commented. |
 | [lcss.mls](lcss.mls) | The source algorithm and fixed progressions `(1, 2, 60)` and `(30, 31, 90)` are translated. The individual score update infers unannotated. Row traversal, initialization, split index selection, and recursive reconstruction exhaust the 20,000-call diagnostic. Reconstruction hits the limit even with temporary contracts for its dependencies. The recursive definitions and driver are retained as commented source. |
 | [integer.mls](integer.mls) | The progression and nine arithmetic and comparison operations infer unannotated. A result assertion after matching the inferred progression retains an active `:fixme`. The nested traversal exhausts the 20,000-call diagnostic. The two passes and their driver are kept as commented source with the adapted input `700000001`. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, strict equality `===`, `raiseError`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors, inclusive `enumFromTo` and `enumFromThenTo`, `compose`, and `intMax` infer. The shared `leave`, `reverse`, `listLen`, and `zip` implementations are retained as commented solver-budget reproducers. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
+| [secretary.mls](secretary.mls) | The infinite random-stream producer infers unannotated. A check forces two successive cells and recovers both integer scores. Lazy filtering and taking, deduplication, the strategy, and the trial and result traversals exceed bounded diagnostics. Their source translations are retained as commented definitions. The driver retains input `50`; source runtime output is `"[0.3,0.3,0.3,0.34,0.36]"`. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted memoizing delay/force and fractional division of integer counts; trusted pair projections, strict equality `===`, `raiseError`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors, inclusive `enumFromTo` and `enumFromThenTo`, `compose`, and `intMax` infer. The shared `leave`, `reverse`, `listLen`, and `zip` implementations are retained as commented solver-budget reproducers. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | The focused investigation reproduces timeouts without encoded list signatures, down to unary constructor traversal. `walk`, `copy`, `map`, and dewrapped `length` samples locate the bottleneck in guarded-bound subtyping at the outer `fix` application. Function bodies with supplied recursive calls infer quickly; explicitly typed fixed-point controls pass. See `ctmlRecursiveConsumerInference.mls` and the performance report. Producer/consumer composition remains a separate precision issue. |
 
-**Next design decision for `secretary.mls`.** Its random stream uses the source prelude's
-memoized `lazy` and `force`. A trusted memoized delay/force interface could preserve sharing
-without adding mutable fields to CTML. A plain lambda thunk would recompute on repeated forces
-and change the benchmark's evaluation behavior.
+**Next port: `life.mls`.** Start with the lazy board construction and the generation rules.
+The existing delay/force interface covers the streams. Its partial `init` throws with a list
+payload, so check how to represent that payload when translating the error branch.
 
 **Inference follow-up: make algebraically inferred recursive schemes usable without annotations.**
 The [consumer performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)

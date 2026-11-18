@@ -245,3 +245,76 @@ fun enumFromThenTo(a, t, b) =
 //     LNil() then acc
 //     LCons(h, t) then loop(if h < acc then acc else h, t)
 //   if ls is LCons(h, t) then loop(h, t)
+
+/** Repeat x n times in a strict list. */
+fun replicate(n, x) = if n == 0 then LNil() else LCons(x, replicate(n - 1, x))
+//│ replicate: ∀α, β. {β ≥ ((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil} ⟹ Int → α → (((LCons ∧ {head: α}) ∧ {tail: β}) ∨ LNil)
+
+/** Delay the stream of successive applications of f starting from x. */
+fun iterate(f, x) = delay(() => LzCons(x, iterate(f, f(x))))
+//│ iterate: ∀α, β. {β ≥ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})}} ⟹ (α → α) → α → (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: α}) ∧ {tail: β})})
+
+/** Enumerate successive integers starting at a. */
+fun enumFrom(a) = delay(() => LzCons(a, enumFrom(a + 1)))
+//│ enumFrom: ∀α. {α ≥ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}} ⟹ Int → (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})})
+
+/** Trusted integer-to-string conversion corresponding to the source x + "". */
+declare fun stringOfInt: Int -> Str
+//│ stringOfInt: Int → Str
+
+/** Trusted source primitive. Return the number of UTF-16 code units in a source string. */
+declare fun nofibStringLength: Str -> Int
+//│ nofibStringLength: Str → Int
+
+/** Trusted charAt returns one UTF-16 code unit or an empty string for an invalid index. */
+declare fun nofibCharAt: Str -> Int -> Str
+//│ nofibCharAt: Str → Int → Str
+
+/** Split a string into its successive UTF-16 code units, as in the source charAt traversal. */
+fun nofibStringToList(s) =
+  /** Collect the characters starting at index i. */
+  fun go(i) =
+    if i < nofibStringLength(s) then LCons(nofibCharAt(s, i), go(i + 1)) else LNil()
+  go(0)
+//│ nofibStringToList: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Compare lists element by element using the supplied equality. */
+// fun listEqBy(eq, xs, ys) = if
+//   xs is LNil() and ys is LNil() then true
+//   xs is LCons(x, xt) and ys is LCons(y, yt) then
+//     if eq(x, y) then listEqBy(eq, xt, yt) else false
+//   else false
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Fold a strict list from the right. */
+// fun foldr(f, z, ls) = if ls is
+//   LNil() then z
+//   LCons(h, t) then f(h, foldr(f, z, t))
+
+// FIXME: With a temporary append contract, inference only accepts the empty list.
+// /** Flatten a list of lists in order. */
+// fun concat(ls) = if ls is
+//   LNil() then LNil()
+//   LCons(h, t) then append(h, concat(t))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Apply f to the elements of a lazy list as each result node is forced. */
+// fun mapLz(f, ls) = delay(() =>
+//   if force(ls) is
+//     LzNil() then LzNil()
+//     LzCons(h, t) then LzCons(f(h), mapLz(f, t))
+// )
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Zip a lazy list and a strict list in force order, stopping at the shorter input. */
+// fun zipLzNl(xs, ys) = if
+//   force(xs) is LzCons(x, xt) and ys is LCons(y, yt) then
+//     LCons([x, y], zipLzNl(xt, yt))
+//   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Append a lazy suffix to a strict prefix, delaying the prefix nodes. */
+// fun appendNlLz(xs, ys) = if xs is
+//   LNil() then ys
+//   LCons(h, t) then delay(() => LzCons(h, appendNlLz(t, ys)))

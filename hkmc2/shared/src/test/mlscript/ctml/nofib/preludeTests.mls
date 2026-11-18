@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 30 member(s)
+//│ Imported 37 member(s)
 
 // The error branch contributes no return value to the conditional.
 raiseError("missing result") as Bot
@@ -551,3 +551,15 @@ head(LCons("answer", LNil())) as Int
 //│ Typing error tree:
 //│   α ≤ Int
 //│     Str ≤ Int
+
+nofibStringToList(stringOfInt(15)) as (LNil | (LCons & {head: Str}))
+//│ LNil ∨ (LCons ∧ {head: Str})
+
+:te
+nofibStringToList(42)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})) ≤ Int → β.
+//│ Typing error tree:
+//│   ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})) ≤ Int → β
+//│     {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})) ≤ Int → β
+//│       Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})) ≤ Int → β
+//│         Int ≤ Str

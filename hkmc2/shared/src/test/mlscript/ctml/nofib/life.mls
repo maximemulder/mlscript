@@ -1,0 +1,229 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 37 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/life.mls.
+// Triples use nested pairs; lazy rows and generations use shared delay and force.
+// The MLScript runtime reference for a board size of 15 is 468.
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Return the last element of a nonempty strict list. */
+// fun last(ls) =
+//   /** Carry the most recent element through the rest of the list. */
+//   fun go(h, t) = if t is
+//     LNil() then h
+//     LCons(head, tail) then go(head, tail)
+//   if ls is LCons(h, t) then go(h, t)
+
+/** Delay the construction of a lazy list of n copies of x. */
+fun copyLz(n, x) = delay(() =>
+  if n === 0 then LzNil() else LzCons(x, copyLz(n - 1, x))
+)
+//│ copyLz: ∀α, β. {β ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: α}) ∧ {tail: β}) ∨ LzNil)}} ⟹ Int → α → (Delayed ∧ {resume: Unit → (((LzCons ∧ {head: α}) ∧ {tail: β}) ∨ LzNil)})
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Delay concatenating two lazy lists until their next node is needed. */
+// fun appendLzLz(xs, ys) = delay(() =>
+//   if force(xs) is
+//     LzNil() then force(ys)
+//     LzCons(h, t) then LzCons(h, appendLzLz(t, ys))
+// )
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Drop the last element; the source empty list renders as "[]" in the exception. */
+// fun init(ls) = if ls is
+//   LCons(a, LNil()) then LNil()
+//   LCons(a, t) then LCons(a, init(t))
+//   LNil() then raiseError("[]")
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Apply f to successive triples of elements, stopping at the shortest list. */
+// fun zipWith3(f, xs, ys, zs) = if
+//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and zs is LCons(hz, tz) then
+//     LCons(f(hx, hy, hz), zipWith3(f, tx, ty, tz))
+//   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Zip three lists into nested pairs, stopping at the shortest list. */
+// fun zip3(xs, ys, zs) = if
+//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and zs is LCons(hz, tz) then
+//     LCons([hx, [hy, hz]], zip3(tx, ty, tz))
+//   else LNil()
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Wrap each node of a strict list in a delayed cell. */
+// fun lzfy(ls) = delay(() =>
+//   if ls is
+//     LCons(a, t) then LzCons(a, lzfy(t))
+//     else LzNil()
+// )
+
+// FIXME: The full seed row times out. Separate suffix bindings reach 20000 solver calls.
+// /** Cells in the final row of the seed board before it is padded or clipped. */
+// val startSeed =
+//   LCons(0, LCons(0, LCons(0,
+//     LCons(1, LCons(1, LCons(1, LCons(1, LCons(1, LCons(0,
+//       LCons(1, LCons(1, LCons(1, LCons(1, LCons(1, LCons(0,
+//         LCons(1, LCons(1, LCons(1, LCons(1, LCons(1, LCons(0,
+//           LCons(1, LCons(1, LCons(1, LCons(1, LCons(1, LCons(0,
+//             LNil())))))))))))))))))))))))))))
+
+// FIXME: This board depends on the disabled seed row and lzfy.
+// /** Assemble fourteen independently delayed empty rows and the seed row. */
+// val start =
+//   LCons(delay(() => LzNil()),
+//     LCons(delay(() => LzNil()),
+//       LCons(delay(() => LzNil()),
+//         LCons(delay(() => LzNil()),
+//           LCons(delay(() => LzNil()),
+//             LCons(delay(() => LzNil()),
+//               LCons(delay(() => LzNil()),
+//                 LCons(delay(() => LzNil()),
+//                   LCons(delay(() => LzNil()),
+//                     LCons(delay(() => LzNil()),
+//                       LCons(delay(() => LzNil()),
+//                         LCons(delay(() => LzNil()),
+//                           LCons(delay(() => LzNil()),
+//                             LCons(delay(() => LzNil()),
+//                               LCons(lzfy(startSeed), LNil())))))))))))))))
+
+/** Apply the Life rule to the middle cell of a three-by-three neighborhood. */
+fun elt(top_, middle, bottom) = if
+  top_ is [a, [b, c]] and middle is [d, [e, f]] and bottom is [g, [h, i]] then
+    let tot = a + b + c + d + f + g + h + i
+    if
+      tot < 2 || 3 < tot then 0
+      tot === 3 then 1
+      else e
+//│ elt: ∀α. ⟨Int, ⟨Int, Int⟩⟩ → ⟨Int, ⟨α, Int⟩⟩ → ⟨Int, ⟨Int, Int⟩⟩ → (α ∨ Int)
+
+// FIXME: This shift depends on the disabled init.
+// /** Shift a row right, filling the first position with x. */
+// fun shiftr(x, xs) = LCons(x, init(xs))
+
+// FIXME: Inference exceeds 20000 solver calls even with temporary init and append contracts.
+// /** Fill the last position with x after discarding the last source element. */
+// fun shiftl(x, xs) = append(init(xs), LCons(x, LNil()))
+
+// FIXME: This stage depends on the disabled shifts and zip3.
+// /** Zip the right-shifted, original, and left-shifted lists into triples. */
+// fun shift(x, xs) = zip3(shiftr(x, xs), xs, shiftl(x, xs))
+
+// FIXME: This stage depends on the disabled shift and zipWith3.
+// /** Compute the next middle row from the three adjacent source rows. */
+// fun row(neighbors) = if neighbors is [last, [this_, next]] then
+//   zipWith3(elt, shift(0, last), shift(0, this_), shift(0, next))
+
+// FIXME: The map call rejects the result of shift even with temporary row and shift contracts.
+// /** Compute a generation with a zero-filled row for the board's vertical boundary. */
+// fun gen(n, board) = map(row, shift(replicate(n, 0), board))
+
+/** Render each of the two cell states as the source two-character list. */
+fun star(x) = if
+  x === 0 then nofibStringToList("  ")
+  x === 1 then nofibStringToList(" o")
+  else raiseError("match error")
+//│ star: ∀α, β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ⊤ → ((LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})) ∨ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
+
+// FIXME: This stage depends on the disabled append.
+// /** Insert a separator between two lists, preserving source association. */
+// fun glue(s, xs, ys) = append(xs, append(s, ys))
+
+// FIXME: This traversal depends on the disabled listEqBy and listEq.
+// /** Collect generations up to and including the first one that equals its successor. */
+// fun limit(ls) = if force(ls) is LzCons(x, ys) then
+//   if force(ys) is LzCons(y, xs) then
+//     if listEqBy(listEq, x, y) then LCons(x, LNil())
+//     else LCons(x, limit(delay(() => LzCons(y, xs))))
+
+// FIXME: With temporary library contracts, glue only infers bottom-typed parameters and
+// cannot serve as the fold step.
+// /** Delay rendering the generation number and the rows, separated by the source literal n. */
+// fun disp(numberBoard) = if numberBoard is [genn, xss] then delay(() =>
+//   append(genn, append(nofibStringToList("nn"),
+//     foldr((a, b) => glue(LCons("n", LNil()), a, b), LNil(),
+//       map(xs => concat(map(star, xs)), xss))))
+// )
+
+// FIXME: Applying iterate to the board update fails even with temporary traversal contracts.
+// /** Clip the padded board to sz, generate until stable, and label each displayed generation. */
+// fun generations(sz) =
+//   let labels = mapLz(i => nofibStringToList(stringOfInt(i)), enumFrom(0))
+//   let padded = appendNlLz(start, copyLz(sz, copyLz(sz, 0)))
+//   let board = takeLz(sz, mapLz(l => takeLz(sz, appendLzLz(l, copyLz(sz, 0))), padded))
+//   map(disp, zipLzNl(labels, limit(iterate(b => gen(sz, b), board))))
+
+// FIXME: The driver depends on the disabled generations, last, and listLen.
+// /** Count the characters of the final displayed generation. */
+// fun testLife_nofib(n) = listLen(force(last(generations(n))))
+
+// FIXME: The benchmark entry point depends on the disabled driver.
+// /** Run the benchmark on the source board size. */
+// fun main() = testLife_nofib(15)
+
+elt([1, [1, 0]], [0, [0, 0]], [0, [0, 1]]) as Int
+elt([1, [0, 0]], [0, [1, 0]], [0, [0, 0]]) as Int
+elt([1, [1, 0]], [0, [1, 0]], [0, [0, 0]]) as Int
+//│ Int
+//│ Int
+//│ Int
+
+:te
+elt(["bad", [1, 0]], [0, [1, 0]], [0, [0, 0]])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. ⟨Int, ⟨Int, Int⟩⟩ → ⟨Int, ⟨α, Int⟩⟩ → ⟨Int, ⟨Int, Int⟩⟩ → (α ∨ Int) ≤ ⟨Str, ⟨Int, Int⟩⟩ → β.
+//│ Typing error tree:
+//│   ∀α. ⟨Int, ⟨Int, Int⟩⟩ → ⟨Int, ⟨α, Int⟩⟩ → ⟨Int, ⟨Int, Int⟩⟩ → (α ∨ Int) ≤ ⟨Str, ⟨Int, Int⟩⟩ → β
+//│     ⟨Int, ⟨Int, Int⟩⟩ → ⟨Int, ⟨γ, Int⟩⟩ → ⟨Int, ⟨Int, Int⟩⟩ → (γ ∨ Int) ≤ ⟨Str, ⟨Int, Int⟩⟩ → β
+//│       ⟨Str, ⟨Int, Int⟩⟩ ≤ ⟨Int, ⟨Int, Int⟩⟩
+//│         Str ≤ Int
+
+force(copyLz(2, 5)) as (LzNil | (LzCons & {head: Int}))
+//│ LzNil ∨ (LzCons ∧ {head: Int})
+
+:fixme // FIXME: The match cannot discharge the guarded result type of the forced union.
+(if force(copyLz(2, 5)) is
+  LzNil() then 0
+  LzCons(h, t) then h) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     (({β ≤ LzNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil} ⟹ ⊥)) ∨ Int ≤ Int
+//│       ({β ≤ LzNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil} ⟹ ⊥) ≤ Int
+//│         {β ≤ LzNil} ⟹ Int ≤ Int
+//│           β ≤ LzNil
+//│             δ ≤ LzNil
+//│               ((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil ≤ LzNil
+//│                 (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LzNil
+//│                   LzCons ∧ {head: ε} ≤ LzNil
+//│                     LzCons ≤ LzNil
+//│                     {head: ε} ≤ LzNil
+//│                       ε ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ζ} ≤ LzNil
+//│                     ζ ≤ ⊥
+//│                       Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)} ≤ ⊥
+//│                         Delayed ≤ ⊥
+//│                         {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)} ≤ ⊥
+//│                           Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil) ≤ ⊥
+//│         {β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil} ⟹ ⊥ ≤ Int
+//│           β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
+//│             δ ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
+//│               ((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
+//│                 LzNil ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
+//│                   LzNil ≤ ({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}
+//│                     LzNil ≤ {tail: ⊤} ∧ LzCons
+//│                       LzNil ≤ {tail: ⊤}
+
+:te
+copyLz("bad", 5)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: α}) ∧ {tail: β}) ∨ LzNil)}} ⟹ Int → α → (Delayed ∧ {resume: Unit → (((LzCons ∧ {head: α}) ∧ {tail: β}) ∨ LzNil)}) ≤ Str → γ.
+//│ Typing error tree:
+//│   ∀α, β. {β ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: α}) ∧ {tail: β}) ∨ LzNil)}} ⟹ Int → α → (Delayed ∧ {resume: Unit → (((LzCons ∧ {head: α}) ∧ {tail: β}) ∨ LzNil)}) ≤ Str → γ
+//│     {ε ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: δ}) ∧ {tail: ε}) ∨ LzNil)}} ⟹ Int → δ → (Delayed ∧ {resume: Unit → (((LzCons ∧ {head: δ}) ∧ {tail: ε}) ∨ LzNil)}) ≤ Str → γ
+//│       Int → δ → (Delayed ∧ {resume: Unit → (((LzCons ∧ {head: δ}) ∧ {tail: ε}) ∨ LzNil)}) ≤ Str → γ
+//│         Str ≤ Int
+
+star(0) as (LNil | (LCons & {head: Str}))
+star(1) as (LNil | (LCons & {head: Str}))
+//│ LNil ∨ (LCons ∧ {head: Str})
+//│ LNil ∨ (LCons ∧ {head: Str})

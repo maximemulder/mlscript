@@ -51,7 +51,8 @@ before implementing them. An inference failure alone does not require such a des
 
 ## Agreed choices
 
-- Port one file at a time, starting with `gcd.mls`, and add shared support as it is needed.
+- Add shared support as needed. Several benchmarks can be ported together when they fit the
+  agreed conventions.
 - Keep direct recursion. Mutual recursion and richer binding support are deliberately out of
   scope for now; revisit them only when a concrete source program warrants a decision.
 - Represent triples as nested pairs, `[a, [b, c]]`, and destructure them with nested tuple
@@ -119,14 +120,17 @@ server when finished. Do not include unrelated golden-output changes.
 | [cryptarithm1.mls](cryptarithm1.mls) | Source translation complete, inference coverage partial: `expand` and the exact ten-element `condition` pattern infer successfully. `addj` exceeds the 25-second test limit and is retained as a commented reproducer. `permutations`, `testCryptarithm_nofib`, and `main` are translated but disabled because they depend on `addj`. The source input remains `1`. The MLscript runtime reference reports a stack overflow, not a successful benchmark result. |
 | [cse.mls](cse.mls) | All source definitions are present. The state combinators, `incr`, `newlyDefined`, tree constructors, and examples 0–3 infer without annotations. A bounded diagnostic on the current checker exhausts 20,000 solver calls per definition on six recursive list helpers and all four stateful traversals. These definitions, their callers, and the driver are retained as commented source. |
 | [scc.mls](scc.mls) | The complete SCC algorithm and input `0` are translated. The fixed graph and edge reversal infer unannotated, and transposing that graph checks against the trusted `map` contract. Neighbor lookup and DFS exhaust a 20,000-call diagnostic, even with temporary `inList` and `append` signatures for DFS. The dependent traversal and driver are commented. |
-| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, strict equality `===`, `raiseError`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors and inclusive `enumFromTo` are available. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
+| [lcss.mls](lcss.mls) | The source algorithm and fixed progressions `(1, 2, 60)` and `(30, 31, 90)` are translated. The individual score update infers unannotated. Row traversal, initialization, split index selection, and recursive reconstruction exhaust the 20,000-call diagnostic. Reconstruction hits the limit even with temporary contracts for its dependencies. The recursive definitions and driver are retained as commented source. |
+| [integer.mls](integer.mls) | The progression and nine arithmetic and comparison operations infer unannotated. A result assertion after matching the inferred progression retains an active `:fixme`. The nested traversal exhausts the 20,000-call diagnostic. The two passes and their driver are kept as commented source with the adapted input `700000001`. |
+| [NofibPrelude.mls](NofibPrelude.mls) | Trusted pair projections, strict equality `===`, `raiseError`, integer multiplication, quotient, and comparisons; inferred `head`, `null_`, `intRem`, `quotRem`, integer `abs`, and floor-division-based `intDiv`/`intMod`. Shared `LNil`/`LCons` constructors, inclusive `enumFromTo` and `enumFromThenTo`, `compose`, and `intMax` infer. The shared `leave`, `reverse`, `listLen`, and `zip` implementations are retained as commented solver-budget reproducers. Unannotated source `map` is retained as a commented timeout reproducer. A trusted polymorphic `map` signature uses the constrained recursive list encoding; its callers test that contract rather than inference of its implementation. `take` and `filter` also use documented manual signatures with their unannotated timeout reproducers retained. |
 | Unannotated `enumFromTo` | Available in the Nofib prelude and infers a recursive constrained scheme. Endpoint-order and invalid-argument checks are in `preludeTests.mls`; diagnostic checks against the recursive list encoding still expose implicit-instantiation failures. |
 | Manual `map` contract | Concrete-list calls check implicitly, including element-changing maps. Composition with inferred `enumFromTo` retains a `:fixme` for recursive instantiation in `preludeTests.mls`; an explicit range witness is tested separately as a diagnostic control. |
 | List consumers | The focused investigation reproduces timeouts without encoded list signatures, down to unary constructor traversal. `walk`, `copy`, `map`, and dewrapped `length` samples locate the bottleneck in guarded-bound subtyping at the outer `fix` application. Function bodies with supplied recursive calls infer quickly; explicitly typed fixed-point controls pass. See `ctmlRecursiveConsumerInference.mls` and the performance report. Producer/consumer composition remains a separate precision issue. |
 
-**Next benchmark: `lcss.mls`.** Its list operations, direct recursion, and binary tuples
-fit the current porting conventions. It shares `inList` and will need additional list helpers
-such as `leave`, `reverse`, and `zip`.
+**Next design decision for `secretary.mls`.** Its random stream uses the source prelude's
+memoized `lazy` and `force`. A trusted memoized delay/force interface could preserve sharing
+without adding mutable fields to CTML. A plain lambda thunk would recompute on repeated forces
+and change the benchmark's evaluation behavior.
 
 **Inference follow-up: make algebraically inferred recursive schemes usable without annotations.**
 The [consumer performance report](../../../../main/scala/hkmc2/ctml/core/inference/recursive-consumer-performance.md)
@@ -164,6 +168,11 @@ implementations are retained in the prelude as inference reproducers. A separate
 source rendering method. SCC and CSE both need the source list format for their entry
 points.
 
+LCSS and Integer share the inclusive arithmetic progression. Both drivers need source-format
+list rendering. Integer uses unused local bindings to express the source sequencing and shares
+the identical traversal body between its two passes. With a temporary traversal contract, its
+driver through `testInteger_nofib` infers; the final `toString` lacks a list method.
+
 Cryptarithm's shared `take` and `filter` contracts have caller checks in `preludeTests.mls`.
 Their implementations time out during inference. Implicit `take`/range composition retains
 an active `:fixme`, with an explicit range witness tested separately as a diagnostic control.
@@ -198,6 +207,10 @@ Paths below are relative to this directory:
   [Boolean-condition tests](../ctmlBooleanConditions.mls).
 - [Original SCC benchmark](../../../mlscript-compile/nofib/scc.mls) and
   [runtime reference](../../nofib/scc.mls).
+- [Original LCSS benchmark](../../../mlscript-compile/nofib/lcss.mls) and
+  [runtime reference](../../nofib/lcss.mls).
+- [Original Integer benchmark](../../../mlscript-compile/nofib/integer.mls) and
+  [runtime reference](../../nofib/integer.mls).
 - [Original standard helpers](../../../mlscript-compile/nofib/NofibPrelude.mls).
 - [MLscript runtime reference](../../nofib/gcd.mls).
 - [Producer inference reproductions](../ctmlRecursiveProducerInference.mls) and

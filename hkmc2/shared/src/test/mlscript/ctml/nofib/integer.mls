@@ -1,0 +1,151 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 24 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/integer.mls.
+// Lists use LNil() and LCons. Both arithmetic passes keep the source progression and order.
+
+/** Build an inclusive progression from the start and step used by both passes. */
+fun integerRange(start, step, limit) = enumFromThenTo(start, start + step, limit)
+//│ integerRange: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
+
+// The benchmark's inclusive progression produces integers when it is nonempty.
+:fixme // FIXME: Matching the inferred progression leaves a guarded result at the Int ascription.
+(if integerRange(0 - 2100000000, 700000001, 2100000000) is
+  LNil() then 0
+  LCons(first, rest) then first) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     (({β ≤ LNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥)) ∨ Int ≤ Int
+//│       ({β ≤ LNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥) ≤ Int
+//│         {β ≤ LNil} ⟹ Int ≤ Int
+//│           β ≤ LNil
+//│             δ ≤ LNil
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ LNil
+//│                 (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ LNil
+//│                   LCons ∧ {head: Int} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Int} ≤ LNil
+//│                       Int ≤ ⊥
+//│                   {tail: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│         {β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥ ≤ Int
+//│           β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│             δ ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                 LNil ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│                   LNil ≤ ({tail: ⊤} ∧ LCons) ∧ {head: ⊤}
+//│                     LNil ≤ {tail: ⊤} ∧ LCons
+//│                       LNil ≤ {tail: ⊤}
+
+/** Add two integers. */
+fun z_add(a, b) = a + b
+//│ z_add: Int → Int → Int
+
+/** Subtract the second integer from the first. */
+fun z_sub(a, b) = a - b
+//│ z_sub: Int → Int → Int
+
+/** Multiply two integers. */
+fun z_mul(a, b) = a * b
+//│ z_mul: Int → Int → Int
+
+/** Divide with the source floor quotient. */
+fun z_div(a, b) = intDiv(a, b)
+//│ z_div: Int → Int → Int
+
+/** Compute the remainder with the source floor quotient. */
+fun z_mod(a, b) = intMod(a, b)
+//│ z_mod: Int → Int → Int
+
+/** Compare equality. */
+fun z_equal(a, b) = a == b
+//│ z_equal: ⊤ → ⊤ → Bool
+
+/** Compare strict ascending order. */
+fun z_lt(a, b) = a < b
+//│ z_lt: Int → Int → Bool
+
+/** Compare ascending order including equality. */
+fun z_leq(a, b) = a <= b
+//│ z_leq: Int → Int → Bool
+
+/** Compare strict descending order. */
+fun z_gt(a, b) = b < a
+//│ z_gt: Int → Int → Bool
+
+/** Compare descending order including equality. */
+fun z_geq(a, b) = b <= a
+//│ z_geq: Int → Int → Bool
+
+// Check the result of every operation at the source input magnitude.
+let lo = 0 - 2100000000
+let hi = 2100000000
+[z_add(lo, hi) as Int, z_sub(lo, hi) as Int]
+[z_mul(lo, hi) as Int, z_div(lo, hi) as Int]
+[z_mod(lo, hi) as Int, z_equal(lo, hi) as Bool]
+[z_lt(lo, hi) as Bool, z_leq(lo, hi) as Bool]
+[z_gt(lo, hi) as Bool, z_geq(lo, hi) as Bool]
+//│ lo: Int
+//│ hi: Int
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
+//│ ⟨Int, Bool⟩
+//│ ⟨Bool, Bool⟩
+//│ ⟨Bool, Bool⟩
+
+:te
+z_geq("not an integer", 0)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Int → Bool ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Int → Bool ≤ Str → α
+//│     Str ≤ Int
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Collect op results in source order over the two progressions. */
+// fun integerbench(op, astart, astep, alim, bstart, bstep, blim) =
+//   /** Advance the first progression after exhausting the current second progression. */
+//   fun lscomp1(ls) = if ls is
+//     LNil() then LNil()
+//     LCons(a, t1) then
+//       /** Apply op to a and each element in the second progression. */
+//       fun lscomp2(ls) = if ls is
+//         LNil() then lscomp1(t1)
+//         LCons(b, t2) then LCons(op(a, b), lscomp2(t2))
+//       lscomp2(integerRange(bstart, bstep, blim))
+//   lscomp1(integerRange(astart, astep, alim))
+
+// FIXME: Both passes depend on the disabled integerbench definition.
+// /**
+//  * Evaluate the two passes in order. The source uses the first progression for both operands
+//  * and gives both passes the same traversal body.
+//  */
+// fun runbench(jop, iop, _opstr, astart, astep, alim, _bstart, _bstep, _blim) =
+//   let _intResults = integerbench(iop, astart, astep, alim, astart, astep, alim)
+//   integerbench(jop, astart, astep, alim, astart, astep, alim)
+
+// FIXME: The arithmetic sequence depends on the disabled runbench definition.
+// /** Evaluate the nine arithmetic and comparison pairs in source order. */
+// fun runalltests(astart, astep, alim, _bstart, _bstep, _blim) =
+//   let _add = runbench(z_add, (a, b) => a + b, "(+)", astart, astep, alim, astart, astep, alim)
+//   let _sub = runbench(z_sub, (a, b) => a - b, "(-)", astart, astep, alim, astart, astep, alim)
+//   let _mul = runbench(z_mul, (a, b) => a * b, "(*)", astart, astep, alim, astart, astep, alim)
+//   let _div = runbench(z_div, intDiv, "div", astart, astep, alim, astart, astep, alim)
+//   let _mod = runbench(z_mod, intMod, "mod", astart, astep, alim, astart, astep, alim)
+//   let _eq = runbench(z_equal, (a, b) => a == b, "(==)", astart, astep, alim, astart, astep, alim)
+//   let _lt = runbench(z_lt, (a, b) => a < b, "(<)", astart, astep, alim, astart, astep, alim)
+//   let _le = runbench(z_leq, (a, b) => a <= b, "(<=)", astart, astep, alim, astart, astep, alim)
+//   let _gt = runbench(z_gt, (a, b) => b < a, "(>)", astart, astep, alim, astart, astep, alim)
+//   runbench(z_geq, (a, b) => b <= a, "(>=)", astart, astep, alim, astart, astep, alim)
+
+// FIXME: The fixed-input harness depends on the disabled runalltests definition.
+// /** Run the source limits with the supplied step. */
+// fun testInteger_nofib(n) =
+//   runalltests(0 - 2100000000, n, 2100000000, 0 - 2100000000, n, 0 - 2100000000)
+
+// FIXME: The harness is disabled, and CTML list constructors lack source-format toString.
+// /** Render the last pass for the adapted MLscript benchmark input. */
+// fun main() = testInteger_nofib(700000001).toString()

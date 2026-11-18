@@ -1,0 +1,88 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 24 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/lcss.mls.
+// Score entries and paired rows use binary tuples. Lists use LNil() and LCons.
+// The source runtime test renders the common subsequence from 30 through 60 for input 0.
+
+/** Extend the diagonal score on a match, or keep the better neighboring score. */
+fun nextScore(x, y, diagonal, left, above) =
+  if x == y then diagonal + 1 else intMax(left, above)
+//│ nextScore: ⊤ → ⊤ → Int → Int → Int → Int
+
+nextScore(1, 2, 0, 3, 4) as Int
+//│ Int
+
+:te
+nextScore(1, 2, 0, "not a score", 4)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int → Int ≤ Str → β
+//│       Str ≤ Int
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Compute one score row, carrying the previous diagonal and current left-hand scores. */
+// fun algb2(x, k0j1, k1j1, yss) = if yss is
+//   LNil() then LNil()
+//   LCons([y, k0j], ys) then
+//     let kjcurr = nextScore(x, y, k0j1, k1j1, k0j)
+//     LCons([y, kjcurr], algb2(x, k0j, kjcurr, ys))
+
+// FIXME: This traversal depends on the disabled algb2 definition.
+// /** Update the score row for each successive element and extract the final scores. */
+// fun algb1(xss, yss) = if xss is
+//   LNil() then map(snd, yss)
+//   LCons(x, xs) then algb1(xs, algb2(x, 0, 0, yss))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Pair each element of the second sequence with an initial zero score. */
+// fun zeroScores(ys) = if ys is
+//   LCons(y, rest) then LCons([y, 0], zeroScores(rest))
+//   LNil() then LNil()
+
+// FIXME: This row builder depends on the disabled algb1 and zeroScores definitions.
+// /** Compute the row of prefix scores, including the empty prefix. */
+// fun algb(xs, ys) = LCons(0, algb1(xs, zeroScores(ys)))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Find the last index with a maximal sum of the forward and backward scores. */
+// fun findk(k, km, m, ls) = if ls is
+//   LNil() then km
+//   LCons([x, y], rest) then
+//     let score = x + y
+//     if m <= score then findk(k + 1, k, score, rest) else findk(k + 1, km, m, rest)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget even with temporary dependency contracts.
+// /** Split at the best score and compose the two subsequence builders. */
+// fun algc(m, n, xs, ys) = if
+//   ys is LNil() then x => x
+//   xs is
+//     LCons(x, LNil()) and
+//       inList(x, ys) then t => LCons(x, t)
+//       else x => x
+//   else
+//     let m2 = intDiv(m, 2)
+//     let xs1 = take(m2, xs)
+//     let xs2 = leave(m2, xs)
+//     let l1 = algb(xs1, ys)
+//     let l2 = reverse(algb(reverse(xs2), reverse(ys)))
+//     let k = findk(0, 0, 0 - 1, zip(l1, l2))
+//     compose(algc(m2, k, xs1, take(k, ys)), algc(m - m2, n - k, xs2, leave(k, ys)))
+
+// FIXME: This step depends on the disabled algc and listLen definitions.
+// /** Build the longest common subsequence of two lists. */
+// fun lcss(xs, ys) = algc(listLen(xs), listLen(ys), xs, ys)(LNil())
+
+// FIXME: This step depends on the disabled lcss definition.
+// /** Construct the two source progressions in argument order. */
+// fun lcssMain(a, b, c, d, e, f) = lcss(enumFromThenTo(a, b, c), enumFromThenTo(d, e, f))
+
+// FIXME: The fixed-input harness depends on the disabled lcssMain definition.
+// /** Run the fixed source progressions. */
+// fun testLCSS_nofib(_input) = lcssMain(1, 2, 60, 30, 31, 90)
+
+// FIXME: The harness is disabled, and CTML list constructors lack source-format toString.
+// /** Render the subsequence for the source benchmark input. */
+// fun main() = testLCSS_nofib(0).toString()

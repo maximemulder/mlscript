@@ -124,3 +124,48 @@ declare fun filter[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} &
 // fun append(xs, ys) = if xs is
 //   LNil() then ys
 //   LCons(x, xs) then LCons(x, append(xs, ys))
+
+/** Compose functions in the order f(g(x)). */
+fun compose(f, g) = x => f(g(x))
+//│ compose: ∀α, β, γ. (β → γ) → (α → β) → α → γ
+
+/** Integer specialization of the source Math.max helper. */
+fun intMax(a, b) = if a < b then b else a
+//│ intMax: ∀α, β. {β ≤ Int, α ≤ Int} ⟹ α → β → (α ∨ β)
+
+/** Inclusive source progression with first two terms a and t. */
+fun enumFromThenTo(a, t, b) =
+  if a <= b then LCons(a, enumFromThenTo(t, 2 * t - a, b)) else LNil()
+//│ enumFromThenTo: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Skip up to n elements, returning the original list for nonpositive counts. */
+// fun leave(n, ls) = if ls is
+//   LNil() then LNil()
+//   LCons(h, t) and
+//     n <= 0 then ls
+//     else leave(n - 1, t)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Reverse a list with the source accumulator traversal. */
+// fun reverse(ls) =
+//   /** Move each remaining element onto the front of the accumulator. */
+//   fun loop(acc, rest) = if rest is
+//     LCons(x, xs) then loop(LCons(x, acc), xs)
+//     else acc
+//   loop(LNil(), ls)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Count list elements using the source accumulator traversal. */
+// fun listLen(ls) =
+//   /** Count the remaining elements starting from the supplied offset. */
+//   fun loop(rest, n) = if rest is
+//     LNil() then n
+//     LCons(h, t) then loop(t, n + 1)
+//   loop(ls, 0)
+
+// FIXME: Inference exceeds a 20000-call diagnostic budget.
+// /** Pair successive elements of two lists, stopping when either ends. */
+// fun zip(xs, ys) = if xs is
+//   LCons(x, xs_) and ys is LCons(y, ys_) then LCons([x, y], zip(xs_, ys_))
+//   else LNil()

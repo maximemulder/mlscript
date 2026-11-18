@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 38 member(s)
+//│ Imported 40 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/scc.mls.
 // Edges and traversal state are binary tuples; lists use LNil() and LCons.
@@ -10,13 +10,14 @@
 fun swap(edge) = if edge is [from, to] then [to, from]
 //│ swap: ∀α, β. ⟨α, β⟩ → ⟨β, α⟩
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Collect the targets of outgoing edges in their original order. */
-// fun new_range(edges, vertex) = if edges is
-//   LNil() then LNil()
-//   LCons([from, to], rest) and
-//     from == vertex then LCons(to, new_range(rest, vertex))
-//     else new_range(rest, vertex)
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Collect the targets of outgoing edges in their original order. */
+fun new_range(edges, vertex) = if edges is
+  LNil() then LNil()
+  LCons([from, to], rest) and
+    from == vertex then LCons(to, new_range(rest, vertex))
+    else new_range(rest, vertex)
+//│ CTML translation succeeded.
 
 // FIXME: Inference exceeds a 20000-call diagnostic budget even with inList and append contracts.
 // /** Visit each reachable vertex once and collect vertices in reverse finishing order. */

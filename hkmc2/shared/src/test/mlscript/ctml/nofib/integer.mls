@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 38 member(s)
+//│ Imported 40 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/integer.mls.
 // Lists use LNil() and LCons. Both arithmetic passes keep the source progression and order.
@@ -104,48 +104,53 @@ z_geq("not an integer", 0)
 //│   Int → Int → Bool ≤ Str → α
 //│     Str ≤ Int
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Collect op results in source order over the two progressions. */
-// fun integerbench(op, astart, astep, alim, bstart, bstep, blim) =
-//   /** Advance the first progression after exhausting the current second progression. */
-//   fun lscomp1(ls) = if ls is
-//     LNil() then LNil()
-//     LCons(a, t1) then
-//       /** Apply op to a and each element in the second progression. */
-//       fun lscomp2(ls) = if ls is
-//         LNil() then lscomp1(t1)
-//         LCons(b, t2) then LCons(op(a, b), lscomp2(t2))
-//       lscomp2(integerRange(bstart, bstep, blim))
-//   lscomp1(integerRange(astart, astep, alim))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Collect op results in source order over the two progressions. */
+fun integerbench(op, astart, astep, alim, bstart, bstep, blim) =
+  /** Advance the first progression after exhausting the current second progression. */
+  fun lscomp1(ls) = if ls is
+    LNil() then LNil()
+    LCons(a, t1) then
+      /** Apply op to a and each element in the second progression. */
+      fun lscomp2(ls) = if ls is
+        LNil() then lscomp1(t1)
+        LCons(b, t2) then LCons(op(a, b), lscomp2(t2))
+      lscomp2(integerRange(bstart, bstep, blim))
+  lscomp1(integerRange(astart, astep, alim))
+//│ CTML translation succeeded.
 
-// FIXME: Both passes depend on the disabled integerbench definition.
-// /**
-//  * Evaluate the two passes in order. The source uses the first progression for both operands
-//  * and gives both passes the same traversal body.
-//  */
-// fun runbench(jop, iop, _opstr, astart, astep, alim, _bstart, _bstep, _blim) =
-//   let _intResults = integerbench(iop, astart, astep, alim, astart, astep, alim)
-//   integerbench(jop, astart, astep, alim, astart, astep, alim)
+:ctml-parse-only // FIXME: Both passes depend on the unchecked integerbench definition.
+/**
+ * Evaluate the two passes in order. The source uses the first progression for both operands
+ * and gives both passes the same traversal body.
+ */
+fun runbench(jop, iop, _opstr, astart, astep, alim, _bstart, _bstep, _blim) =
+  let _intResults = integerbench(iop, astart, astep, alim, astart, astep, alim)
+  integerbench(jop, astart, astep, alim, astart, astep, alim)
+//│ CTML translation succeeded.
 
-// FIXME: The arithmetic sequence depends on the disabled runbench definition.
-// /** Evaluate the nine arithmetic and comparison pairs in source order. */
-// fun runalltests(astart, astep, alim, _bstart, _bstep, _blim) =
-//   let _add = runbench(z_add, (a, b) => a + b, "(+)", astart, astep, alim, astart, astep, alim)
-//   let _sub = runbench(z_sub, (a, b) => a - b, "(-)", astart, astep, alim, astart, astep, alim)
-//   let _mul = runbench(z_mul, (a, b) => a * b, "(*)", astart, astep, alim, astart, astep, alim)
-//   let _div = runbench(z_div, intDiv, "div", astart, astep, alim, astart, astep, alim)
-//   let _mod = runbench(z_mod, intMod, "mod", astart, astep, alim, astart, astep, alim)
-//   let _eq = runbench(z_equal, (a, b) => a == b, "(==)", astart, astep, alim, astart, astep, alim)
-//   let _lt = runbench(z_lt, (a, b) => a < b, "(<)", astart, astep, alim, astart, astep, alim)
-//   let _le = runbench(z_leq, (a, b) => a <= b, "(<=)", astart, astep, alim, astart, astep, alim)
-//   let _gt = runbench(z_gt, (a, b) => b < a, "(>)", astart, astep, alim, astart, astep, alim)
-//   runbench(z_geq, (a, b) => b <= a, "(>=)", astart, astep, alim, astart, astep, alim)
+:ctml-parse-only // FIXME: The arithmetic sequence depends on the unchecked runbench definition.
+/** Evaluate the nine arithmetic and comparison pairs in source order. */
+fun runalltests(astart, astep, alim, _bstart, _bstep, _blim) =
+  let _add = runbench(z_add, (a, b) => a + b, "(+)", astart, astep, alim, astart, astep, alim)
+  let _sub = runbench(z_sub, (a, b) => a - b, "(-)", astart, astep, alim, astart, astep, alim)
+  let _mul = runbench(z_mul, (a, b) => a * b, "(*)", astart, astep, alim, astart, astep, alim)
+  let _div = runbench(z_div, intDiv, "div", astart, astep, alim, astart, astep, alim)
+  let _mod = runbench(z_mod, intMod, "mod", astart, astep, alim, astart, astep, alim)
+  let _eq = runbench(z_equal, (a, b) => a == b, "(==)", astart, astep, alim, astart, astep, alim)
+  let _lt = runbench(z_lt, (a, b) => a < b, "(<)", astart, astep, alim, astart, astep, alim)
+  let _le = runbench(z_leq, (a, b) => a <= b, "(<=)", astart, astep, alim, astart, astep, alim)
+  let _gt = runbench(z_gt, (a, b) => b < a, "(>)", astart, astep, alim, astart, astep, alim)
+  runbench(z_geq, (a, b) => b <= a, "(>=)", astart, astep, alim, astart, astep, alim)
+//│ CTML translation succeeded.
 
-// FIXME: The fixed-input harness depends on the disabled runalltests definition.
-// /** Run the source limits with the supplied step. */
-// fun testInteger_nofib(n) =
-//   runalltests(0 - 2100000000, n, 2100000000, 0 - 2100000000, n, 0 - 2100000000)
+:ctml-parse-only // FIXME: The fixed-input harness depends on the unchecked runalltests definition.
+/** Run the source limits with the supplied step. */
+fun testInteger_nofib(n) =
+  runalltests(0 - 2100000000, n, 2100000000, 0 - 2100000000, n, 0 - 2100000000)
+//│ CTML translation succeeded.
 
-// FIXME: The harness is disabled, and CTML list constructors lack source-format toString.
-// /** Render the last pass for the adapted MLscript benchmark input. */
-// fun main() = testInteger_nofib(700000001).toString()
+:ctml-parse-only // FIXME: The harness is unchecked, and CTML lists lack source-format toString.
+/** Render the last pass for the adapted MLscript benchmark input. */
+fun main() = testInteger_nofib(700000001).toString()
+//│ CTML translation succeeded.

@@ -47,6 +47,8 @@ A CTML test file starts with `:ctml`. A block may be preceded by commands:
 - `:fixme // FIXME: <reason>`: the block raises errors that it should not.
 - `:breakme // FIXME: <reason>`, followed by `:te`: the block should raise a type error, but does
   not.
+- `:ctml-parse-only`: elaborate and translate the block to CTML without inference. The block
+  supplies no CTML typing bindings.
 - `:ctml-cfg <options>`: change the configuration of the type checker.
 - `:ctml-dbg <options>`: print debugging information. The type checker then stops after
   `maxStepCount` steps (`config/config.scala`), which truncates long traces.
@@ -71,7 +73,8 @@ suite. When changing shared code, including the diff-test harness, also run
 
 Each test file should run in less than 5 seconds. Some worst cases take more than 10 seconds,
 which should eventually be fixed. A file that takes more than 30 seconds has timed out: locate the
-block that times out, and fix it or comment it out with a `FIXME` comment explaining why.
+block that times out, and fix it or use `:ctml-parse-only // FIXME: <reason>` to retain translation
+coverage.
 
 The CTML tests may contain known failures or time-outs while the type checker is under active
 development. Before a refactor, run the CTML tests to record a baseline of the failing files, and

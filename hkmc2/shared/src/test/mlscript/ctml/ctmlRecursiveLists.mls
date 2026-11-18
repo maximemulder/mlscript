@@ -164,6 +164,31 @@ val map = fix[MapAB]((self: MapAB) =>
 map as ((A -> B) -> ListA -> ListB)
 //│ (A → B) → ListA → ListB
 
+/** The supplied recursion invariant for the shared Nofib append. */
+type AppendA = ListA -> ListA -> ListA
+//│ AppendA = ListA → ListA → ListA
+
+/** Check that append preserves the element type and the recursive tail invariant. */
+val append = fix[AppendA]((self: AppendA) => xs => (ys: ListA) =>
+  if (xs as LayerA) is
+    LNil() then ys
+    LCons(x, rest) then LCons(x, (self as AppendA)(rest, ys)))
+//│ append: AppendA
+
+/** The supplied recursion invariant for the accumulator in the shared Nofib listLen. */
+type CountA = ListA -> Int -> Int
+//│ CountA = ListA → Int → Int
+
+/** Check the source accumulator traversal for arbitrary list elements. */
+fun listLen(xs: ListA): Int =
+  /** Count the remaining elements starting from the supplied offset. */
+  let loop = fix[CountA]((self: CountA) => rest => (n: Int) =>
+    if (rest as LayerA) is
+      LNil() then n
+      LCons(_, tail) then (self as CountA)(tail, n + 1))
+  (loop as CountA)(xs, 0)
+//│ listLen: ListA → Int
+
 // A left scan always produces the initial accumulator, even when the input is empty.
 /** A nonempty list of accumulator values for a scan over rigid element types A and B. */
 type ScanResult = LCons & {head: B} & {tail: ListB}

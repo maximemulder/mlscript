@@ -97,55 +97,33 @@ fun enumFromTo(a, b) =
   if a <= b then LCons(a, enumFromTo(a + 1, b)) else LNil()
 //│ enumFromTo: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
 
-/** Source map preserves list order and applies f once per element. */
-// FIXME: Inference of unannotated map exceeds the diff-test time limit.
-// fun map(f, xs) = if xs is
-//   LCons(x, tail) then LCons(f(x), map(f, tail))
-//   LNil() then LNil()
-
 /**
- * Trusted library contract; inference of the source implementation above is deferred.
+ * Trusted map contract. preludeDeferred.mls checks translation of the unannotated implementation.
  * ../ctmlRecursiveLists.mls checks a fixed-point implementation for rigid element types.
  * This declaration does not check the source implementation.
  */
 declare fun map[A, B]: (A -> B) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y)
 //│ map: ∀A, B. (A → B) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y)
 
-// FIXME: Inference of unannotated take exceeds the 25-second diff-test limit.
-// /** Source take returns empty for nonpositive counts and preserves shorter lists. */
-// fun take(n, ls) = if ls is
-//   LNil() then LNil()
-//   LCons(h, t) then
-//     if n <= 0 then LNil() else LCons(h, take(n - 1, t))
-
-/** Trusted take contract; the source implementation above is not checked by this declaration. */
+/**
+ * Trusted take contract. preludeDeferred.mls checks translation of the unannotated implementation.
+ */
 declare fun take[A]: Int -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
 //│ take: ∀A. Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
 
-// FIXME: Inference of unannotated filter exceeds the 25-second diff-test limit.
-// /** Source filter preserves the order of elements satisfying the predicate. */
-// fun filter(f, ls) = if ls is
-//   LNil() then LNil()
-//   LCons(h, t) then
-//     if f(h) then LCons(h, filter(f, t)) else filter(f, t)
-
-/** Trusted filter contract; the source implementation above is not checked by this declaration. */
+/**
+ * Trusted filter contract. preludeDeferred.mls checks translation of the unannotated implementation.
+ */
 declare fun filter[A]: (A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
 //│ filter: ∀A. (A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Test membership using source strict equality. */
-// fun inList(x, ls) = if ls is
-//   LCons(h, t) and
-//     x === h then true
-//     else inList(x, t)
-//   LNil() then false
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Append the second list to the first. */
-// fun append(xs, ys) = if xs is
-//   LNil() then ys
-//   LCons(x, xs) then LCons(x, append(xs, ys))
+/**
+ * Trusted append contract. Both inputs and the result are proper lists with a common
+ * element type. ../ctmlRecursiveLists.mls checks the recursion with a rigid element type.
+ * preludeDeferred.mls checks translation of the unannotated implementation.
+ */
+declare fun append[A]: ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y) -> ([Z restricts (LNil | (LCons & {head: A} & {tail: Z}))] -> Z)
+//│ append: ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z)
 
 /** Compose functions in the order f(g(x)). */
 fun compose(f, g) = x => f(g(x))
@@ -160,91 +138,13 @@ fun enumFromThenTo(a, t, b) =
   if a <= b then LCons(a, enumFromThenTo(t, 2 * t - a, b)) else LNil()
 //│ enumFromThenTo: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Skip up to n elements, returning the original list for nonpositive counts. */
-// fun leave(n, ls) = if ls is
-//   LNil() then LNil()
-//   LCons(h, t) and
-//     n <= 0 then ls
-//     else leave(n - 1, t)
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Reverse a list with the source accumulator traversal. */
-// fun reverse(ls) =
-//   /** Move each remaining element onto the front of the accumulator. */
-//   fun loop(acc, rest) = if rest is
-//     LCons(x, xs) then loop(LCons(x, acc), xs)
-//     else acc
-//   loop(LNil(), ls)
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Count list elements using the source accumulator traversal. */
-// fun listLen(ls) =
-//   /** Count the remaining elements starting from the supplied offset. */
-//   fun loop(rest, n) = if rest is
-//     LNil() then n
-//     LCons(h, t) then loop(t, n + 1)
-//   loop(ls, 0)
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Pair successive elements of two lists, stopping when either ends. */
-// fun zip(xs, ys) = if xs is
-//   LCons(x, xs_) and ys is LCons(y, ys_) then LCons([x, y], zip(xs_, ys_))
-//   else LNil()
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Delay the search for the next node satisfying the predicate. */
-// fun filterLz(p, ls) = delay(() =>
-//   if force(ls) is
-//     LzNil() then LzNil()
-//     LzCons(h, t) and
-//       p(h) then LzCons(h, filterLz(p, t))
-//       else force(filterLz(p, t))
-// )
-
-// FIXME: Inference exceeds a 20000-call budget even with a temporary filterLz contract.
-// /** Keep the first occurrence of each element under the supplied equality. */
-// fun nubByLz(eq, ls) = delay(() =>
-//   if force(ls) is
-//     LzNil() then LzNil()
-//     LzCons(h, t) then LzCons(h, nubByLz(eq, filterLz(y => if eq(h, y) then false else true, t)))
-// )
-
-// FIXME: This specialization depends on the disabled nubByLz definition.
-// /** Keep the first occurrence of each element under source equality. */
-// fun nubLz(ls) = nubByLz((x, y) => x == y, ls)
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Take up to n elements without forcing another node when the count is exhausted. */
-// fun takeLz(n, ls) = if
-//   0 < n and force(ls) is
-//     LzNil() then LNil()
-//     LzCons(h, t) then LCons(h, takeLz(n - 1, t))
-//   else LNil()
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Compare lists element by element using source equality. */
-// fun listEq(xs, ys) = if
-//   xs is LNil() and ys is LNil() then true
-//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and hx == hy then listEq(tx, ty)
-//   else false
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Skip the longest prefix satisfying the predicate. */
-// fun leaveWhile(f, ls) = if ls is
-//   LNil() then LNil()
-//   LCons(h, t) and
-//     f(h) then leaveWhile(f, t)
-//     else LCons(h, t)
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Fold the integer maximum from the first element; this is partial on empty lists. */
-// fun maximumInt(ls) =
-//   /** Fold the remaining elements from left to right. */
-//   fun loop(acc, rest) = if rest is
-//     LNil() then acc
-//     LCons(h, t) then loop(if h < acc then acc else h, t)
-//   if ls is LCons(h, t) then loop(h, t)
+/**
+ * Trusted listLen contract. The count is independent of the elements' types.
+ * ../ctmlRecursiveLists.mls checks the accumulator traversal with a rigid element type.
+ * preludeDeferred.mls checks translation of the unannotated implementation.
+ */
+declare fun listLen: ([X restricts (LNil | (LCons & {head: Top} & {tail: X}))] -> X) -> Int
+//│ listLen: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int
 
 /** Repeat x n times in a strict list. */
 fun replicate(n, x) = if n == 0 then LNil() else LCons(x, replicate(n - 1, x))
@@ -278,82 +178,12 @@ fun nofibStringToList(s) =
   go(0)
 //│ nofibStringToList: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ Str → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Compare lists element by element using the supplied equality. */
-// fun listEqBy(eq, xs, ys) = if
-//   xs is LNil() and ys is LNil() then true
-//   xs is LCons(x, xt) and ys is LCons(y, yt) then
-//     if eq(x, y) then listEqBy(eq, xt, yt) else false
-//   else false
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Fold a strict list from the right. */
-// fun foldr(f, z, ls) = if ls is
-//   LNil() then z
-//   LCons(h, t) then f(h, foldr(f, z, t))
-
-// FIXME: With a temporary append contract, inference only accepts the empty list.
-// /** Flatten a list of lists in order. */
-// fun concat(ls) = if ls is
-//   LNil() then LNil()
-//   LCons(h, t) then append(h, concat(t))
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Apply f to the elements of a lazy list as each result node is forced. */
-// fun mapLz(f, ls) = delay(() =>
-//   if force(ls) is
-//     LzNil() then LzNil()
-//     LzCons(h, t) then LzCons(f(h), mapLz(f, t))
-// )
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Zip a lazy list and a strict list in force order, stopping at the shorter input. */
-// fun zipLzNl(xs, ys) = if
-//   force(xs) is LzCons(x, xt) and ys is LCons(y, yt) then
-//     LCons([x, y], zipLzNl(xt, yt))
-//   else LNil()
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Append a lazy suffix to a strict prefix, delaying the prefix nodes. */
-// fun appendNlLz(xs, ys) = if xs is
-//   LNil() then ys
-//   LCons(h, t) then delay(() => LzCons(h, appendNlLz(t, ys)))
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Zip three lists into nested pairs, stopping at the shortest list. */
-// fun zip3(xs, ys, zs) = if
-//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and zs is LCons(hz, tz) then
-//     LCons([hx, [hy, hz]], zip3(tx, ty, tz))
-//   else LNil()
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** List the initial accumulator and every subsequent left-fold result. */
-// fun scanl(f, q, ls) = if ls is
-//   LNil() then LCons(q, LNil())
-//   LCons(x, xs) then LCons(q, scanl(f, f(q, x), xs))
+// preludeTests.mls checks the inference failure of concat on a nonempty list.
 
 /**
  * Trusted scanl contract. The result always starts with the initial accumulator.
  * ../ctmlRecursiveLists.mls checks the supplied invariant for rigid element types.
- * This declaration does not check the unannotated implementation above.
+ * preludeDeferred.mls checks translation of the unannotated implementation.
  */
 declare fun scanl[A, B]: (B -> A -> B) -> B -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> (LCons & {head: B} & {tail: Y}))
 //│ scanl: ∀A, B. (B → A → B) → B → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ (LCons ∧ {head: B}) ∧ {tail: Y})
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Fold a nonempty list from the right, using its final element as the seed. */
-// fun foldr1(f, ls) = if ls is
-//   LCons(x, LNil()) then x
-//   LCons(x, xs) then f(x, foldr1(f, xs))
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Combine elements pairwise, stopping at the shorter list. */
-// fun zipWith(f, xss, yss) = if
-//   xss is LCons(x, xs) and yss is LCons(y, ys) then LCons(f(x, y), zipWith(f, xs, ys))
-//   else LNil()
-
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Join a strict list of characters using source string concatenation. */
-// fun nofibListToString(ls) = if ls is
-//   LNil() then ""
-//   LCons(h, t) then h ++ nofibListToString(t)

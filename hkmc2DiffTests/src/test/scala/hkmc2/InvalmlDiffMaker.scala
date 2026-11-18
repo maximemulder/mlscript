@@ -51,6 +51,9 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
   /** The CTML typing context. */
   var ctmlCtx = hkmc2.ctml.types.TypeContext.empty
 
+  /** Translate the current CTML test block without running inference. */
+  val ctmlParseOnly = new NullaryCommand("ctml-parse-only")
+
   override def init(): Unit =
     super.init()
 
@@ -63,7 +66,9 @@ abstract class InvalMLDiffMaker extends JSBackendDiffMaker:
 
   override def processTerm(term: semantics.Term.Blk, inImport: Bool)(using ctx: Config, raise: Raise): Unit =
     if ctmlCommand.isSet then
-      val (scope, ctx) = hkmc2.ctml.test.test(term, this.ctmlScope, this.ctmlCtx, inImport, output.apply, raise)
+      val (scope, ctx) = hkmc2.ctml.test.test(
+        term, this.ctmlScope, this.ctmlCtx, inImport, ctmlParseOnly.isSet && !inImport, output.apply, raise,
+      )
       this.ctmlCtx = ctx
       this.ctmlScope = scope
       return

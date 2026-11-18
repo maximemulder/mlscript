@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 38 member(s)
+//│ Imported 40 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cse.mls.
 // State computations return [new state, answer], preserving the source component order.
@@ -284,65 +284,67 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 //│         Str ≤ Int
 
 // List helpers translated from the source NofibPrelude.mls.
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Compare two lists element by element with source equality. */
-// fun listEq(xs, ys) = if
-//   xs is LNil() and ys is LNil() then true
-//   xs is LCons(hx, tx) and ys is LCons(hy, ty) and (hx == hy) then listEq(tx, ty)
-//   else false
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Compare two lists element by element with source equality. */
+fun listEq(xs, ys) = if
+  xs is LNil() and ys is LNil() then true
+  xs is LCons(hx, tx) and ys is LCons(hy, ty) and (hx == hy) then listEq(tx, ty)
+  else false
+//│ CTML translation succeeded.
 
-// FIXME: This helper depends on the disabled append definition.
-// /** Flatten a list of lists in source order. */
-// fun concat(ls) = if ls is
-//   LNil() then LNil()
-//   LCons(x, xs) then append(x, concat(xs))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Collect the right-fold results, ending with the initial accumulator. */
+fun scanr(f, q, ls) = if ls is
+  LNil() then LCons(q, LNil())
+  LCons(x, xs) and scanr(f, q, xs) is LCons(q, t) then LCons(f(x, q), LCons(q, t))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Collect the right-fold results, ending with the initial accumulator. */
-// fun scanr(f, q, ls) = if ls is
-//   LNil() then LCons(q, LNil())
-//   LCons(x, xs) and scanr(f, q, xs) is LCons(q, t) then LCons(f(x, q), LCons(q, t))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Fold from the right, supplying the current element first. */
+fun foldr(f, z, xs) = if xs is
+  LNil() then z
+  LCons(h, t) then f(h, foldr(f, z, t))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Fold from the right, supplying the current element first. */
-// fun foldr(f, z, xs) = if xs is
-//   LNil() then z
-//   LCons(h, t) then f(h, foldr(f, z, t))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Traverse the source list with state effects from left to right. */
+fun mmapl(f, aas) = if aas is
+  LNil() then retURN(LNil())
+  LCons(a, as_) then
+    bind(f(a), b => bind(mmapl(f, as_), bs => retURN(LCons(b, bs))))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Traverse the source list with state effects from left to right. */
-// fun mmapl(f, aas) = if aas is
-//   LNil() then retURN(LNil())
-//   LCons(a, as_) then
-//     bind(f(a), b => bind(mmapl(f, as_), bs => retURN(LCons(b, bs))))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Traverse the source list with state effects from right to left. */
+fun mmapr(f, xs) = if xs is
+  LNil() then retURN(LNil())
+  LCons(x, xs) then
+    bind(mmapr(f, xs), ys => bind(f(x), y => retURN(LCons(y, ys))))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Traverse the source list with state effects from right to left. */
-// fun mmapr(f, xs) = if xs is
-//   LNil() then retURN(LNil())
-//   LCons(x, xs) then
-//     bind(mmapr(f, xs), ys => bind(f(x), y => retURN(LCons(y, ys))))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Fold the source list with left-to-right state effects. */
+fun mfoldl(f, a, xs) = if xs is
+  LNil() then retURN(a)
+  LCons(x, xs) then bind(f(a, x), fax => mfoldl(f, fax, xs))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Fold the source list with left-to-right state effects. */
-// fun mfoldl(f, a, xs) = if xs is
-//   LNil() then retURN(a)
-//   LCons(x, xs) then bind(f(a, x), fax => mfoldl(f, fax, xs))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Fold the source list with right-to-left state effects. */
+fun mfoldr(f, a, xs) = if xs is
+  LNil() then retURN(a)
+  LCons(x, xs) then bind(mfoldr(f, a, xs), y => f(x, y))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Fold the source list with right-to-left state effects. */
-// fun mfoldr(f, a, xs) = if xs is
-//   LNil() then retURN(a)
-//   LCons(x, xs) then bind(mfoldr(f, a, xs), y => f(x, y))
+:ctml-parse-only // FIXME: Tree labelling depends on the unchecked mmapl definition.
+/** Label the tree in preorder using the stateful left-to-right traversal. */
+fun labelTree(t) =
+  fun label(t) = if t is Node(x, xs) then
+    bind(incr, n => bind(mmapl(label, xs), ts => retURN(Node([n, x], ts))))
+  startingWith(label(t), 0)
+//│ CTML translation succeeded.
 
-// FIXME: The tree labelling stage depends on the disabled mmapl definition.
-// /** Label the tree in preorder using the stateful left-to-right traversal. */
-// fun labelTree(t) =
-//   fun label(t) = if t is Node(x, xs) then
-//     bind(incr, n => bind(mmapl(label, xs), ts => retURN(Node([n, x], ts))))
-//   startingWith(label(t), 0)
-
-// FIXME: Graph construction depends on the disabled concat definition.
+// FIXME: Graph construction depends on concat, whose inference failure is in preludeTests.mls.
 // /** Emit graph entries in preorder, encoding each source triple as a nested pair. */
 // fun ltGraph(t) =
 //   fun labelOf(t) = if t is Node([n, x], xs) then n
@@ -355,21 +357,22 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 //   bind(fetch, us => if inList(n, us) then retURN(true)
 //     else bind(set_(LCons(n, us)), _p => retURN(false)))
 
-// FIXME: This stage depends on the disabled foldr and listEq definitions.
-// /** Merge entries with the same symbol and the same redirected child labels. */
-// fun findCommon(ls) =
-//   fun sim(n_s_cs, r_lg) = if n_s_cs is [n, [s, cs]] and r_lg is [r, lg] then
-//     let rcs = map(r, cs)
-//     fun lscomp(ls) = if ls is
-//       LNil() then LNil()
-//       LCons([m, [s_, cs_]], t) and
-//         s === s_ and listEq(cs_, rcs) then LCons(m, lscomp(t))
-//         else lscomp(t)
-//     let ms = lscomp(lg)
-//     if null_(ms)
-//     then [r, LCons([n, [s, rcs]], lg)]
-//     else [x => newlyDefined(n, head(ms), r, x), lg]
-//   if foldr(sim, [x => x, LNil()], ls) is [a, b] then b else raiseError(ls.toString())
+:ctml-parse-only // FIXME: This stage depends on the unchecked foldr and listEq definitions.
+/** Merge entries with the same symbol and the same redirected child labels. */
+fun findCommon(ls) =
+  fun sim(n_s_cs, r_lg) = if n_s_cs is [n, [s, cs]] and r_lg is [r, lg] then
+    let rcs = map(r, cs)
+    fun lscomp(ls) = if ls is
+      LNil() then LNil()
+      LCons([m, [s_, cs_]], t) and
+        s === s_ and listEq(cs_, rcs) then LCons(m, lscomp(t))
+        else lscomp(t)
+    let ms = lscomp(lg)
+    if null_(ms)
+    then [r, LCons([n, [s, rcs]], lg)]
+    else [x => newlyDefined(n, head(ms), r, x), lg]
+  if foldr(sim, [x => x, LNil()], ls) is [a, b] then b else raiseError(ls.toString())
+//│ CTML translation succeeded.
 
 // FIXME: This stage depends on the disabled labelTree, ltGraph, and findCommon definitions.
 // /** Compute the graph with common subexpressions merged. */
@@ -379,9 +382,10 @@ newlyDefined(1, "replacement", x => x + 1, "bad")
 val example4 = prod(scanl(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
 //│ example4: ∀α. {α ≥ ((Node ∧ {a: Str}) ∧ {b: (LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: (Node ∧ {a: Str}) ∧ {b: LNil}}) ∧ {tail: LNil}}}) ∨ ((Node ∧ {a: Str}) ∧ {b: LNil})} ⟹ (Node ∧ {a: Str}) ∧ {b: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ (LCons ∧ {head: α}) ∧ {tail: Y}}
 
-// FIXME: This example depends on the disabled scanr definition.
-// /** Construct the example using successive right-fold results. */
-// val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+:ctml-parse-only // FIXME: This example depends on the unchecked scanr definition.
+/** Construct the example using successive right-fold results. */
+val example5 = prod(scanr(plus_, zerO, LCons(a, LCons(b, LCons(c, LCons(d, LNil()))))))
+//│ CTML translation succeeded.
 
 // FIXME: The benchmark depends on the disabled cse and example5 definitions.
 // /** Run CSE on the source prefix of examples for each index from one to n. */

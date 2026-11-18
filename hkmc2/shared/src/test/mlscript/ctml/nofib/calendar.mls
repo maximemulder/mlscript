@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 38 member(s)
+//│ Imported 40 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/calendar.mls.
 // Pictures are lists of character rows. Month triples use nested pairs.
@@ -93,20 +93,103 @@ emptyPic([8, "wide"])
 fun space(n) = replicate(n, " ")
 //│ space: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
 
-// FIXME: The inferred space list fails to instantiate at an encoded append parameter.
-// /** Pad a row with spaces on the right. */
-// fun ljustify(n, s) = append(s, space(n - listLen(s)))
-//
-// /** Pad a row with spaces on the left. */
-// fun rjustify(n, s) = append(space(n - listLen(s)), s)
-//
-// /** Center a row, putting any odd extra space on the right. */
-// fun cjustify(n, s) =
-//   let m = n - listLen(s)
-//   let halfm = intDiv(m, 2)
-//   append(space(halfm), append(s, space(m - halfm)))
+:fixme // FIXME: The inferred space list fails to instantiate at an encoded append parameter.
+/** Pad a row with spaces on the right. */
+fun ljustify(n, s) = append(s, space(n - listLen(s)))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Z})} ⟹ Z) ≤ β → γ
+//│       β ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y
+//│         ((LCons ∧ {head: Str}) ∧ {tail: ε}) ∨ LNil ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y
+//│           ((LCons ∧ {head: Str}) ∧ {tail: ε}) ∨ LNil ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ ζ
+//│             ((LCons ∧ {head: Str}) ∧ {tail: ε}) ∨ LNil ≤ ζ
+//│               (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       ((LCons ∧ {head: Str}) ∧ {tail: ε}) ∨ LNil ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: δ}) ∧ {tail: ζ}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                     LCons ∧ {head: Str} ≤ {tail: ζ}
+//│                       LCons ≤ {tail: ζ}
+//│                       {head: Str} ≤ {tail: ζ}
+//│                         Str ≤ ⊥
+//│                     {tail: ε} ≤ {tail: ζ}
+//│                       ε ≤ ζ
+//│                         ((LCons ∧ {head: Str}) ∧ {tail: ε}) ∨ LNil ≤ ζ
 
-// FIXME: Passing an inferred character list to rjustify fails with a temporary list contract.
+:fixme // FIXME: The inferred space list fails to instantiate at an encoded append parameter.
+/** Pad a row with spaces on the left. */
+fun rjustify(n, s) = append(space(n - listLen(s)), s)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ε
+
+:fixme // FIXME: The inferred space list fails to instantiate at an encoded append parameter.
+/** Center a row, putting any odd extra space on the right. */
+fun cjustify(n, s) =
+  let m = n - listLen(s)
+  let halfm = intDiv(m, 2)
+  append(space(halfm), append(s, space(m - halfm)))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         ((LCons ∧ {head: Str}) ∧ {tail: δ}) ∨ LNil ≤ ε
+
+// FIXME: This formatter depends on rjustify, which has a recursive instantiation failure.
 // /** Render an in-month day as a right-aligned cell and an out-of-month day as blanks. */
 // fun date(ml, d) = if
 //   (d < 1) || (ml < d) then LCons(nofibStringToList("   "), LNil())
@@ -116,16 +199,40 @@ fun space(n) = replicate(n, " ")
 // /** Render the 42 cells of a six-week grid, including days outside of the month. */
 // fun dates(fd, ml) = map(d => date(ml, d), enumFromTo(1 - fd, 42 - fd))
 
-// FIXME: These picture operations depend on disabled shared list traversals.
+// FIXME: Flattening depends on the disabled concat.
 // /** Flatten the rows, appending a newline to each. */
 // fun unlines(ls) = concat(map(x => append(x, LCons("\n", LNil())), ls))
-//
-// /** Count the rows in the picture. */
-// fun height(p) = listLen(p)
-//
-// /** Count the columns in the first row of a nonempty picture. */
-// fun width(p) = listLen(head(p))
-//
+
+/** Count the rows in the picture. */
+fun height(p) = listLen(p)
+//│ height: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int
+
+/** Count the columns in the first row of a nonempty picture. */
+fun width(p) = listLen(head(p))
+//│ width: (({tail: ⊤} ∧ {head: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ LCons) → Int
+
+/** A nonempty two-row picture for the dimension checks. */
+val picture = LCons(LCons("a", LCons("b", LNil())), LCons(LCons("c", LCons("d", LNil())), LNil()))
+//│ picture: (LCons ∧ {head: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {tail: LNil}}
+
+height(LNil()) as Int
+height(picture) as Int
+width(picture) as Int
+//│ Int
+//│ Int
+//│ Int
+
+:te
+width(LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment (({tail: ⊤} ∧ {head: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ LCons) → Int ≤ α → β.
+//│ Typing error tree:
+//│   (({tail: ⊤} ∧ {head: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ LCons) → Int ≤ α → β
+//│     α ≤ ({tail: ⊤} ∧ {head: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ LCons
+//│       LNil ≤ ({tail: ⊤} ∧ {head: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}) ∧ LCons
+//│         LNil ≤ {tail: ⊤} ∧ {head: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X}
+//│           LNil ≤ {tail: ⊤}
+
+// FIXME: These picture operations depend on disabled shared list traversals.
 // /** Stack a nonempty list of pictures vertically. */
 // fun stack(ls) = foldr1(append, ls)
 //

@@ -1,0 +1,26 @@
+:ctml
+
+:ctml-parse-only
+/** An ill-typed body still translates to a CTML term. */
+fun skipped() = 1 + "bad"
+//│ CTML translation succeeded.
+
+:te
+skipped()
+//│ ═══[TYPE ERROR] Variable 'skipped' has no type.
+
+:ctml-parse-only
+:pe
+[]
+//│ ═══[PARSE ERROR] Unsupported CTML term: Tup(List())
+
+1 + 2 as Int
+//│ Int
+
+:te
+1 + "bad"
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     Int → Int ≤ Str → β
+//│       Str ≤ Int

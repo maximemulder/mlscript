@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 38 member(s)
+//│ Imported 40 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm1.mls.
 // Source lists use LNil()/LCons; the fixed-length digit pattern is preserved.
@@ -57,35 +57,43 @@ condition(LNil())
 //│                                             LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {head: Int} ∧ LCons}}}}}}}}}
 //│                                               LNil ≤ {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {tail: {head: Int}}}}}}}}}}
 
-// FIXME: Inference of addj exceeds the 25-second diff-test limit.
-// /** Insert j at every position, preserving the source order of generated lists. */
-// fun addj(j, ls) = if ls is
-//   LNil() then LCons(LCons(j, LNil()), LNil())
-//   LCons(k, ks) then
-//     fun lscomp(p1) = if p1 is
-//       LNil() then LNil()
-//       LCons(h1, t1) then LCons(LCons(k, h1), lscomp(t1))
-//     LCons(LCons(j, LCons(k, ks)), lscomp(addj(j, ks)))
+:ctml-parse-only // FIXME: Inference of addj exceeds the 25-second diff-test limit.
+/** Insert j at every position, preserving the source order of generated lists. */
+fun addj(j, ls) = if ls is
+  LNil() then LCons(LCons(j, LNil()), LNil())
+  LCons(k, ks) then
+    fun lscomp(p1) = if p1 is
+      LNil() then LNil()
+      LCons(h1, t1) then LCons(LCons(k, h1), lscomp(t1))
+    LCons(LCons(j, LCons(k, ks)), lscomp(addj(j, ks)))
+//│ CTML translation succeeded.
 
-// FIXME: Permutation generation and entry points depend on the disabled addj definition.
-// /** Enumerate permutations by inserting the head into each permutation of the tail. */
-// fun permutations(ls) = if ls is
-//   LNil() then LCons(LNil(), LNil())
-//   LCons(j, js) then
-//     fun lscomp1(p1) = if p1 is
-//       LNil() then LNil()
-//       LCons(pjs, t1) then
-//         fun lscomp2(p2) = if p2 is
-//           LNil() then lscomp1(t1)
-//           LCons(r, t2) then LCons(r, lscomp2(t2))
-//         lscomp2(addj(j, pjs))
-//     lscomp1(permutations(js))
+:ctml-parse-only // FIXME: Permutation generation depends on the unchecked addj definition.
+/** Enumerate permutations by inserting the head into each permutation of the tail. */
+fun permutations(ls) = if ls is
+  LNil() then LCons(LNil(), LNil())
+  LCons(j, js) then
+    fun lscomp1(p1) = if p1 is
+      LNil() then LNil()
+      LCons(pjs, t1) then
+        fun lscomp2(p2) = if p2 is
+          LNil() then lscomp1(t1)
+          LCons(r, t2) then LCons(r, lscomp2(t2))
+        lscomp2(addj(j, pjs))
+    lscomp1(permutations(js))
+//│ CTML translation succeeded.
 
-// /** Preserve the source's inclusive ranges and ten-digit truncation for every iteration. */
-// fun testCryptarithm_nofib(n) =
-//   map(i =>
-//     let p0 = take(10, enumFromTo(0, 9 + i))
-//     filter(condition, permutations(p0)), enumFromTo(1, n))
+:ctml-parse-only // FIXME: The harness depends on the unchecked permutations definition.
+/** Preserve the source's inclusive ranges and ten-digit truncation for every iteration. */
+fun testCryptarithm_nofib(n) =
+  /** Generate and filter the permutations for one iteration. */
+  fun forLimit(i) =
+    let p0 = take(10, enumFromTo(0, 9 + i))
+    filter(condition, permutations(p0))
+  map(forLimit, enumFromTo(1, n))
+//│ CTML translation succeeded.
 
-// /** Source benchmark input. */
-// fun main() = testCryptarithm_nofib(1)
+:ctml-parse-only // FIXME: The entry point depends on the unchecked harness.
+/** Source benchmark input. */
+fun main() = testCryptarithm_nofib(1)
+//│ CTML translation succeeded.

@@ -1,0 +1,217 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 40 member(s)
+
+// These unannotated NofibPrelude implementations are checked through CTML translation.
+
+:ctml-parse-only // FIXME: Inference of unannotated map exceeds the diff-test time limit.
+/** Source map preserves list order and applies f once per element. */
+fun map(f, xs) = if xs is
+  LCons(x, tail) then LCons(f(x), map(f, tail))
+  LNil() then LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference of unannotated take exceeds the 25-second diff-test limit.
+/** Source take returns empty for nonpositive counts and preserves shorter lists. */
+fun take(n, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) then
+    if n <= 0 then LNil() else LCons(h, take(n - 1, t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference of unannotated filter exceeds the 25-second diff-test limit.
+/** Source filter preserves the order of elements satisfying the predicate. */
+fun filter(f, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) then
+    if f(h) then LCons(h, filter(f, t)) else filter(f, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Test membership using source strict equality. */
+fun inList(x, ls) = if ls is
+  LCons(h, t) and
+    x === h then true
+    else inList(x, t)
+  LNil() then false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Append the second list to the first. */
+fun append(xs, ys) = if xs is
+  LNil() then ys
+  LCons(x, xs) then LCons(x, append(xs, ys))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Skip up to n elements, returning the original list for nonpositive counts. */
+fun leave(n, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) and
+    n <= 0 then ls
+    else leave(n - 1, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Reverse a list with the source accumulator traversal. */
+fun reverse(ls) =
+  /** Move each remaining element onto the front of the accumulator. */
+  fun loop(acc, rest) = if rest is
+    LCons(x, xs) then loop(LCons(x, acc), xs)
+    else acc
+  loop(LNil(), ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Count list elements using the source accumulator traversal. */
+fun listLen(ls) =
+  /** Count the remaining elements starting from the supplied offset. */
+  fun loop(rest, n) = if rest is
+    LNil() then n
+    LCons(h, t) then loop(t, n + 1)
+  loop(ls, 0)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Pair successive elements of two lists, stopping when either ends. */
+fun zip(xs, ys) = if xs is
+  LCons(x, xs_) and ys is LCons(y, ys_) then LCons([x, y], zip(xs_, ys_))
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Delay the search for the next node satisfying the predicate. */
+fun filterLz(p, ls) = delay(() =>
+  if force(ls) is
+    LzNil() then LzNil()
+    LzCons(h, t) and
+      p(h) then LzCons(h, filterLz(p, t))
+      else force(filterLz(p, t))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call budget even with a temporary filterLz contract.
+/** Keep the first occurrence of each element under the supplied equality. */
+fun nubByLz(eq, ls) = delay(() =>
+  if force(ls) is
+    LzNil() then LzNil()
+    LzCons(h, t) then LzCons(h, nubByLz(eq, filterLz(y => if eq(h, y) then false else true, t)))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: This specialization depends on the disabled nubByLz definition.
+/** Keep the first occurrence of each element under source equality. */
+fun nubLz(ls) = nubByLz((x, y) => x == y, ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Take up to n elements without forcing another node when the count is exhausted. */
+fun takeLz(n, ls) = if
+  0 < n and force(ls) is
+    LzNil() then LNil()
+    LzCons(h, t) then LCons(h, takeLz(n - 1, t))
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Compare lists element by element using source equality. */
+fun listEq(xs, ys) = if
+  xs is LNil() and ys is LNil() then true
+  xs is LCons(hx, tx) and ys is LCons(hy, ty) and hx == hy then listEq(tx, ty)
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Skip the longest prefix satisfying the predicate. */
+fun leaveWhile(f, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) and
+    f(h) then leaveWhile(f, t)
+    else LCons(h, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Fold the integer maximum from the first element; this is partial on empty lists. */
+fun maximumInt(ls) =
+  /** Fold the remaining elements from left to right. */
+  fun loop(acc, rest) = if rest is
+    LNil() then acc
+    LCons(h, t) then loop(if h < acc then acc else h, t)
+  if ls is LCons(h, t) then loop(h, t)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Compare lists element by element using the supplied equality. */
+fun listEqBy(eq, xs, ys) = if
+  xs is LNil() and ys is LNil() then true
+  xs is LCons(x, xt) and ys is LCons(y, yt) then
+    if eq(x, y) then listEqBy(eq, xt, yt) else false
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Fold a strict list from the right. */
+fun foldr(f, z, ls) = if ls is
+  LNil() then z
+  LCons(h, t) then f(h, foldr(f, z, t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Apply f to the elements of a lazy list as each result node is forced. */
+fun mapLz(f, ls) = delay(() =>
+  if force(ls) is
+    LzNil() then LzNil()
+    LzCons(h, t) then LzCons(f(h), mapLz(f, t))
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Zip a lazy list and a strict list in force order, stopping at the shorter input. */
+fun zipLzNl(xs, ys) = if
+  force(xs) is LzCons(x, xt) and ys is LCons(y, yt) then
+    LCons([x, y], zipLzNl(xt, yt))
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Append a lazy suffix to a strict prefix, delaying the prefix nodes. */
+fun appendNlLz(xs, ys) = if xs is
+  LNil() then ys
+  LCons(h, t) then delay(() => LzCons(h, appendNlLz(t, ys)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Zip three lists into nested pairs, stopping at the shortest list. */
+fun zip3(xs, ys, zs) = if
+  xs is LCons(hx, tx) and ys is LCons(hy, ty) and zs is LCons(hz, tz) then
+    LCons([hx, [hy, hz]], zip3(tx, ty, tz))
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** List the initial accumulator and every subsequent left-fold result. */
+fun scanl(f, q, ls) = if ls is
+  LNil() then LCons(q, LNil())
+  LCons(x, xs) then LCons(q, scanl(f, f(q, x), xs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Fold a nonempty list from the right, using its final element as the seed. */
+fun foldr1(f, ls) = if ls is
+  LCons(x, LNil()) then x
+  LCons(x, xs) then f(x, foldr1(f, xs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Combine elements pairwise, stopping at the shorter list. */
+fun zipWith(f, xss, yss) = if
+  xss is LCons(x, xs) and yss is LCons(y, ys) then LCons(f(x, y), zipWith(f, xs, ys))
+  else LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Join a strict list of characters using source string concatenation. */
+fun nofibListToString(ls) = if ls is
+  LNil() then ""
+  LCons(h, t) then h ++ nofibListToString(t)
+//│ CTML translation succeeded.

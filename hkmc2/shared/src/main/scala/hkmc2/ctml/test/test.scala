@@ -25,6 +25,7 @@ def test(
   scope: Scope,
   ctx: TypeContext,
   import_ : Boolean,
+  parseOnly: Boolean,
   outputter: (String) => Unit,
   raiser: Raise,
 ): (Scope, TypeContext) =
@@ -37,7 +38,7 @@ def test(
     raiser(ErrorReport(List((message, None)), source = source))
 
   val tester = Tester(scope, ctx, output, raise)
-  tester.test(term)
+  tester.test(term, parseOnly)
   (tester.scope, tester.ctx)
 
 class Tester(
@@ -48,7 +49,7 @@ class Tester(
   prettyCtx: PrettyContext = PrettyContext()
 ):
   /** Run a CTML test on an input term. */
-  def test(term: Term): Unit =
+  def test(term: Term, parseOnly: Boolean): Unit =
     // Assign global CTML debug output function.
     config.output = output
 
@@ -59,6 +60,11 @@ class Tester(
       case error: ParseError =>
         raise(Source.Parsing, error.getMessage())
         return
+
+    // Keep declarations in scope only when the typing context can track them too.
+    if parseOnly then
+      output("CTML translation succeeded.")
+      return
 
     for stmt <- stmts do
       scope = updateScope(stmt, scope)

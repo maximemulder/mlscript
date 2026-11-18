@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 38 member(s)
+//│ Imported 40 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/lcss.mls.
 // Score entries and paired rows use binary tuples. Lists use LNil() and LCons.
@@ -22,37 +22,42 @@ nextScore(1, 2, 0, "not a score", 4)
 //│     Int → Int → Int ≤ Str → β
 //│       Str ≤ Int
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Compute one score row, carrying the previous diagonal and current left-hand scores. */
-// fun algb2(x, k0j1, k1j1, yss) = if yss is
-//   LNil() then LNil()
-//   LCons([y, k0j], ys) then
-//     let kjcurr = nextScore(x, y, k0j1, k1j1, k0j)
-//     LCons([y, kjcurr], algb2(x, k0j, kjcurr, ys))
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Compute one score row, carrying the previous diagonal and current left-hand scores. */
+fun algb2(x, k0j1, k1j1, yss) = if yss is
+  LNil() then LNil()
+  LCons([y, k0j], ys) then
+    let kjcurr = nextScore(x, y, k0j1, k1j1, k0j)
+    LCons([y, kjcurr], algb2(x, k0j, kjcurr, ys))
+//│ CTML translation succeeded.
 
-// FIXME: This traversal depends on the disabled algb2 definition.
-// /** Update the score row for each successive element and extract the final scores. */
-// fun algb1(xss, yss) = if xss is
-//   LNil() then map(snd, yss)
-//   LCons(x, xs) then algb1(xs, algb2(x, 0, 0, yss))
+:ctml-parse-only // FIXME: This traversal depends on the unchecked algb2 definition.
+/** Update the score row for each successive element and extract the final scores. */
+fun algb1(xss, yss) = if xss is
+  LNil() then map(snd, yss)
+  LCons(x, xs) then algb1(xs, algb2(x, 0, 0, yss))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Pair each element of the second sequence with an initial zero score. */
-// fun zeroScores(ys) = if ys is
-//   LCons(y, rest) then LCons([y, 0], zeroScores(rest))
-//   LNil() then LNil()
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Pair each element of the second sequence with an initial zero score. */
+fun zeroScores(ys) = if ys is
+  LCons(y, rest) then LCons([y, 0], zeroScores(rest))
+  LNil() then LNil()
+//│ CTML translation succeeded.
 
-// FIXME: This row builder depends on the disabled algb1 and zeroScores definitions.
-// /** Compute the row of prefix scores, including the empty prefix. */
-// fun algb(xs, ys) = LCons(0, algb1(xs, zeroScores(ys)))
+:ctml-parse-only // FIXME: This row builder depends on the unchecked algb1 and zeroScores definitions.
+/** Compute the row of prefix scores, including the empty prefix. */
+fun algb(xs, ys) = LCons(0, algb1(xs, zeroScores(ys)))
+//│ CTML translation succeeded.
 
-// FIXME: Inference exceeds a 20000-call diagnostic budget.
-// /** Find the last index with a maximal sum of the forward and backward scores. */
-// fun findk(k, km, m, ls) = if ls is
-//   LNil() then km
-//   LCons([x, y], rest) then
-//     let score = x + y
-//     if m <= score then findk(k + 1, k, score, rest) else findk(k + 1, km, m, rest)
+:ctml-parse-only // FIXME: Inference exceeds a 20000-call diagnostic budget.
+/** Find the last index with a maximal sum of the forward and backward scores. */
+fun findk(k, km, m, ls) = if ls is
+  LNil() then km
+  LCons([x, y], rest) then
+    let score = x + y
+    if m <= score then findk(k + 1, k, score, rest) else findk(k + 1, km, m, rest)
+//│ CTML translation succeeded.
 
 // FIXME: Inference exceeds a 20000-call diagnostic budget even with temporary dependency contracts.
 // /** Split at the best score and compose the two subsequence builders. */
@@ -71,7 +76,7 @@ nextScore(1, 2, 0, "not a score", 4)
 //     let k = findk(0, 0, 0 - 1, zip(l1, l2))
 //     compose(algc(m2, k, xs1, take(k, ys)), algc(m - m2, n - k, xs2, leave(k, ys)))
 
-// FIXME: This step depends on the disabled algc and listLen definitions.
+// FIXME: This step depends on the disabled algc definition.
 // /** Build the longest common subsequence of two lists. */
 // fun lcss(xs, ys) = algc(listLen(xs), listLen(ys), xs, ys)(LNil())
 

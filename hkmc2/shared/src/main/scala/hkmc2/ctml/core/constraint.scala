@@ -4,6 +4,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.chaining._
 
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.structural.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.types.*
 
@@ -22,7 +23,7 @@ def makeNegationType(body: Type): Type =
  *  inner constraining type `¬¬({c'} ⟹ ¬τ)` simplifies to the inner constrained type. */
 def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
   type_ match
-    case TUniv(var_, body) =>
+    case TUniv(var_, body) if !constraints.exists(_.hasVar(var_)) =>
       TUniv(
         var_,
         makeConstrainingType(body, constraints)
@@ -30,10 +31,10 @@ def makeConstrainingType(type_ : Type, constraints: List[Constraint]): Type =
     case _ =>
       makeNegationType(makeConstrainedType(makeNegationType(type_), constraints))
 
-/** Make a constrained type, simplifying it if possible. */
+/** Make a constrained type, moving a universal binder only across guards independent of it. */
 def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
   type_ match
-    case TUniv(var_, body) =>
+    case TUniv(var_, body) if !constraints.exists(_.hasVar(var_)) =>
       TUniv(
         var_,
         makeConstrainedType(body, constraints)
@@ -71,10 +72,10 @@ def makeJointType(mode: JointMode, left: Type, right: Type): Type =
   else
     TJointType(mode, left, right)
 
-/** Make a lambda type, simplifying it if possible. */
+/** Make a lambda type, moving a result binder only across a parameter independent of it. */
 def makeLambdaType(param: Type, ret: Type): Type =
   ret match
-    case TUniv(var_, body) =>
+    case TUniv(var_, body) if !param.hasVar(var_) =>
       val type_ = makeLambdaType(param, body)
       TUniv(var_, type_)
     case _ =>

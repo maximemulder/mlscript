@@ -19,10 +19,39 @@ declare fun insert[A]: A -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}
 insert(1, LCons(2, LNil())) as IntLists
 //│ IntLists
 
-:breakme // FIXME: Nested result instantiation loses the element constraint from the first argument.
 :te
 insert("bad", LCons(2, LNil())) as IntLists
-//│ IntLists
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntLists.
+//│ Typing error tree:
+//│   α ≤ IntLists
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ IntLists
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: IntList}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│               {δ ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│                 LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ}) ≤ δ
+//│                   LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ}) ≤ LNil
+//│                     (LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z} ≤ LNil
+//│                           ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ ⊥
+//│                             {ε ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
+//│                               ε ≤ ⊥
+//│                                 LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ε}) ≤ ⊥
+//│                                   LNil ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: δ}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: IntList}) ∧ {tail: γ}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: IntList}
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                     LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ}) ≤ ζ
+//│                       LNil ∨ ((LCons ∧ {head: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}) ∧ {tail: ζ}) ≤ LCons
+//│                         LNil ≤ LCons
 
 :te
 LCons(LCons("bad", LNil()), LNil()) as IntLists

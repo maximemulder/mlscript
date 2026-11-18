@@ -126,7 +126,7 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
     val ctx = classes.extend(List(a, b))
     val key = ProvenanceKey(TVar(a.var_), int, Set.empty)(using ctx)
     val active = ctx.mapTrail(_.copy(search = Some(SearchSession()), roots = Some(Set.empty),
-      provenanceKeys = Set(key)))
+      provenanceKeys = Map(key -> (TVar(a.var_), int))))
     intercept[SearchInconclusive](subtype(TVar(b.var_), int)(using active))
     assert(!active.trail.contains(TVar(b.var_), int))
 
@@ -199,7 +199,7 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
       val inputs = active.extend(List(a, b))
       // An unanchored key of another argument instance must not cut this new solver entry.
       val key = ProvenanceKey(TVar(a.var_), int, Set.empty)(using inputs)
-      val prepared = inputs.mapTrail(_.copy(provenanceKeys = Set(key)))
+      val prepared = inputs.mapTrail(_.copy(provenanceKeys = Map(key -> (TVar(a.var_), int))))
       val output = subtype(TVar(b.var_), int)(using prepared)
       assert(output.elems.exists:
         case Bound(variable, Direction.Sub, target, BoundKind.Asserted) =>
@@ -215,7 +215,7 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
     val key = ProvenanceKey(TVar(a.var_), int, Set.empty)(using ctx)
     val session = SearchSession()
     val active = ctx.mapTrail(_.copy(search = Some(session), roots = Some(Set.empty),
-      provenanceKeys = Set(key)))
+      provenanceKeys = Map(key -> (TVar(a.var_), int))))
     assert(subtype(TVar(b.var_), int)(using active).elems.nonEmpty)
     assert(session.abstractRepeats == 1)
     assert(session.cuts == 0)
@@ -258,7 +258,7 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
     val key = ProvenanceKey(TVar(a), TLam(int, int), Set(a))(using ctx)
     val session = SearchSession()
     val active = ctx.mapTrail(_.copy(search = Some(session), roots = Some(Set(a)),
-      provenanceKeys = Set(key)))
+      provenanceKeys = Map(key -> (TVar(a), TLam(int, int)))))
     val scheme = TUniv(x, TConstrained(TVar(x),
       Constraint(TVar(a), Direction.Sub, TLam(TVar(x), TVar(x)))))
     subtype(scheme, int)(using active)

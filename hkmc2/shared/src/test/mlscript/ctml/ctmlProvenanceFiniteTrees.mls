@@ -1,0 +1,747 @@
+:ctml
+
+// Finite source structures can revisit a coarse key while their literal syntax decreases.
+/** Empty child list. */
+data class PNil()
+//│ PNil: Unit → PNil
+
+/** A child and the remainder of its ordered list. */
+data class PCons(head, tail)
+//│ PCons: ∀α, β. α → β → ((PCons ∧ {head: α}) ∧ {tail: β})
+
+/** A string-labeled node and its children. */
+data class PNode(label, children)
+//│ PNode: ∀α, β. α → β → ((PNode ∧ {label: α}) ∧ {children: β})
+
+/** Construct a binary node without prescribing a recursive invariant. */
+fun binary(left, right) = PNode("node", PCons(left, PCons(right, PNil())))
+//│ binary: ∀α, β. α → β → ((PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: α}) ∧ {tail: (PCons ∧ {head: β}) ∧ {tail: PNil}}})
+
+val leaf = PNode("leaf", PNil())
+val pair = binary(leaf, leaf)
+val child = binary(pair, leaf)
+val tree = binary(child, pair)
+//│ leaf: (PNode ∧ {label: Str}) ∧ {children: PNil}
+//│ pair: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}}
+//│ child: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}}
+//│ tree: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}}}) ∧ {tail: PNil}}}
+
+// The invariant is a result assertion; ordinary source definitions remain unannotated.
+type PTree = [T restricts (PNode & {label: Str} & {children: ([L restricts (PNil | (PCons & {head: T} & {tail: L}))] -> L)})] -> T
+//│ PTree = ∀T. {T ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: T}) ∧ {tail: L})} ⟹ L}} ⟹ T
+
+:ctml-cfg profile-search search-steps 5000
+
+leaf as PTree
+//│ @ctml-search calls=15 checks=0 fresh=2 infer=0 origins=2 groups=2 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=37 max-goal-nodes=30
+//│ PTree
+
+pair as PTree
+//│ @ctml-search calls=133 checks=0 fresh=4 infer=0 origins=2 groups=2 max-per-group=3 exact=0 abstract=0 cuts=0 max-clauses=40 max-goal-nodes=54
+//│ PTree
+
+tree as PTree
+//│ @ctml-search calls=727 checks=0 fresh=10 infer=0 origins=2 groups=2 max-per-group=9 exact=0 abstract=1 cuts=0 max-clauses=47 max-goal-nodes=126
+//│ PTree
+
+// Wrong labels and children must fail by subtyping, not merely by a recurring search cut.
+:te
+PNode(1, PNil()) as PTree
+//│ @ctml-search calls=41 checks=8 fresh=3 infer=3 origins=3 groups=3 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=55 max-goal-nodes=30
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ PTree.
+//│ Typing error tree:
+//│   α ≤ PTree
+//│     (PNode ∧ {label: β}) ∧ {children: γ} ≤ PTree
+//│       (PNode ∧ {label: β}) ∧ {children: γ} ≤ ∀T. {T ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: T}) ∧ {tail: L})} ⟹ L}} ⟹ T
+//│         (PNode ∧ {label: β}) ∧ {children: γ} ≤ {δ ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}} ⟹ δ
+//│           (PNode ∧ {label: β}) ∧ {children: γ} ≤ δ
+//│             (PNode ∧ {label: β}) ∧ {children: γ} ≤ PNode ∧ {label: Str}
+//│               (PNode ∧ {label: β}) ∧ {children: γ} ≤ {label: Str}
+//│                 PNode ∧ {label: β} ≤ {label: Str}
+//│                   PNode ≤ {label: Str}
+//│                   {label: β} ≤ {label: Str}
+//│                     β ≤ Str
+//│                       Int ≤ Str
+//│                 {children: γ} ≤ {label: Str}
+//│                   γ ≤ ⊥
+//│                     ε ≤ ⊥
+//│                       PNil ≤ ⊥
+
+:te
+PNode("node", 1) as PTree
+//│ @ctml-search calls=49 checks=6 fresh=4 infer=2 origins=4 groups=4 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=55 max-goal-nodes=30
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ PTree.
+//│ Typing error tree:
+//│   α ≤ PTree
+//│     (PNode ∧ {label: β}) ∧ {children: γ} ≤ PTree
+//│       (PNode ∧ {label: β}) ∧ {children: γ} ≤ ∀T. {T ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: T}) ∧ {tail: L})} ⟹ L}} ⟹ T
+//│         (PNode ∧ {label: β}) ∧ {children: γ} ≤ {δ ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}} ⟹ δ
+//│           (PNode ∧ {label: β}) ∧ {children: γ} ≤ δ
+//│             (PNode ∧ {label: β}) ∧ {children: γ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│               PNode ∧ {label: β} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 {label: β} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                   β ≤ ⊥
+//│                     Str ≤ ⊥
+//│               {children: γ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 γ ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                   Int ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                     Int ≤ {ε ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: ε})} ⟹ ε
+//│                       Int ≤ ε
+//│                         Int ≤ PNil
+//│                         Int ≤ (PCons ∧ {head: δ}) ∧ {tail: ε}
+//│                           Int ≤ PCons ∧ {head: δ}
+//│                             Int ≤ PCons
+
+:te
+PNode("node", PCons(1, PNil())) as PTree
+//│ @ctml-search calls=107 checks=16 fresh=6 infer=5 origins=6 groups=6 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=75 max-goal-nodes=30
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ PTree.
+//│ Typing error tree:
+//│   α ≤ PTree
+//│     (PNode ∧ {label: β}) ∧ {children: γ} ≤ PTree
+//│       (PNode ∧ {label: β}) ∧ {children: γ} ≤ ∀T. {T ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: T}) ∧ {tail: L})} ⟹ L}} ⟹ T
+//│         (PNode ∧ {label: β}) ∧ {children: γ} ≤ {δ ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}} ⟹ δ
+//│           (PNode ∧ {label: β}) ∧ {children: γ} ≤ δ
+//│             (PNode ∧ {label: β}) ∧ {children: γ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│               PNode ∧ {label: β} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 {label: β} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                   β ≤ ⊥
+//│                     Str ≤ ⊥
+//│               {children: γ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 γ ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                   ε ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                     (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                       (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ {θ ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
+//│                         (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ θ
+//│                           (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ PNil
+//│                             PCons ∧ {head: ζ} ≤ PNil
+//│                               PCons ≤ PNil
+//│                               {head: ζ} ≤ PNil
+//│                                 ζ ≤ ⊥
+//│                                   Int ≤ ⊥
+//│                             {tail: η} ≤ PNil
+//│                               η ≤ ⊥
+//│                                 ι ≤ ⊥
+//│                                   PNil ≤ ⊥
+//│                           (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ (PCons ∧ {head: δ}) ∧ {tail: θ}
+//│                             (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ PCons ∧ {head: δ}
+//│                               (PCons ∧ {head: ζ}) ∧ {tail: η} ≤ {head: δ}
+//│                                 PCons ∧ {head: ζ} ≤ {head: δ}
+//│                                   PCons ≤ {head: δ}
+//│                                   {head: ζ} ≤ {head: δ}
+//│                                     ζ ≤ δ
+//│                                       Int ≤ δ
+//│                                         Int ≤ PNode ∧ {label: Str}
+//│                                           Int ≤ PNode
+//│                                 {tail: η} ≤ {head: δ}
+//│                                   η ≤ ⊥
+//│                                     ι ≤ ⊥
+//│                                       PNil ≤ ⊥
+
+// Invalid payloads behind repeated node prefixes must also reach a completed rejection.
+:te
+binary(binary(PNode(1, PNil()), leaf), pair) as PTree
+//│ @ctml-search calls=286 checks=22 fresh=9 infer=7 origins=6 groups=6 max-per-group=2 exact=0 abstract=0 cuts=0 max-clauses=91 max-goal-nodes=54
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ PTree.
+//│ Typing error tree:
+//│   α ≤ PTree
+//│     (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ PTree
+//│       (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ ∀T. {T ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: T}) ∧ {tail: L})} ⟹ L}} ⟹ T
+//│         (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ {δ ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}} ⟹ δ
+//│           (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ δ
+//│             (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│               PNode ∧ {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                   Str ≤ ⊥
+//│               {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                   (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ {ε ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: ε})} ⟹ ε
+//│                     (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ ε
+//│                       (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ PNil
+//│                         PCons ∧ {head: β} ≤ PNil
+//│                           PCons ≤ PNil
+//│                           {head: β} ≤ PNil
+//│                             β ≤ ⊥
+//│                               ζ ≤ ⊥
+//│                                 (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                     PNode ≤ ⊥
+//│                                     {label: Str} ≤ ⊥
+//│                                       Str ≤ ⊥
+//│                                   {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                     (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ⊥
+//│                                       PCons ∧ {head: η} ≤ ⊥
+//│                                         PCons ≤ ⊥
+//│                                         {head: η} ≤ ⊥
+//│                                           η ≤ ⊥
+//│                                             ι ≤ ⊥
+//│                                               (PNode ∧ {label: κ}) ∧ {children: λ} ≤ ⊥
+//│                                                 PNode ∧ {label: κ} ≤ ⊥
+//│                                                   PNode ≤ ⊥
+//│                                                   {label: κ} ≤ ⊥
+//│                                                     κ ≤ ⊥
+//│                                                       Int ≤ ⊥
+//│                                                 {children: λ} ≤ ⊥
+//│                                                   λ ≤ ⊥
+//│                                                     μ ≤ ⊥
+//│                                                       PNil ≤ ⊥
+//│                                       {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ⊥
+//│                                         (PCons ∧ {head: θ}) ∧ {tail: PNil} ≤ ⊥
+//│                                           PCons ∧ {head: θ} ≤ ⊥
+//│                                             PCons ≤ ⊥
+//│                                             {head: θ} ≤ ⊥
+//│                                               θ ≤ ⊥
+//│                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                     PNode ≤ ⊥
+//│                                                     {label: Str} ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                   {children: PNil} ≤ ⊥
+//│                                                     PNil ≤ ⊥
+//│                                           {tail: PNil} ≤ ⊥
+//│                                             PNil ≤ ⊥
+//│                         {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ PNil
+//│                           (PCons ∧ {head: γ}) ∧ {tail: PNil} ≤ ⊥
+//│                             PCons ∧ {head: γ} ≤ ⊥
+//│                               PCons ≤ ⊥
+//│                               {head: γ} ≤ ⊥
+//│                                 γ ≤ ⊥
+//│                                   (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                     PNode ∧ {label: Str} ≤ ⊥
+//│                                       PNode ≤ ⊥
+//│                                       {label: Str} ≤ ⊥
+//│                                         Str ≤ ⊥
+//│                                     {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                       (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                         PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                           PCons ≤ ⊥
+//│                                           {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                             (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                               PNode ∧ {label: Str} ≤ ⊥
+//│                                                 PNode ≤ ⊥
+//│                                                 {label: Str} ≤ ⊥
+//│                                                   Str ≤ ⊥
+//│                                               {children: PNil} ≤ ⊥
+//│                                                 PNil ≤ ⊥
+//│                                         {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                           (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil} ≤ ⊥
+//│                                             PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                               PCons ≤ ⊥
+//│                                               {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                     PNode ≤ ⊥
+//│                                                     {label: Str} ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                   {children: PNil} ≤ ⊥
+//│                                                     PNil ≤ ⊥
+//│                                             {tail: PNil} ≤ ⊥
+//│                                               PNil ≤ ⊥
+//│                             {tail: PNil} ≤ ⊥
+//│                               PNil ≤ ⊥
+//│                       (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ (PCons ∧ {head: δ}) ∧ {tail: ε}
+//│                         (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ PCons ∧ {head: δ}
+//│                           (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                             PCons ∧ {head: β} ≤ {head: δ}
+//│                               PCons ≤ {head: δ}
+//│                               {head: β} ≤ {head: δ}
+//│                                 β ≤ δ
+//│                                   ζ ≤ δ
+//│                                     (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ δ
+//│                                       (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                         PNode ∧ {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                           PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                           {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                             Str ≤ ⊥
+//│                                         {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                           (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                                             (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ {ν ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: ν})} ⟹ ν
+//│                                               (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ν
+//│                                                 (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ PNil
+//│                                                   PCons ∧ {head: η} ≤ PNil
+//│                                                     PCons ≤ PNil
+//│                                                     {head: η} ≤ PNil
+//│                                                       η ≤ ⊥
+//│                                                         ι ≤ ⊥
+//│                                                           (PNode ∧ {label: κ}) ∧ {children: λ} ≤ ⊥
+//│                                                             PNode ∧ {label: κ} ≤ ⊥
+//│                                                               PNode ≤ ⊥
+//│                                                               {label: κ} ≤ ⊥
+//│                                                                 κ ≤ ⊥
+//│                                                                   Int ≤ ⊥
+//│                                                             {children: λ} ≤ ⊥
+//│                                                               λ ≤ ⊥
+//│                                                                 μ ≤ ⊥
+//│                                                                   PNil ≤ ⊥
+//│                                                   {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ PNil
+//│                                                     (PCons ∧ {head: θ}) ∧ {tail: PNil} ≤ ⊥
+//│                                                       PCons ∧ {head: θ} ≤ ⊥
+//│                                                         PCons ≤ ⊥
+//│                                                         {head: θ} ≤ ⊥
+//│                                                           θ ≤ ⊥
+//│                                                             (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                               PNode ∧ {label: Str} ≤ ⊥
+//│                                                                 PNode ≤ ⊥
+//│                                                                 {label: Str} ≤ ⊥
+//│                                                                   Str ≤ ⊥
+//│                                                               {children: PNil} ≤ ⊥
+//│                                                                 PNil ≤ ⊥
+//│                                                       {tail: PNil} ≤ ⊥
+//│                                                         PNil ≤ ⊥
+//│                                                 (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ (PCons ∧ {head: δ}) ∧ {tail: ν}
+//│                                                   (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ PCons ∧ {head: δ}
+//│                                                     (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                                                       PCons ∧ {head: η} ≤ {head: δ}
+//│                                                         PCons ≤ {head: δ}
+//│                                                         {head: η} ≤ {head: δ}
+//│                                                           η ≤ δ
+//│                                                             ι ≤ δ
+//│                                                               (PNode ∧ {label: κ}) ∧ {children: λ} ≤ δ
+//│                                                                 (PNode ∧ {label: κ}) ∧ {children: λ} ≤ PNode ∧ {label: Str}
+//│                                                                   (PNode ∧ {label: κ}) ∧ {children: λ} ≤ {label: Str}
+//│                                                                     PNode ∧ {label: κ} ≤ {label: Str}
+//│                                                                       PNode ≤ {label: Str}
+//│                                                                       {label: κ} ≤ {label: Str}
+//│                                                                         κ ≤ Str
+//│                                                                           Int ≤ Str
+//│                                                                     {children: λ} ≤ {label: Str}
+//│                                                                       λ ≤ ⊥
+//│                                                                         μ ≤ ⊥
+//│                                                                           PNil ≤ ⊥
+//│                                                       {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                                                         (PCons ∧ {head: θ}) ∧ {tail: PNil} ≤ ⊥
+//│                                                           PCons ∧ {head: θ} ≤ ⊥
+//│                                                             PCons ≤ ⊥
+//│                                                             {head: θ} ≤ ⊥
+//│                                                               θ ≤ ⊥
+//│                                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                                     PNode ≤ ⊥
+//│                                                                     {label: Str} ≤ ⊥
+//│                                                                       Str ≤ ⊥
+//│                                                                   {children: PNil} ≤ ⊥
+//│                                                                     PNil ≤ ⊥
+//│                                                           {tail: PNil} ≤ ⊥
+//│                                                             PNil ≤ ⊥
+//│                             {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                               (PCons ∧ {head: γ}) ∧ {tail: PNil} ≤ ⊥
+//│                                 PCons ∧ {head: γ} ≤ ⊥
+//│                                   PCons ≤ ⊥
+//│                                   {head: γ} ≤ ⊥
+//│                                     γ ≤ ⊥
+//│                                       (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                         PNode ∧ {label: Str} ≤ ⊥
+//│                                           PNode ≤ ⊥
+//│                                           {label: Str} ≤ ⊥
+//│                                             Str ≤ ⊥
+//│                                         {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                           (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                             PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                               PCons ≤ ⊥
+//│                                               {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                     PNode ≤ ⊥
+//│                                                     {label: Str} ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                   {children: PNil} ≤ ⊥
+//│                                                     PNil ≤ ⊥
+//│                                             {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                               (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil} ≤ ⊥
+//│                                                 PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                   PCons ≤ ⊥
+//│                                                   {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                     (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                       PNode ∧ {label: Str} ≤ ⊥
+//│                                                         PNode ≤ ⊥
+//│                                                         {label: Str} ≤ ⊥
+//│                                                           Str ≤ ⊥
+//│                                                       {children: PNil} ≤ ⊥
+//│                                                         PNil ≤ ⊥
+//│                                                 {tail: PNil} ≤ ⊥
+//│                                                   PNil ≤ ⊥
+//│                                 {tail: PNil} ≤ ⊥
+//│                                   PNil ≤ ⊥
+
+:te
+binary(binary(PNode("node", PCons(1, PNil())), leaf), pair) as PTree
+//│ @ctml-search calls=370 checks=30 fresh=12 infer=9 origins=8 groups=8 max-per-group=3 exact=0 abstract=0 cuts=0 max-clauses=111 max-goal-nodes=54
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ PTree.
+//│ Typing error tree:
+//│   α ≤ PTree
+//│     (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ PTree
+//│       (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ ∀T. {T ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: T}) ∧ {tail: L})} ⟹ L}} ⟹ T
+//│         (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ {δ ≥ (PNode ∧ {label: Str}) ∧ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}} ⟹ δ
+//│           (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ δ
+//│             (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│               PNode ∧ {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                   Str ≤ ⊥
+//│               {children: (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                 (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                   (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ {ε ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: ε})} ⟹ ε
+//│                     (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ ε
+//│                       (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ PNil
+//│                         PCons ∧ {head: β} ≤ PNil
+//│                           PCons ≤ PNil
+//│                           {head: β} ≤ PNil
+//│                             β ≤ ⊥
+//│                               ζ ≤ ⊥
+//│                                 (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                     PNode ≤ ⊥
+//│                                     {label: Str} ≤ ⊥
+//│                                       Str ≤ ⊥
+//│                                   {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                     (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ⊥
+//│                                       PCons ∧ {head: η} ≤ ⊥
+//│                                         PCons ≤ ⊥
+//│                                         {head: η} ≤ ⊥
+//│                                           η ≤ ⊥
+//│                                             ι ≤ ⊥
+//│                                               (PNode ∧ {label: κ}) ∧ {children: λ} ≤ ⊥
+//│                                                 PNode ∧ {label: κ} ≤ ⊥
+//│                                                   PNode ≤ ⊥
+//│                                                   {label: κ} ≤ ⊥
+//│                                                     κ ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                 {children: λ} ≤ ⊥
+//│                                                   λ ≤ ⊥
+//│                                                     μ ≤ ⊥
+//│                                                       (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ⊥
+//│                                                         PCons ∧ {head: ν} ≤ ⊥
+//│                                                           PCons ≤ ⊥
+//│                                                           {head: ν} ≤ ⊥
+//│                                                             ν ≤ ⊥
+//│                                                               Int ≤ ⊥
+//│                                                         {tail: ξ} ≤ ⊥
+//│                                                           ξ ≤ ⊥
+//│                                                             ο ≤ ⊥
+//│                                                               PNil ≤ ⊥
+//│                                       {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ⊥
+//│                                         (PCons ∧ {head: θ}) ∧ {tail: PNil} ≤ ⊥
+//│                                           PCons ∧ {head: θ} ≤ ⊥
+//│                                             PCons ≤ ⊥
+//│                                             {head: θ} ≤ ⊥
+//│                                               θ ≤ ⊥
+//│                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                     PNode ≤ ⊥
+//│                                                     {label: Str} ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                   {children: PNil} ≤ ⊥
+//│                                                     PNil ≤ ⊥
+//│                                           {tail: PNil} ≤ ⊥
+//│                                             PNil ≤ ⊥
+//│                         {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ PNil
+//│                           (PCons ∧ {head: γ}) ∧ {tail: PNil} ≤ ⊥
+//│                             PCons ∧ {head: γ} ≤ ⊥
+//│                               PCons ≤ ⊥
+//│                               {head: γ} ≤ ⊥
+//│                                 γ ≤ ⊥
+//│                                   (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                     PNode ∧ {label: Str} ≤ ⊥
+//│                                       PNode ≤ ⊥
+//│                                       {label: Str} ≤ ⊥
+//│                                         Str ≤ ⊥
+//│                                     {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                       (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                         PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                           PCons ≤ ⊥
+//│                                           {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                             (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                               PNode ∧ {label: Str} ≤ ⊥
+//│                                                 PNode ≤ ⊥
+//│                                                 {label: Str} ≤ ⊥
+//│                                                   Str ≤ ⊥
+//│                                               {children: PNil} ≤ ⊥
+//│                                                 PNil ≤ ⊥
+//│                                         {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                           (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil} ≤ ⊥
+//│                                             PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                               PCons ≤ ⊥
+//│                                               {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                     PNode ≤ ⊥
+//│                                                     {label: Str} ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                   {children: PNil} ≤ ⊥
+//│                                                     PNil ≤ ⊥
+//│                                             {tail: PNil} ≤ ⊥
+//│                                               PNil ≤ ⊥
+//│                             {tail: PNil} ≤ ⊥
+//│                               PNil ≤ ⊥
+//│                       (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ (PCons ∧ {head: δ}) ∧ {tail: ε}
+//│                         (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ PCons ∧ {head: δ}
+//│                           (PCons ∧ {head: β}) ∧ {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                             PCons ∧ {head: β} ≤ {head: δ}
+//│                               PCons ≤ {head: δ}
+//│                               {head: β} ≤ {head: δ}
+//│                                 β ≤ δ
+//│                                   ζ ≤ δ
+//│                                     (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ δ
+//│                                       (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                         PNode ∧ {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                           PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                           {label: Str} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                             Str ≤ ⊥
+//│                                         {children: (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}}} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                           (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                                             (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ {π ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: π})} ⟹ π
+//│                                               (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ π
+//│                                                 (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ PNil
+//│                                                   PCons ∧ {head: η} ≤ PNil
+//│                                                     PCons ≤ PNil
+//│                                                     {head: η} ≤ PNil
+//│                                                       η ≤ ⊥
+//│                                                         ι ≤ ⊥
+//│                                                           (PNode ∧ {label: κ}) ∧ {children: λ} ≤ ⊥
+//│                                                             PNode ∧ {label: κ} ≤ ⊥
+//│                                                               PNode ≤ ⊥
+//│                                                               {label: κ} ≤ ⊥
+//│                                                                 κ ≤ ⊥
+//│                                                                   Str ≤ ⊥
+//│                                                             {children: λ} ≤ ⊥
+//│                                                               λ ≤ ⊥
+//│                                                                 μ ≤ ⊥
+//│                                                                   (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ⊥
+//│                                                                     PCons ∧ {head: ν} ≤ ⊥
+//│                                                                       PCons ≤ ⊥
+//│                                                                       {head: ν} ≤ ⊥
+//│                                                                         ν ≤ ⊥
+//│                                                                           Int ≤ ⊥
+//│                                                                     {tail: ξ} ≤ ⊥
+//│                                                                       ξ ≤ ⊥
+//│                                                                         ο ≤ ⊥
+//│                                                                           PNil ≤ ⊥
+//│                                                   {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ PNil
+//│                                                     (PCons ∧ {head: θ}) ∧ {tail: PNil} ≤ ⊥
+//│                                                       PCons ∧ {head: θ} ≤ ⊥
+//│                                                         PCons ≤ ⊥
+//│                                                         {head: θ} ≤ ⊥
+//│                                                           θ ≤ ⊥
+//│                                                             (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                               PNode ∧ {label: Str} ≤ ⊥
+//│                                                                 PNode ≤ ⊥
+//│                                                                 {label: Str} ≤ ⊥
+//│                                                                   Str ≤ ⊥
+//│                                                               {children: PNil} ≤ ⊥
+//│                                                                 PNil ≤ ⊥
+//│                                                       {tail: PNil} ≤ ⊥
+//│                                                         PNil ≤ ⊥
+//│                                                 (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ (PCons ∧ {head: δ}) ∧ {tail: π}
+//│                                                   (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ PCons ∧ {head: δ}
+//│                                                     (PCons ∧ {head: η}) ∧ {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                                                       PCons ∧ {head: η} ≤ {head: δ}
+//│                                                         PCons ≤ {head: δ}
+//│                                                         {head: η} ≤ {head: δ}
+//│                                                           η ≤ δ
+//│                                                             ι ≤ δ
+//│                                                               (PNode ∧ {label: κ}) ∧ {children: λ} ≤ δ
+//│                                                                 (PNode ∧ {label: κ}) ∧ {children: λ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                                                   PNode ∧ {label: κ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                                                     PNode ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                                                     {label: κ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                                                       κ ≤ ⊥
+//│                                                                         Str ≤ ⊥
+//│                                                                   {children: λ} ≤ {children: ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L}
+//│                                                                     λ ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                                                                       μ ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                                                                         (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ∀L. {L ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: L})} ⟹ L
+//│                                                                           (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ {ρ ≥ PNil ∨ ((PCons ∧ {head: δ}) ∧ {tail: ρ})} ⟹ ρ
+//│                                                                             (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ρ
+//│                                                                               (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ PNil
+//│                                                                                 PCons ∧ {head: ν} ≤ PNil
+//│                                                                                   PCons ≤ PNil
+//│                                                                                   {head: ν} ≤ PNil
+//│                                                                                     ν ≤ ⊥
+//│                                                                                       Int ≤ ⊥
+//│                                                                                 {tail: ξ} ≤ PNil
+//│                                                                                   ξ ≤ ⊥
+//│                                                                                     ο ≤ ⊥
+//│                                                                                       PNil ≤ ⊥
+//│                                                                               (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ (PCons ∧ {head: δ}) ∧ {tail: ρ}
+//│                                                                                 (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ PCons ∧ {head: δ}
+//│                                                                                   (PCons ∧ {head: ν}) ∧ {tail: ξ} ≤ {head: δ}
+//│                                                                                     PCons ∧ {head: ν} ≤ {head: δ}
+//│                                                                                       PCons ≤ {head: δ}
+//│                                                                                       {head: ν} ≤ {head: δ}
+//│                                                                                         ν ≤ δ
+//│                                                                                           Int ≤ δ
+//│                                                                                             Int ≤ PNode ∧ {label: Str}
+//│                                                                                               Int ≤ PNode
+//│                                                                                     {tail: ξ} ≤ {head: δ}
+//│                                                                                       ξ ≤ ⊥
+//│                                                                                         ο ≤ ⊥
+//│                                                                                           PNil ≤ ⊥
+//│                                                       {tail: (PCons ∧ {head: θ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                                                         (PCons ∧ {head: θ}) ∧ {tail: PNil} ≤ ⊥
+//│                                                           PCons ∧ {head: θ} ≤ ⊥
+//│                                                             PCons ≤ ⊥
+//│                                                             {head: θ} ≤ ⊥
+//│                                                               θ ≤ ⊥
+//│                                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                                     PNode ≤ ⊥
+//│                                                                     {label: Str} ≤ ⊥
+//│                                                                       Str ≤ ⊥
+//│                                                                   {children: PNil} ≤ ⊥
+//│                                                                     PNil ≤ ⊥
+//│                                                           {tail: PNil} ≤ ⊥
+//│                                                             PNil ≤ ⊥
+//│                             {tail: (PCons ∧ {head: γ}) ∧ {tail: PNil}} ≤ {head: δ}
+//│                               (PCons ∧ {head: γ}) ∧ {tail: PNil} ≤ ⊥
+//│                                 PCons ∧ {head: γ} ≤ ⊥
+//│                                   PCons ≤ ⊥
+//│                                   {head: γ} ≤ ⊥
+//│                                     γ ≤ ⊥
+//│                                       (PNode ∧ {label: Str}) ∧ {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                         PNode ∧ {label: Str} ≤ ⊥
+//│                                           PNode ≤ ⊥
+//│                                           {label: Str} ≤ ⊥
+//│                                             Str ≤ ⊥
+//│                                         {children: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}}} ≤ ⊥
+//│                                           (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                             PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                               PCons ≤ ⊥
+//│                                               {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                 (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                   PNode ∧ {label: Str} ≤ ⊥
+//│                                                     PNode ≤ ⊥
+//│                                                     {label: Str} ≤ ⊥
+//│                                                       Str ≤ ⊥
+//│                                                   {children: PNil} ≤ ⊥
+//│                                                     PNil ≤ ⊥
+//│                                             {tail: (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil}} ≤ ⊥
+//│                                               (PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}}) ∧ {tail: PNil} ≤ ⊥
+//│                                                 PCons ∧ {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                   PCons ≤ ⊥
+//│                                                   {head: (PNode ∧ {label: Str}) ∧ {children: PNil}} ≤ ⊥
+//│                                                     (PNode ∧ {label: Str}) ∧ {children: PNil} ≤ ⊥
+//│                                                       PNode ∧ {label: Str} ≤ ⊥
+//│                                                         PNode ≤ ⊥
+//│                                                         {label: Str} ≤ ⊥
+//│                                                           Str ≤ ⊥
+//│                                                       {children: PNil} ≤ ⊥
+//│                                                         PNil ≤ ⊥
+//│                                                 {tail: PNil} ≤ ⊥
+//│                                                   PNil ≤ ⊥
+//│                                 {tail: PNil} ≤ ⊥
+//│                                   PNil ≤ ⊥
+
+// A simpler nested-field encoding exercises the same policy without the tree constructors.
+type FieldChain = [X restricts (Int | {next: X})] -> X
+//│ FieldChain = ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+
+type GoodChain = {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Int}}}}}}}}}}
+//│ GoodChain = {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Int}}}}}}}}}}
+
+GoodChain <:< FieldChain
+//│ @ctml-search calls=91 checks=0 fresh=1 infer=0 origins=1 groups=1 max-per-group=1 exact=0 abstract=2 cuts=0 max-clauses=41 max-goal-nodes=19
+//│ OK
+
+type BadChain = {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}}
+//│ BadChain = {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}}
+
+:te
+BadChain <:< FieldChain
+//│ @ctml-search calls=92 checks=0 fresh=1 infer=0 origins=1 groups=1 max-per-group=1 exact=0 abstract=2 cuts=0 max-clauses=44 max-goal-nodes=19
+//│ ═══[TYPE ERROR] Cannot solve judgment BadChain ≤ FieldChain.
+//│ Typing error tree:
+//│   BadChain ≤ FieldChain
+//│     {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}} ≤ FieldChain
+//│       {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}} ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│         {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}} ≤ {α ≥ Int ∨ {next: α}} ⟹ α
+//│           {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}} ≤ α
+//│             {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}} ≤ Int
+//│               {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}} ≤ ⊥
+//│                 {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}} ≤ ⊥
+//│                   {next: {next: {next: {next: {next: {next: {next: Str}}}}}}} ≤ ⊥
+//│                     {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ ⊥
+//│                       {next: {next: {next: {next: {next: Str}}}}} ≤ ⊥
+//│                         {next: {next: {next: {next: Str}}}} ≤ ⊥
+//│                           {next: {next: {next: Str}}} ≤ ⊥
+//│                             {next: {next: Str}} ≤ ⊥
+//│                               {next: Str} ≤ ⊥
+//│                                 Str ≤ ⊥
+//│             {next: {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}}} ≤ {next: α}
+//│               {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}} ≤ α
+//│                 {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}} ≤ Int
+//│                   {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}} ≤ ⊥
+//│                     {next: {next: {next: {next: {next: {next: {next: Str}}}}}}} ≤ ⊥
+//│                       {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ ⊥
+//│                         {next: {next: {next: {next: {next: Str}}}}} ≤ ⊥
+//│                           {next: {next: {next: {next: Str}}}} ≤ ⊥
+//│                             {next: {next: {next: Str}}} ≤ ⊥
+//│                               {next: {next: Str}} ≤ ⊥
+//│                                 {next: Str} ≤ ⊥
+//│                                   Str ≤ ⊥
+//│                 {next: {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}}} ≤ {next: α}
+//│                   {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}} ≤ α
+//│                     {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}} ≤ Int
+//│                       {next: {next: {next: {next: {next: {next: {next: Str}}}}}}} ≤ ⊥
+//│                         {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ ⊥
+//│                           {next: {next: {next: {next: {next: Str}}}}} ≤ ⊥
+//│                             {next: {next: {next: {next: Str}}}} ≤ ⊥
+//│                               {next: {next: {next: Str}}} ≤ ⊥
+//│                                 {next: {next: Str}} ≤ ⊥
+//│                                   {next: Str} ≤ ⊥
+//│                                     Str ≤ ⊥
+//│                     {next: {next: {next: {next: {next: {next: {next: {next: Str}}}}}}}} ≤ {next: α}
+//│                       {next: {next: {next: {next: {next: {next: {next: Str}}}}}}} ≤ α
+//│                         {next: {next: {next: {next: {next: {next: {next: Str}}}}}}} ≤ Int
+//│                           {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ ⊥
+//│                             {next: {next: {next: {next: {next: Str}}}}} ≤ ⊥
+//│                               {next: {next: {next: {next: Str}}}} ≤ ⊥
+//│                                 {next: {next: {next: Str}}} ≤ ⊥
+//│                                   {next: {next: Str}} ≤ ⊥
+//│                                     {next: Str} ≤ ⊥
+//│                                       Str ≤ ⊥
+//│                         {next: {next: {next: {next: {next: {next: {next: Str}}}}}}} ≤ {next: α}
+//│                           {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ α
+//│                             {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ Int
+//│                               {next: {next: {next: {next: {next: Str}}}}} ≤ ⊥
+//│                                 {next: {next: {next: {next: Str}}}} ≤ ⊥
+//│                                   {next: {next: {next: Str}}} ≤ ⊥
+//│                                     {next: {next: Str}} ≤ ⊥
+//│                                       {next: Str} ≤ ⊥
+//│                                         Str ≤ ⊥
+//│                             {next: {next: {next: {next: {next: {next: Str}}}}}} ≤ {next: α}
+//│                               {next: {next: {next: {next: {next: Str}}}}} ≤ α
+//│                                 {next: {next: {next: {next: {next: Str}}}}} ≤ Int
+//│                                   {next: {next: {next: {next: Str}}}} ≤ ⊥
+//│                                     {next: {next: {next: Str}}} ≤ ⊥
+//│                                       {next: {next: Str}} ≤ ⊥
+//│                                         {next: Str} ≤ ⊥
+//│                                           Str ≤ ⊥
+//│                                 {next: {next: {next: {next: {next: Str}}}}} ≤ {next: α}
+//│                                   {next: {next: {next: {next: Str}}}} ≤ α
+//│                                     {next: {next: {next: {next: Str}}}} ≤ Int
+//│                                       {next: {next: {next: Str}}} ≤ ⊥
+//│                                         {next: {next: Str}} ≤ ⊥
+//│                                           {next: Str} ≤ ⊥
+//│                                             Str ≤ ⊥
+//│                                     {next: {next: {next: {next: Str}}}} ≤ {next: α}
+//│                                       {next: {next: {next: Str}}} ≤ α
+//│                                         {next: {next: {next: Str}}} ≤ Int
+//│                                           {next: {next: Str}} ≤ ⊥
+//│                                             {next: Str} ≤ ⊥
+//│                                               Str ≤ ⊥
+//│                                         {next: {next: {next: Str}}} ≤ {next: α}
+//│                                           {next: {next: Str}} ≤ α
+//│                                             {next: {next: Str}} ≤ Int
+//│                                               {next: Str} ≤ ⊥
+//│                                                 Str ≤ ⊥
+//│                                             {next: {next: Str}} ≤ {next: α}
+//│                                               {next: Str} ≤ α
+//│                                                 {next: Str} ≤ Int
+//│                                                   Str ≤ ⊥
+//│                                                 {next: Str} ≤ {next: α}
+//│                                                   Str ≤ α
+//│                                                     Str ≤ Int
+//│                                                     Str ≤ {next: α}

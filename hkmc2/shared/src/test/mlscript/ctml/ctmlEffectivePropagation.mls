@@ -1,0 +1,107 @@
+:ctml
+:ctml-cfg profile-search search-steps 5000
+
+// Contravariant propagation must retain same-direction bounds in effective lookup.
+// A proper codomain makes the propagated domain requirement semantically necessary.
+type A = Top -> (Int | Str)
+type U = A -> (Int | Str)
+type V = (Top -> Int) -> Int
+//│ A = ⊤ → (Int ∨ Str)
+//│ U = A → (Int ∨ Str)
+//│ V = (⊤ → Int) → Int
+
+type F = [X] -> [X <:< U] => [(X -> Int) <:< X] => X
+//│ F = ∀X. {X ≤ U, X → Int ≤ X} ⟹ X
+
+A <:< U
+//│ @ctml-search calls=5 checks=0 fresh=0 infer=0 origins=0 groups=0 max-per-group=0 exact=0 abstract=0 cuts=0 max-clauses=39 max-goal-nodes=10
+//│ OK
+
+:te
+A <:< V
+//│ @ctml-search calls=7 checks=0 fresh=0 infer=0 origins=0 groups=0 max-per-group=0 exact=0 abstract=0 cuts=0 max-clauses=39 max-goal-nodes=10
+//│ ═══[TYPE ERROR] Cannot solve judgment A ≤ V.
+//│ Typing error tree:
+//│   A ≤ V
+//│     ⊤ → (Int ∨ Str) ≤ V
+//│       ⊤ → (Int ∨ Str) ≤ (⊤ → Int) → Int
+//│         Int ∨ Str ≤ Int
+//│           Str ≤ Int
+
+:te
+F <:< V
+//│ @ctml-search calls=80 checks=31 fresh=1 infer=0 origins=1 groups=1 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=48 max-goal-nodes=15
+//│ ═══[TYPE ERROR] Cannot solve judgment F ≤ V.
+//│ Typing error tree:
+//│   F ≤ V
+//│     ∀X. {X ≤ U, X → Int ≤ X} ⟹ X ≤ V
+//│       ∀X. {X ≤ U, X → Int ≤ X} ⟹ X ≤ (⊤ → Int) → Int
+//│         {α ≤ U, α → Int ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│           {α → Int ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│             α ≤ (⊤ → Int) → Int
+//│               (α → Int) ∨ A ≤ (⊤ → Int) → Int
+//│                 A ≤ (⊤ → Int) → Int
+//│                   ⊤ → (Int ∨ Str) ≤ (⊤ → Int) → Int
+//│                     Int ∨ Str ≤ Int
+//│                       Str ≤ Int
+
+:te
+val bad = (f: F) => (f as V)
+//│ @ctml-search calls=375 checks=296 fresh=8 infer=1 origins=1 groups=2 max-per-group=4 exact=0 abstract=0 cuts=0 max-clauses=51 max-goal-nodes=20
+//│ ═══[TYPE ERROR] Cannot solve judgment (F ∧ V) → V ≤ F → ⊤.
+//│ Typing error tree:
+//│   (F ∧ V) → V ≤ F → ⊤
+//│     F ≤ F ∧ V
+//│       ∀X. {X ≤ U, X → Int ≤ X} ⟹ X ≤ F ∧ V
+//│         ∀X. {X ≤ U, X → Int ≤ X} ⟹ X ≤ V
+//│           ∀X. {X ≤ U, X → Int ≤ X} ⟹ X ≤ (⊤ → Int) → Int
+//│             {α ≤ U, α → Int ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│               {α → Int ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│                 α ≤ (⊤ → Int) → Int
+//│                   (α → Int) ∨ A ≤ (⊤ → Int) → Int
+//│                     A ≤ (⊤ → Int) → Int
+//│                       ⊤ → (Int ∨ Str) ≤ (⊤ → Int) → Int
+//│                         Int ∨ Str ≤ Int
+//│                           Str ≤ Int
+
+// An intermediate variable relation must preserve the same contravariant obligation.
+type G = [X, Y] -> [Y <:< U] => [(Y -> Int) <:< X] => [X <:< Y] => Y
+//│ G = ∀X, Y. {Y ≤ U, Y → Int ≤ X, X ≤ Y} ⟹ Y
+
+:te
+G <:< V
+//│ @ctml-search calls=89 checks=48 fresh=2 infer=0 origins=2 groups=2 max-per-group=1 exact=0 abstract=0 cuts=0 max-clauses=57 max-goal-nodes=19
+//│ ═══[TYPE ERROR] Cannot solve judgment G ≤ V.
+//│ Typing error tree:
+//│   G ≤ V
+//│     ∀X, Y. {Y ≤ U, Y → Int ≤ X, X ≤ Y} ⟹ Y ≤ V
+//│       ∀X, Y. {Y ≤ U, Y → Int ≤ X, X ≤ Y} ⟹ Y ≤ (⊤ → Int) → Int
+//│         {α ≤ U, α → Int ≤ β, β ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│           {α → Int ≤ β, β ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│             {β ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│               α ≤ (⊤ → Int) → Int
+//│                 β ∨ A ≤ (⊤ → Int) → Int
+//│                   A ≤ (⊤ → Int) → Int
+//│                     ⊤ → (Int ∨ Str) ≤ (⊤ → Int) → Int
+//│                       Int ∨ Str ≤ Int
+//│                         Str ≤ Int
+
+:te
+val badAlias = (g: G) => (g as V)
+//│ @ctml-search calls=393 checks=344 fresh=12 infer=1 origins=2 groups=4 max-per-group=4 exact=0 abstract=0 cuts=0 max-clauses=60 max-goal-nodes=28
+//│ ═══[TYPE ERROR] Cannot solve judgment (G ∧ V) → V ≤ G → ⊤.
+//│ Typing error tree:
+//│   (G ∧ V) → V ≤ G → ⊤
+//│     G ≤ G ∧ V
+//│       ∀X, Y. {Y ≤ U, Y → Int ≤ X, X ≤ Y} ⟹ Y ≤ G ∧ V
+//│         ∀X, Y. {Y ≤ U, Y → Int ≤ X, X ≤ Y} ⟹ Y ≤ V
+//│           ∀X, Y. {Y ≤ U, Y → Int ≤ X, X ≤ Y} ⟹ Y ≤ (⊤ → Int) → Int
+//│             {α ≤ U, α → Int ≤ β, β ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│               {α → Int ≤ β, β ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│                 {β ≤ α} ⟹ α ≤ (⊤ → Int) → Int
+//│                   α ≤ (⊤ → Int) → Int
+//│                     β ∨ A ≤ (⊤ → Int) → Int
+//│                       A ≤ (⊤ → Int) → Int
+//│                         ⊤ → (Int ∨ Str) ≤ (⊤ → Int) → Int
+//│                           Int ∨ Str ≤ Int
+//│                             Str ≤ Int

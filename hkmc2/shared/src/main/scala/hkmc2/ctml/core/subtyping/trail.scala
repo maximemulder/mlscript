@@ -24,8 +24,9 @@ import hkmc2.ctml.types.*
  *  The separate provenance keys recognize paths up to the origins of newly opened variables and
  *  a bounded description of their goals and side bounds. Input variables are anchored at each
  *  subtyping entry, not at the enclosing inference entry: constructor instances created while
- *  inferring an argument are already distinct inputs when that argument is checked. A collision
- *  reports an inconclusive search; unlike an exact flexible repeat, it never supplies a proof or
+ *  inferring an argument are already distinct inputs when that argument is checked. Under the cut
+ *  policy, a collision continues only if its concrete pair strictly descends through the latest
+ *  pair's syntax; otherwise it reports an inconclusive search. Neither case supplies a proof or
  *  discards an obligation. These keys omit parts of the context and cannot cache completed proofs.
  *
  *  The separate `instances` set tracks target-directed universal witnesses, which can repeat
@@ -43,8 +44,9 @@ case class SubtypingTrail(
   /** Variables present at entry to this subtyping search, including instances already created by
    *  argument inference. These are anchors, even when the enclosing inference session is older. */
   roots: Option[Set[TypeVar]] = None,
-  /** Abstract variable-side judgments on this path; collisions do not discharge constraints. */
-  provenanceKeys: Set[ProvenanceKey] = Set.empty,
+  /** Latest concrete pair for each abstract key on this path. Under Cut, a collision may continue
+   *  only through strict syntactic descent; Observe records pairs without restricting search. */
+  provenanceKeys: Map[ProvenanceKey, (Type, Type)] = Map.empty,
   /** A budget for nested optional queries; absent in required constraint solving. */
   checking: Option[CheckingBudget] = None,
 ):

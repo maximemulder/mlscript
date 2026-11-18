@@ -1,0 +1,21 @@
+:ctml
+:ctml-cfg ex-falso
+
+data class Seed(value)
+//│ Seed: ∀α. α → (Seed ∧ {value: α})
+
+val mixedRecord = Seed(1) as ({value: Int | Str})
+//│ mixedRecord: {value: Int ∨ Str}
+
+// The callback application is implemented and checked against its guarded contract.
+val applyGuarded = (f => seed => x => f(x)) as ([C] -> ((([C <:< Int] => Int) & ([C <:< Str] => Int)) -> Int) -> ({value: C}) -> (([C <:< Int] => Int) & ([C <:< Str] => Int)) -> Int)
+//│ applyGuarded: ∀C. ((({C ≤ Int} ⟹ Int) ∧ ({C ≤ Str} ⟹ Int)) → Int) → {value: C} → (({C ≤ Int} ⟹ Int) ∧ ({C ≤ Str} ⟹ Int)) → Int
+
+applyGuarded(x => x, Seed(1), 2) as Int
+//│ Int
+
+// This call beta-reduces to the string argument, so its Int ascription must fail.
+:breakme // FIXME: Joined proof alternatives admit a union that satisfies neither guard.
+:te
+applyGuarded(x => x, mixedRecord, "bad") as Int
+//│ Int

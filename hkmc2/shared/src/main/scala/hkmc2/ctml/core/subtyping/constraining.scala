@@ -95,13 +95,16 @@ def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
       throw IllegalStateException("Provenance search requires an operation session"))
     val key = ProvenanceKey(sub, sup, ctx.trail.roots.getOrElse(
       throw IllegalStateException("Provenance search requires input-variable anchors")))
-    if trail.provenanceKeys(key) then
+    // Truncated syntax can collide during finite descent. Retaining the latest smaller pair
+    // prevents alternating indefinitely among different subterms of an earlier ancestor.
+    trail.provenanceKeys.get(key).foreach: previous =>
       session.abstractRepeats += 1
-      if config.provenancePolicy == ProvenancePolicy.Cut then
+      if config.provenancePolicy == ProvenancePolicy.Cut &&
+          !syntaxDescends((sub, sup), previous) then
         session.cuts += 1
         throw SearchInconclusive("a variable-bound search repeats up to provenance")
     subtypeImpl(sub, sup)(using ctx.mapTrail(_ =>
-      trail.copy(provenanceKeys = trail.provenanceKeys + key)))
+      trail.copy(provenanceKeys = trail.provenanceKeys.updated(key, (sub, sup)))))
   else
     subtypeImpl(sub, sup)(using ctx.mapTrail(_ => trail))
 
@@ -468,11 +471,13 @@ def subtypeFlexVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext): SubClaus
       SubClauses.empty
     case (Order.Lesser | Order.Equal, _) =>
       val clauses = subtype(TVar(sub), sup.upperBound)
-      val supLowerBound = join(TVar(sub), sup.lowerBound)
+      val propagated = ctx.extend(clauses)
+      val supLowerBound = join(TVar(sub), sup.lowerBound(using propagated))(using propagated)
       clauses.concat(makeBoundClauses(sup, Direction.Super, TVar(sub), supLowerBound))
     case (Order.Greater, _) =>
       val clauses = subtype(sub.lowerBound, TVar(sup))
-      val subUpperBound = meet(TVar(sup), sub.upperBound)
+      val propagated = ctx.extend(clauses)
+      val subUpperBound = meet(TVar(sup), sub.upperBound(using propagated))(using propagated)
       clauses.concat(makeBoundClauses(sub, Direction.Sub, TVar(sup), subUpperBound))
 
 /** Constrain a type variable to be subtype or supertype of another type. */
@@ -485,7 +490,12 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
 
   val bound = var_.bound(using ctx.extend(outs))(dir)
   val oppositeBound = var_.bound(using ctx.extend(outs))(!dir)
-  val clauses = subtypeDirSeq(oppositeBound, extrudedType, dir, outs)
+  // Propagation may discover another opposite bound through a recursive occurrence. That new
+  // bound must see this pending assertion too: checking only the old opposite bound can leave
+  // the new interval inconsistent. The assertion is returned only if propagation succeeds.
+  val pending = Bound(var_, dir, extrudedType, BoundKind.Asserted)
+  val clauses = outs.concat(subtypeDir(oppositeBound, extrudedType, dir)(using
+    ctx.extend(outs.concat(pending.asSubClauses))))
   // The new type is asserted as a bound of the variable, and its combination with the current bound
   // becomes the effective bound of the variable, so that it does not need to be recomputed whenever
   // the variable is used (see `BoundKind`).
@@ -493,14 +503,19 @@ def subtypeFlexVar(var_ : TypeVar, type_ : Type, dir: Direction)(using ctx: SubC
   // effective bound. They are an optimization, not a prerequisite for retaining an obligation.
   // Retaining a first bound is exact even if the context could prove it redundant. Avoid that
   // optional search when the old bound is the identity and propagation added no bound in this
-  // direction. The opposite-bound check above and effective-bound construction remain unchanged.
+  // direction. Mandatory opposite-bound checking precedes this optional query.
   val identity = if dir == Direction.Sub then TTop else TBot
   val firstBound = bound == identity && extrudedType != identity && !clauses.elems.exists:
     case Bound(other, otherDir, _, _) => other == var_ && otherDir == dir
     case _ => false
-  if !firstBound && checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(clauses)) then
+  // Propagated bounds may depend on the pending assertion, so redundancy is checked only
+  // against the incoming context.
+  if !firstBound && checkSubtypeDir(bound, extrudedType, dir)(using ctx.extend(outs)) then
     return clauses
-  val effectiveBound = combine(dir.jointMode, bound, extrudedType)(using ctx.extend(clauses))
+  // Opposite-bound propagation can add same-direction obligations through contravariance.
+  // The effective bound subsumes every assertion in its scope, including those new obligations.
+  val propagatedBound = var_.bound(using ctx.extend(clauses))(dir)
+  val effectiveBound = combine(dir.jointMode, propagatedBound, extrudedType)(using ctx.extend(clauses))
 
   clauses.concat(makeBoundClauses(var_, dir, extrudedType, effectiveBound))
 

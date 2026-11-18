@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 83 member(s)
+//│ Imported 88 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/constraints.mls.
 // The quicksort group uses one recursive dispatcher. Node's structural fields carry the
@@ -392,28 +392,35 @@ fun cacheChecks(csp, tbl, n) = if n is Node(s, cs) then
 fun bm(csp, t) = mapTree(fst, lookupCache(csp, cacheChecks(csp, emptyTable(csp), t)))
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: Recursive filtering exceeds the 20000-call budget.
-/** Remove later equal entries using the source predicate order. */
-fun nubBy(eq, ls) = if ls is
-  LNil() then LNil()
-  LCons(h, t) then LCons(h, nubBy(eq, filter(y => if eq(h, y) then false else true, t)))
-//│ CTML translation succeeded.
-
-:ctml-parse-only // FIXME: Recursive list deletion exceeds the 20000-call budget.
-/** Delete the first element that matches x. */
-fun deleteBy(eq, x, ys) = if ys is
-  LNil() then LNil()
-  LCons(y, zs) then if eq(x, y) then zs else LCons(y, deleteBy(eq, x, zs))
-//│ CTML translation succeeded.
-
-:ctml-parse-only // FIXME: List deduplication and deletion are translation-only.
 /** Keep the first conflict list in order and append the unseen elements of the second. */
 fun union(xs, ys) =
   let eq = (x, y) => x == y
   append(xs, foldl((acc, y) => deleteBy(eq, y, acc), nubBy(eq, ys), xs))
-//│ CTML translation succeeded.
+//│ union: (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil} ⟹ X) → LNil
 
-:ctml-parse-only // FIXME: Conflict-set union is translation-only.
+:fixme // FIXME: The inferred union rejects a nonempty list in its first argument.
+union(LCons(1, LNil()), LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil} ⟹ X
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil} ⟹ ε
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│             LCons ∧ {head: γ} ≤ ε
+//│               LCons ≤ ε
+//│                 LCons ≤ LNil
+//│               {head: γ} ≤ ε
+//│                 {head: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     Int ≤ ⊥
+//│             {tail: δ} ≤ ε
+//│               {tail: δ} ≤ LNil
+//│                 δ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: The inferred conflict-set union rejects nonempty input.
 /** Gather conflicts, stopping when one does not involve the latest assignment. */
 fun combine(ls, acc) = if ls is
   LNil() then acc
@@ -454,7 +461,7 @@ fun bjbt(csp, t) = bj(csp, bt(csp, t))
 fun bjbt_(csp, t) = bj_(csp, bt(csp, t))
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: Conflict-set union is translation-only.
+:ctml-parse-only // FIXME: The inferred conflict-set union rejects nonempty input.
 /** Combine the conflict sets of the table entries. */
 fun collect(ls) = if ls is
   LNil() then LNil()

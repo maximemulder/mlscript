@@ -1,0 +1,310 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 88 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/clausify.mls.
+// Formula and parser stack tags carry recursive children through structural fields.
+// Both uses of insertion compare string keys. For two lists the key is the source's
+// comma-separated string coercion of a pair, including literal quoting inside each list.
+
+/** A formula variable, represented by a source string code unit. */
+data class Sym(a: Str)
+/** Negate one formula. */
+data class Not(a)
+/** Disjoin two formulas. */
+data class Dis(a, b)
+/** Conjoin two formulas. */
+data class Con(a, b)
+/** Express implication. */
+data class Imp(a, b)
+/** Express equivalence. */
+data class Eqv(a, b)
+//│ Sym: ∀α. {α ≤ Str} ⟹ α → (Sym ∧ {a: α})
+//│ Not: ∀β. β → (Not ∧ {a: β})
+//│ Dis: ∀γ, δ. γ → δ → ((Dis ∧ {a: γ}) ∧ {b: δ})
+//│ Con: ∀ε, ζ. ε → ζ → ((Con ∧ {a: ε}) ∧ {b: ζ})
+//│ Imp: ∀η, θ. η → θ → ((Imp ∧ {a: η}) ∧ {b: θ})
+//│ Eqv: ∀ι, κ. ι → κ → ((Eqv ∧ {a: ι}) ∧ {b: κ})
+
+/** A formula on the parser stack. */
+data class Ast(f)
+/** An operator or parenthesis on the parser stack. */
+data class Lex(s: Str)
+//│ Ast: ∀α. α → (Ast ∧ {f: α})
+//│ Lex: ∀β. {β ≤ Str} ⟹ β → (Lex ∧ {s: β})
+
+/** Compare code units or the string keys of a pair of clauses. */
+fun charLt(a, b) = strLt(a, b)
+//│ charLt: Str → Str → Bool
+
+/** Compare code units in nondecreasing order. */
+fun charLeq(a, b) = if strLt(b, a) then false else true
+//│ charLeq: Str → Str → Bool
+
+/** Compare code units or clause keys in descending order. */
+fun charGt(a, b) = strLt(b, a)
+//│ charGt: Str → Str → Bool
+
+/** Compare code units in nonincreasing order. */
+fun charGeq(a, b) = charLeq(b, a)
+//│ charGeq: Str → Str → Bool
+
+/** Render the bracketed list format used by source coercion. */
+fun renderStringList(ls) =
+  /** Prepend one quoted string with a comma when the suffix has elements. */
+  fun step(s, rest) =
+    let quoted = renderStringLiteral(s)
+    if rest === "" then quoted else quoted ++ "," ++ rest
+  "[" ++ foldr(step, "", ls) ++ "]"
+//│ renderStringList: ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Str
+
+/** Render a pair as its two source list renderings separated by a comma. */
+fun clauseKey(pair) = if pair is [left, right] then
+  renderStringList(left) ++ "," ++ renderStringList(right)
+//│ clauseKey: ∀α, β. {β ≤ Str, α ≤ Str} ⟹ ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X⟩ → Str
+
+clauseKey([LNil(), LNil()]) as Str
+charLt(clauseKey([LCons("b", LNil()), LNil()]), clauseKey([LNil(), LCons("\n", LNil())])) as Bool
+//│ Str
+//│ Bool
+
+:te
+clauseKey([LCons(1, LNil()), LNil()])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Str, α ≤ Str} ⟹ ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X⟩ → Str ≤ ⟨γ, δ⟩ → ε.
+//│ Typing error tree:
+//│   ∀α, β. {β ≤ Str, α ≤ Str} ⟹ ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X⟩ → Str ≤ ⟨γ, δ⟩ → ε
+//│     {η ≤ Str, ζ ≤ Str} ⟹ ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: X})} ⟹ X⟩ → Str ≤ ⟨γ, δ⟩ → ε
+//│       {ζ ≤ Str} ⟹ ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: X})} ⟹ X⟩ → Str ≤ ⟨γ, δ⟩ → ε
+//│         ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: X})} ⟹ X⟩ → Str ≤ ⟨γ, δ⟩ → ε
+//│           ⟨γ, δ⟩ ≤ ⟨∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X, ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: X})} ⟹ X⟩
+//│             γ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: κ})} ⟹ κ
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│                     (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                       LCons ∧ {head: θ} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: θ} ≤ LNil
+//│                           θ ≤ ⊥
+//│                             Int ≤ ⊥
+//│                       {tail: ι} ≤ LNil
+//│                         ι ≤ ⊥
+//│                           λ ≤ ⊥
+//│                             LNil ≤ ⊥
+//│                     (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: ζ}) ∧ {tail: κ}
+//│                       (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LCons ∧ {head: ζ}
+//│                         (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {head: ζ}
+//│                           LCons ∧ {head: θ} ≤ {head: ζ}
+//│                             LCons ≤ {head: ζ}
+//│                             {head: θ} ≤ {head: ζ}
+//│                               θ ≤ ζ
+//│                                 θ ≤ Str
+//│                                   Int ≤ Str
+//│                           {tail: ι} ≤ {head: ζ}
+//│                             ι ≤ ⊥
+//│                               λ ≤ ⊥
+//│                                 LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: Recursive ordered insertion exceeds bounded inference.
+/** Insert by the source order, keeping the existing element for an equal key. */
+fun insert(key, x, ys) = if ys is
+  LNil() then LCons(x, LNil())
+  LCons(y, rest) then
+    if charLt(key(x), key(y)) then LCons(x, ys)
+    else if charGt(key(x), key(y)) then LCons(y, insert(key, x, rest))
+    else ys
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Ordered insertion is translation-only.
+/** Accumulate the positive and negative symbols of one disjunction. */
+fun clauseHelper(p, x) = if p is
+  Dis(p, q) then clauseHelper(p, clauseHelper(q, x))
+  Sym(s) and x is [c, a] then [insert(s => s, s, c), a]
+  Not(Sym(s)) and x is [c, a] then [c, insert(s => s, s, a)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The clause accumulator is translation-only.
+/** Build one clause from a disjunction of literals. */
+fun clause(p) = clauseHelper(p, [LNil(), LNil()])
+//│ CTML translation succeeded.
+
+/** Test whether the outer formula constructor is conjunction. */
+fun conjunct(p) = if p is Con(_, _) then true else false
+//│ conjunct: ∀α. α → (({α ≤ (Con ∧ {a: ⊤}) ∧ {b: ⊤}} ⟹ Bool) ∧ ({α ≤ ¬((Con ∧ {a: ⊤}) ∧ {b: ⊤})} ⟹ Bool))
+
+:ctml-parse-only // FIXME: Recursive distribution exceeds bounded inference.
+/** Distribute disjunction over conjunction until the formula is in conjunctive normal form. */
+fun disin(p) = if p is
+  Dis(p, Con(q, r)) then Con(disin(Dis(p, q)), disin(Dis(p, r)))
+  Dis(Con(p, q), r) then Con(disin(Dis(p, r)), disin(Dis(q, r)))
+  Dis(p, q) then
+    let dp = disin(p)
+    let dq = disin(q)
+    if conjunct(dp) || conjunct(dq) then disin(Dis(dp, dq)) else Dis(dp, dq)
+  Con(p, q) then Con(disin(p), disin(q))
+  else p
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive formula rewriting exceeds bounded inference.
+/** Replace implication and equivalence with negation, disjunction, and conjunction. */
+fun elim(p) = if p is
+  Sym(s) then Sym(s)
+  Not(p) then Not(elim(p))
+  Dis(p, q) then Dis(elim(p), elim(q))
+  Con(p, q) then Con(elim(p), elim(q))
+  Imp(p, q) then Dis(Not(elim(p)), elim(q))
+  Eqv(f, f_) then Con(elim(Imp(f, f_)), elim(Imp(f_, f)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The alternating list traversal exceeds bounded inference.
+/** Alternate elements by exchanging the two lists at each step. */
+fun interleave(xs, ys) = if xs is
+  LCons(x, rest) then LCons(x, interleave(ys, rest))
+  LNil() then LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive negation rewriting exceeds bounded inference.
+/** Move negations inwards to symbols using the source's rewrite order. */
+fun negin(p) = if p is
+  Not(Not(p)) then negin(p)
+  Not(Con(p, q)) then Dis(negin(Not(p)), negin(Not(q)))
+  Not(Dis(p, q)) then Con(negin(Not(p)), negin(Not(q)))
+  Dis(p, q) then Dis(negin(p), negin(q))
+  Con(p, q) then Con(negin(p), negin(q))
+  else p
+//│ CTML translation succeeded.
+
+/** Read an operator's precedence or throw with the invalid operator as the message. */
+fun opri(c) = if
+  c === "(" then 0
+  c === "=" then 1
+  c === ">" then 2
+  c === "|" then 3
+  c === "&" then 4
+  c === "~" then 5
+  else raiseError(c)
+//│ opri: Str → Int
+
+opri("&") as Int
+raiseError("?") as Bot
+//│ Int
+//│ ⊥
+
+:te
+opri(1)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Int ≤ Int → α.
+//│ Typing error tree:
+//│   Str → Int ≤ Int → α
+//│     Int ≤ Str
+
+:ctml-parse-only // FIXME: The guarded stack reductions exceed the 5000-call budget.
+/** Reduce one expression from the parser stack. */
+fun red(s) = if s is
+  LCons(Ast(p), LCons(Lex(op), LCons(Ast(q), s))) and op === "=" then LCons(Ast(Eqv(q, p)), s)
+  LCons(Ast(p), LCons(Lex(op), LCons(Ast(q), s))) and op === ">" then LCons(Ast(Imp(q, p)), s)
+  LCons(Ast(p), LCons(Lex(op), LCons(Ast(q), s))) and op === "|" then LCons(Ast(Dis(q, p)), s)
+  LCons(Ast(p), LCons(Lex(op), LCons(Ast(q), s))) and op === "&" then LCons(Ast(Con(q, p)), s)
+  LCons(Ast(p), LCons(Lex(op), s)) and op === "~" then LCons(Ast(Not(p)), s)
+  else raiseError("match error")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Matching the stack head and looking up its operator exhausts bounded inference.
+/** Read the precedence of the operator behind the expression on top of the stack. */
+fun spri(s) = if s is
+  LCons(Ast(_), LCons(Lex(c), _)) then opri(c)
+  else 0
+//│ CTML translation succeeded.
+
+/** Apply a state transition as long as its predicate holds. */
+fun while_(p, f, x) = if p(x) then while_(p, f, f(x)) else x
+//│ while_: ∀α. (α → Bool) → (α → α) → α → α
+
+:ctml-parse-only // FIXME: The one-step stack reduction is translation-only.
+/** Reduce until no pending operator remains. */
+fun redstar(s) = while_(x => if spri(x) === 0 then false else true, red, s)
+//│ CTML translation succeeded.
+
+/** Build a list of display spaces. */
+fun spaces(n) = replicate(n, " ")
+//│ spaces: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
+
+:ctml-parse-only // FIXME: Stack reduction is translation-only.
+/** Parse the input using the source stack and precedence rules. */
+fun parseHelper(t, s) = if t is
+  LNil() then redstar(s)
+  LCons(c, t) and c === " " then parseHelper(t, s)
+  LCons(c, t) and c === "(" then parseHelper(t, LCons(Lex("("), s))
+  LCons(c, t) and c === ")" and redstar(s) is LCons(x, LCons(Lex(paren), ss)) and paren === "(" then
+    parseHelper(t, LCons(x, ss))
+  LCons(c, t) then
+    if charLeq("a", c) && charLeq(c, "z") then parseHelper(t, LCons(Ast(Sym(c)), s))
+    else
+      let pending = spri(s)
+      let incoming = opri(c)
+      if incoming < pending then parseHelper(LCons(c, t), red(s))
+      else parseHelper(t, LCons(Lex(c), s))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The stack parser is translation-only.
+/** Extract the complete formula from the final parser stack. */
+fun parse(t) = if parseHelper(t, LNil()) is LCons(Ast(f), LNil()) then f
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive conjunction splitting exceeds the 5000-call budget.
+/** Prepend the non-conjunction formulas from left to right. */
+fun splitHelper(p, a) = if p is
+  Con(p, q) then splitHelper(p, splitHelper(q, a))
+  else LCons(p, a)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The conjunction splitter is translation-only.
+/** Split a conjunction into its clauses. */
+fun split(p) = splitHelper(p, LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive membership traversal exceeds the 5000-call budget.
+/** Test whether a clause contains both a symbol and its negation. */
+fun tautclause(c_a) = if c_a is [c, a] then
+  /** Collect the positive symbols that also occur in the negative list. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(h, t) then if inList(h, a) then LCons(h, lscomp(t)) else lscomp(t)
+  if listEq(lscomp(c), LNil()) then false else true
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Clause construction and insertion are translation-only.
+/** Discard a tautology or insert the clause in source order. */
+fun uniclHelper(p, x) =
+  let cp = clause(p)
+  if tautclause(cp) then x else insert(clauseKey, cp, x)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The insertion fold is translation-only.
+/** Collect non-tautological clauses without duplicate keys. */
+fun unicl(a) = foldr(uniclHelper, LNil(), a)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The alternating list traversal is translation-only.
+/** Format both sides of a clause with spaces and a trailing newline. */
+fun disp(l_r) = if l_r is [l, r] then
+  append(interleave(l, spaces(listLen(l))),
+    append(nofibStringToList("<="),
+      append(interleave(spaces(listLen(r)), r), nofibStringToList("\n"))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Parsing, normalization, and display are translation-only.
+/** Parse, normalize, extract, and display the source clauses. */
+fun clauses(t) = concat(map(disp, unicl(split(disin(negin(elim(parse(t))))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The clause pipeline is translation-only.
+/** Repeat the source test formula and concatenate the rendered clauses. */
+fun testClausify_nofib(n) =
+  let xs = replicate(n, nofibStringToList("a = a = a"))
+  concat(map(clauses, xs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The complete clause driver is translation-only.
+/** Join the character output for ten copies of the test formula. */
+fun main() = nofibListToString(testClausify_nofib(10))
+//│ CTML translation succeeded.

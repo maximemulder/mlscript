@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 83 member(s)
+//│ Imported 88 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/circsim.mls.
 // Circuits, ports, and packets use right-nested pairs. Signals and component kinds use tags.

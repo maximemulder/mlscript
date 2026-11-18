@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 83 member(s)
+//│ Imported 88 member(s)
 
 // These unannotated NofibPrelude implementations are checked through CTML translation.
 
@@ -304,4 +304,30 @@ fun appendLzLz(xs, ys) = delay(() =>
     LzNil() then force(ys)
     LzCons(h, t) then LzCons(h, appendLzLz(t, ys))
 )
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive list deletion exceeds the 20000-call budget.
+/** Delete the first element that matches x. */
+fun deleteBy(eq, x, ys) = if ys is
+  LNil() then LNil()
+  LCons(y, zs) then if eq(x, y) then zs else LCons(y, deleteBy(eq, x, zs))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive filtering exceeds the 20000-call budget.
+/** Remove later equal entries using the source predicate order. */
+fun nubBy(eq, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) then LCons(h, nubBy(eq, filter(y => if eq(h, y) then false else true, t)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive list comparison exceeds bounded inference.
+/** Compare proper lists lexicographically with the given less-than and greater-than tests. */
+fun ltList(xs, ys, lt, gt) = if xs is
+  LNil() and ys is LNil() then false
+  LNil() then true
+  LCons(_, _) and ys is LNil() then false
+  LCons(x, xs) and ys is LCons(y, ys) then
+    if lt(x, y) then true
+    else if gt(x, y) then false
+    else ltList(xs, ys, lt, gt)
 //│ CTML translation succeeded.

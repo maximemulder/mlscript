@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 83 member(s)
+//│ Imported 88 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/para.mls.
 // The deque remains a pair of lists, and layout triples use nested pairs.

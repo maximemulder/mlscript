@@ -397,3 +397,25 @@ declare fun filterLz[A]: (A -> Bool) -> ([X restricts (Delayed & {resume: () -> 
 /** Trusted list equality with an element comparator. See preludeDeferred.mls. */
 declare fun listEqBy[A, B]: (A -> B -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y) -> Bool
 //│ listEqBy: ∀A, B. (A → B → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y) → Bool
+
+/** Trusted JavaScript string ordering by UTF-16 code units. */
+declare fun strLt: Str -> Str -> Bool
+//│ strLt: Str → Str → Bool
+
+/** Trusted rendering of one string as a JSON string literal in a source list. */
+declare fun renderStringLiteral: Str -> Str
+//│ renderStringLiteral: Str → Str
+
+/** Trusted deletion of the first element matching the comparator. The implementation is in
+  * preludeDeferred.mls. */
+declare fun deleteBy[A, B]: (A -> B -> Bool) -> A -> ([X restricts (LNil | (LCons & {head: B} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y)
+//│ deleteBy: ∀A, B. (A → B → Bool) → A → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y)
+
+/** Trusted removal of later matching elements. The implementation is in preludeDeferred.mls. */
+declare fun nubBy[A]: (A -> A -> Bool) -> ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: A} & {tail: Y}))] -> Y)
+//│ nubBy: ∀A. (A → A → Bool) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y)
+
+/** Trusted lexicographic comparison using separate less-than and greater-than predicates.
+  * The implementation is in preludeDeferred.mls. */
+declare fun ltList[A, B]: ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y) -> (A -> B -> Bool) -> (A -> B -> Bool) -> Bool
+//│ ltList: ∀A, B. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y) → (A → B → Bool) → (A → B → Bool) → Bool

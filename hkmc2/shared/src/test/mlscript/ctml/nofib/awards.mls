@@ -1,0 +1,197 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 88 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/awards.mls.
+// One recursive dispatcher represents the source's two sorts and two partitions.
+// Equal totals are compared using the source lexicographic order on score lists.
+
+/** Remove the first structurally equal score. */
+fun delete_(xs, e) = deleteBy((x, y) => x == y, e, xs)
+//│ delete_: (∀X. {X ≥ LNil} ⟹ X) → ⊤ → LNil
+
+/** Delete each requested score in order, retaining any additional occurrences. */
+fun listDiff(a, ls) = foldl(delete_, a, ls)
+//│ listDiff: ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil
+
+:fixme // FIXME: The inferred listDiff rejects a nonempty list in its first argument.
+listDiff(LCons(20, LCons(10, LNil())), LCons(20, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ
+//│     (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               LCons ∧ {head: ε} ≤ η
+//│                 LCons ≤ η
+//│                   LCons ≤ LNil
+//│                 {head: ε} ≤ η
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       Int ≤ ⊥
+//│               {tail: ζ} ≤ η
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     θ ≤ ⊥
+//│                       (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ⊥
+//│                         LCons ∧ {head: ι} ≤ ⊥
+//│                           LCons ≤ ⊥
+//│                           {head: ι} ≤ ⊥
+//│                             ι ≤ ⊥
+//│                               Int ≤ ⊥
+//│                         {tail: κ} ≤ ⊥
+//│                           κ ≤ ⊥
+//│                             λ ≤ ⊥
+//│                               LNil ≤ ⊥
+
+/** Sort in forward partition mode. */
+data class Sort(ls, acc)
+/** Partition around a pivot in forward mode. */
+data class Part(pivot, ls, smaller, greaterEqual, acc)
+/** Sort in reverse partition mode. */
+data class ReverseSort(ls, acc)
+/** Partition around a pivot in reverse mode. */
+data class ReversePart(pivot, ls, smallerEqual, greater, acc)
+//│ Sort: ∀α, β. α → β → ((Sort ∧ {ls: α}) ∧ {acc: β})
+//│ Part: ∀γ, δ, ε, ζ, η. γ → δ → ε → ζ → η → (((((Part ∧ {pivot: γ}) ∧ {ls: δ}) ∧ {smaller: ε}) ∧ {greaterEqual: ζ}) ∧ {acc: η})
+//│ ReverseSort: ∀θ, ι. θ → ι → ((ReverseSort ∧ {ls: θ}) ∧ {acc: ι})
+//│ ReversePart: ∀κ, λ, μ, ν, ξ. κ → λ → μ → ν → ξ → (((((ReversePart ∧ {pivot: κ}) ∧ {ls: λ}) ∧ {smallerEqual: μ}) ∧ {greater: ν}) ∧ {acc: ξ})
+
+:ctml-parse-only // FIXME: Recursive dispatch across four sort modes exceeds bounded inference.
+/** Apply each sort or partition step in the source comparator and accumulator order. */
+fun quicksort(le, task) = if task is
+  Sort(ls, r) and ls is
+    LNil() then r
+    LCons(x, LNil()) then LCons(x, r)
+    LCons(x, xs) then quicksort(le, Part(x, xs, LNil(), LNil(), r))
+  Part(x, ls, rlt, rge, r) and ls is
+    LNil() then quicksort(le, ReverseSort(rlt, LCons(x, quicksort(le, ReverseSort(rge, r)))))
+    LCons(y, ys) then
+      if le(x, y) then quicksort(le, Part(x, ys, rlt, LCons(y, rge), r))
+      else quicksort(le, Part(x, ys, LCons(y, rlt), rge, r))
+  ReverseSort(ls, r) and ls is
+    LNil() then r
+    LCons(x, LNil()) then LCons(x, r)
+    LCons(x, xs) then quicksort(le, ReversePart(x, xs, LNil(), LNil(), r))
+  ReversePart(x, ls, rle, rgt, r) and ls is
+    LNil() then quicksort(le, Sort(rle, LCons(x, quicksort(le, Sort(rgt, r)))))
+    LCons(y, ys) then
+      if le(y, x) then quicksort(le, ReversePart(x, ys, LCons(y, rle), rgt, r))
+      else quicksort(le, ReversePart(x, ys, rle, LCons(y, rgt), r))
+//│ CTML translation succeeded.
+
+/** Compare pairs by their first fields, breaking ties by their second fields. */
+fun ltTup2(t1, t2, lt1, gt1, lt2) = if t1 is [a, b] and t2 is [c, d] then
+  if lt1(a, c) then true
+  else if gt1(a, c) then false
+  else lt2(b, d)
+//│ ltTup2: ∀α, β, γ, δ, ε. ⟨α, β⟩ → ⟨γ, δ⟩ → (α → γ → Bool) → (α → γ → Bool) → (β → δ → ε) → (ε ∨ Bool)
+
+ltTup2([70, 20], [70, 21], (x, y) => x < y, (x, y) => y < x, (x, y) => x < y) as Bool
+//│ Bool
+
+/** Compare two integers in increasing order. */
+fun lt(a, b) = a < b
+//│ lt: Int → Int → Bool
+
+/** Compare two integers in decreasing order. */
+fun gt(a, b) = b < a
+//│ gt: Int → Int → Bool
+
+/** Compare the score lists of candidates with the same total. */
+fun ltScores(a, b) = ltList(a, b, lt, gt)
+//│ ltScores: ∀α. {α ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool
+
+:fixme // FIXME: The inferred comparator rejects a nonempty first score list.
+ltScores(LCons(20, LNil()), LCons(21, LNil())) as Bool
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│     {δ ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│       (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│         β ≤ ∀X. {X ≥ LNil} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                 LCons ∧ {head: ε} ≤ η
+//│                   LCons ≤ η
+//│                     LCons ≤ LNil
+//│                   {head: ε} ≤ η
+//│                     {head: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         Int ≤ ⊥
+//│                 {tail: ζ} ≤ η
+//│                   {tail: ζ} ≤ LNil
+//│                     ζ ≤ ⊥
+//│                       θ ≤ ⊥
+//│                         LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: The quicksort dispatcher is translation-only.
+/** Sort candidates by total and then lexicographically by their constituent scores. */
+fun sort(ls) = quicksort((a, b) => ltTup2(a, b, lt, gt, ltScores), Sort(ls, LNil()))
+//│ CTML translation succeeded.
+
+/** Select ordered subsequences of m scores, visiting the choices that use n first. */
+fun perms(m, nns) = if nns is
+  LNil() then LNil()
+  LCons(n, ns) then
+    if m == 1 then map(x => LCons(x, LNil()), nns)
+    else append(map(x => LCons(n, x), perms(m - 1, ns)), perms(m, ns))
+//│ perms: ⊤ → LNil → LNil
+
+:ctml-parse-only // FIXME: Combination generation and sorting are translation-only.
+/** List the eligible awards for three-score combinations, highest category first. */
+fun awards(scores) =
+  let sumscores = map(p => [sum(p), p], perms(3, scores))
+  /** Select combinations whose total reaches the category threshold. */
+  fun atleast(threshold) =
+    /** Test the sum from a combination and its score list. */
+    fun qualifies(candidate) = if candidate is [total, p] then threshold <= total
+    filter(qualifies, sumscores)
+  /** Attach the category name to each ordered combination. */
+  fun award(name_threshold) = if name_threshold is [name, threshold] then
+    map(ps => [name, ps], sort(atleast(threshold)))
+  append(award(["Gold", 70]), append(award(["Silver", 60]), award(["Bronze", 50])))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The award selection step is translation-only.
+/** Grant the first eligible award and continue with its scores removed. */
+fun findawards(scores) = if awards(scores) is
+  LNil() then LNil()
+  LCons([award, [total, perm]], _) then
+    LCons([award, [total, perm]], findawards(listDiff(scores, perm)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive award assignment is translation-only.
+/** Compute awards for each named competitor. */
+fun findallawards(competitors) =
+  /** Keep the competitor's name with the resulting awards. */
+  fun result(competitor) = if competitor is [name, scores] then [name, findawards(scores)]
+  map(result, competitors)
+//│ CTML translation succeeded.
+
+/** The source list notation for strict lists. */
+fun (::)(head, tail) = LCons(head, tail)
+//│ ::: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+:ctml-parse-only // FIXME: Inference for the complete competitor table is deferred after the file-level timeout.
+/** Build the four score lists with the varying input in its source position. */
+fun competitors(i) =
+  ["Simon", 35 :: 27 :: 40 :: i :: 34 :: 21 :: LNil()] ::
+  ["Hans", 23 :: 19 :: 45 :: i :: 17 :: 10 :: 5 :: 8 :: 14 :: LNil()] ::
+  ["Phil", 1 :: 18 :: i :: 20 :: 21 :: 19 :: 34 :: 8 :: 16 :: 21 :: LNil()] ::
+  ["Kevin", 9 :: 23 :: 17 :: 54 :: i :: 41 :: 9 :: 18 :: 14 :: LNil()] :: LNil()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Award assignment and the competitor table are translation-only.
+/** Run the contest for each input, cycling the varying score modulo one hundred. */
+fun testAwards_nofib(n) =
+  map(x => findallawards(competitors(intMod(x, 100))), enumFromTo(1, n))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The whole award run is translation-only.
+/** Return all award results for the benchmark's one hundred contests. */
+fun main() = testAwards_nofib(100)
+//│ CTML translation succeeded.

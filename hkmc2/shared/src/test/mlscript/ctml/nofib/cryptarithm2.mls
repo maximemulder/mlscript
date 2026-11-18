@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 83 member(s)
+//│ Imported 88 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cryptarithm2.mls.
 // StateT carries its state and result through the run field. The source char type is Str.
@@ -24,31 +24,45 @@ fun lookup(k, t) = if t is
 fun fromSome(s) = if s is Some(x) then x
 //│ fromSome: ∀α. ({x: α} ∧ Some) → α
 
-:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
-/** Remove the first equal element. */
-fun deleteBy(eq, x, ys) = if ys is
-  LNil() then LNil()
-  LCons(y, t) and
-    eq(x, y) then t
-    else LCons(y, deleteBy(eq, x, t))
-//│ CTML translation succeeded.
-
-:ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
-/** Collect the first occurrence of each element under the supplied equality. */
-fun nubBy(eq, ls) = if ls is
-  LNil() then LNil()
-  LCons(h, t) then LCons(h, nubBy(eq, filter(y => if eq(h, y) then false else true, t)))
-//│ CTML translation succeeded.
-
-:ctml-parse-only // FIXME: The shared deletion traversal is translation-only.
 /** Delete one occurrence using strict equality. */
 fun delete_(xs, e) = deleteBy((x, y) => x === y, e, xs)
-//│ CTML translation succeeded.
+//│ delete_: (∀X. {X ≥ LNil} ⟹ X) → ⊤ → LNil
 
-:ctml-parse-only // FIXME: Deletion is translation-only.
 /** Delete each requested element in order. */
 fun listDiff(a, ls) = foldl(delete_, a, ls)
-//│ CTML translation succeeded.
+//│ listDiff: ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil
+
+:fixme // FIXME: The inferred listDiff rejects a nonempty list in its first argument.
+listDiff(LCons(2, LCons(1, LNil())), LCons(2, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ
+//│     (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               LCons ∧ {head: ε} ≤ η
+//│                 LCons ≤ η
+//│                   LCons ≤ LNil
+//│                 {head: ε} ≤ η
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       Int ≤ ⊥
+//│               {tail: ζ} ≤ η
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     θ ≤ ⊥
+//│                       (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ⊥
+//│                         LCons ∧ {head: ι} ≤ ⊥
+//│                           LCons ≤ ⊥
+//│                           {head: ι} ≤ ⊥
+//│                             ι ≤ ⊥
+//│                               Int ≤ ⊥
+//│                         {tail: κ} ≤ ⊥
+//│                           κ ≤ ⊥
+//│                             λ ≤ ⊥
+//│                               LNil ≤ ⊥
 
 /** Wrap a computation producing a list of result-state pairs. */
 data class StateT(run)

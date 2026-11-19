@@ -1,0 +1,529 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 106 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/sphere.mls.
+// Vectors, camera parameters, and hit results use right-nested pairs.
+// The three mutually recursive light paths share a tagged dispatcher.
+
+/** A three-component floating-point vector or colour. */
+type Vec = [Num, [Num, Num]]
+//│ Vec = ⟨Num, ⟨Num, Num⟩⟩
+
+/** JavaScript Math.PI. */
+val pi = 3.141592653589793
+/** Threshold for negligible rays and surface offsets. */
+val epsilon = 0.000001
+/** Distance used in a miss result or for a directional light. */
+val infinity = 100000000.0
+//│ pi: Num
+//│ epsilon: Num
+//│ infinity: Num
+
+/** Add vectors componentwise. */
+fun vecadd(a1, a2) =
+  if a1 is [x1, [y1, z1]] and a2 is [x2, [y2, z2]] then
+    [numAdd(x1, x2), [numAdd(y1, y2), numAdd(z1, z2)]]
+//│ vecadd: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Subtract the second vector componentwise. */
+fun vecsub(a1, a2) =
+  if a1 is [x1, [y1, z1]] and a2 is [x2, [y2, z2]] then
+    [numSub(x1, x2), [numSub(y1, y2), numSub(z1, z2)]]
+//│ vecsub: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Multiply vectors componentwise. */
+fun vecmult(a1, a2) =
+  if a1 is [x1, [y1, z1]] and a2 is [x2, [y2, z2]] then
+    [numMul(x1, x2), [numMul(y1, y2), numMul(z1, z2)]]
+//│ vecmult: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Add up a list of vectors from right to left. */
+fun vecsum(xs) = foldr(vecadd, [0.0, [0.0, 0.0]], xs)
+//│ vecsum: ∀α. {α ≤ ⟨Num, ⟨Num, Num⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Return a unit vector and the input's length. */
+fun vecnorm(xyz) = if xyz is [x, [y, z]] then
+  let len = numSqrt(numAdd(numAdd(numMul(x, x), numMul(y, y)), numMul(z, z)))
+  [[numDiv(x, len), [numDiv(y, len), numDiv(z, len)]], len]
+//│ vecnorm: ⟨Num, ⟨Num, Num⟩⟩ → ⟨⟨Num, ⟨Num, Num⟩⟩, Num⟩
+
+/** Scale all three components by one factor. */
+fun vecscale(xyz, a) = if xyz is [x, [y, z]] then
+  [numMul(a, x), [numMul(a, y), numMul(a, z)]]
+//│ vecscale: ⟨Num, ⟨Num, Num⟩⟩ → Num → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Take the dot product of two vectors. */
+fun vecdot(a1, a2) = if a1 is [x1, [y1, z1]] and a2 is [x2, [y2, z2]] then
+  numAdd(numAdd(numMul(x1, x2), numMul(y1, y2)), numMul(z1, z2))
+//│ vecdot: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → Num
+
+/** Take the cross product of two vectors. */
+fun veccross(a1, a2) = if a1 is [x1, [y1, z1]] and a2 is [x2, [y2, z2]] then
+  [numSub(numMul(y1, z2), numMul(y2, z1)),
+    [numSub(numMul(z1, x2), numMul(z2, x1)), numSub(numMul(x1, y2), numMul(x2, y1))]]
+//│ veccross: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Apply the source signed component test for negligible intensity. */
+fun is_zerovector(v) = if v is [x, [y, z]] then
+  numGt(epsilon, x) && numGt(epsilon, y) && numGt(epsilon, z)
+//│ is_zerovector: ⟨Num, ⟨Num, Num⟩⟩ → Bool
+
+/** A directional light with direction and colour. */
+data class Directional(x: Vec, y: Vec)
+/** A point light with position and colour. */
+data class Point(x: Vec, y: Vec)
+//│ Directional: ∀α, β. {β ≤ Vec, α ≤ Vec} ⟹ α → β → ((Directional ∧ {x: α}) ∧ {y: β})
+//│ Point: ∀γ, δ. {δ ≤ Vec, γ ≤ Vec} ⟹ γ → δ → ((Point ∧ {x: γ}) ∧ {y: δ})
+
+/** Return the position of a point light. */
+fun lightpos(p) = if p is Point(pos, _) then pos
+//│ lightpos: ∀α. (({x: α} ∧ Point) ∧ {y: ⊤}) → α
+
+/** Normalize a directional light's direction. */
+fun lightdir(d) = if d is Directional(dir, _) then fst(vecnorm(dir))
+//│ lightdir: (({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Directional) ∧ {y: ⊤}) → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Return the colour of either light kind. */
+fun lightcolour(x) = if x is
+  Directional(_, col) then col
+  Point(_, col) then col
+//│ lightcolour: ∀α. ((({y: α} ∧ Directional) ∧ {x: ⊤}) ∨ (({y: α} ∧ Point) ∧ {x: ⊤})) → α
+
+/** An ambient lighting coefficient. */
+data class Ambient(v: Vec)
+/** A diffuse lighting coefficient. */
+data class Diffuse(v: Vec)
+/** A specular lighting coefficient. */
+data class Specular(v: Vec)
+/** The exponent of the specular term. */
+data class Specpow(v: Num)
+/** A reflectivity coefficient. */
+data class Reflect(v: Num)
+/** A transmissivity coefficient. */
+data class Transmit(v: Num)
+/** An index of refraction. */
+data class Refract(v: Num)
+/** The surface body colour. */
+data class Body(v: Vec)
+//│ Ambient: ∀α. {α ≤ Vec} ⟹ α → (Ambient ∧ {v: α})
+//│ Diffuse: ∀β. {β ≤ Vec} ⟹ β → (Diffuse ∧ {v: β})
+//│ Specular: ∀γ. {γ ≤ Vec} ⟹ γ → (Specular ∧ {v: γ})
+//│ Specpow: ∀δ. {δ ≤ Num} ⟹ δ → (Specpow ∧ {v: δ})
+//│ Reflect: ∀ε. {ε ≤ Num} ⟹ ε → (Reflect ∧ {v: ε})
+//│ Transmit: ∀ζ. {ζ ≤ Num} ⟹ ζ → (Transmit ∧ {v: ζ})
+//│ Refract: ∀η. {η ≤ Num} ⟹ η → (Refract ∧ {v: η})
+//│ Body: ∀θ. {θ ≤ Vec} ⟹ θ → (Body ∧ {v: θ})
+
+/** One surface specification entry. */
+type Surfspec = Ambient | Diffuse | Specular | Specpow | Reflect | Transmit | Refract | Body
+//│ Surfspec = ((((((Ambient ∨ Diffuse) ∨ Specular) ∨ Specpow) ∨ Reflect) ∨ Transmit) ∨ Refract) ∨ Body
+
+/** A proper list of surface specification entries. */
+type Surface = [X restricts (LNil | (LCons & {head: Surfspec} & {tail: X}))] -> X
+//│ Surface = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Surfspec}) ∧ {tail: X})} ⟹ X
+
+:fixme // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Ambient entry or the source default. */
+fun ambientsurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Ambient(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons([0.0, [0.0, 0.0]], LNil())))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (({tail: ⊤} ∧ {head: α}) ∧ LCons) → α ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (({tail: ⊤} ∧ {head: α}) ∧ LCons) → α ≤ β → γ
+//│     (({tail: ⊤} ∧ {head: δ}) ∧ LCons) → δ ≤ β → γ
+//│       β ≤ ({tail: ⊤} ∧ {head: δ}) ∧ LCons
+//│         ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Z})} ⟹ Z ≤ ({tail: ⊤} ∧ {head: δ}) ∧ LCons
+//│           ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Z})} ⟹ Z ≤ {tail: ⊤} ∧ {head: δ}
+//│             ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Z})} ⟹ Z ≤ {tail: ⊤}
+//│               {ζ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: ζ})} ⟹ ζ ≤ {tail: ⊤}
+//│                 ζ ≤ {tail: ⊤}
+//│                   LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: ζ}) ≤ {tail: ⊤}
+//│                     LNil ≤ {tail: ⊤}
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Diffuse entry or the source default. */
+fun diffusesurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Diffuse(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons([0.0, [0.0, 0.0]], LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Specular entry or the source default. */
+fun specularsurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Specular(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons([0.0, [0.0, 0.0]], LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Specpow entry or the source default. */
+fun specpowsurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Specpow(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons(8.0, LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Reflect entry or the source default. */
+fun reflectsurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Reflect(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons(0.0, LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Transmit entry or the source default. */
+fun transmitsurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Transmit(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons(0.0, LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Refract entry or the source default. */
+fun refractsurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Refract(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons(1.0, LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The type of append does not establish a nonempty list for head.
+/** Return the first Body entry or the source default. */
+fun bodysurf(ss) =
+  /** Collect all matching entries in source order. */
+  fun lscomp(ls) = if ls is
+    LNil() then LNil()
+    LCons(x, t) then
+      if x is Body(s) then LCons(s, lscomp(t)) else lscomp(t)
+  head(append(lscomp(ss), LCons([1.0, [1.0, 1.0]], LNil())))
+//│ CTML translation succeeded.
+
+/** A sphere with a center, radius, and ordered surface specification. */
+data class Sphere(pos: Vec, radius: Num, surface: Surface)
+//│ Sphere: ∀α, β, γ. {β ≤ Num, γ ≤ Surface, α ≤ Vec} ⟹ α → β → γ → (((Sphere ∧ {pos: α}) ∧ {radius: β}) ∧ {surface: γ})
+
+/** Return a sphere's surface specification. */
+fun spheresurf(s) = if s is Sphere(_, _, surf) then surf
+//│ spheresurf: ∀α. ((({surface: α} ∧ Sphere) ∧ {pos: ⊤}) ∧ {radius: ⊤}) → α
+
+/** The camera's target. */
+val lookat = [0.0, [0.0, 0.0]]
+/** The camera's vertical direction. */
+val vup = [0.0, [0.0, 1.0]]
+/** The source field of view in degrees. */
+val fov = 45.0
+/** The surface used by every sphere in the fixed scene. */
+val s2 = LCons(Ambient([0.035, [0.0325, 0.025]]),
+  LCons(Diffuse([0.5, [0.45, 0.35]]), LCons(Specular([0.8, [0.8, 0.8]]),
+    LCons(Specpow(3.0), LCons(Reflect(0.5), LNil())))))
+//│ lookat: ⟨Num, ⟨Num, Num⟩⟩
+//│ vup: ⟨Num, ⟨Num, Num⟩⟩
+//│ fov: Num
+//│ s2: (LCons ∧ {head: Ambient ∧ {v: ⟨Num, ⟨Num, Num⟩⟩}}) ∧ {tail: (LCons ∧ {head: Diffuse ∧ {v: ⟨Num, ⟨Num, Num⟩⟩}}) ∧ {tail: (LCons ∧ {head: Specular ∧ {v: ⟨Num, ⟨Num, Num⟩⟩}}) ∧ {tail: (LCons ∧ {head: Specpow ∧ {v: Num}}) ∧ {tail: (LCons ∧ {head: Reflect ∧ {v: Num}}) ∧ {tail: LNil}}}}}
+
+:ctml-parse-only // FIXME: Inference of the complete scene exceeds the per-file time budget.
+/** The ten spheres in source traversal order. */
+val testspheres =
+  LCons(Sphere([0.0, [0.0, 0.0]], 0.5, s2),
+    LCons(Sphere([0.272166, [0.272166, 0.544331]], 0.166667, s2),
+      LCons(Sphere([0.643951, [0.172546, 0.0]], 0.166667, s2),
+        LCons(Sphere([0.172546, [0.643951, 0.0]], 0.166667, s2),
+          LCons(Sphere([numSub(0.0, 0.371785), [0.0996195, 0.544331]], 0.166667, s2),
+            LCons(Sphere([numSub(0.0, 0.471405), [0.471405, 0.0]], 0.166667, s2),
+              LCons(Sphere([numSub(0.0, 0.643951), [numSub(0.0, 0.172546), 0.0]], 0.166667, s2),
+                LCons(Sphere([0.0996195, [numSub(0.0, 0.371785), 0.544331]], 0.166667, s2),
+                  LCons(Sphere([numSub(0.0, 0.172546), [numSub(0.0, 0.643951), 0.0]], 0.166667, s2),
+                    LCons(Sphere([0.471405, [numSub(0.0, 0.471405), 0.0]], 0.166667, s2), LNil()))))))))))
+//│ CTML translation succeeded.
+
+/** The three point lights in source order. */
+val testlights =
+  LCons(Point([4.0, [3.0, 2.0]], [0.288675, [0.288675, 0.288675]]),
+    LCons(Point([1.0, [numSub(0.0, 4.0), 4.0]], [0.288675, [0.288675, 0.288675]]),
+      LCons(Point([numSub(0.0, 3.0), [1.0, 5.0]], [0.288675, [0.288675, 0.288675]]), LNil())))
+//│ testlights: (LCons ∧ {head: (Point ∧ {x: ⟨Num, ⟨Num, Num⟩⟩}) ∧ {y: ⟨Num, ⟨Num, Num⟩⟩}}) ∧ {tail: (LCons ∧ {head: (Point ∧ {x: ⟨Num, ⟨Num, Num⟩⟩}) ∧ {y: ⟨Num, ⟨Num, Num⟩⟩}}) ∧ {tail: (LCons ∧ {head: (Point ∧ {x: ⟨Num, ⟨Num, Num⟩⟩}) ∧ {y: ⟨Num, ⟨Num, Num⟩⟩}}) ∧ {tail: LNil}}}
+
+/** The eye position. */
+val lookfrom = [2.1, [1.3, 1.7]]
+/** The colour for a ray that misses the scene. */
+val background = [0.078, [0.361, 0.753]]
+//│ lookfrom: ⟨Num, ⟨Num, Num⟩⟩
+//│ background: ⟨Num, ⟨Num, Num⟩⟩
+
+/** Compute the surface normal at a point on a sphere. */
+fun spherenormal(pos, sp) = if sp is Sphere(spos, rad, _) then
+  vecscale(vecsub(pos, spos), numDiv(1.0, rad))
+//│ spherenormal: ⟨Num, ⟨Num, Num⟩⟩ → ((({radius: Num} ∧ {pos: ⟨Num, ⟨Num, Num⟩⟩}) ∧ Sphere) ∧ {surface: ⊤}) → ⟨Num, ⟨Num, Num⟩⟩
+
+/** Convert an angle from degrees to radians. */
+fun dtor(x) = numDiv(numMul(x, pi), 180.0)
+//│ dtor: Num → Num
+
+/** Compute the first ray and the horizontal and vertical pixel steps. */
+fun camparams(lookfrom, lookat, vup, fov, winsize) =
+  let initfirstray = vecsub(lookat, lookfrom)
+  if vecnorm(initfirstray) is [lookdir, dist] and vecnorm(veccross(lookdir, vup)) is
+    [scrni, _] and vecnorm(veccross(scrni, lookdir)) is [scrnj, _] then
+      let xfov = fov
+      let yfov = fov
+      let xwinsize = winsize
+      let ywinsize = winsize
+      let magx = numDiv(numMul(numMul(2.0, dist), numTan(dtor(numDiv(xfov, 2.0)))), xwinsize)
+      let magy = numDiv(numMul(numMul(2.0, dist), numTan(dtor(numDiv(yfov, 2.0)))), ywinsize)
+      let scrnx = vecscale(scrni, magx)
+      let scrny = vecscale(scrnj, magy)
+      let firstray = vecsub(initfirstray, vecadd(
+        vecscale(scrnx, numMul(0.5, xwinsize)), vecscale(scrny, numMul(0.5, ywinsize))))
+      [firstray, [scrnx, scrny]]
+//│ camparams: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → Num → Num → ⟨⟨Num, ⟨Num, Num⟩⟩, ⟨⟨Num, ⟨Num, Num⟩⟩, ⟨Num, ⟨Num, Num⟩⟩⟩⟩
+
+/** Find the nearest forward intersection with one sphere. */
+fun sphereintersect(pos, dir, sp) = if sp is Sphere(spos, rad, _) then
+  let m = vecsub(pos, spos)
+  let bm = vecdot(m, dir)
+  let m2 = vecdot(m, m)
+  let disc = numAdd(numSub(numMul(bm, bm), m2), numMul(rad, rad))
+  let slo = numSub(numMul(numSub(0.0, 1.0), bm), numSqrt(disc))
+  let shi = numAdd(numMul(numSub(0.0, 1.0), bm), numSqrt(disc))
+  if
+    numGt(0.0, disc) then [false, 0.0]
+    numGt(0.0, slo) then
+      if numGt(0.0, shi) then [false, 0.0] else [true, shi]
+    else [true, slo]
+//│ sphereintersect: ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ((({radius: Num} ∧ {pos: ⟨Num, ⟨Num, Num⟩⟩}) ∧ Sphere) ∧ {surface: ⊤}) → ⟨Bool, Num⟩
+
+:ctml-parse-only // FIXME: Collecting intersections and folding the hits exceeds the solver budget.
+/** Trace a ray through the sphere list, choosing the nearest intersection. */
+fun trace(spheres, pos, dir) =
+  /** Choose the second hit on equal distance. */
+  fun f(d1s1, d2s2) = if d1s1 is [d1, s1] and d2s2 is [d2, s2_] then
+    if numGt(d2, d1) then [d1, s1] else [d2, s2_]
+  /** Retain the distance and sphere for each hit. */
+  fun sphmap(xss) = if xss is
+    LNil() then LNil()
+    LCons(x, xs) and sphereintersect(pos, dir, x) is [is_hit, where_hit] then
+      if is_hit then LCons([where_hit, x], sphmap(xs)) else sphmap(xs)
+  let dists = sphmap(spheres)
+  if null_(dists) then [false, [infinity, head(spheres)]]
+  else if foldr(f, head(dists), tail(dists)) is [mindist, sp] then [true, [mindist, sp]]
+//│ CTML translation succeeded.
+
+/** Compute the refraction direction or report total internal reflection. */
+fun refractray(newindex, olddir, innorm) =
+  let dotp = numMul(numSub(0.0, 1.0), vecdot(olddir, innorm))
+  let refraction = if numGt(0.0, dotp) then
+    [vecscale(innorm, numSub(0.0, 1.0)), [numMul(numSub(0.0, 1.0), dotp), numDiv(1.0, newindex)]]
+  else [innorm, [dotp, newindex]]
+  if refraction is [norm, [k, nr]] then
+    let disc = numSub(1.0, numMul(numMul(nr, nr), numSub(1.0, numMul(k, k))))
+    let t = numSub(numMul(nr, k), numSqrt(disc))
+    if numGt(0.0, disc) then [true, [0.0, [0.0, 0.0]]]
+    else [false, vecadd(vecscale(norm, t), vecscale(olddir, nr))]
+//│ refractray: Num → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Num, ⟨Num, Num⟩⟩ → ⟨Bool, ⟨Num, ⟨Num, Num⟩⟩⟩
+
+/** Compute the direction and distance from a point to a light. */
+fun lightdirection(l, pt) = if l is
+  Directional(dir, _) then [fst(vecnorm(dir)), infinity]
+  Point(pos, _) then vecnorm(vecsub(pos, pt))
+//│ lightdirection: ∀α, β. {β ≤ ¬({α ≤ ({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Directional) ∧ {y: ⊤}} ⟹ ⊥) ∨ ¬({α ≤ ({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Point) ∧ {y: ⊤}} ⟹ ¬⟨Num, ⟨Num, Num⟩⟩), α ≤ (({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Directional) ∧ {y: ⊤}) ∨ ¬({β ≤ ⟨Num, ⟨Num, Num⟩⟩} ⟹ ¬(({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Point) ∧ {y: ⊤}))} ⟹ α → β → (({α ≤ ({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Directional) ∧ {y: ⊤}} ⟹ ⟨⟨Num, ⟨Num, Num⟩⟩, Num⟩) ∧ ({β ≤ ⟨Num, ⟨Num, Num⟩⟩, α ≤ ({x: ⟨Num, ⟨Num, Num⟩⟩} ∧ Point) ∧ {y: ⊤}} ⟹ ⟨⟨Num, ⟨Num, Num⟩⟩, Num⟩))
+
+:ctml-parse-only // FIXME: The ordered intersection traversal is translation-only.
+/** Test the source scene for a shadow ray hit. */
+fun shadowed(pos, dir, lcolour) =
+  if trace(testspheres, vecadd(pos, vecscale(dir, epsilon)), dir) is [is_hit, [_, _]] then
+    if is_hit then [true, lcolour] else [false, lcolour]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The surface selectors have no usable inferred types.
+/** Evaluate the diffuse and specular contribution from one light. */
+fun lightray(l, pos, norm, refl, surf) =
+  if lightdirection(l, pos) is [ldir, _] then
+    let cosangle = vecdot(ldir, norm)
+    if shadowed(pos, ldir, lightcolour(l)) is [is_inshadow, lcolour] then
+      if is_inshadow then [0.0, [0.0, 0.0]]
+      else
+        let diff = diffusesurf(surf)
+        let spow = specpowsurf(surf)
+        if numLe(cosangle, 0.0) then
+          let bodycol = bodysurf(surf)
+          let cosalpha = numMul(numSub(0.0, 1.0), vecdot(refl, ldir))
+          let diffcont = vecmult(vecscale(diff, numMul(numSub(0.0, 1.0), cosangle)), lcolour)
+          let speccont = if numLe(cosalpha, 0.0) then [0.0, [0.0, 0.0]]
+            else vecmult(vecscale(bodycol, numPow(cosalpha, spow)), lcolour)
+          vecadd(diffcont, speccont)
+        else
+          let spec = specularsurf(surf)
+          let cosalpha = vecdot(refl, ldir)
+          let diffcont = vecmult(vecscale(diff, cosangle), lcolour)
+          let speccont = if numGt(0.0, cosalpha) then [0.0, [0.0, 0.0]]
+            else vecmult(vecscale(spec, numPow(cosalpha, spow)), lcolour)
+          vecadd(diffcont, speccont)
+//│ CTML translation succeeded.
+
+/** Shade a primary or secondary ray's hit. */
+data class Shade(lights, sp, lookpos, dir, dist: Num, contrib)
+/** Follow a transmitted ray. */
+data class TransmitRay(lights, colour, pos, dir, index: Num, intens, contrib, norm)
+/** Follow a reflected ray. */
+data class ReflectRay(pos, newdir, lights, intens, contrib, colour)
+//│ Shade: ∀α, β, γ, δ, ε, ζ. {ε ≤ Num} ⟹ α → β → γ → δ → ε → ζ → ((((((Shade ∧ {lights: α}) ∧ {sp: β}) ∧ {lookpos: γ}) ∧ {dir: δ}) ∧ {dist: ε}) ∧ {contrib: ζ})
+//│ TransmitRay: ∀η, θ, ι, κ, λ, μ, ν, ξ. {λ ≤ Num} ⟹ η → θ → ι → κ → λ → μ → ν → ξ → ((((((((TransmitRay ∧ {lights: η}) ∧ {colour: θ}) ∧ {pos: ι}) ∧ {dir: κ}) ∧ {index: λ}) ∧ {intens: μ}) ∧ {contrib: ν}) ∧ {norm: ξ})
+//│ ReflectRay: ∀ο, π, ρ, σ, τ, υ. ο → π → ρ → σ → τ → υ → ((((((ReflectRay ∧ {pos: ο}) ∧ {newdir: π}) ∧ {lights: ρ}) ∧ {intens: σ}) ∧ {contrib: τ}) ∧ {colour: υ})
+
+:ctml-parse-only // FIXME: The surface selectors and light contributions have no inferred types.
+/** Evaluate the mutually recursive shading, transmission, and reflection paths. */
+fun lightPath(task) = if task is
+  Shade(lights, sp, lookpos, dir, dist, contrib) then
+    let hitpos = vecadd(lookpos, vecscale(dir, dist))
+    let ambientlight = [1.0, [1.0, 1.0]]
+    let surf = spheresurf(sp)
+    let amb = vecmult(ambientlight, ambientsurf(surf))
+    let norm = spherenormal(hitpos, sp)
+    let refl = vecadd(dir, vecscale(norm, numMul(numSub(0.0, 2.0), vecdot(dir, norm))))
+    let diff = vecsum(map(l => lightray(l, hitpos, norm, refl, surf), lights))
+    let transmitted = transmitsurf(surf)
+    let simple = vecadd(amb, diff)
+    let trintensity = vecscale(bodysurf(surf), transmitted)
+    let transmission = if numGt(epsilon, transmitted) then [false, simple]
+      else lightPath(
+        TransmitRay(lights, simple, hitpos, dir, refractsurf(surf), trintensity, contrib, norm))
+    if transmission is [is_tir, trcol] then
+      let reflsurf = vecscale(specularsurf(surf), reflectsurf(surf))
+      let reflectiv = if is_tir then vecadd(trintensity, reflsurf) else reflsurf
+      if is_zerovector(reflectiv) then trcol
+      else lightPath(ReflectRay(hitpos, refl, lights, reflectiv, contrib, trcol))
+  TransmitRay(lights, colour, pos, dir, index, intens, contrib, norm) then
+    let newcontrib = vecmult(intens, contrib)
+    if refractray(index, dir, norm) is [_, newdir] then
+      let nearpos = vecadd(pos, vecscale(newdir, epsilon))
+      if trace(testspheres, nearpos, newdir) is [is_hit, [dist, sp]] then
+        let newcol = if is_hit then lightPath(Shade(lights, sp, nearpos, newdir, dist, newcontrib))
+          else background
+        if is_zerovector(newcontrib) then [false, colour]
+        else [false, vecadd(vecmult(newcol, intens), colour)]
+  ReflectRay(pos, newdir, lights, intens, contrib, colour) then
+    let newcontrib = vecmult(intens, contrib)
+    let nearpos = vecadd(pos, vecscale(newdir, epsilon))
+    if trace(testspheres, nearpos, newdir) is [is_hit, [dist, sp]] then
+      let newcol = if is_hit then lightPath(Shade(lights, sp, nearpos, newdir, dist, newcontrib))
+        else background
+      if is_zerovector(newcontrib) then colour
+      else vecadd(colour, vecmult(newcol, intens))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The shading dispatcher is translation-only.
+/** Trace and shade a single pixel ray. */
+fun tracepixel(spheres, lights, x, y, firstray, scrnx, scrny) =
+  let pos = lookfrom
+  let direction = vecnorm(vecadd(vecadd(firstray, vecscale(scrnx, x)), vecscale(scrny, y)))
+  if direction is [dir, _] and trace(spheres, pos, dir) is [hit, [dist, sp]] then
+      if hit then lightPath(Shade(lights, sp, pos, dir, dist, [1.0, [1.0, 1.0]]))
+      else background
+//│ CTML translation succeeded.
+
+/** Accumulate the source rounded RGB values and base-61 hash as bigints. */
+fun hash(param) =
+  /** Scale a colour component to the source rounding range. */
+  fun u8(x) = bigIntFrom(numRoundToInt(numMul(255.0, x)))
+  /** Add one weighted pixel to the accumulated suffix hash. */
+  fun step(rgb, acc) = if rgb is [r, [g, b]] then
+    let rg = bigIntAdd(u8(r), bigIntMul(u8(g), bigIntFrom(7)))
+    let rgb = bigIntAdd(rg, bigIntMul(u8(b), bigIntFrom(23)))
+    bigIntAdd(rgb, bigIntMul(acc, bigIntFrom(61)))
+  foldr(step, bigIntFrom(0), param)
+//│ hash: ∀α. {α ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt
+
+:ctml-parse-only // FIXME: The pixel shading pipeline is translation-only.
+/** Compute the pixels in the source coordinate order. */
+fun ray(winsize) =
+  let lights = testlights
+  if camparams(lookfrom, lookat, vup, fov, numFromInt(winsize)) is [firstray, [scrnx, scrny]] then
+    /** Traverse the outer coordinate range. */
+    fun lscomp1(ls1) = if ls1 is
+      LNil() then LNil()
+      LCons(i, t1) then
+        /** Traverse the inner range for one outer coordinate. */
+        fun lscomp2(ls2) = if ls2 is
+          LNil() then lscomp1(t1)
+          LCons(j, t2) then
+            let rgb = tracepixel(
+              testspheres, lights, numFromInt(i), numFromInt(j), firstray, scrnx, scrny)
+            LCons([[i, j], rgb], lscomp2(t2))
+        lscomp2(enumFromTo(0, winsize - 1))
+    lscomp1(enumFromTo(0, winsize - 1))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The renderer is translation-only.
+/** Hash the colours of the rendered image. */
+fun run(winsize) = hash(map(snd, ray(winsize)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The renderer is translation-only.
+/** Run the source renderer and hash it. */
+fun testSphere_nofib(n) = run(n)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The renderer is translation-only.
+/** Render and hash the original 30-by-30 image. */
+fun main() = testSphere_nofib(30)
+//│ CTML translation succeeded.
+
+vecadd([1.0, [2.0, 3.0]], [4.0, [5.0, 6.0]]) as Vec
+vecdot([1.0, [2.0, 3.0]], [4.0, [5.0, 6.0]]) as Num
+camparams(lookfrom, lookat, vup, fov, 30.0) as [Vec, [Vec, Vec]]
+sphereintersect(lookfrom, vup, Sphere(lookat, 0.5, LNil())) as [Bool, Num]
+refractray(1.5, vup, [0.0, [1.0, 0.0]]) as [Bool, Vec]
+spheresurf(Sphere(lookat, 0.5, LCons(Specpow(3.0), LNil()))) as Surface
+hash(LCons([0.5, [0.25, 0.75]], LNil())) as BigInt
+//│ Vec
+//│ Num
+//│ ⟨Vec, ⟨Vec, Vec⟩⟩
+//│ ⟨Bool, Num⟩
+//│ ⟨Bool, Vec⟩
+//│ Surface
+//│ BigInt
+
+:te
+Point([1.0, [2.0, "blue"]], background)
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Vec, α ≤ Vec} ⟹ α → β → ((Point ∧ {x: α}) ∧ {y: β}) ≤ ⟨Num, ⟨Num, Str⟩⟩ → γ.
+//│ Typing error tree:
+//│   ∀α, β. {β ≤ Vec, α ≤ Vec} ⟹ α → β → ((Point ∧ {x: α}) ∧ {y: β}) ≤ ⟨Num, ⟨Num, Str⟩⟩ → γ
+//│     {ε ≤ Vec, δ ≤ Vec} ⟹ δ → ε → ((Point ∧ {x: δ}) ∧ {y: ε}) ≤ ⟨Num, ⟨Num, Str⟩⟩ → γ
+//│       {δ ≤ Vec} ⟹ δ → ε → ((Point ∧ {x: δ}) ∧ {y: ε}) ≤ ⟨Num, ⟨Num, Str⟩⟩ → γ
+//│         δ → ε → ((Point ∧ {x: δ}) ∧ {y: ε}) ≤ ⟨Num, ⟨Num, Str⟩⟩ → γ
+//│           ⟨Num, ⟨Num, Str⟩⟩ ≤ δ
+//│             ⟨Num, ⟨Num, Str⟩⟩ ≤ Vec
+//│               ⟨Num, ⟨Num, Str⟩⟩ ≤ ⟨Num, ⟨Num, Num⟩⟩
+//│                 ⟨Num, Str⟩ ≤ ⟨Num, Num⟩
+//│                   Str ≤ Num
+
+:breakme // FIXME: The inferred fold accepts an RGB tuple with a nonnumeric component.
+:te
+hash(LCons([0.5, [0.25, "blue"]], LNil()))
+//│ BigInt

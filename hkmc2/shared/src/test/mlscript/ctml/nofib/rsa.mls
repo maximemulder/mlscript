@@ -1,0 +1,193 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 106 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/rsa.mls.
+// Keep the source ciphertext and hash arithmetic in JavaScript BigInt.
+
+/** Bigint zero for the folds and exponent base case. */
+val const0 = bigIntFrom(0)
+/** Polynomial hash multiplier. */
+val const31 = bigIntFrom(31)
+/** Bigint one for the exponent base case and decrement. */
+val const1 = bigIntFrom(1)
+/** Bigint two for exponent halving. */
+val const2 = bigIntFrom(2)
+/** Radix for encoding a plaintext block. */
+val const128 = bigIntFrom(128)
+//│ const0: BigInt
+//│ const31: BigInt
+//│ const1: BigInt
+//│ const2: BigInt
+//│ const128: BigInt
+
+/** Render a bigint as a list of decimal characters. */
+fun string_of_z(x) = nofibStringToList(stringOfBigInt(x))
+//│ string_of_z: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ BigInt → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
+
+/** Accumulate the ciphertext's character codes in the source rolling hash. */
+fun hash(str) = foldl(
+  (acc, c) => bigIntAdd(nofibCodePointBigInt(c), bigIntMul(acc, const31)),
+  const0,
+  str
+)
+//│ hash: ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt
+
+:ctml-parse-only // FIXME: The recursive Boolean traversal exceeds the 20000-call budget.
+/** Check each Boolean until one is false. */
+fun and_(ls) = if ls is
+  LNil() then true
+  LCons(h, t) then if h then and_(t) else false
+//│ CTML translation succeeded.
+
+/** Test whether a bigint exponent is even. */
+fun even(a) = bigIntRem(a, const2) === const0
+//│ even: BigInt → Bool
+
+/** Encode a plaintext block in radix 128. */
+fun code(ls) = foldl(
+  (x, y) => bigIntAdd(bigIntMul(const128, x), nofibCodePointBigInt(y)),
+  const0,
+  ls
+)
+//│ code: ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt
+
+/** Raise x to n modulo m, squaring the recursive result for an even exponent. */
+fun power(n, m, x) = if
+  n === const0 then const1
+  even(n) then
+    let halfPower = power(bigIntQuot(n, const2), m, x)
+    bigIntRem(bigIntMul(halfPower, halfPower), m)
+  else bigIntRem(bigIntMul(x, power(bigIntSub(n, const1), m, x)), m)
+//│ power: BigInt → BigInt → BigInt → BigInt
+
+hash(LCons("a", LCons("b", LNil()))) as BigInt
+code(LCons("a", LCons("b", LNil()))) as BigInt
+power(bigIntFrom(7), bigIntFrom(11), bigIntFrom(3)) as BigInt
+//│ BigInt
+//│ BigInt
+//│ BigInt
+
+:te
+even(2)
+//│ ═══[TYPE ERROR] Cannot solve judgment BigInt → Bool ≤ Int → α.
+//│ Typing error tree:
+//│   BigInt → Bool ≤ Int → α
+//│     Int ≤ BigInt
+
+:te
+hash(LCons(97, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ
+//│     {δ ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ
+//│       (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ
+//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                   LCons ∧ {head: ε} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         Int ≤ ⊥
+//│                   {tail: ζ} ≤ LNil
+//│                     ζ ≤ ⊥
+//│                       θ ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: δ}
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: δ}
+//│                       LCons ∧ {head: ε} ≤ {head: δ}
+//│                         LCons ≤ {head: δ}
+//│                         {head: ε} ≤ {head: δ}
+//│                           ε ≤ δ
+//│                             ε ≤ Str
+//│                               Int ≤ Str
+//│                       {tail: ζ} ≤ {head: δ}
+//│                         ζ ≤ ⊥
+//│                           θ ≤ ⊥
+//│                             LNil ≤ ⊥
+
+/** Split the plaintext into consecutive blocks of the requested width. */
+fun collect(n, xs) = if
+  n === 0 then LNil()
+  xs is LNil() then LNil()
+  else LCons(take(n, xs), collect(n, leave(n, xs)))
+//│ collect: ⊤ → LNil → LNil
+
+:fixme // FIXME: The inferred collector accepts only the empty list.
+collect(1, LCons("a", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     LNil → LNil ≤ β → γ
+//│       β ≤ LNil
+//│         (LCons ∧ {head: δ}) ∧ {tail: ε} ≤ LNil
+//│           LCons ∧ {head: δ} ≤ LNil
+//│             LCons ≤ LNil
+//│             {head: δ} ≤ LNil
+//│               δ ≤ ⊥
+//│                 Str ≤ ⊥
+//│           {tail: ε} ≤ LNil
+//│             ε ≤ ⊥
+//│               ζ ≤ ⊥
+//│                 LNil ≤ ⊥
+
+:fixme // FIXME: The inferred decimal character list cannot instantiate listLen.
+/** Derive the plaintext block width from the modulus's decimal length. */
+fun size(n) = intDiv(listLen(string_of_z(n)) * 47, 100)
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})} ⟹ δ
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ δ
+//│             (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ δ
+//│               (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ LNil
+//│                 LCons ∧ {head: Str} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: Str} ≤ LNil
+//│                     Str ≤ ⊥
+//│                 {tail: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: δ}
+//│                 (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ {tail: δ}
+//│                   LCons ∧ {head: Str} ≤ {tail: δ}
+//│                     LCons ≤ {tail: δ}
+//│                     {head: Str} ≤ {tail: δ}
+//│                       Str ≤ ⊥
+//│                   {tail: γ} ≤ {tail: δ}
+//│                     γ ≤ δ
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ δ
+
+:ctml-parse-only // FIXME: Block collection and decimal length do not check on nonempty inputs.
+/** Encrypt each block and terminate each decimal result with a newline. */
+fun encrypt(n, e, s) =
+  unlines(map(c => string_of_z(power(e, n, code(c))), collect(size(n), s)))
+//│ CTML translation succeeded.
+
+/** Read the original plaintext fixture. */
+val input = nofibStringToList(
+  nofibReadText("./hkmc2/shared/src/test/mlscript/nofib/input/rsa.faststdin"))
+//│ input: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})
+
+:ctml-parse-only // FIXME: The encryption pipeline is translation-only.
+/** Encrypt the fixture with the source modulus and exponent, then hash the result. */
+fun testRsa_nofib(_) = hash(encrypt(
+  bigIntFrom("2036450659413645137870851576872812267542175329986469156678671505255564383842535488743101632280716717779536712424613501441720195827856504007305662157107"),
+  bigIntFrom("387784473137902876992546516170169092918207676456888779623592396031349415024943784869634893342729620092877891356118467738167515879252473323905128540213"),
+  input
+))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The encryption pipeline is translation-only.
+/** Run the source benchmark. */
+fun main() = testRsa_nofib(0)
+//│ CTML translation succeeded.

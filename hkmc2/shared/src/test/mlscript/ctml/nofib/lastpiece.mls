@@ -1,0 +1,967 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 106 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/lastpiece.mls.
+// The board map and document constructors carry recursive children in structural fields.
+// Search and document evaluation retain mutual recursion through tagged dispatchers.
+
+/** A board coordinate or placement offset. */
+type Coord = [Int, Int]
+//│ Coord = ⟨Int, Int⟩
+
+/** A proper list of offsets in a placement. */
+type Offsets = [X restricts (LNil | (LCons & {head: Coord} & {tail: X}))] -> X
+//│ Offsets = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Coord}) ∧ {tail: X})} ⟹ X
+
+/** A proper list of placements for one orientation. */
+type Placements = [X restricts (LNil | (LCons & {head: Offsets} & {tail: X}))] -> X
+//│ Placements = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Offsets}) ∧ {tail: X})} ⟹ X
+
+/** An unsuccessful lookup or placement. */
+data class None()
+/** A successful lookup or placement with its value. */
+data class Some(value)
+//│ None: Unit → None
+//│ Some: ∀α. α → (Some ∧ {value: α})
+
+:ctml-parse-only // FIXME: Recursive filtering and mapping exceed the 20000-call budget.
+/** Keep the successful results of a source mapping in order. */
+fun mapMaybe(f, ls) = if ls is
+  LNil() then LNil()
+  LCons(h, t) and f(h) is
+    None() then mapMaybe(f, t)
+    Some(a) then LCons(a, mapMaybe(f, t))
+//│ CTML translation succeeded.
+
+/** A greater left coordinate. */
+data class GT()
+/** A smaller left coordinate. */
+data class LT()
+/** Equal coordinates. */
+data class EQ()
+//│ GT: Unit → GT
+//│ LT: Unit → LT
+//│ EQ: Unit → EQ
+
+/** Order coordinates by row and then by column. */
+fun compareIntInt(ab, cd) = if ab is [a, b] and cd is [c, d] then
+  if
+    c < a then GT()
+    a < c then LT()
+    d < b then GT()
+    b < d then LT()
+    else EQ()
+//│ compareIntInt: ⟨Int, Int⟩ → ⟨Int, Int⟩ → ((EQ ∨ LT) ∨ GT)
+
+/** An empty board map. */
+data class Tip()
+/** A node with its cached size, coordinate, marker, and left and right subtrees. */
+data class Bin(i: Int, k: Coord, v: Str, l, r)
+//│ Tip: Unit → Tip
+//│ Bin: ∀α, β, γ, δ, ε. {β ≤ Coord, γ ≤ Str, α ≤ Int} ⟹ α → β → γ → δ → ε → (((((Bin ∧ {i: α}) ∧ {k: β}) ∧ {v: γ}) ∧ {l: δ}) ∧ {r: ε})
+
+:ctml-parse-only // FIXME: Recursive board lookup exceeds the 20000-call budget.
+/** Find a coordinate in the board map. */
+fun mapLookup(k, m) = if m is
+  Tip() then None()
+  Bin(_, kx, x, l, r) and compareIntInt(k, kx) is
+    LT() then mapLookup(k, l)
+    GT() then mapLookup(k, r)
+    EQ() then Some(x)
+//│ CTML translation succeeded.
+
+/** Read the subtree size from its root. */
+fun size(p) = if p is
+  Tip() then 0
+  Bin(sz, _, _, _, _) then sz
+//│ size: ∀α, β. {β ≥ ({α ≤ Tip} ⟹ Int) ∧ ({α ≤ (((({i: β} ∧ Bin) ∧ {k: ⊤}) ∧ {v: ⊤}) ∧ {l: ⊤}) ∧ {r: ⊤}} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬Tip) ∨ ((((({i: β} ∧ Bin) ∧ {k: ⊤}) ∧ {v: ⊤}) ∧ {l: ⊤}) ∧ {r: ⊤})} ⟹ α → β
+
+:ctml-parse-only // FIXME: Composing two subtree sizes exceeds the 20000-call budget.
+/** Construct a node and count its children. */
+fun bin(k, x, l, r) = Bin(size(l) + size(r) + 1, k, x, l, r)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Node construction via bin is translation-only.
+/** Rotate a right child to the root. */
+fun singleL(k1, x1, t1, r) = if r is
+  Bin(_, k2, x2, t2, t3) then bin(k2, x2, bin(k1, x1, t1, t2), t3)
+  else raiseError("singleL Tip")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Node construction via bin is translation-only.
+/** Rotate a left child to the root. */
+fun singleR(k1, x1, l, t3) = if l is
+  Bin(_, k2, x2, t1, t2) then bin(k2, x2, t1, bin(k1, x1, t2, t3))
+  else raiseError("singleR Tip")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Node construction via bin is translation-only.
+/** Rotate the right child's left child to the root. */
+fun doubleL(k1, x1, t1, r) = if r is
+  Bin(_, k2, x2, Bin(_, k3, x3, t2, t3), t4) then
+    bin(k3, x3, bin(k1, x1, t1, t2), bin(k2, x2, t3, t4))
+  else raiseError("doubleL Tip")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Node construction via bin is translation-only.
+/** Rotate the left child's right child to the root. */
+fun doubleR(k1, x1, l, t4) = if l is
+  Bin(_, k2, x2, t1, Bin(_, k3, x3, t2, t3)) then
+    bin(k3, x3, bin(k2, x2, t1, t2), bin(k1, x1, t3, t4))
+  else raiseError("doubleR Tip")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The left rotations are translation-only.
+/** Choose the source single or double left rotation. */
+fun rotateL(k, x, l, r) = if r is
+  Bin(_, _, _, ly, ry) then
+    if size(ly) < 2 * size(ry) then singleL(k, x, l, r) else doubleL(k, x, l, r)
+  else raiseError("rotateL Tip")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The right rotations are translation-only.
+/** Choose the source single or double right rotation. */
+fun rotateR(k, x, l, r) = if l is
+  Bin(_, _, _, ly, ry) then
+    if size(ry) < 2 * size(ly) then singleR(k, x, l, r) else doubleR(k, x, l, r)
+  else raiseError("rotateR Tip")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Both rotations are translation-only.
+/** Apply the source factor-four subtree balance rule. */
+fun balance(k, x, l, r) =
+  let sizeL = size(l)
+  let sizeR = size(r)
+  let sizeX = sizeL + sizeR + 1
+  if
+    sizeL + sizeR <= 1 then Bin(sizeX, k, x, l, r)
+    4 * sizeL <= sizeR then rotateL(k, x, l, r)
+    4 * sizeR <= sizeL then rotateR(k, x, l, r)
+    else Bin(sizeX, k, x, l, r)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Balancing a node is translation-only.
+/** Insert or replace a board marker, rebalancing along the insertion path. */
+fun insert(kx, x, m) = if m is
+  Tip() then Bin(1, kx, x, Tip(), Tip())
+  Bin(sz, ky, y, l, r) and compareIntInt(kx, ky) is
+    LT() then balance(ky, y, insert(kx, x, l), r)
+    GT() then balance(ky, y, l, insert(kx, x, r))
+    EQ() then Bin(sz, kx, x, l, r)
+//│ CTML translation succeeded.
+
+/** The first orientation of a square. */
+data class Male()
+/** The second orientation of a square. */
+data class Female()
+//│ Male: Unit → Male
+//│ Female: Unit → Female
+
+/** Switch to the opposite square orientation. */
+fun flip(s) = if s is
+  Male() then Female()
+  Female() then Male()
+//│ flip: ∀α, β. {β ≥ ({α ≤ Male} ⟹ Female) ∧ ({α ≤ Female} ⟹ Male), α ≤ ¬({β ≥ Female} ⟹ ¬Male) ∨ ¬({β ≥ Male} ⟹ ¬Female)} ⟹ α → β
+
+/** A piece marker and its two orientation-specific placement lists. */
+data class P(i: Str, a: Placements, b: Placements)
+//│ P: ∀α, β, γ. {β ≤ Placements, γ ≤ Placements, α ≤ Str} ⟹ α → β → γ → (((P ∧ {i: α}) ∧ {a: β}) ∧ {b: γ})
+
+/** A completed board. */
+data class Soln(b)
+/** The results of feasible placements at a square. */
+data class Choose(s)
+/** The board and square where no placement fits. */
+data class Fail(b, s: Coord)
+//│ Soln: ∀α. α → (Soln ∧ {b: α})
+//│ Choose: ∀β. β → (Choose ∧ {s: β})
+//│ Fail: ∀γ, δ. {δ ≤ Coord} ⟹ γ → δ → ((Fail ∧ {b: γ}) ∧ {s: δ})
+
+/** Add a placement offset to a board coordinate. */
+fun addIntInt(row_col, orow_ocol) =
+  if row_col is [row, col] and orow_ocol is [orow, ocol] then [row + orow, col + ocol]
+//│ addIntInt: ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩
+
+/** Advance to the next column. */
+fun next(row_col) = if row_col is [row, col] then [row, col + 1]
+//│ next: ∀α. ⟨α, Int⟩ → ⟨α, Int⟩
+
+/** Last board row. */
+val maxRow = 8
+/** Last board column. */
+val maxCol = 8
+/** Initial empty board. */
+val emptyBoard = Tip()
+//│ maxRow: Int
+//│ maxCol: Int
+//│ emptyBoard: Tip
+
+:ctml-parse-only // FIXME: Board lookup is translation-only.
+/** Check whether a coordinate has a marker. */
+fun check(bd, sq) = mapLookup(sq, bd)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board insertion is translation-only.
+/** Record a marker at a coordinate. */
+fun extend(bd, sq, id) = insert(sq, id, bd)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup and insertion are translation-only.
+/** Add a marker only within the source bounds and on an unoccupied square. */
+fun extend_maybe(bd, sq, id) = if sq is [row, col] then
+  if
+    maxRow < row || col < 1 || maxCol < col then None()
+    check(bd, sq) is
+      Some(_) then None()
+      None() then Some(extend(bd, sq, id))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive residual-list construction exceeds the 20000-call budget.
+/** Enumerate each choice paired with the residual list in source order. */
+fun pickOne(xs) =
+  /** Rebuild the prefix of each residual list with the accumulated function. */
+  fun go(f, xs) = if xs is
+    LNil() then LNil()
+    LCons(x, rest) then LCons([x, f(rest)], go(p => LCons(x, f(p)), rest))
+  go(x => x, xs)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup and insertion are translation-only.
+/** Fit the offsets in order, writing the anchor after all offsets succeed. */
+fun fit(bd, sq, id, os) = if os is
+  LNil() then Some(extend(bd, sq, id))
+  LCons(o, rest) and extend_maybe(bd, addIntInt(sq, o), id) is
+    Some(bd1) then fit(bd1, sq, id, rest)
+    None() then None()
+//│ CTML translation succeeded.
+
+/** Search the board starting at this square. */
+data class Search(sq: Coord, sey, bd, ps)
+/** Try one piece placement for the current search. */
+data class TryPlacement(sq: Coord, sey, bd, placement)
+//│ Search: ∀α, β, γ, δ. {α ≤ Coord} ⟹ α → β → γ → δ → ((((Search ∧ {sq: α}) ∧ {sey: β}) ∧ {bd: γ}) ∧ {ps: δ})
+//│ TryPlacement: ∀ε, ζ, η, θ. {ε ≤ Coord} ⟹ ε → ζ → η → θ → ((((TryPlacement ∧ {sq: ε}) ∧ {sey: ζ}) ∧ {bd: η}) ∧ {placement: θ})
+
+:ctml-parse-only // FIXME: The placement and mapping helpers are translation-only.
+/** Continue the search or test one placement before continuing. */
+fun search(task) = if task is
+  TryPlacement(sq, se, bd, [id, [os, ps]]) and fit(bd, sq, id, os) is
+    Some(bd1) then Some(search(Search(next(sq), flip(se), bd1, ps)))
+    None() then None()
+  Search(row_col, sey, bd, ps) and row_col is [row, col] then
+    if
+      ps is LNil() then Soln(bd)
+      col === maxCol + 1 then search(Search([row + 1, 1], flip(sey), bd, ps))
+      check(bd, row_col) is Some(_) then search(Search(next(row_col), flip(sey), bd, ps))
+      else
+        /** List the choices of piece and placement in source order. */
+        fun lscomp1(ls) = if ls is
+          LNil() then LNil()
+          LCons([P(id, ms, fs), rest], more) then
+            /** List all offsets for the selected piece and then visit the remaining choices. */
+            fun lscomp2(ls2) = if ls2 is
+              LNil() then lscomp1(more)
+              LCons(os, tail) then LCons([id, [os, rest]], lscomp2(tail))
+            lscomp2(if sey is Male() then ms else fs)
+        let choices = lscomp1(pickOne(ps))
+        let results = mapMaybe(x => search(TryPlacement(row_col, sey, bd, x)), choices)
+        if results is LNil() then Fail(bd, row_col) else Choose(results)
+//│ CTML translation succeeded.
+
+compareIntInt([1, 2], [2, 1]) as (LT | GT | EQ)
+next(addIntInt([1, 2], [2, 3])) as Coord
+flip(Male()) as Female
+size(emptyBoard) as Int
+size(Bin(1, [1, 2], "a", Tip(), Tip())) as Int
+if Bin(1, [1, 2], "a", Tip(), Tip()) is Bin(n, k, v, _, _) then [n as Int, [k as Coord, v as Str]]
+//│ (LT ∨ GT) ∨ EQ
+//│ Coord
+//│ Female
+//│ Int
+//│ Int
+//│ ⟨Int, ⟨Coord, Str⟩⟩
+
+if P("a", LCons(LCons([1, 0], LNil()), LNil()), LNil()) is P(id, ms, fs) then
+  [id as Str, [ms as Placements, fs as LNil]]
+//│ ⟨Str, ⟨Placements, LNil⟩⟩
+
+:te
+Bin(1, ["1", 2], "a", Tip(), Tip())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ⟨Str, Int⟩ → β.
+//│ Typing error tree:
+//│   α ≤ ⟨Str, Int⟩ → β
+//│     γ → δ → ε → ζ → (((((Bin ∧ {i: η}) ∧ {k: γ}) ∧ {v: δ}) ∧ {l: ε}) ∧ {r: ζ}) ≤ ⟨Str, Int⟩ → β
+//│       ⟨Str, Int⟩ ≤ γ
+//│         ⟨Str, Int⟩ ≤ Coord
+//│           ⟨Str, Int⟩ ≤ ⟨Int, Int⟩
+//│             Str ≤ Int
+
+:te
+P("a", LCons(LCons(["1", 0], LNil()), LNil()), LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ε → (((P ∧ {i: ζ}) ∧ {a: δ}) ∧ {b: ε}) ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ Placements
+//│           (LCons ∧ {head: η}) ∧ {tail: θ} ≤ Placements
+//│             (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Offsets}) ∧ {tail: X})} ⟹ X
+//│               (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {ι ≥ LNil ∨ ((LCons ∧ {head: Offsets}) ∧ {tail: ι})} ⟹ ι
+//│                 (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ι
+//│                   (LCons ∧ {head: η}) ∧ {tail: θ} ≤ LNil
+//│                     LCons ∧ {head: η} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: η} ≤ LNil
+//│                         η ≤ ⊥
+//│                           κ ≤ ⊥
+//│                             (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ ⊥
+//│                               LCons ∧ {head: λ} ≤ ⊥
+//│                                 LCons ≤ ⊥
+//│                                 {head: λ} ≤ ⊥
+//│                                   λ ≤ ⊥
+//│                                     ⟨Str, Int⟩ ≤ ⊥
+//│                               {tail: μ} ≤ ⊥
+//│                                 μ ≤ ⊥
+//│                                   ν ≤ ⊥
+//│                                     LNil ≤ ⊥
+//│                     {tail: θ} ≤ LNil
+//│                       θ ≤ ⊥
+//│                         ξ ≤ ⊥
+//│                           LNil ≤ ⊥
+//│                   (LCons ∧ {head: η}) ∧ {tail: θ} ≤ (LCons ∧ {head: Offsets}) ∧ {tail: ι}
+//│                     (LCons ∧ {head: η}) ∧ {tail: θ} ≤ LCons ∧ {head: Offsets}
+//│                       (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {head: Offsets}
+//│                         LCons ∧ {head: η} ≤ {head: Offsets}
+//│                           LCons ≤ {head: Offsets}
+//│                           {head: η} ≤ {head: Offsets}
+//│                             η ≤ Offsets
+//│                               κ ≤ Offsets
+//│                                 (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ Offsets
+//│                                   (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Coord}) ∧ {tail: X})} ⟹ X
+//│                                     (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ {ο ≥ LNil ∨ ((LCons ∧ {head: Coord}) ∧ {tail: ο})} ⟹ ο
+//│                                       (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ ο
+//│                                         (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ LNil
+//│                                           LCons ∧ {head: λ} ≤ LNil
+//│                                             LCons ≤ LNil
+//│                                             {head: λ} ≤ LNil
+//│                                               λ ≤ ⊥
+//│                                                 ⟨Str, Int⟩ ≤ ⊥
+//│                                           {tail: μ} ≤ LNil
+//│                                             μ ≤ ⊥
+//│                                               ν ≤ ⊥
+//│                                                 LNil ≤ ⊥
+//│                                         (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ (LCons ∧ {head: Coord}) ∧ {tail: ο}
+//│                                           (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ LCons ∧ {head: Coord}
+//│                                             (LCons ∧ {head: λ}) ∧ {tail: μ} ≤ {head: Coord}
+//│                                               LCons ∧ {head: λ} ≤ {head: Coord}
+//│                                                 LCons ≤ {head: Coord}
+//│                                                 {head: λ} ≤ {head: Coord}
+//│                                                   λ ≤ Coord
+//│                                                     ⟨Str, Int⟩ ≤ Coord
+//│                                                       ⟨Str, Int⟩ ≤ ⟨Int, Int⟩
+//│                                                         Str ≤ Int
+//│                                               {tail: μ} ≤ {head: Coord}
+//│                                                 μ ≤ ⊥
+//│                                                   ν ≤ ⊥
+//│                                                     LNil ≤ ⊥
+//│                         {tail: θ} ≤ {head: Offsets}
+//│                           θ ≤ ⊥
+//│                             ξ ≤ ⊥
+//│                               LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece n. */
+val nPiece = P("n",
+  LCons(LCons([0, 1], LCons([1, 1], LCons([2, 1], LCons([2, 2], LNil())))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([1, 0 - 2], LCons([2, 0 - 2], LNil())))),
+      LNil())),
+  LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece m. */
+val mPiece = P("m",
+  LCons(LCons([0, 1], LCons([1, 0], LCons([2, 0], LCons([3, 0], LNil())))),
+    LNil()),
+  LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 3], LNil())))),
+    LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([3, 0 - 1], LNil())))),
+      LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece l. */
+val lPiece = P("l",
+  LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 2], LNil())))),
+    LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([2, 0 - 1], LNil())))),
+      LNil())),
+  LCons(LCons([1, 0 - 1], LCons([1, 0], LCons([1, 1], LCons([1, 2], LNil())))),
+    LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([1, 1], LNil())))),
+      LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece k. */
+val kPiece = P("k",
+  LCons(LCons([0, 1], LCons([1, 0], LCons([2, 0], LCons([2, 0 - 1], LNil())))),
+    LNil()),
+  LCons(LCons([1, 0], LCons([1, 1], LCons([1, 2], LCons([2, 2], LNil())))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece j. */
+val jPiece = P("j",
+  LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 1], LNil())))),
+    LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([1, 0 - 1], LNil())))),
+      LCons(LCons([1, 0 - 2], LCons([1, 0 - 1], LCons([1, 0], LCons([1, 1], LNil())))),
+        LNil()))),
+  LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([2, 2], LNil())))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece i. */
+val iPiece = P("i",
+  LCons(LCons([1, 0], LCons([2, 0], LCons([2, 1], LCons([3, 1], LNil())))),
+    LCons(LCons([0, 1], LCons([0, 2], LCons([1, 0], LCons([1, 0 - 1], LNil())))),
+      LCons(LCons([1, 0], LCons([1, 1], LCons([2, 1], LCons([3, 1], LNil())))),
+        LNil()))),
+  LCons(LCons([0, 1], LCons([1, 0], LCons([1, 0 - 1], LCons([1, 0 - 2], LNil())))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece h. */
+val hPiece = P("h",
+  LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LCons([2, 2], LNil())))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LCons([2, 0 - 2], LNil())))),
+      LCons(LCons([1, 0], LCons([1, 1], LCons([2, 1], LCons([2, 2], LNil())))),
+        LNil()))),
+  LCons(LCons([0, 1], LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LNil())))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece g. */
+val gPiece = P("g",
+  LNil(),
+  LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LCons([1, 3], LNil())))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LCons([3, 0 - 1], LNil())))),
+      LCons(LCons([0, 1], LCons([0, 2], LCons([1, 2], LCons([1, 3], LNil())))),
+        LCons(LCons([1, 0], LCons([2, 0], LCons([2, 0 - 1], LCons([3, 0 - 1], LNil())))),
+          LNil())))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece f. */
+val fPiece = P("f",
+  LCons(LCons([0, 1], LCons([1, 1], LCons([2, 1], LCons([3, 1], LNil())))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([1, 0 - 2], LCons([1, 0 - 3], LNil())))),
+      LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([3, 1], LNil())))),
+        LNil()))),
+  LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 0], LNil())))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece e. */
+val ePiece = P("e",
+  LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LNil()))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LNil()))),
+      LNil())),
+  LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LNil()))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LNil()))),
+      LNil())))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece d. */
+val dPiece = P("d",
+  LCons(LCons([0, 1], LCons([1, 1], LCons([2, 1], LNil()))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([1, 0 - 2], LNil()))),
+      LNil())),
+  LCons(LCons([1, 0], LCons([2, 0], LCons([2, 1], LNil()))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece c. */
+val cPiece = P("c",
+  LNil(),
+  LCons(LCons([0, 1], LCons([0, 2], LCons([1, 1], LNil()))),
+    LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0], LNil()))),
+      LCons(LCons([1, 0 - 1], LCons([1, 0], LCons([1, 1], LNil()))),
+        LCons(LCons([1, 0], LCons([1, 1], LCons([2, 0], LNil()))),
+          LNil())))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+/** Source placements for piece b. */
+val bPiece = P("b",
+  LCons(LCons([0, 1], LCons([0, 2], LCons([1, 2], LNil()))),
+    LCons(LCons([1, 0], LCons([2, 0], LCons([2, 0 - 1], LNil()))),
+      LCons(LCons([0, 1], LCons([1, 0], LCons([2, 0], LNil()))),
+        LNil()))),
+  LCons(LCons([1, 0], LCons([1, 1], LCons([1, 2], LNil()))),
+    LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full placement tables are translation-only.
+/** The source piece order after placing piece a. */
+val initialPieces =
+  LCons(bPiece,
+    LCons(cPiece,
+      LCons(dPiece,
+        LCons(ePiece,
+          LCons(fPiece,
+            LCons(gPiece,
+              LCons(hPiece,
+                LCons(iPiece,
+                  LCons(jPiece,
+                    LCons(kPiece,
+                      LCons(lPiece,
+                        LCons(mPiece,
+                          LCons(nPiece,
+                            LNil())))))))))))))
+//│ CTML translation succeeded.
+
+/** A proper list of source character code units. */
+type Chars = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ Chars = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+/** The page-width rendering mode. */
+data class PageMode()
+/** Show line shifts through a zigzag pattern. */
+data class ZigZagMode()
+/** Render left-aligned with source line breaks. */
+data class LeftMode()
+/** Render as one line with spaces between fragments. */
+data class OneLineMode()
+//│ PageMode: Unit → PageMode
+//│ ZigZagMode: Unit → ZigZagMode
+//│ LeftMode: Unit → LeftMode
+//│ OneLineMode: Unit → OneLineMode
+
+/** One character of text. */
+data class Chr(c: Str)
+/** A strict character list. */
+data class DocStr(s: Chars)
+/** A preformatted character list. */
+data class PStr(s: Chars)
+//│ Chr: ∀α. {α ≤ Str} ⟹ α → (Chr ∧ {c: α})
+//│ DocStr: ∀β. {β ≤ Chars} ⟹ β → (DocStr ∧ {s: β})
+//│ PStr: ∀γ. {γ ≤ Chars} ⟹ γ → (PStr ∧ {s: γ})
+
+/** Start an annotation. */
+data class AnnotStart()
+/** End an annotation. */
+data class AnnotEnd()
+/** A text fragment and its width. */
+data class NoAnnot(t, i: Int)
+//│ AnnotStart: Unit → AnnotStart
+//│ AnnotEnd: Unit → AnnotEnd
+//│ NoAnnot: ∀α, β. {β ≤ Int} ⟹ α → β → ((NoAnnot ∧ {t: α}) ∧ {i: β})
+
+/** The negative flag in the source document-reduction result. */
+data class IsEmpty()
+/** The positive flag in the source document-reduction result. */
+data class NotEmpty()
+//│ IsEmpty: Unit → IsEmpty
+//│ NotEmpty: Unit → NotEmpty
+
+/** The empty document. */
+data class Empty()
+/** A failed document choice. */
+data class NoDoc()
+/** A line break followed by a document. */
+data class NilAbove(d)
+/** An annotated fragment followed by a document. */
+data class TextBeside(a, d)
+/** A document with a changed indent. */
+data class Nest(i: Int, d)
+/** Two candidate document layouts. */
+data class Union(d1, d2)
+/** Horizontal concatenation with a source spacing flag. */
+data class Beside(d1, b: Bool, d2)
+/** Vertical concatenation with a source overlap flag. */
+data class Above(d1, b: Bool, d2)
+//│ Empty: Unit → Empty
+//│ NoDoc: Unit → NoDoc
+//│ NilAbove: ∀α. α → (NilAbove ∧ {d: α})
+//│ TextBeside: ∀β, γ. β → γ → ((TextBeside ∧ {a: β}) ∧ {d: γ})
+//│ Nest: ∀δ, ε. {δ ≤ Int} ⟹ δ → ε → ((Nest ∧ {i: δ}) ∧ {d: ε})
+//│ Union: ∀ζ, η. ζ → η → ((Union ∧ {d1: ζ}) ∧ {d2: η})
+//│ Beside: ∀θ, ι, κ. {ι ≤ Bool} ⟹ θ → ι → κ → (((Beside ∧ {d1: θ}) ∧ {b: ι}) ∧ {d2: κ})
+//│ Above: ∀λ, μ, ν. {μ ≤ Bool} ⟹ λ → μ → ν → (((Above ∧ {d1: λ}) ∧ {b: μ}) ∧ {d2: ν})
+
+/** The space fragment used for one-line rendering and separation. */
+val spaceText = NoAnnot(Chr(" "), 1)
+/** The newline fragment used by the renderers. */
+val nlText = NoAnnot(Chr("\n"), 1)
+//│ spaceText: (NoAnnot ∧ {t: Chr ∧ {c: Str}}) ∧ {i: Int}
+//│ nlText: (NoAnnot ∧ {t: Chr ∧ {c: Str}}) ∧ {i: Int}
+
+/** Return the width of a text fragment or zero for an annotation marker. */
+fun annotSize(p) = if p is
+  NoAnnot(_, l) then l
+  else 0
+//│ annotSize: ∀α, β. {β ≥ ({α ≤ ({i: β} ∧ NoAnnot) ∧ {t: ⊤}} ⟹ ⊥) ∧ ({α ≤ ¬((NoAnnot ∧ {t: ⊤}) ∧ {i: ⊤})} ⟹ Int), α ≤ (({i: β} ∧ NoAnnot) ∧ {t: ⊤}) ∨ ¬({β ≥ Int} ⟹ (NoAnnot ∧ {t: ⊤}) ∧ {i: ⊤})} ⟹ α → β
+
+:ctml-parse-only // FIXME: The empty-document branches exceed the 20000-call budget.
+/** Keep the reduced right document when the left document is empty. */
+fun eliminateEmpty(cons, p, g, q) = if p is
+  Empty() then q
+  else [NotEmpty(),
+    if q is
+      [NotEmpty(), q1] then cons(p, g, q1)
+      [IsEmpty(), _] then p
+  ]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The empty-document helper is translation-only.
+/** Reduce adjacent vertical nodes in source order. */
+fun reduceVert(doc) = if doc is
+  Above(p, g, q) then
+    eliminateEmpty((a, b, c) => Above(a, b, c), snd(reduceVert(p)), g, reduceVert(q))
+  else [NotEmpty(), doc]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Vertical reduction is translation-only.
+/** Concatenate a list of documents vertically, without overlap. */
+fun vcat(ls) = snd(reduceVert(foldr((p, q) => Above(p, false, q), Empty(), ls)))
+//│ CTML translation succeeded.
+
+/** Construct a text fragment with its list length. */
+fun text(s) = TextBeside(NoAnnot(DocStr(s), listLen(s)), Empty())
+//│ text: ∀α. {α ≤ Chars} ⟹ α → ((TextBeside ∧ {a: (NoAnnot ∧ {t: DocStr ∧ {s: α}}) ∧ {i: Int}}) ∧ {d: Empty})
+
+/** Construct a single-character document. */
+fun char(c) = TextBeside(NoAnnot(Chr(c), 1), Empty())
+//│ char: ∀α. {α ≤ Str} ⟹ α → ((TextBeside ∧ {a: (NoAnnot ∧ {t: Chr ∧ {c: α}}) ∧ {i: Int}}) ∧ {d: Empty})
+
+:ctml-parse-only // FIXME: The empty-document helper is translation-only.
+/** Reduce adjacent horizontal nodes in source order. */
+fun reduceHoriz(doc) = if doc is
+  Beside(p, g, q) then
+    eliminateEmpty((a, b, c) => Beside(a, b, c), snd(reduceHoriz(p)), g, reduceHoriz(q))
+  else [NotEmpty(), doc]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Horizontal reduction is translation-only.
+/** Concatenate a list of documents horizontally, without spaces. */
+fun hcat(ls) = snd(reduceHoriz(foldr((p, q) => Beside(p, false, q), Empty(), ls)))
+//│ CTML translation succeeded.
+
+/** Stack two documents using the source empty tests. */
+fun above_(p, g, q) = if
+  q is Empty() then p
+  g is Empty() then q
+  else Above(p, g, q)
+//│ above_: ∀α, β, γ, δ. {δ ≥ ({γ ≤ Empty} ⟹ α) ∧ ({β ≤ ¬({δ ≥ γ} ⟹ ¬Empty) ∨ ¬({δ ≥ ((Above ∧ {d1: α}) ∧ {b: β}) ∧ {d2: γ}} ⟹ ¬Bool), γ ≤ ¬Empty} ⟹ ({β ≤ Empty} ⟹ γ) ∧ ({β ≤ Bool} ⟹ ((Above ∧ {d1: α}) ∧ {b: β}) ∧ {d2: γ})), γ ≤ ¬({δ ≥ α} ⟹ ¬Empty) ∨ ¬({β ≤ ¬({δ ≥ γ} ⟹ ¬Empty) ∨ ¬({δ ≥ ((Above ∧ {d1: α}) ∧ {b: β}) ∧ {d2: γ}} ⟹ ¬Bool), δ ≥ ({β ≤ Empty} ⟹ γ) ∧ ({β ≤ Bool} ⟹ ((Above ∧ {d1: α}) ∧ {b: β}) ∧ {d2: γ})} ⟹ Empty), β ≤ ¬({γ ≤ Empty, δ ≥ α} ⟹ ⊥) ∨ ¬({γ ≤ ¬Empty, δ ≥ ({β ≤ Empty} ⟹ γ) ∧ ({β ≤ Bool} ⟹ ((Above ∧ {d1: α}) ∧ {b: β}) ∧ {d2: γ})} ⟹ ¬(¬({δ ≥ γ} ⟹ ¬Empty) ∨ ¬({δ ≥ ((Above ∧ {d1: α}) ∧ {b: β}) ∧ {d2: γ}} ⟹ ¬Bool)))} ⟹ α → β → γ → δ
+
+:ctml-parse-only // FIXME: Combining nested indents exceeds the 20000-call budget.
+/** Combine nested indents and drop a zero indent. */
+fun mkNest(k, p) = if
+  p is Nest(k1, p1) then mkNest(k + k1, p1)
+  p is NoDoc() then NoDoc()
+  p is Empty() then Empty()
+  k === 0 then p
+  else Nest(k, p)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive separator insertion exceeds the 20000-call budget.
+/** Skip nesting and add the source separator when requested. */
+fun nilBeside(g, p) = if
+  p is Empty() then Empty()
+  p is Nest(_, p1) then nilBeside(g, p1)
+  g then TextBeside(spaceText, p)
+  else p
+//│ CTML translation succeeded.
+
+/** Construct a list of n spaces. */
+fun indent(n) = if n <= 0 then LNil() else LCons(" ", indent(n - 1))
+//│ indent: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
+
+:ctml-parse-only // FIXME: Combining nested indents is translation-only.
+/** Start a new line unless source overlap can fill its indent with spaces. */
+fun nilAboveNest(g, k, q) = if
+  q is Empty() then Empty()
+  q is Nest(k1, q1) then nilAboveNest(g, k + k1, q1)
+  else
+    if g then NilAbove(mkNest(k, q))
+    else if 0 < k then TextBeside(NoAnnot(DocStr(indent(k)), k), q)
+    else NilAbove(mkNest(k, q))
+//│ CTML translation succeeded.
+
+/** Reduce a document with unprocessed composition nodes. */
+data class Reduce(doc)
+/** Attach a suffix horizontally. */
+data class PlaceBeside(p, g: Bool, q)
+/** Attach a suffix vertically. */
+data class PlaceAbove(p, g: Bool, q)
+/** Attach a vertical suffix at the given remaining indent. */
+data class PlaceAboveNest(p, g: Bool, k: Int, q)
+//│ Reduce: ∀α. α → (Reduce ∧ {doc: α})
+//│ PlaceBeside: ∀β, γ, δ. {γ ≤ Bool} ⟹ β → γ → δ → (((PlaceBeside ∧ {p: β}) ∧ {g: γ}) ∧ {q: δ})
+//│ PlaceAbove: ∀ε, ζ, η. {ζ ≤ Bool} ⟹ ε → ζ → η → (((PlaceAbove ∧ {p: ε}) ∧ {g: ζ}) ∧ {q: η})
+//│ PlaceAboveNest: ∀θ, ι, κ, λ. {ι ≤ Bool, κ ≤ Int} ⟹ θ → ι → κ → λ → ((((PlaceAboveNest ∧ {p: θ}) ∧ {g: ι}) ∧ {k: κ}) ∧ {q: λ})
+
+:ctml-parse-only // FIXME: The document dispatcher exceeds the 20000-call budget.
+/** Evaluate source document composition with the original reduction order. */
+fun arrange(task) = if task is
+  Reduce(p) and p is
+    Beside(p1, g, q) then arrange(PlaceBeside(p1, g, arrange(Reduce(q))))
+    Above(p1, g, q) then arrange(PlaceAbove(p1, g, arrange(Reduce(q))))
+    else p
+  PlaceBeside(p, g, q) and p is
+    NoDoc() then NoDoc()
+    Union(p1, p2) then
+      Union(arrange(PlaceBeside(p1, g, q)), arrange(PlaceBeside(p2, g, q)))
+    Empty() then q
+    Nest(k, p1) then Nest(k, arrange(PlaceBeside(p1, g, q)))
+    Beside(p1, g1, q1) then
+      if g1 === g then arrange(PlaceBeside(p1, g1, arrange(PlaceBeside(q1, g, q))))
+      else arrange(PlaceBeside(arrange(Reduce(Beside(p1, g1, q1))), g, q))
+    Above(_, _, _) then arrange(PlaceBeside(arrange(Reduce(p)), g, q))
+    NilAbove(p1) then NilAbove(arrange(PlaceBeside(p1, g, q)))
+    TextBeside(t, p1) then
+      let rest = if p1 is Empty() then nilBeside(g, q) else arrange(PlaceBeside(p1, g, q))
+      TextBeside(t, rest)
+  PlaceAbove(p, g, q) and p is
+    Above(p1, g1, q1) then arrange(PlaceAbove(p1, g1, arrange(PlaceAbove(q1, g, q))))
+    Beside(_, _, _) then
+      arrange(PlaceAboveNest(arrange(Reduce(p)), g, 0, arrange(Reduce(q))))
+    else arrange(PlaceAboveNest(p, g, 0, arrange(Reduce(q))))
+  PlaceAboveNest(p, g, k, q) and p is
+    NoDoc() then NoDoc()
+    Union(p1, p2) then
+      Union(arrange(PlaceAboveNest(p1, g, k, q)), arrange(PlaceAboveNest(p2, g, k, q)))
+    Empty() then mkNest(k, q)
+    Nest(k1, p1) then Nest(k1, arrange(PlaceAboveNest(p1, g, k - k1, q)))
+    NilAbove(p1) then NilAbove(arrange(PlaceAboveNest(p1, g, k, q)))
+    TextBeside(s, p1) then
+      let k1 = k - annotSize(s)
+      let rest = if p1 is Empty() then nilAboveNest(g, k1, q)
+        else arrange(PlaceAboveNest(p1, g, k1, q))
+      TextBeside(s, rest)
+    Above(_, _, _) then raiseError("aboveNest Above")
+    Beside(_, _, _) then raiseError("aboveNest Beside")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Document reduction and indent composition are translation-only.
+/** Reduce the document before increasing its indent. */
+fun nest(k, p) = mkNest(k, arrange(Reduce(p)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup and document reduction are translation-only.
+/** Render each board square in row-major order. */
+fun displayBoard(bd) =
+  /** Display the square's marker or a dot. */
+  fun sq(n, col) = if check(bd, [n, col]) is
+    Some(id) then char(id)
+    None() then char(".")
+  /** Render one row horizontally. */
+  fun row(n) = hcat(map(col => sq(n, col), enumFromTo(1, maxCol)))
+  above_(vcat(map(row, enumFromTo(1, maxCol))), false, text(LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board display and document reduction are translation-only.
+/** Render successes, flatten groups of choices, and omit failed placements. */
+fun display(s) = if s is
+  Soln(bd) then vcat(LCons(text(nofibStringToList("Success!")),
+    LCons(nest(2, displayBoard(bd)), LNil())))
+  Choose(ss) then vcat(map(display, ss))
+  Fail(_, [_, _]) then Empty()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive flat renderer exceeds the 20000-call budget.
+/** Render a reduced document with the supplied line separator and layout choice. */
+fun easyDisplay(nlSpaceText, choose, txt, done, x) =
+  /** Consume reduced document nodes in source order. */
+  fun lay(x) = if x is
+    NoDoc() then raiseError("easyDisplay: NoDoc")
+    Union(p, q) then lay(choose(p, q))
+    Nest(_, p) then lay(p)
+    Empty() then done
+    NilAbove(p) then txt(nlSpaceText, lay(p))
+    TextBeside(s, p) then txt(s, lay(p))
+    Above(_, _, _) then raiseError("easyDisplay Above")
+    Beside(_, _, _) then raiseError("easyDisplay Beside")
+  lay(x)
+//│ CTML translation succeeded.
+
+/** A document fragment at the beginning of a line. */
+data class AtLineStart(doc)
+/** A document fragment that follows text on the same line. */
+data class WithinLine(doc)
+//│ AtLineStart: ∀α. α → (AtLineStart ∧ {doc: α})
+//│ WithinLine: ∀β. β → (WithinLine ∧ {doc: β})
+
+:ctml-parse-only // FIXME: The recursive indented renderer exceeds the 20000-call budget.
+/** Render a reduced document with source indentation and optional zigzags. */
+fun displayDoc(m, pageWidth, ribbonWidth, txt, done, doc) =
+  let gapWidth = pageWidth - ribbonWidth
+  let shift = intDiv(gapWidth, 2)
+  /** Process line starts and continuations in the same traversal. */
+  fun lay(k, task) = if task is
+    WithinLine(d) and d is
+      NilAbove(p) then txt(nlText, lay(k, AtLineStart(p)))
+      TextBeside(s, p) then txt(s, lay(k + annotSize(s), WithinLine(p)))
+      Nest(_, p) then lay(k, WithinLine(p))
+      Empty() then done
+    AtLineStart(d) and d is
+      Nest(k1, p) then lay(k + k1, AtLineStart(p))
+      Empty() then done
+      NilAbove(p) then txt(nlText, lay(k, AtLineStart(p)))
+      TextBeside(s, p) then
+        /** Prepend the indent and the first fragment on the line. */
+        fun lay1(k) =
+          let r = k + annotSize(s)
+          txt(NoAnnot(DocStr(indent(k)), k), txt(s, lay(r, WithinLine(p))))
+        if m is ZigZagMode() then
+          if
+            gapWidth <= k then
+              let slashes = NoAnnot(DocStr(replicate(shift, "/")), shift)
+              txt(nlText, txt(slashes, txt(nlText, lay1(k - shift))))
+            k < 0 then
+              let bars = NoAnnot(DocStr(replicate(shift, "|")), shift)
+              txt(nlText, txt(bars, txt(nlText, lay1(k + shift))))
+            else lay1(k)
+        else lay1(k)
+  lay(0, AtLineStart(doc))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive layout availability test exceeds the 20000-call budget.
+/** Test whether a reduced choice contains an available layout. */
+fun nonEmptySet(doc) = if doc is
+  NoDoc() then false
+  Union(_, _) then true
+  Empty() then true
+  NilAbove(_) then true
+  TextBeside(_, p) then nonEmptySet(p)
+  Nest(_, p) then nonEmptySet(p)
+  Above(_, _, _) then raiseError("nonEmptySet Above")
+  Beside(_, _, _) then raiseError("nonEmptySet Beside")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive width test exceeds the 20000-call budget.
+/** Test the first line length against the remaining width. */
+fun fits(n, param) = if
+  n < 0 then false
+  param is
+    NoDoc() then false
+    Empty() then true
+    NilAbove(_) then true
+    TextBeside(s, p) then fits(n - annotSize(s), p)
+    Above(_, _, _) then raiseError("fits Above")
+    Beside(_, _, _) then raiseError("fits Beside")
+    Union(_, _) then raiseError("fits Union")
+    Nest(_, _) then raiseError("fits Nest")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The layout availability test is translation-only.
+/** Prefer the first available layout. */
+fun first(p, q) = if nonEmptySet(p) then p else q
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The layout width test is translation-only.
+/** Choose between two layouts after subtracting the current line length. */
+fun nicest1(w, r, sl, p, q) = if fits(intMin(w, r) - sl, p) then p else q
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The layout width test is translation-only.
+/** Choose between two layouts at the beginning of a line. */
+fun nicest(w, r, p, q) = nicest1(w, r, 0, p, q)
+//│ CTML translation succeeded.
+
+/** Choose a layout at the beginning of a line. */
+data class Get(w: Int, doc)
+/** Choose a layout after processing sl columns on a line. */
+data class Get1(w: Int, sl: Int, doc)
+//│ Get: ∀α, β. {α ≤ Int} ⟹ α → β → ((Get ∧ {w: α}) ∧ {doc: β})
+//│ Get1: ∀γ, δ, ε. {δ ≤ Int, γ ≤ Int} ⟹ γ → δ → ε → (((Get1 ∧ {w: γ}) ∧ {sl: δ}) ∧ {doc: ε})
+
+:ctml-parse-only // FIXME: Recursive layout selection exceeds the 20000-call budget.
+/** Choose the source layout using page width and ribbon width. */
+fun best(w0, r, doc) =
+  /** Visit the document before or after the beginning of a line. */
+  fun get(task) = if task is
+    Get(w, d) and d is
+      Empty() then Empty()
+      NoDoc() then NoDoc()
+      NilAbove(p) then NilAbove(get(Get(w, p)))
+      TextBeside(s, p) then TextBeside(s, get(Get1(w, annotSize(s), p)))
+      Nest(k, p) then Nest(k, get(Get(w - k, p)))
+      Union(p, q) then nicest(w, r, get(Get(w, p)), get(Get(w, q)))
+      Above(_, _, _) then raiseError("best get Above")
+      Beside(_, _, _) then raiseError("best get Beside")
+    Get1(w, sl, d) and d is
+      Empty() then Empty()
+      NoDoc() then NoDoc()
+      NilAbove(p) then NilAbove(get(Get(w - sl, p)))
+      TextBeside(s, p) then TextBeside(s, get(Get1(w, sl + annotSize(s), p)))
+      Nest(_, p) then get(Get1(w, sl, p))
+      Union(p, q) then nicest1(w, r, sl, get(Get1(w, sl, p)), get(Get1(w, sl, q)))
+      Above(_, _, _) then raiseError("best get1 Above")
+      Beside(_, _, _) then raiseError("best get1 Beside")
+  get(Get(w0, doc))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Layout selection and display are translation-only.
+/** Select the source rendering routine for the given mode. */
+fun fullRenderAnn(m, lineLen, ribbons, txt, rest, doc) = if m is
+  OneLineMode() then easyDisplay(spaceText, (a, b) => b, txt, rest, arrange(Reduce(doc)))
+  LeftMode() then easyDisplay(nlText, first, txt, rest, arrange(Reduce(doc)))
+  else
+    let ribbonLen = numCeilToInt(numDiv(numFromInt(lineLen), ribbons))
+    let bestLineLen = if m is ZigZagMode() then 2147483647 else lineLen
+    let doc1 = best(bestLineLen, ribbonLen, arrange(Reduce(doc)))
+    displayDoc(m, lineLen, ribbonLen, txt, rest, doc1)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The renderers are translation-only.
+/** Render text fragments and discard annotation markers. */
+fun fullRender(m, l, r, txt, a, b) =
+  /** Emit a text fragment or leave the suffix alone. */
+  fun annTxt(p, x) = if p is
+    NoAnnot(s, _) then txt(s, x)
+    else x
+  fullRenderAnn(m, l, r, annTxt, a, b)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The renderers are translation-only.
+/** Render with the source zigzag parameters and trailing newline. */
+fun printDoc(d) =
+  /** Prepend the text fragment to the rendered suffix. */
+  fun put(k, next) = if k is
+    Chr(c) then LCons(c, next)
+    DocStr(s) then append(s, next)
+    PStr(s) then append(s, next)
+  let done = LCons("\n", LNil())
+  fullRender(ZigZagMode(), 200, 1.5, put, done, d)
+//│ CTML translation succeeded.
+
+if char("a") is TextBeside(NoAnnot(Chr(c), width), Empty()) then [c as Str, width as Int]
+annotSize(nlText) as Int
+if text(LCons("a", LNil())) is TextBeside(NoAnnot(DocStr(cs), width), Empty()) then
+  [cs as Chars, width as Int]
+//│ ⟨Str, Int⟩
+//│ Int
+//│ ⟨Chars, Int⟩
+
+:ctml-parse-only // FIXME: The placement search and document renderer are translation-only.
+/** Place the fixed anchor, search all placements, and render the result. */
+fun testLastPiece_nofib() =
+  let offsets = LCons([1, 0], LCons([1, 1], LNil()))
+  if fit(emptyBoard, [1, 1], "a", offsets) is Some(initialBoard) then
+    let solutions = search(Search([1, 2], Female(), initialBoard, initialPieces))
+    printDoc(display(solutions))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The placement search and document renderer are translation-only.
+/** Render the original benchmark results as a string. */
+fun main() = nofibListToString(testLastPiece_nofib())
+//│ CTML translation succeeded.

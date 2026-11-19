@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 90 member(s)
+//│ Imported 106 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/ansi.mls.
 // The display and input use strict lists of source string code units. The input loop builds

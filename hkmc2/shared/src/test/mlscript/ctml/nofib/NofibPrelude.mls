@@ -432,3 +432,70 @@ declare fun nubBy[A]: (A -> A -> Bool) -> ([X restricts (LNil | (LCons & {head: 
   * The implementation is in preludeDeferred.mls. */
 declare fun ltList[A, B]: ([X restricts (LNil | (LCons & {head: A} & {tail: X}))] -> X) -> ([Y restricts (LNil | (LCons & {head: B} & {tail: Y}))] -> Y) -> (A -> B -> Bool) -> (A -> B -> Bool) -> Bool
 //│ ltList: ∀A, B. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: B}) ∧ {tail: Y})} ⟹ Y) → (A → B → Bool) → (A → B → Bool) → Bool
+
+/** Trusted UTF-8 fixture read, corresponding to readFileSync(path).toString(). */
+declare fun nofibReadText: Str -> Str
+//│ nofibReadText: Str → Str
+
+/** Trusted codePointAt(0), returning -1 when the string is empty. */
+declare fun nofibCodePoint: Str -> Int
+//│ nofibCodePoint: Str → Int
+
+/** Trusted source floating-point less-than-or-equal comparison, including NaN. */
+declare fun numLe: Num -> Num -> Bool
+//│ numLe: Num → Num → Bool
+
+/** Trusted JavaScript Math.tan on a radian argument. */
+declare fun numTan: Num -> Num
+//│ numTan: Num → Num
+
+/** Trusted JavaScript exponentiation on two floating-point arguments. */
+declare fun numPow: Num -> Num -> Num
+//│ numPow: Num → Num → Num
+
+/** Trusted Math.round followed by an integer conversion, partial on nonfinite inputs. */
+declare fun numRoundToInt: Num -> Int
+//│ numRoundToInt: Num → Int
+
+/** Trusted Math.ceil followed by an integer conversion, partial on nonfinite inputs. */
+declare fun numCeilToInt: Num -> Int
+//│ numCeilToInt: Num → Int
+
+/** Trusted JavaScript BigInt construction from an integer or a numeric string. */
+declare fun bigIntFrom: (Int | Str) -> BigInt
+//│ bigIntFrom: (Int ∨ Str) → BigInt
+
+/** Trusted addition of two JavaScript bigints. */
+declare fun bigIntAdd: BigInt -> BigInt -> BigInt
+//│ bigIntAdd: BigInt → BigInt → BigInt
+
+/** Trusted subtraction of two JavaScript bigints. */
+declare fun bigIntSub: BigInt -> BigInt -> BigInt
+//│ bigIntSub: BigInt → BigInt → BigInt
+
+/** Trusted multiplication of two JavaScript bigints. */
+declare fun bigIntMul: BigInt -> BigInt -> BigInt
+//│ bigIntMul: BigInt → BigInt → BigInt
+
+/** Trusted bigint division, which truncates toward zero and is partial at zero. */
+declare fun bigIntQuot: BigInt -> BigInt -> BigInt
+//│ bigIntQuot: BigInt → BigInt → BigInt
+
+/** Trusted bigint remainder, with the sign of the dividend and partial at zero. */
+declare fun bigIntRem: BigInt -> BigInt -> BigInt
+//│ bigIntRem: BigInt → BigInt → BigInt
+
+/** Trusted decimal rendering, corresponding to source bigint + "". */
+declare fun stringOfBigInt: BigInt -> Str
+//│ stringOfBigInt: BigInt → Str
+
+/** Trusted JavaScript TypeError with no normal result. */
+declare fun raiseTypeError: Str -> Bot
+//│ raiseTypeError: Str → ⊥
+
+/** Convert the first code point to a bigint, with the source failure on empty input. */
+fun nofibCodePointBigInt(c) =
+  let code = nofibCodePoint(c)
+  if code === (0 - 1) then raiseTypeError("Cannot convert undefined to a BigInt")
+  else bigIntFrom(code)
+//│ nofibCodePointBigInt: Str → BigInt

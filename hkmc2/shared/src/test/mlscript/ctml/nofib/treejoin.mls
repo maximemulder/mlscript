@@ -1,0 +1,148 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 106 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/treejoin.mls.
+// Input triples and five-field join rows use right-nested pairs.
+
+/** The empty search tree. */
+data class Empty()
+/** An internal node whose left keys are at most k. */
+data class Node(k: Int, l, r)
+/** An entry keyed by an integer. */
+data class Leaf(k: Int, e)
+/** A successful tree lookup. */
+data class Some(value)
+/** A missing tree key. */
+data class None()
+//│ Empty: Unit → Empty
+//│ Node: ∀α, β, γ. {α ≤ Int} ⟹ α → β → γ → (((Node ∧ {k: α}) ∧ {l: β}) ∧ {r: γ})
+//│ Leaf: ∀δ, ε. {δ ≤ Int} ⟹ δ → ε → ((Leaf ∧ {k: δ}) ∧ {e: ε})
+//│ Some: ∀ζ. ζ → (Some ∧ {value: ζ})
+//│ None: Unit → None
+
+/** Recognize exactly the two separators consumed by the source parser. */
+fun isSpace(c) = c === " " || c === "\n"
+//│ isSpace: ⊤ → Bool
+
+/** Recognize an ASCII decimal digit. */
+fun isDigit(c) =
+  let n = nofibCodePoint(c)
+  48 <= n && n <= 57
+//│ isDigit: Str → Bool
+
+:ctml-parse-only // FIXME: Recursive insertion exceeds the 20000-call budget.
+/** Insert a new leaf and reject a duplicate key. */
+fun insertT(k, e, t) = if t is
+  Node(k_, l, r) then
+    if k <= k_ then Node(k_, insertT(k, e, l), r)
+    else Node(k_, l, insertT(k, e, r))
+  Leaf(k_, old) then
+    let entry = Leaf(k, e)
+    if
+      k < k_ then Node(k, entry, Leaf(k_, old))
+      k_ < k then Node(k_, Leaf(k_, old), entry)
+      else raiseError("already exist")
+  Empty() then Leaf(k, e)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive lookup exceeds the 20000-call budget.
+/** Follow the split keys to find a single entry. */
+fun lookupT(k, t) = if t is
+  Node(k_, l, r) then
+    if k <= k_ then lookupT(k, l) else lookupT(k, r)
+  Leaf(k_, e) then if k === k_ then Some(e) else None()
+  Empty() then None()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive decimal parser exceeds the 20000-call budget.
+/** Scan a decimal prefix and drop following source separators. */
+fun readInt(s) =
+  /** Accumulate the digits, retaining the source re-cons of the first nondigit. */
+  fun readInt_(n, cs) = if cs is
+    LCons(c, cs_) and isDigit(c) then
+      readInt_(n * 10 + nofibCodePoint(c) - 48, cs_)
+    LCons(c, _) then [n, leaveWhile(isSpace, LCons(c, cs))]
+    LNil() then [n, leaveWhile(isSpace, cs)]
+  readInt_(0, s)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Tree insertion and lookup are translation-only.
+/** Join the third field of the first row to the first field of the second tree. */
+fun join(t1, t2, j) = if
+  t1 is Empty() then j
+  t2 is Empty() then j
+  t1 is Leaf(_, [a, [b, c]]) and lookupT(c, t2) is
+    None() then j
+    Some([d, [e, _]]) then insertT(c, [a, [b, [c, [d, e]]]], j)
+  t1 is Node(_, l, r) then join(l, t2, join(r, t2, j))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The decimal parser and tree insertion are translation-only.
+/** Read successive three-field rows and insert each with its selected key. */
+fun readTree(fk, s, t) = if
+  s is LNil() then t
+  readInt(s) is [f, s_] and readInt(s_) is [g, s__] and readInt(s__) is [h, s___] then
+    let e = [f, [g, h]]
+    let k = fk(e)
+    readTree(fk, s___, insertT(k, e, t))
+//│ CTML translation succeeded.
+
+/** Select the first column as the tree key. */
+fun firstColumn(row) = if row is [key, [_, _]] then key
+//│ firstColumn: ∀α. ⟨α, ⟨⊤, ⊤⟩⟩ → α
+
+/** Render one joined row with the source five-field formatting. */
+fun renderRow(row) = if row is [a, [b, [c, [d, e]]]] then
+  "[" ++ stringOfInt(a) ++ ", " ++ stringOfInt(b) ++ ", " ++ stringOfInt(c) ++ ", " ++
+    stringOfInt(d) ++ ", " ++ stringOfInt(e) ++ "]"
+//│ renderRow: ⟨Int, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩ → Str
+
+:ctml-parse-only // FIXME: Recursive tree rendering exceeds the 20000-call budget.
+/** Render the joined tree with the source constructor names and tuple punctuation. */
+fun renderJoin(t) = if t is
+  Empty() then "Empty"
+  Node(k, l, r) then
+    "Node(" ++ stringOfInt(k) ++ ", " ++ renderJoin(l) ++ ", " ++ renderJoin(r) ++ ")"
+  Leaf(k, e) then "Leaf(" ++ stringOfInt(k) ++ ", " ++ renderRow(e) ++ ")"
+//│ CTML translation succeeded.
+
+isSpace("\n") as Bool
+isDigit("9") as Bool
+firstColumn([10, [20, 30]]) as Int
+renderRow([10, [20, [30, [40, 50]]]]) as Str
+if Leaf(10, [10, [20, 30]]) is Leaf(k, e) then [k as Int, firstColumn(e) as Int]
+//│ Bool
+//│ Bool
+//│ Int
+//│ Str
+//│ ⟨Int, Int⟩
+
+:te
+Leaf("10", [10, [20, 30]])
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {α ≤ Int} ⟹ α → β → ((Leaf ∧ {k: α}) ∧ {e: β}) ≤ Str → γ.
+//│ Typing error tree:
+//│   ∀α, β. {α ≤ Int} ⟹ α → β → ((Leaf ∧ {k: α}) ∧ {e: β}) ≤ Str → γ
+//│     {δ ≤ Int} ⟹ δ → ε → ((Leaf ∧ {k: δ}) ∧ {e: ε}) ≤ Str → γ
+//│       δ → ε → ((Leaf ∧ {k: δ}) ∧ {e: ε}) ≤ Str → γ
+//│         Str ≤ δ
+//│           Str ≤ Int
+
+:ctml-parse-only // FIXME: The fixture parser and join are translation-only.
+/** Join the two original fixtures using their shared first-column key. */
+fun testTreejoin_nofib(n) =
+  let c1 = nofibStringToList(
+    nofibReadText("./hkmc2/shared/src/test/mlscript/nofib/input/1500.1"))
+  let c2 = nofibStringToList(
+    nofibReadText("./hkmc2/shared/src/test/mlscript/nofib/input/1500.2"))
+  let a = readTree(firstColumn, c1, Empty())
+  let b = readTree(firstColumn, c2, Empty())
+  join(a, b, Empty())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The fixture parser, join, and recursive renderer are translation-only.
+/** Run the benchmark and render the result. */
+fun main() = renderJoin(testTreejoin_nofib(0))
+//│ CTML translation succeeded.

@@ -1,0 +1,666 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 90 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/boyer2.mls.
+// Lisp cons cells are distinct from the strict lists of character codes, tokens, and rules.
+// The lookup tree stores branches and entries in separate fields. Tagged dispatchers retain
+// the mutually recursive calls in substitution, unification, and rewriting.
+
+/** A proper list of source string code units. */
+type Chars = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ Chars = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+/** The empty Lisp list. */
+data class Nill()
+/** A Lisp atom with a character-list name. */
+data class Atom(chars: Chars)
+/** A Lisp cons cell. Its tail can itself be an atom in a substitution. */
+data class Conss(hd, tl)
+//│ Nill: Unit → Nill
+//│ Atom: ∀α. {α ≤ Chars} ⟹ α → (Atom ∧ {chars: α})
+//│ Conss: ∀β, γ. β → γ → ((Conss ∧ {hd: β}) ∧ {tl: γ})
+
+/** Return an atom's character-list name. */
+fun tv(term) = if term is Atom(chars) then chars
+//│ tv: ∀α. ({chars: α} ∧ Atom) → α
+
+/** Recognize a Lisp atom. */
+fun atom(term) = if term is Atom(_) then true else false
+//│ atom: ∀α. α → (({α ≤ Atom ∧ {chars: ⊤}} ⟹ Bool) ∧ ({α ≤ ¬(Atom ∧ {chars: ⊤})} ⟹ Bool))
+
+/** Return a Lisp cell's head or the empty Lisp list. */
+fun car(term) = if term is Conss(x, _) then x else Nill()
+//│ car: ∀α, β. {β ≥ ({α ≤ ({hd: β} ∧ Conss) ∧ {tl: ⊤}} ⟹ ⊥) ∧ ({α ≤ ¬((Conss ∧ {hd: ⊤}) ∧ {tl: ⊤})} ⟹ Nill), α ≤ (({hd: β} ∧ Conss) ∧ {tl: ⊤}) ∨ ¬({β ≥ Nill} ⟹ (Conss ∧ {hd: ⊤}) ∧ {tl: ⊤})} ⟹ α → β
+
+/** Return a Lisp cell's tail or the empty Lisp list. */
+fun cdr(term) = if term is Conss(_, y) then y else Nill()
+//│ cdr: ∀α, β. {β ≥ ({α ≤ ({tl: β} ∧ Conss) ∧ {hd: ⊤}} ⟹ ⊥) ∧ ({α ≤ ¬((Conss ∧ {hd: ⊤}) ∧ {tl: ⊤})} ⟹ Nill), α ≤ (({tl: β} ∧ Conss) ∧ {hd: ⊤}) ∨ ¬({β ≥ Nill} ⟹ (Conss ∧ {hd: ⊤}) ∧ {tl: ⊤})} ⟹ α → β
+
+:ctml-parse-only // FIXME: Composing the Lisp projections exceeds the solver budget.
+/** Return the second element of a Lisp list. */
+fun cadr(term) = car(cdr(term))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Composing the Lisp projections exceeds the solver budget.
+/** Return the third element of a Lisp list. */
+fun caddr(term) = car(cdr(cdr(term)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Composing the Lisp projections exceeds the solver budget.
+/** Return the fourth element of a Lisp list. */
+fun cadddr(term) = car(cdr(cdr(cdr(term))))
+//│ CTML translation succeeded.
+
+tv(Atom(LCons("x", LNil()))) as Chars
+if car(Conss(Atom(LCons("x", LNil())), Nill())) is Atom(name) then name as Chars
+cdr(Conss(Nill(), Nill())) as Nill
+car(Nill()) as Nill
+//│ Chars
+//│ Chars
+//│ Nill
+//│ Nill
+
+:te
+Atom(LCons(2, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Chars} ⟹ α → (Atom ∧ {chars: α}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Chars} ⟹ α → (Atom ∧ {chars: α}) ≤ β → γ
+//│     {δ ≤ Chars} ⟹ δ → (Atom ∧ {chars: δ}) ≤ β → γ
+//│       δ → (Atom ∧ {chars: δ}) ≤ β → γ
+//│         β ≤ δ
+//│           β ≤ Chars
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ Chars
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})} ⟹ η
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                       LCons ∧ {head: ε} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: ε} ≤ LNil
+//│                           ε ≤ ⊥
+//│                             Int ≤ ⊥
+//│                       {tail: ζ} ≤ LNil
+//│                         ζ ≤ ⊥
+//│                           θ ≤ ⊥
+//│                             LNil ≤ ⊥
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: Str}) ∧ {tail: η}
+//│                       (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: Str}
+//│                         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: Str}
+//│                           LCons ∧ {head: ε} ≤ {head: Str}
+//│                             LCons ≤ {head: Str}
+//│                             {head: ε} ≤ {head: Str}
+//│                               ε ≤ Str
+//│                                 Int ≤ Str
+//│                           {tail: ζ} ≤ {head: Str}
+//│                             ζ ≤ ⊥
+//│                               θ ≤ ⊥
+//│                                 LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: Equality on Lisp cells exceeds the solver budget.
+/** Compare Lisp cells recursively and atom names elementwise. */
+fun lispListEq(x, y) = if
+  x is Nill() and y is Nill() then true
+  x is Atom(a) and y is Atom(b) then listEq(a, b)
+  x is Conss(a, b) and y is Conss(c, d) and lispListEq(a, c) then lispListEq(b, d)
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Lisp equality has no inferred type.
+/** Test whether a Lisp cell occurs in a list of assumptions. */
+fun lispmember(term, terms) = if terms is
+  Conss(x, xs) then
+    if lispListEq(term, x) then true else lispmember(term, xs)
+  else false
+//│ CTML translation succeeded.
+
+:ctml-cfg search-steps 100000 check-steps 100000
+
+/** Recognize a one-element Lisp list with the specified single-character atom. */
+fun isTruthConstant(term, name) = if term is
+  Conss(Atom(LCons(c, LNil())), Nill()) then c === name
+  else false
+//│ isTruthConstant: ∀α. α → ⊤ → (({α ≤ (Conss ∧ {hd: Atom ∧ {chars: (LCons ∧ {head: ⊤}) ∧ {tail: LNil}}}) ∧ {tl: Nill}} ⟹ Bool) ∧ ({α ≤ ¬((Conss ∧ {hd: Atom ∧ {chars: (LCons ∧ {head: ⊤}) ∧ {tail: LNil}}}) ∧ {tl: Nill})} ⟹ Bool))
+
+/** Recognize the conditional symbol. */
+fun isIf(term) = if term is
+  Atom(LCons(i, LCons(f, LNil()))) then if i === "i" then f === "f" else false
+  else false
+//│ isIf: ∀α. α → (({α ≤ Atom ∧ {chars: (LCons ∧ {head: ⊤}) ∧ {tail: (LCons ∧ {head: ⊤}) ∧ {tail: LNil}}}} ⟹ Bool) ∧ ({α ≤ ¬(Atom ∧ {chars: (LCons ∧ {head: ⊤}) ∧ {tail: (LCons ∧ {head: ⊤}) ∧ {tail: LNil}}})} ⟹ Bool))
+
+isTruthConstant(Conss(Atom(LCons("t", LNil())), Nill()), "t") as Bool
+isIf(Atom(LCons("i", LCons("f", LNil())))) as Bool
+//│ Bool
+//│ Bool
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+:ctml-parse-only // FIXME: Lisp membership has no inferred type.
+/** Check a truth constant and then the current true assumptions. */
+fun truep(term, known) = if term is
+  Nill() then false
+  else if isTruthConstant(term, "t") then true else lispmember(term, known)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Lisp membership has no inferred type.
+/** Check a falsehood constant and then the current false assumptions. */
+fun falsep(term, known) = if term is
+  Nill() then false
+  else if isTruthConstant(term, "f") then true else lispmember(term, known)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The truth tests have no inferred types.
+/** Evaluate the conditional tree under the two sets of assumptions. */
+fun tautologyp(term, trueTerms, falseTerms) = if term is
+  Nill() then false
+  Atom(name) then truep(Atom(name), trueTerms)
+  Conss(op, args) then
+    if
+      truep(Conss(op, args), trueTerms) then true
+      falsep(Conss(op, args), falseTerms) then false
+      isIf(op) then
+        if
+          truep(car(args), trueTerms) then tautologyp(cadr(args), trueTerms, falseTerms)
+          falsep(car(args), falseTerms) then tautologyp(caddr(args), trueTerms, falseTerms)
+          else
+            if tautologyp(cadr(args), Conss(car(args), trueTerms), falseTerms) then
+              tautologyp(caddr(args), trueTerms, Conss(car(args), falseTerms))
+            else false
+      else false
+//│ CTML translation succeeded.
+
+/** Recognize any of the source token delimiters. */
+fun isDelimiter(c) = (c === "(") || (c === ")") || (c === " ")
+//│ isDelimiter: ⊤ → Bool
+
+isDelimiter("(") as Bool
+isDelimiter(" ") as Bool
+//│ Bool
+//│ Bool
+
+:ctml-parse-only // FIXME: Character traversal exceeds the solver budget.
+/** Collect the rest of a token, leaving its delimiter in the input. */
+fun restOfToken(input) = if input is
+  LNil() then [LNil(), LNil()]
+  LCons(h, t) then
+    if isDelimiter(h) then [LNil(), LCons(h, t)]
+    else if restOfToken(t) is [a, b] then [LCons(h, a), b]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Token-suffix traversal has no inferred type.
+/** Skip spaces and read one token, emitting parentheses as individual tokens. */
+fun getToken(input) = if input is
+  LNil() then [LNil(), LNil()]
+  LCons(h, t) then
+    if
+      h === " " then getToken(t)
+      (h === "(") || (h === ")") then [LCons(h, LNil()), t]
+      restOfToken(t) is [a, b] then [LCons(h, a), b]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Token extraction has no inferred type.
+/** Tokenize the source Lisp expression. */
+fun strToToken(input) = if input is
+  LNil() then LNil()
+  else if getToken(input) is [a, b] then LCons(a, strToToken(b))
+//│ CTML translation succeeded.
+
+/** Recognize a token consisting only of the given delimiter. */
+fun isToken(c, token) = if token is
+  LCons(h, LNil()) then h === c
+  else false
+//│ isToken: ∀α. ⊤ → α → (({α ≤ (LCons ∧ {head: ⊤}) ∧ {tail: LNil}} ⟹ Bool) ∧ ({α ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: LNil})} ⟹ Bool))
+
+isToken("(", LCons("(", LNil())) as Bool
+isToken("(", LCons("(", LCons("x", LNil()))) as Bool
+//│ Bool
+//│ Bool
+
+:ctml-parse-only // FIXME: The recursive sublist parser exceeds the solver budget.
+/** Parse a Lisp list until its closing token or the end of the input. */
+fun sublist(tokens) = if tokens is
+  LNil() then [LNil(), Nill()]
+  LCons(h, t) then
+    if
+      isToken("(", h) then
+        if sublist(t) is [r1, l1] and sublist(r1) is [r2, l2] then [r2, Conss(l1, l2)]
+      isToken(")", h) then [t, Nill()]
+      else if sublist(t) is [rest, terms] then [rest, Conss(Atom(h), terms)]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Sublist parsing has no inferred type.
+/** Parse one Lisp list and require its parser to consume the remaining tokens. */
+fun mkLispList(tokens) = if tokens is
+  LCons(h, rest) and isToken("(", h) then
+    if sublist(rest) is [LNil(), terms] then terms else Nill()
+  else Nill()
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Lisp equality has no inferred type.
+/** Look up an atom, stopping at the first malformed association entry. */
+fun assoc(term, subst) = if subst is
+  Conss(x, rest) then
+    if x is Conss(Atom(key), _) then
+      if lispListEq(term, Atom(key)) then x else assoc(term, rest)
+    else Nill()
+  else Nill()
+//│ CTML translation succeeded.
+
+/** An empty rule index. */
+data class Empty()
+/** An index node whose key is the atom name at the head of a rule. */
+data class Node(left, key: Chars, rules, right)
+//│ Empty: Unit → Empty
+//│ Node: ∀α, β, γ, δ. {β ≤ Chars} ⟹ α → β → γ → δ → ((((Node ∧ {left: α}) ∧ {key: β}) ∧ {rules: γ}) ∧ {right: δ})
+
+/** Compare atom names in the source's UTF-16 code-unit order. */
+fun nameLt(a, b) = ltList(a, b, strLt, (x, y) => strLt(y, x))
+//│ nameLt: ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool
+
+Node(Empty(), LCons("x", LNil()), LCons(Nill(), LNil()), Empty()) as
+  (Node & {left: Empty} & {key: Chars} & {rules: LCons} & {right: Empty})
+//│ (((Node ∧ {left: Empty}) ∧ {key: Chars}) ∧ {rules: LCons}) ∧ {right: Empty}
+
+ltList(LCons("a", LNil()), LCons("b", LNil()), strLt, (x, y) => strLt(y, x)) as Bool
+//│ Bool
+
+:fixme // FIXME: The inferred comparison accepts only an empty left input.
+nameLt(LCons("a", LNil()), LCons("b", LNil())) as Bool
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│     {δ ≤ Str} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│       (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│         β ≤ ∀X. {X ≥ LNil} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                 LCons ∧ {head: ε} ≤ η
+//│                   LCons ≤ η
+//│                     LCons ≤ LNil
+//│                   {head: ε} ≤ η
+//│                     {head: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         Str ≤ ⊥
+//│                 {tail: ζ} ≤ η
+//│                   {tail: ζ} ≤ LNil
+//│                     ζ ≤ ⊥
+//│                       θ ≤ ⊥
+//│                         LNil ≤ ⊥
+
+:te
+Node(Empty(), LCons(1, LNil()), LNil(), Empty())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ε → ζ → ((((Node ∧ {left: η}) ∧ {key: δ}) ∧ {rules: ε}) ∧ {right: ζ}) ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ Chars
+//│           (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ Chars
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ})} ⟹ κ
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LNil
+//│                     LCons ∧ {head: θ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: θ} ≤ LNil
+//│                         θ ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: ι} ≤ LNil
+//│                       ι ≤ ⊥
+//│                         λ ≤ ⊥
+//│                           LNil ≤ ⊥
+//│                   (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ (LCons ∧ {head: Str}) ∧ {tail: κ}
+//│                     (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ LCons ∧ {head: Str}
+//│                       (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {head: Str}
+//│                         LCons ∧ {head: θ} ≤ {head: Str}
+//│                           LCons ≤ {head: Str}
+//│                           {head: θ} ≤ {head: Str}
+//│                             θ ≤ Str
+//│                               Int ≤ Str
+//│                         {tail: ι} ≤ {head: Str}
+//│                           ι ≤ ⊥
+//│                             λ ≤ ⊥
+//│                               LNil ≤ ⊥
+
+:ctml-parse-only // FIXME: Recursive index insertion exceeds the solver budget.
+/** Insert a rule ahead of existing rules with the same key. */
+fun addToLUT(key, rule, lut) = if lut is
+  Empty() then Node(Empty(), key, LCons(rule, LNil()), Empty())
+  Node(left, k, rules, right) then
+    if
+      listEq(key, k) then Node(left, k, LCons(rule, rules), right)
+      nameLt(key, k) then Node(addToLUT(key, rule, left), k, rules, right)
+      else Node(left, k, rules, addToLUT(key, rule, right))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive index lookup exceeds the solver budget.
+/** Find the rules indexed by a function's name. */
+fun getLUT(key, lut) = if lut is
+  Empty() then LNil()
+  Node(left, k, rules, right) then
+    if
+      listEq(key, k) then rules
+      nameLt(key, k) then getLUT(key, left)
+      else getLUT(key, right)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The token and Lisp parsers have no inferred types.
+/** Parse each source rule. */
+fun makeLemmas(rules) = if rules is
+  LNil() then LNil()
+  LCons(h, t) then LCons(mkLispList(strToToken(h)), makeLemmas(t))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Index insertion has no inferred type.
+/** Index an equality rule by its left-hand function, preserving the invalid-rule error. */
+fun addLemma(rule, lut) = if rule is
+  Nill() then lut
+  Atom(_) then raiseError("error")
+  Conss(x, y) then
+    let lhs = car(y)
+    if listEq(tv(x), nofibStringToList("equal")) and not(atom(lhs)) then
+      addToLUT(tv(car(lhs)), Conss(x, y), lut)
+    else raiseError("error")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Rule insertion has no inferred type.
+/** Add rules in source order, prepending each to its matching bucket. */
+fun addLemmaList(rules, lut) = if rules is
+  LNil() then lut
+  LCons(h, t) then addLemmaList(t, addLemma(h, lut))
+//│ CTML translation succeeded.
+
+/** Substitute into a single term. */
+data class SubstituteTerm(term)
+/** Substitute into the arguments of an application. */
+data class SubstituteArgs(args)
+//│ SubstituteTerm: ∀α. α → (SubstituteTerm ∧ {term: α})
+//│ SubstituteArgs: ∀β. β → (SubstituteArgs ∧ {args: β})
+
+:ctml-parse-only // FIXME: Substitution lookup has no inferred type.
+/** Replace variables while leaving the operator of each application intact. */
+fun applySubst(subst, task) = if task is
+  SubstituteTerm(term) then
+    if term is
+      Nill() then Nill()
+      Atom(name) then
+        if assoc(Atom(name), subst) is Conss(_, value) then value else Atom(name)
+      Conss(op, args) then Conss(op, applySubst(subst, SubstituteArgs(args)))
+  SubstituteArgs(args) then
+    if args is
+      Nill() then Nill()
+      Atom(_) then raiseError("error")
+      Conss(h, t) then
+        Conss(applySubst(subst, SubstituteTerm(h)), applySubst(subst, SubstituteArgs(t)))
+//│ CTML translation succeeded.
+
+/** Unify a term against a pattern. */
+data class UnifyTerm(term, pat, subst)
+/** Unify corresponding arguments from two Lisp lists. */
+data class UnifyArgs(terms, patterns, subst)
+//│ UnifyTerm: ∀α, β, γ. α → β → γ → (((UnifyTerm ∧ {term: α}) ∧ {pat: β}) ∧ {subst: γ})
+//│ UnifyArgs: ∀δ, ε, ζ. δ → ε → ζ → (((UnifyArgs ∧ {terms: δ}) ∧ {patterns: ε}) ∧ {subst: ζ})
+
+:ctml-parse-only // FIXME: Lisp equality and association lookup have no inferred types.
+/** Match a pattern and carry the substitutions accumulated before any failure. */
+fun unify(task) = if task is
+  UnifyTerm(term, pat, subst) then
+    if
+      atom(pat) then
+        if assoc(pat, subst) is Conss(_, value) then [lispListEq(term, value), subst]
+        else [true, Conss(Conss(pat, term), subst)]
+      atom(term) then [false, subst]
+      lispListEq(car(term), car(pat)) then
+        unify(UnifyArgs(cdr(term), cdr(pat), subst))
+      else [false, subst]
+  UnifyArgs(terms, patterns, subst) then
+    if terms is Nill() then [true, subst]
+    else if unify(UnifyTerm(car(terms), car(patterns), subst)) is [ok, next] then
+      if ok then unify(UnifyArgs(cdr(terms), cdr(patterns), next)) else [false, next]
+//│ CTML translation succeeded.
+
+/** Rewrite one Lisp term. */
+data class RewriteTerm(term)
+/** Rewrite the arguments of a Lisp application. */
+data class RewriteArgs(args)
+/** Try a strict list of lemmas against a term. */
+data class RewriteWithLemmas(term, rules)
+//│ RewriteTerm: ∀α. α → (RewriteTerm ∧ {term: α})
+//│ RewriteArgs: ∀β. β → (RewriteArgs ∧ {args: β})
+//│ RewriteWithLemmas: ∀γ, δ. γ → δ → ((RewriteWithLemmas ∧ {term: γ}) ∧ {rules: δ})
+
+:ctml-parse-only // FIXME: Unification, substitution, and lookup have no inferred types.
+/** Rewrite arguments first and use the index to find candidate rules for the operator. */
+fun rewrite(lut, task) = if task is
+  RewriteTerm(term) then
+    if term is
+      Nill() then Nill()
+      Atom(name) then Atom(name)
+      Conss(op, args) then
+        let rewritten = Conss(op, rewrite(lut, RewriteArgs(args)))
+        rewrite(lut, RewriteWithLemmas(rewritten, getLUT(tv(op), lut)))
+  RewriteArgs(args) then
+    if args is
+      Nill() then Nill()
+      Atom(_) then raiseError("error")
+      Conss(h, t) then Conss(rewrite(lut, RewriteTerm(h)), rewrite(lut, RewriteArgs(t)))
+  RewriteWithLemmas(term, rules) then
+    if rules is
+      LNil() then term
+      LCons(rule, rest) then
+        if unify(UnifyTerm(term, cadr(rule), Nill())) is [ok, subst] then
+          if ok then rewrite(lut, RewriteTerm(applySubst(subst, SubstituteTerm(caddr(rule)))))
+          else rewrite(lut, RewriteWithLemmas(term, rest))
+//│ CTML translation succeeded.
+
+/** Format the benchmark's Boolean result. */
+fun report(b) = if b then "The term is a tautology" else "The term is not a tautology"
+//│ report: Bool → Str
+
+report(true) as Str
+report(false) as Str
+//│ Str
+//│ Str
+
+:ctml-parse-only // FIXME: Tokenization, parsing, and rewriting have no inferred types.
+/** The source implication to check. */
+val statement =
+  mkLispList(strToToken(nofibStringToList(
+    "( implies ( and ( implies x y )( and ( implies y z )( and " ++
+      "( implies z u )( implies u w ) ) ) )( implies x w ) )"
+  )))
+//│ CTML translation succeeded.
+
+/** Spell the substitution with the input-indexed name in both source positions. */
+fun subtermSource(i) =
+  let c = "c" ++ stringOfInt(i)
+  "( ( x f ( plus ( plus a b )( plus " ++ c ++
+    " ( zero ) ) ) )( y f ( times ( times a b )( plus " ++ c ++
+    " d ) ) )( z f ( reverse ( append ( append a b ) ( [] ) ) ) )" ++
+    "(u equal ( plus a b ) ( difference x y ) )(w lessp ( remainder a b )" ++
+    "( member a ( length b ) ) ) )"
+//│ subtermSource: Int → Str
+
+subtermSource(3) as Str
+//│ Str
+
+:ctml-parse-only // FIXME: Tokenization and Lisp parsing have no inferred types.
+/** Parse the substitution containing the input-indexed variable name. */
+fun subterm(i) =
+  mkLispList(strToToken(nofibStringToList(subtermSource(i))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inferring the complete rule list exceeds the solver budget.
+/** The benchmark's rewrite rules in source order. */
+val rules =
+  let rule1 = nofibStringToList("(equal (compile form)(reverse (codegen (optimize form) (Nill) ) ) )")
+  let rule2 = nofibStringToList("(equal (eqp x y)(equal (fix x)(fix y) ) )")
+  let rule3 = nofibStringToList("(equal (greaterp x y)(lessp y x) )")
+  let rule4 = nofibStringToList("(equal (lesseqp x y)(not (lessp y x) ) )")
+  let rule5 = nofibStringToList("(equal (greatereqp x y)(not (lessp y x) ) )")
+  let rule6 = nofibStringToList("(equal (boolean x)(or (equal x (t) )(equal x (f) ) )")
+  let rule7 = nofibStringToList("(equal (iff x y)(and (implies x y)(implies y x) ) )")
+  let rule8 = nofibStringToList("(equal (even1 x)(if (zerop x)(t)(odd (1- x) ) ) )")
+  let rule9 = nofibStringToList("(equal (countps- l pred)(countps-loop l pred (zero) ) )")
+  let rule10 = nofibStringToList("(equal (fact- i)(fact-loop i 1) )")
+  let rule11 = nofibStringToList("(equal (reverse- x)(reverse-loop x (Nill) ) )")
+  let rule12 = nofibStringToList("(equal (divides x y)(zerop (remainder y x) ) )")
+  let rule13 = nofibStringToList("(equal (assume-true var alist)(Conss (Conss var (t) )alist) )")
+  let rule14 = nofibStringToList("(equal (assume-false var alist)(Conss (Conss var (f) )alist) )")
+  let rule15 = nofibStringToList("(equal (tautology-checker x)(tautologyp (normalize x)(Nill) ) )")
+  let rule16 = nofibStringToList("(equal (falsify x)(falsify1 (normalize x)(Nill) ) )")
+  let rule17 = nofibStringToList("(equal (prime x)(and (not (zerop x))(not (equal x (add1 (zero) ) ) )(prime1 x (1- x) ) ) )")
+  let rule18 = nofibStringToList("(equal (and p q)(if p (if q (t) (f) ) (f) ) )")
+  let rule19 = nofibStringToList("(equal (or p q)(if p (t) (if q (t) (f) ) ) )")
+  let rule20 = nofibStringToList("(equal (not p)(if p (f) (t) ) )")
+  let rule21 = nofibStringToList("(equal (implies p q)(if p (if q (t) (f) ) (t) ) )")
+  let rule22 = nofibStringToList("(equal (fix x)(if (numberp x) x (zero) ) )")
+  let rule23 = nofibStringToList("(equal (if (if a b c) d e)(if a (if b d e) (if c d e) ) )")
+  let rule24 = nofibStringToList("(equal (zerop x)(or (equal x (zero) )(not (numberp x) ) ) )")
+  let rule25 = nofibStringToList("(equal (plus (plus x y) z )(plus x (plus y z) ) )")
+  let rule26 = nofibStringToList("(equal (equal (plus a b) (zero ) )(and (zerop a) (zerop b) ) )")
+  let rule27 = nofibStringToList("(equal (difference x x)(zero) )")
+  let rule28 = nofibStringToList("(equal (equal (plus a b) (plus a c) )(equal (fix b) (fix c) ) )")
+  let rule29 = nofibStringToList("(equal (equal (zero) (difference x y) )(not (lessp y x) ) )")
+  let rule30 = nofibStringToList("(equal (equal x (difference x y) )(and (numberp x)(or (equal x (zero) )(zerop y) ) ) )")
+  let rule31 = nofibStringToList("(equal (meaning (plus-tree (append x y) ) a)(plus (meaning (plus-tree x) a)(meaning (plus-tree y) a) ) )")
+  let rule32 = nofibStringToList("(equal (meaning (plus-tree (plus-fringe x) ) a)(fix (meaning x a) ) )")
+  let rule33 = nofibStringToList("(equal (append (append x y) z)(append x (append y z) ) )")
+  let rule34 = nofibStringToList("(equal (reverse (append a b) )(append (reverse b) (reverse a) ) )")
+  let rule35 = nofibStringToList("(equal (times x (plus y z) )(plus (times x y)(times x z) ) )")
+  let rule36 = nofibStringToList("(equal (times (times x y) z)(times x (times y z) ) )")
+  let rule37 = nofibStringToList("(equal (equal (times x y) (zero) )(or (zerop x)(zerop y) ) )")
+  let rule38 = nofibStringToList("(equal (exec (append x y)pds envrn)(exec y (exec x pds envrn)envrn) )")
+  let rule39 = nofibStringToList("(equal (mc-flatten x y)(append (flatten x)y) )")
+  let rule40 = nofibStringToList("(equal (member x (append a b) )(or (member x a)(member x b) ) )")
+  let rule41 = nofibStringToList("(equal (member x (reverse y) )(member x y) )")
+  let rule42 = nofibStringToList("(equal (length (reverse x) )(length x) )")
+  let rule43 = nofibStringToList("(equal (member a (intersect b c) )(and (member a b)(member a c) ) )")
+  let rule44 = nofibStringToList("(equal (nth (zero)i)(zero) )")
+  let rule45 = nofibStringToList("(equal (exp i (plus j k) )(times (exp i j)(exp i k) ) )")
+  let rule46 = nofibStringToList("(equal (exp i (times j k) )(exp (exp i j)k) )")
+  let rule47 = nofibStringToList("(equal (reverse-loop x y)(append (reverse x)y) )")
+  let rule48 = nofibStringToList("(equal (reverse-loop x (Nill) )(reverse x) )")
+  let rule49 = nofibStringToList("(equal (count-list z (sort-lp x y) )(plus (count-list z x)(count-list z y) ) )")
+  let rule50 = nofibStringToList("(equal (equal (append a b)(append a c) )(equal b c) )")
+  let rule51 = nofibStringToList("(equal (plus (remainder x y)(times y (quotient x y) ) )(fix x) )")
+  let rule52 = nofibStringToList("(equal (power-eval (big-plus1 l i base)base)(plus (power-eval l base)i) )")
+  let rule53 = nofibStringToList("(equal (power-eval (big-plus x y i base)base)(plus i (plus (power-eval x base)(power-eval y base) ) ) )")
+  let rule54 = nofibStringToList("(equal (remainder y 1)(zero) )")
+  let rule55 = nofibStringToList("(equal (lessp (remainder x y)y)(not (zerop y) ) )")
+  let rule56 = nofibStringToList("(equal (remainder x x)(zero) )")
+  let rule57 = nofibStringToList("(equal (lessp (quotient i j)i)(and (not (zerop i) )(or (zerop j)(not (equal j 1) ) ) ) )")
+  let rule58 = nofibStringToList("(equal (lessp (remainder x y)x)(and (not (zerop y) )(not (zerop x) )(not (lessp x y) ) ) )")
+  let rule59 = nofibStringToList("(equal (power-eval (power-rep i base)base)(fix i) )")
+  let rule60 = nofibStringToList("(equal (power-eval (big-plus (power-rep i base)(power-rep j base)(zero)base)base)(plus i j) )")
+  let rule61 = nofibStringToList("(equal (gcd x y)(gcd y x) )")
+  let rule62 = nofibStringToList("(equal (nth (append a b)i)(append (nth a i)(nth b (difference i (length a) ) ) ) )")
+  let rule63 = nofibStringToList("(equal (difference (plus x y)x)(fix y) )")
+  let rule64 = nofibStringToList("(equal (difference (plus y x)x)(fix y) )")
+  let rule65 = nofibStringToList("(equal (difference (plus x y)(plus x z) )(difference y z) )")
+  let rule66 = nofibStringToList("(equal (times x (difference c w) )(difference (times c x)(times w x) ) )")
+  let rule67 = nofibStringToList("(equal (remainder (times x z)z)(zero) )")
+  let rule68 = nofibStringToList("(equal (difference (plus b (plus a c) )a)(plus b c) )")
+  let rule69 = nofibStringToList("(equal (difference (add1 (plus y z)z)(add1 y) )")
+  let rule70 = nofibStringToList("(equal (lessp (plus x y)(plus x z ) )(lessp y z) )")
+  let rule71 = nofibStringToList("(equal (lessp (times x z)(times y z) )(and (not (zerop z) )(lessp x y) ) )")
+  let rule72 = nofibStringToList("(equal (lessp y (plus x y) )(not (zerop x) ) )")
+  let rule73 = nofibStringToList("(equal (gcd (times x z)(times y z) )(times z (gcd x y) ) )")
+  let rule74 = nofibStringToList("(equal (value (normalize x)a)(value x a) )")
+  let rule75 = nofibStringToList("(equal (equal (flatten x)(Conss y (Nill) ) )(and (nlistp x)(equal x y) ) )")
+  let rule76 = nofibStringToList("(equal (listp (gopher x) )(listp x) )")
+  let rule77 = nofibStringToList("(equal (samefringe x y)(equal (flatten x)(flatten y) ) )")
+  let rule78 = nofibStringToList("(equal (equal (greatest-factor x y)(zero) )(and (or (zerop y)(equal y 1) )(equal x (zero) ) ) )")
+  let rule79 = nofibStringToList("(equal (equal (greatest-factor x y)1)(equal x 1) )")
+  let rule80 = nofibStringToList("(equal (numberp (greatest-factor x y) )(not (and (or (zerop y)(equal y 1) )(not (numberp x) ) ) ) )")
+  let rule81 = nofibStringToList("(equal (times-list (append x y) )(times (times-list x)(times-list y) ) )")
+  let rule82 = nofibStringToList("(equal (prime-list (append x y) )(and (prime-list x)(prime-list y) ) )")
+  let rule83 = nofibStringToList("(equal (equal z (times w z) )(and (numberp z)(or (equal z (zero) )(equal w 1) ) ) )")
+  let rule84 = nofibStringToList("(equal (greatereqpr x y)(not (lessp x y) ) )")
+  let rule85 = nofibStringToList("(equal (equal x (times x y) )(or (equal x (zero) )(and (numberp x)(equal y 1) ) ) )")
+  let rule86 = nofibStringToList("(equal (remainder (times y x)y)(zero) )")
+  let rule87 = nofibStringToList("(equal (equal (times a b)1)(and (not (equal a (zero) ) )(not (equal b (zero) ) )(numberp a)(numberp b)(equal (1- a)(zero) )(equal (1- b)(zero) ) ) )")
+  let rule88 = nofibStringToList("(equal (lessp (length (delete x l) )(length l) )(member x l) )")
+  let rule89 = nofibStringToList("(equal (sort2 (delete x l) )(delete x (sort2 l) ) )")
+  let rule90 = nofibStringToList("(equal (dsort x)(sort2 x) )")
+  let rule91 = nofibStringToList("(equal (length(Conss x1(Conss x2(Conss x3(Conss x4(Conss x5(Conss x6 x7) ) ) ) ) ) )(plus 6 (length x7) ) )")
+  let rule92 = nofibStringToList("(equal (difference (add1 (add1 x) )2)(fix x) )")
+  let rule93 = nofibStringToList("(equal (quotient (plus x (plus x y) )2)(plus x (quotient y 2) ) )")
+  let rule94 = nofibStringToList("(equal (sigma (zero)i)(quotient (times i (add1 i) )2) )")
+  let rule95 = nofibStringToList("(equal (plus x (add1 y) )(if (numberp y)(add1 (plus x y) )(add1 x) ) )")
+  let rule96 = nofibStringToList("(equal (equal (difference x y)(difference z y) )(if (lessp x y)(not (lessp y z) )(if (lessp z y)(not (lessp y x) )(equal (fix x)(fix z) ) ) ) )")
+  let rule97 = nofibStringToList("(equal (meaning (plus-tree (delete x y) )a)(if (member x y)(difference (meaning (plus-tree y)a)(meaning x a) )(meaning (plus-tree y)a) ) )")
+  let rule98 = nofibStringToList("(equal (times x (add1 y) )(if (numberp y)(plus x (times x y) )(fix x) ) )")
+  let rule99 = nofibStringToList("(equal (nth (Nill)i)(if (zerop i)(Nill)(zero) ) )")
+  let rule100 = nofibStringToList("(equal (last (append a b) )(if (listp b)(last b)(if (listp a)(Conss (car (last a) )b)b) ) )")
+  let rule101 = nofibStringToList("(equal (equal (lessp x y)z)(if (lessp x y)(equal t z)(equal f z) ) )")
+  let rule102 = nofibStringToList("(equal (assignment x (append a b) )(if (assignedp x a)(assignment x a)(assignment x b) ) )")
+  let rule103 = nofibStringToList("(equal (car (gopher x) )(if (listp x)(car (flatten x) )(zero) ) )")
+  let rule104 = nofibStringToList("(equal (flatten (cdr (gopher x) ) )(if (listp x)(cdr (flatten x) )(Conss (zero)(Nill) ) ) )")
+  let rule105 = nofibStringToList("(equal (quotient (times y x)y)(if (zerop y)(zero)(fix x) ) )")
+  let rule106 = nofibStringToList("(equal (get j (set i val mem) )(if (eqp j i)val(get j mem) ) )")
+  let tail104 = LCons(rule105, LCons(rule106, LNil()))
+  let tail100 = LCons(rule101, LCons(rule102, LCons(rule103, LCons(rule104, tail104))))
+  let tail96 = LCons(rule97, LCons(rule98, LCons(rule99, LCons(rule100, tail100))))
+  let tail92 = LCons(rule93, LCons(rule94, LCons(rule95, LCons(rule96, tail96))))
+  let tail88 = LCons(rule89, LCons(rule90, LCons(rule91, LCons(rule92, tail92))))
+  let tail84 = LCons(rule85, LCons(rule86, LCons(rule87, LCons(rule88, tail88))))
+  let tail80 = LCons(rule81, LCons(rule82, LCons(rule83, LCons(rule84, tail84))))
+  let tail76 = LCons(rule77, LCons(rule78, LCons(rule79, LCons(rule80, tail80))))
+  let tail72 = LCons(rule73, LCons(rule74, LCons(rule75, LCons(rule76, tail76))))
+  let tail68 = LCons(rule69, LCons(rule70, LCons(rule71, LCons(rule72, tail72))))
+  let tail64 = LCons(rule65, LCons(rule66, LCons(rule67, LCons(rule68, tail68))))
+  let tail60 = LCons(rule61, LCons(rule62, LCons(rule63, LCons(rule64, tail64))))
+  let tail56 = LCons(rule57, LCons(rule58, LCons(rule59, LCons(rule60, tail60))))
+  let tail52 = LCons(rule53, LCons(rule54, LCons(rule55, LCons(rule56, tail56))))
+  let tail48 = LCons(rule49, LCons(rule50, LCons(rule51, LCons(rule52, tail52))))
+  let tail44 = LCons(rule45, LCons(rule46, LCons(rule47, LCons(rule48, tail48))))
+  let tail40 = LCons(rule41, LCons(rule42, LCons(rule43, LCons(rule44, tail44))))
+  let tail36 = LCons(rule37, LCons(rule38, LCons(rule39, LCons(rule40, tail40))))
+  let tail32 = LCons(rule33, LCons(rule34, LCons(rule35, LCons(rule36, tail36))))
+  let tail28 = LCons(rule29, LCons(rule30, LCons(rule31, LCons(rule32, tail32))))
+  let tail24 = LCons(rule25, LCons(rule26, LCons(rule27, LCons(rule28, tail28))))
+  let tail20 = LCons(rule21, LCons(rule22, LCons(rule23, LCons(rule24, tail24))))
+  let tail16 = LCons(rule17, LCons(rule18, LCons(rule19, LCons(rule20, tail20))))
+  let tail12 = LCons(rule13, LCons(rule14, LCons(rule15, LCons(rule16, tail16))))
+  let tail8 = LCons(rule9, LCons(rule10, LCons(rule11, LCons(rule12, tail12))))
+  let tail4 = LCons(rule5, LCons(rule6, LCons(rule7, LCons(rule8, tail8))))
+  LCons(rule1, LCons(rule2, LCons(rule3, LCons(rule4, tail4))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Rule parsing and indexing have no inferred types.
+/** Index the parsed rewrite rules. */
+val lemmas = addLemmaList(makeLemmas(rules), Empty())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Rewriting and tautology checking have no inferred types.
+/** Rewrite the input and test it without assumptions. */
+fun tautp(term) = tautologyp(rewrite(lemmas, RewriteTerm(term)), Nill(), Nill())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Substitution and the parsed terms have no inferred types.
+/** Instantiate the source implication with the given input index. */
+fun testStatement(i) = applySubst(subterm(i), SubstituteTerm(statement))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The instantiated statement and checker have no inferred types.
+/** Test the instantiated implication. */
+fun testResult(i) = tautp(testStatement(i))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The statement checker has no inferred type.
+/** Run the check and format its result. */
+fun testBoyer2_nofib(n) = report(testResult(n))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark checker has no inferred type.
+/** Run the benchmark with the source input. */
+fun main() = testBoyer2_nofib(3)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark entry point has no inferred type.
+main()
+//│ CTML translation succeeded.

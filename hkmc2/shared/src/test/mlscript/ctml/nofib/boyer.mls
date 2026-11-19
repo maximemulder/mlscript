@@ -1,0 +1,701 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 90 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/boyer.mls.
+// Each source symbol has one shared instance and is compared by identity. Arguments and
+// lemma tables use strict lists, with the whole lemma table behind a memoizing delay.
+// Tagged dispatchers retain the mutually recursive calls.
+
+/** A symbol represented by a shared instance. */
+data class Symbol(name: Str)
+/** A variable identified by its symbol. */
+data class Var(i: Symbol)
+/** A function application carrying its arguments and delayed lemmas. */
+data class Fun(i: Symbol, args, lemmas)
+/** The value paired with a failed substitution lookup. */
+data class Missing()
+//│ Symbol: ∀α. {α ≤ Str} ⟹ α → (Symbol ∧ {name: α})
+//│ Var: ∀β. {β ≤ Symbol} ⟹ β → (Var ∧ {i: β})
+//│ Fun: ∀γ, δ, ε. {γ ≤ Symbol} ⟹ γ → δ → ε → (((Fun ∧ {i: γ}) ∧ {args: δ}) ∧ {lemmas: ε})
+//│ Missing: Unit → Missing
+
+/** Construct an application whose delayed lemma table is empty. */
+fun noLemmas(id, args) = Fun(id, args, delay(() => LNil()))
+//│ noLemmas: ∀α, β. {α ≤ Symbol} ⟹ α → β → (((Fun ∧ {i: α}) ∧ {args: β}) ∧ {lemmas: Delayed ∧ {resume: Unit → LNil}})
+
+:ctml-cfg search-steps 100000 check-steps 100000
+
+/** Recognize a function application with the given symbol. */
+fun isApplicationOf(id, term) = if term is Fun(f, _, _) then f === id else false
+//│ isApplicationOf: ∀α. ⊤ → α → (({α ≤ ((Fun ∧ {i: ⊤}) ∧ {args: ⊤}) ∧ {lemmas: ⊤}} ⟹ Bool) ∧ ({α ≤ ¬(((Fun ∧ {i: ⊤}) ∧ {args: ⊤}) ∧ {lemmas: ⊤})} ⟹ Bool))
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+/** Compare two terms. */
+data class EqualTerms(a, b)
+/** Compare the common prefix of two argument lists. */
+data class EqualArguments(a, b)
+//│ EqualTerms: ∀α, β. α → β → ((EqualTerms ∧ {a: α}) ∧ {b: β})
+//│ EqualArguments: ∀γ, δ. γ → δ → ((EqualArguments ∧ {a: γ}) ∧ {b: δ})
+
+:ctml-parse-only // FIXME: Recursive substitution lookup exceeds the solver budget.
+/** Look up a symbol in a substitution, comparing keys by identity. */
+fun find(id, subst) = if subst is
+  LNil() then [false, Missing()]
+  LCons([key, value], rest) then
+    if id === key then [true, value] else find(id, rest)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The equality dispatcher exceeds the solver budget.
+/** Compare terms and argument lists without evaluating the lemma fields. */
+fun equal(task) = if task is
+  EqualTerms(a, b) then
+    if a is Var(x) and b is Var(y) then x === y
+    else if a is Fun(f, xs, _) and b is Fun(g, ys, _) then
+      if f === g then equal(EqualArguments(xs, ys)) else false
+    else false
+  EqualArguments(xs, ys) then
+    if xs is LCons(x, xt) and ys is LCons(y, yt) then
+      if equal(EqualTerms(x, y)) then equal(EqualArguments(xt, yt)) else false
+    else true
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Term equality has no inferred type.
+/** Look for a term among the assumptions. */
+fun termInList(term, terms) = if terms is
+  LNil() then false
+  LCons(x, xs) then
+    if equal(EqualTerms(term, x)) then true else termInList(term, xs)
+//│ CTML translation succeeded.
+
+/** Unify a term against a pattern. */
+data class UnifyTerm(term, pat, subst)
+/** Unify corresponding arguments from two lists. */
+data class UnifyArguments(terms, patterns, subst)
+//│ UnifyTerm: ∀α, β, γ. α → β → γ → (((UnifyTerm ∧ {term: α}) ∧ {pat: β}) ∧ {subst: γ})
+//│ UnifyArguments: ∀δ, ε, ζ. δ → ε → ζ → (((UnifyArguments ∧ {terms: δ}) ∧ {patterns: ε}) ∧ {subst: ζ})
+
+:ctml-parse-only // FIXME: Term equality has no inferred type.
+/** Accumulate substitutions, verifying each repeated pat variable. */
+fun unify(task) = if task is
+  UnifyTerm(term, pat, subst) then
+    if pat is Var(id) and find(id, subst) is [found, value] then
+      if found then [equal(EqualTerms(term, value)), subst]
+      else [true, LCons([id, term], subst)]
+    else if term is Fun(f, xs, _) and pat is Fun(g, ys, _) then
+      if f === g then unify(UnifyArguments(xs, ys, subst)) else [false, LNil()]
+    else [false, LNil()]
+  UnifyArguments(xs, ys, subst) then
+    if xs is LNil() and ys is LNil() then [true, subst]
+    else if xs is LCons(x, xt) and ys is LCons(y, yt) then
+      if unify(UnifyTerm(x, y, subst)) is [headOk, headSubst] then
+        // The source walks the tail even when unifying the heads fails.
+        if unify(UnifyArguments(xt, yt, headSubst)) is [tailOk, tailSubst] then
+          [headOk && tailOk, tailSubst]
+    else [false, LNil()]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Substitution lookup exceeds the solver budget.
+/** Replace bound variables, leaving application symbols and lemma handles intact. */
+fun applySubst(subst, term) = if term is
+  Var(id) then
+    if find(id, subst) is [found, value] then
+      if found then value else Var(id)
+  Fun(f, args, lemmas) then Fun(f, map(x => applySubst(subst, x), args), lemmas)
+//│ CTML translation succeeded.
+
+/** Rewrite a term from the bottom up. */
+data class RewriteTerm(term)
+/** Try a strict list of rewrite rules in order. */
+data class RewriteWithLemmas(term, lemmas)
+//│ RewriteTerm: ∀α. α → (RewriteTerm ∧ {term: α})
+//│ RewriteWithLemmas: ∀β, γ. β → γ → ((RewriteWithLemmas ∧ {term: β}) ∧ {lemmas: γ})
+
+:ctml-parse-only // FIXME: Unification and substitution have no inferred types.
+/** Rewrite arguments, then repeat from the first lemma that applies. */
+fun rewrite(task) = if task is
+  RewriteTerm(term) then
+    if term is
+      Var(id) then Var(id)
+      Fun(f, args, lemmas) then
+        let rewritten = Fun(f, map(x => rewrite(RewriteTerm(x)), args), lemmas)
+        rewrite(RewriteWithLemmas(rewritten, force(lemmas)))
+  RewriteWithLemmas(term, lemmas) then
+    if lemmas is
+      LNil() then term
+      LCons([lhs, rhs], rest) then
+        if unify(UnifyTerm(term, lhs, LNil())) is [unified, subst] then
+          if unified then rewrite(RewriteTerm(applySubst(subst, rhs)))
+          else rewrite(RewriteWithLemmas(term, rest))
+//│ CTML translation succeeded.
+
+/** The source symbol A. */
+val aId = Symbol("A")
+/** The source symbol B. */
+val bId = Symbol("B")
+/** The source symbol C. */
+val cId = Symbol("C")
+/** The source symbol D. */
+val dId = Symbol("D")
+/** The source symbol X. */
+val xId = Symbol("X")
+/** The source symbol Y. */
+val yId = Symbol("Y")
+/** The source symbol Z. */
+val zId = Symbol("Z")
+/** The source symbol U. */
+val uId = Symbol("U")
+/** The source symbol W. */
+val wId = Symbol("W")
+/** The source symbol ADD1. */
+val add1Id = Symbol("ADD1")
+/** The source symbol AND. */
+val andId = Symbol("AND")
+/** The source symbol APPEND. */
+val appendId = Symbol("APPEND")
+/** The source symbol CONS. */
+val consId = Symbol("CONS")
+/** The source symbol CONSP. */
+val conspId = Symbol("CONSP")
+/** The source symbol DIFFERENCE. */
+val differenceId = Symbol("DIFFERENCE")
+/** The source symbol DIVIDES. */
+val dividesId = Symbol("DIVIDES")
+/** The source symbol EQUAL. */
+val equalId = Symbol("EQUAL")
+/** The source symbol EVEN. */
+val evenId = Symbol("EVEN")
+/** The source symbol EXP. */
+val expId = Symbol("EXP")
+/** The source symbol F. */
+val fId = Symbol("F")
+/** The source symbol FALSE. */
+val falseId = Symbol("FALSE")
+/** The source symbol FOUR. */
+val fourId = Symbol("FOUR")
+/** The source symbol GCD. */
+val gcdId = Symbol("GCD")
+/** The source symbol GREATEREQP. */
+val greaterEqId = Symbol("GREATEREQP")
+/** The source symbol GREATERP. */
+val greaterId = Symbol("GREATERP")
+/** The source symbol IF. */
+val ifId = Symbol("IF")
+/** The source symbol IFF. */
+val iffId = Symbol("IFF")
+/** The source symbol IMPLIES. */
+val impliesId = Symbol("IMPLIES")
+/** The source symbol LENGTH. */
+val lengthId = Symbol("LENGTH")
+/** The source symbol LESSEQP. */
+val lessEqId = Symbol("LESSEQP")
+/** The source symbol LESSP. */
+val lessId = Symbol("LESSP")
+/** The source symbol LISTP. */
+val listpId = Symbol("LISTP")
+/** The source symbol MEMBER. */
+val memberId = Symbol("MEMBER")
+/** The source symbol NIL. */
+val nilId = Symbol("NIL")
+/** The source symbol NILP. */
+val nilpId = Symbol("NILP")
+/** The source symbol NLISTP. */
+val nlistpId = Symbol("NLISTP")
+/** The source symbol NOT. */
+val notId = Symbol("NOT")
+/** The source symbol ODD. */
+val oddId = Symbol("ODD")
+/** The source symbol ONE. */
+val oneId = Symbol("ONE")
+/** The source symbol OR. */
+val orId = Symbol("OR")
+/** The source symbol PLUS. */
+val plusId = Symbol("PLUS")
+/** The source symbol QUOTIENT. */
+val quotientId = Symbol("QUOTIENT")
+/** The source symbol REMAINDER. */
+val remainderId = Symbol("REMAINDER")
+/** The source symbol REVERSE. */
+val reverseId = Symbol("REVERSE")
+/** The source symbol SUB1. */
+val sub1Id = Symbol("SUB1")
+/** The source symbol TIMES. */
+val timesId = Symbol("TIMES")
+/** The source symbol TRUE. */
+val trueId = Symbol("TRUE")
+/** The source symbol TWO. */
+val twoId = Symbol("TWO")
+/** The source symbol ZERO. */
+val zeroId = Symbol("ZERO")
+/** The source symbol ZEROP. */
+val zeropId = Symbol("ZEROP")
+//│ aId: Symbol ∧ {name: Str}
+//│ bId: Symbol ∧ {name: Str}
+//│ cId: Symbol ∧ {name: Str}
+//│ dId: Symbol ∧ {name: Str}
+//│ xId: Symbol ∧ {name: Str}
+//│ yId: Symbol ∧ {name: Str}
+//│ zId: Symbol ∧ {name: Str}
+//│ uId: Symbol ∧ {name: Str}
+//│ wId: Symbol ∧ {name: Str}
+//│ add1Id: Symbol ∧ {name: Str}
+//│ andId: Symbol ∧ {name: Str}
+//│ appendId: Symbol ∧ {name: Str}
+//│ consId: Symbol ∧ {name: Str}
+//│ conspId: Symbol ∧ {name: Str}
+//│ differenceId: Symbol ∧ {name: Str}
+//│ dividesId: Symbol ∧ {name: Str}
+//│ equalId: Symbol ∧ {name: Str}
+//│ evenId: Symbol ∧ {name: Str}
+//│ expId: Symbol ∧ {name: Str}
+//│ fId: Symbol ∧ {name: Str}
+//│ falseId: Symbol ∧ {name: Str}
+//│ fourId: Symbol ∧ {name: Str}
+//│ gcdId: Symbol ∧ {name: Str}
+//│ greaterEqId: Symbol ∧ {name: Str}
+//│ greaterId: Symbol ∧ {name: Str}
+//│ ifId: Symbol ∧ {name: Str}
+//│ iffId: Symbol ∧ {name: Str}
+//│ impliesId: Symbol ∧ {name: Str}
+//│ lengthId: Symbol ∧ {name: Str}
+//│ lessEqId: Symbol ∧ {name: Str}
+//│ lessId: Symbol ∧ {name: Str}
+//│ listpId: Symbol ∧ {name: Str}
+//│ memberId: Symbol ∧ {name: Str}
+//│ nilId: Symbol ∧ {name: Str}
+//│ nilpId: Symbol ∧ {name: Str}
+//│ nlistpId: Symbol ∧ {name: Str}
+//│ notId: Symbol ∧ {name: Str}
+//│ oddId: Symbol ∧ {name: Str}
+//│ oneId: Symbol ∧ {name: Str}
+//│ orId: Symbol ∧ {name: Str}
+//│ plusId: Symbol ∧ {name: Str}
+//│ quotientId: Symbol ∧ {name: Str}
+//│ remainderId: Symbol ∧ {name: Str}
+//│ reverseId: Symbol ∧ {name: Str}
+//│ sub1Id: Symbol ∧ {name: Str}
+//│ timesId: Symbol ∧ {name: Str}
+//│ trueId: Symbol ∧ {name: Str}
+//│ twoId: Symbol ∧ {name: Str}
+//│ zeroId: Symbol ∧ {name: Str}
+//│ zeropId: Symbol ∧ {name: Str}
+
+:ctml-cfg search-steps 100000 check-steps 100000
+
+isApplicationOf(trueId, noLemmas(trueId, LNil())) as Bool
+isApplicationOf(trueId, Var(trueId)) as Bool
+//│ Bool
+//│ Bool
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+if noLemmas(zeroId, LNil()) is Fun(id, args, rules) then
+  [id as Symbol, [args as LNil, force(rules) as LNil]]
+//│ ⟨Symbol, ⟨LNil, LNil⟩⟩
+
+:te
+Var("X")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Symbol} ⟹ α → (Var ∧ {i: α}) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Symbol} ⟹ α → (Var ∧ {i: α}) ≤ Str → β
+//│     {γ ≤ Symbol} ⟹ γ → (Var ∧ {i: γ}) ≤ Str → β
+//│       γ → (Var ∧ {i: γ}) ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Symbol
+
+:ctml-parse-only // FIXME: Term membership has no inferred type.
+/** Test whether a rewritten term is true under the current true assumptions. */
+fun truep(term, assumed) =
+  if isApplicationOf(trueId, term) then true else termInList(term, assumed)
+/** Test whether a rewritten term is false under the current false assumptions. */
+fun falsep(term, assumed) =
+  if isApplicationOf(falseId, term) then true else termInList(term, assumed)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The assumption tests have no inferred types.
+/** Follow known branches and test both branches of an unknown condition. */
+fun tautologyp(term, trueTerms, falseTerms) = if
+  truep(term, trueTerms) then true
+  falsep(term, falseTerms) then false
+  term is Fun(id, LCons(cond, LCons(t, LCons(e, LNil()))), _) and id === ifId then
+    if
+      truep(cond, trueTerms) then tautologyp(t, trueTerms, falseTerms)
+      falsep(cond, falseTerms) then tautologyp(e, trueTerms, falseTerms)
+      else
+        if tautologyp(t, LCons(cond, trueTerms), falseTerms) then
+          tautologyp(e, trueTerms, LCons(cond, falseTerms))
+        else false
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Rewriting and tautology checking have no inferred types.
+/** Rewrite the input and test it with empty assumption lists. */
+fun tautp(term) = tautologyp(rewrite(RewriteTerm(term)), LNil(), LNil())
+//│ CTML translation succeeded.
+
+/** Form a one-argument application list. */
+fun args1(a) = LCons(a, LNil())
+//│ args1: ∀α. α → ((LCons ∧ {head: α}) ∧ {tail: LNil})
+
+/** Form a two-argument application list. */
+fun args2(a, b) = LCons(a, LCons(b, LNil()))
+//│ args2: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: LNil}})
+
+/** Form a three-argument application list. */
+fun args3(a, b, c) = LCons(a, LCons(b, LCons(c, LNil())))
+//│ args3: ∀α, β, γ. α → β → γ → ((LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}}})
+
+/** Construct ONE with its delayed rule rewriting it to ADD1 ZERO. */
+fun one(zero) = Fun(oneId, LNil(), delay(() => LCons(
+  [one(zero), noLemmas(add1Id, args1(zero))],
+  LNil()
+)))
+//│ one: ∀α, β. {β ≥ ((Fun ∧ {i: Symbol ∧ {name: Str}}) ∧ {args: LNil}) ∧ {lemmas: Delayed ∧ {resume: Unit → ((LCons ∧ {head: ⟨β, ((Fun ∧ {i: Symbol ∧ {name: Str}}) ∧ {args: (LCons ∧ {head: α}) ∧ {tail: LNil}}) ∧ {lemmas: Delayed ∧ {resume: Unit → LNil}}⟩}) ∧ {tail: LNil})}}} ⟹ α → (((Fun ∧ {i: Symbol ∧ {name: Str}}) ∧ {args: LNil}) ∧ {lemmas: Delayed ∧ {resume: Unit → ((LCons ∧ {head: ⟨β, ((Fun ∧ {i: Symbol ∧ {name: Str}}) ∧ {args: (LCons ∧ {head: α}) ∧ {tail: LNil}}) ∧ {lemmas: Delayed ∧ {resume: Unit → LNil}}⟩}) ∧ {tail: LNil})}})
+
+if one(noLemmas(zeroId, LNil())) is Fun(_, _, rules) then
+  if force(rules) is LCons([lhs, rhs], rest) then [lhs as Fun, [rhs as Fun, rest as LNil]]
+//│ ⟨Fun, ⟨Fun, LNil⟩⟩
+
+:ctml-parse-only // FIXME: Rewriting and tautology checking have no inferred types.
+/** Instantiate and check the benchmark theorem. */
+fun test0(input) =
+  /** The theorem variable a. */
+  let a = Var(aId)
+  /** The theorem variable b. */
+  let b = Var(bId)
+  /** The theorem variable c. */
+  let c = Var(cId)
+  /** The theorem variable d. */
+  let d = Var(dId)
+  /** The theorem variable u. */
+  let u = Var(uId)
+  /** The theorem variable w. */
+  let w = Var(wId)
+  /** The theorem variable x. */
+  let x = Var(xId)
+  /** The theorem variable y. */
+  let y = Var(yId)
+  /** The theorem variable z. */
+  let z = Var(zId)
+  /** The constant FALSE with no rewrite rules. */
+  let boyerFalse = noLemmas(falseId, LNil())
+  /** The constant NIL with no rewrite rules. */
+  let nil = noLemmas(nilId, LNil())
+  /** The constant TRUE with no rewrite rules. */
+  let boyerTrue = noLemmas(trueId, LNil())
+  /** The constant ZERO with no rewrite rules. */
+  let zero = noLemmas(zeroId, LNil())
+  /** Attach each symbol's ordered rules, constructing subterms on demand. */
+  fun makeFun(id, args) = Fun(id, args, delay(() =>
+    /** Construct a constant in a lemma. */
+    fun app0(symbol) = makeFun(symbol, LNil())
+    /** Construct a unary application in a lemma. */
+    fun app1(symbol, a) = makeFun(symbol, args1(a))
+    /** Construct a binary application in a lemma. */
+    fun app2(symbol, a, b) = makeFun(symbol, args2(a, b))
+    /** Construct a ternary application in a lemma. */
+    fun app3(symbol, a, b, c) = makeFun(symbol, args3(a, b, c))
+    if
+      id === twoId then
+        LCons([app0(twoId), app1(add1Id, one(zero))], LNil())
+      id === fourId then
+        LCons([app0(fourId), app1(add1Id, app1(add1Id, app0(twoId)))], LNil())
+      id === ifId then
+        let rule = [
+          app3(ifId, app3(ifId, x, y, z), u, w),
+          app3(ifId, x, app3(ifId, y, u, w), app3(ifId, z, u, w))
+        ]
+        LCons(rule, LNil())
+      id === notId then
+        LCons([app1(notId, x), app3(ifId, x, boyerFalse, boyerTrue)], LNil())
+      id === andId then
+        let rule = [
+          app2(andId, x, y),
+          app3(ifId, x, app3(ifId, y, boyerTrue, boyerFalse), boyerFalse)
+        ]
+        LCons(rule, LNil())
+      id === appendId then
+        let rule = [
+          app2(appendId, app2(appendId, x, y), z),
+          app2(appendId, x, app2(appendId, y, z))
+        ]
+        LCons(rule, LNil())
+      id === conspId then
+        LCons([app1(conspId, app2(consId, x, y)), boyerTrue], LNil())
+      id === differenceId then
+        let rule1 = [app2(differenceId, x, x), zero]
+        let rule2 = [app2(differenceId, app2(plusId, x, y), x), y]
+        let rule3 = [app2(differenceId, app2(plusId, y, x), x), y]
+        let rule4 = [
+          app2(differenceId, app2(plusId, x, y), app2(plusId, x, z)),
+          app2(differenceId, y, z)
+        ]
+        let rule5 = [
+          app2(differenceId, app2(plusId, y, app2(plusId, x, z)), x),
+          app2(plusId, y, z)
+        ]
+        let rule6 = [app2(differenceId, app1(add1Id, app2(plusId, y, z)), z), app1(add1Id, y)]
+        let rule7 = [app2(differenceId, app1(add1Id, app1(add1Id, x)), app0(twoId)), x]
+        LCons(
+          rule1,
+          LCons(
+            rule2,
+            LCons(rule3, LCons(rule4, LCons(rule5, LCons(rule6, LCons(rule7, LNil())))))
+          )
+        )
+      id === dividesId then
+        LCons([app2(dividesId, x, y), app1(zeropId, app2(remainderId, y, x))], LNil())
+      id === equalId then
+        let rule1 = [
+          app2(equalId, app2(plusId, x, y), zero),
+          app2(andId, app1(zeropId, x), app1(zeropId, y))
+        ]
+        let rule2 = [app2(equalId, app2(plusId, x, y), app2(plusId, x, z)), app2(equalId, y, z)]
+        let rule3 = [
+          app2(equalId, zero, app2(differenceId, x, y)),
+          app1(notId, app2(lessId, y, x))
+        ]
+        let rule4 = [
+          app2(equalId, x, app2(differenceId, x, y)),
+          app2(orId, app2(equalId, x, zero), app1(zeropId, y))
+        ]
+        let rule5 = [
+          app2(equalId, app2(timesId, x, y), zero),
+          app2(orId, app1(zeropId, x), app1(zeropId, y))
+        ]
+        let rule6 = [
+          app2(equalId, app2(appendId, x, y), app2(appendId, x, z)),
+          app2(equalId, y, z)
+        ]
+        let rule7 = [
+          app2(equalId, y, app2(timesId, x, y)),
+          app2(orId, app2(equalId, y, zero), app2(equalId, x, one(zero)))
+        ]
+        let rule8 = [
+          app2(equalId, x, app2(timesId, x, y)),
+          app2(orId, app2(equalId, x, zero), app2(equalId, y, one(zero)))
+        ]
+        let rule9 = [
+          app2(equalId, app2(timesId, x, y), one(zero)),
+          app2(andId, app2(equalId, x, one(zero)), app2(equalId, y, one(zero)))
+        ]
+        let rule10 = [
+          app2(equalId, app2(differenceId, x, y), app2(differenceId, z, y)),
+          app3(
+            ifId,
+            app2(lessId, x, y),
+            app1(notId, app2(lessId, y, z)),
+            app3(ifId, app2(lessId, z, y), app1(notId, app2(lessId, y, x)), app2(equalId, x, z))
+          )
+        ]
+        let rule11 = [
+          app2(equalId, app2(lessId, x, y), z),
+          app3(
+            ifId,
+            app2(lessId, x, y),
+            app2(equalId, boyerTrue, z),
+            app2(equalId, boyerFalse, z)
+          )
+        ]
+        let lastRules = LCons(rule9, LCons(rule10, LCons(rule11, LNil())))
+        let middleRules = LCons(rule5, LCons(rule6, LCons(rule7, LCons(rule8, lastRules))))
+        LCons(rule1, LCons(rule2, LCons(rule3, LCons(rule4, middleRules))))
+      id === evenId then
+        let rule = [
+          app1(evenId, x),
+          app3(ifId, app1(zeropId, x), boyerTrue, app1(oddId, app1(sub1Id, x)))
+        ]
+        LCons(rule, LNil())
+      id === expId then
+        let rule1 = [
+          app2(expId, x, app2(plusId, y, z)),
+          app2(timesId, app2(expId, x, y), app2(expId, x, z))
+        ]
+        let rule2 = [app2(expId, x, app2(timesId, y, z)), app2(expId, app2(expId, x, y), z)]
+        LCons(rule1, LCons(rule2, LNil()))
+      id === gcdId then
+        let rule1 = [app2(gcdId, x, y), app2(gcdId, y, x)]
+        let rule2 = [
+          app2(gcdId, app2(timesId, x, z), app2(timesId, y, z)),
+          app2(timesId, z, app2(gcdId, x, y))
+        ]
+        LCons(rule1, LCons(rule2, LNil()))
+      id === greaterEqId then
+        LCons([app2(greaterEqId, x, y), app1(notId, app2(lessId, x, y))], LNil())
+      id === greaterId then
+        LCons([app2(greaterId, x, y), app2(lessId, y, x)], LNil())
+      id === impliesId then
+        let rule = [
+          app2(impliesId, x, y),
+          app3(ifId, x, app3(ifId, y, boyerTrue, boyerFalse), boyerTrue)
+        ]
+        LCons(rule, LNil())
+      id === iffId then
+        let rule = [app2(iffId, x, y), app2(andId, app2(impliesId, x, y), app2(impliesId, y, x))]
+        LCons(rule, LNil())
+      id === lengthId then
+        let rule1 = [app1(lengthId, app1(reverseId, x)), app1(lengthId, x)]
+        let rule2 = [
+          app1(lengthId, app2(consId, x, app2(consId, y, app2(consId, z, app2(consId, u, w))))),
+          app2(plusId, app0(fourId), app1(lengthId, w))
+        ]
+        LCons(rule1, LCons(rule2, LNil()))
+      id === lessEqId then
+        LCons([app2(lessEqId, x, y), app1(notId, app2(lessId, y, x))], LNil())
+      id === lessId then
+        let rule1 = [app2(lessId, app2(remainderId, x, y), y), app1(notId, app1(zeropId, y))]
+        let rule2 = [
+          app2(lessId, app2(quotientId, x, y), x),
+          app2(andId, app1(notId, app1(zeropId, x)), app2(lessId, one(zero), y))
+        ]
+        let rule3 = [app2(lessId, app2(plusId, x, y), app2(plusId, x, z)), app2(lessId, y, z)]
+        let rule4 = [
+          app2(lessId, app2(timesId, x, z), app2(timesId, y, z)),
+          app2(andId, app1(notId, app1(zeropId, z)), app2(lessId, x, y))
+        ]
+        let rule5 = [app2(lessId, y, app2(plusId, x, y)), app1(notId, app1(zeropId, x))]
+        LCons(rule1, LCons(rule2, LCons(rule3, LCons(rule4, LCons(rule5, LNil())))))
+      id === nilpId then
+        LCons([app1(nilpId, x), app2(equalId, x, nil)], LNil())
+      id === listpId then
+        LCons([app1(listpId, x), app2(orId, app1(nilpId, x), app1(conspId, x))], LNil())
+      id === memberId then
+        let rule1 = [
+          app2(memberId, x, app2(appendId, y, z)),
+          app2(orId, app2(memberId, x, y), app2(memberId, x, z))
+        ]
+        let rule2 = [app2(memberId, x, app1(reverseId, y)), app2(memberId, x, y)]
+        LCons(rule1, LCons(rule2, LNil()))
+      id === nlistpId then
+        LCons([app1(nlistpId, x), app1(notId, app1(listpId, x))], LNil())
+      id === oddId then
+        LCons([app1(oddId, x), app1(evenId, app1(sub1Id, x))], LNil())
+      id === orId then
+        let rule = [
+          app2(orId, x, y),
+          app3(ifId, x, boyerTrue, app3(ifId, y, boyerTrue, boyerFalse))
+        ]
+        LCons(rule, LNil())
+      id === plusId then
+        let rule1 = [app2(plusId, app2(plusId, x, y), z), app2(plusId, x, app2(plusId, y, z))]
+        let rule2 = [
+          app2(plusId, app2(remainderId, x, y), app2(timesId, y, app2(quotientId, x, y))),
+          x
+        ]
+        let rule3 = [app2(plusId, x, app1(add1Id, y)), app1(add1Id, app2(plusId, x, y))]
+        LCons(rule1, LCons(rule2, LCons(rule3, LNil())))
+      id === quotientId then
+        let rule1 = [
+          app2(quotientId, app2(plusId, x, app2(plusId, x, y)), app0(twoId)),
+          app2(plusId, x, app2(quotientId, y, app0(twoId)))
+        ]
+        let rule2 = [
+          app2(quotientId, app2(timesId, y, x), y),
+          app3(ifId, app1(zeropId, y), zero, x)
+        ]
+        LCons(rule1, LCons(rule2, LNil()))
+      id === remainderId then
+        let rule1 = [app2(remainderId, x, one(zero)), zero]
+        let rule2 = [app2(remainderId, x, x), zero]
+        let rule3 = [app2(remainderId, app2(timesId, x, y), x), zero]
+        let rule4 = [app2(remainderId, app2(timesId, x, y), y), zero]
+        LCons(rule1, LCons(rule2, LCons(rule3, LCons(rule4, LNil()))))
+      id === reverseId then
+        let rule = [
+          app1(reverseId, app2(appendId, x, y)),
+          app2(appendId, app1(reverseId, y), app1(reverseId, x))
+        ]
+        LCons(rule, LNil())
+      id === sub1Id then
+        LCons([app1(sub1Id, app1(add1Id, x)), x], LNil())
+      id === timesId then
+        let rule1 = [
+          app2(timesId, x, app2(plusId, y, z)),
+          app2(plusId, app2(timesId, x, y), app2(timesId, x, z))
+        ]
+        let rule2 = [
+          app2(timesId, app2(timesId, x, y), z),
+          app2(timesId, x, app2(timesId, y, z))
+        ]
+        let rule3 = [
+          app2(timesId, x, app2(differenceId, y, z)),
+          app2(differenceId, app2(timesId, y, x), app2(timesId, z, x))
+        ]
+        let rule4 = [app2(timesId, x, app1(add1Id, y)), app2(plusId, x, app2(timesId, x, y))]
+        LCons(rule1, LCons(rule2, LCons(rule3, LCons(rule4, LNil()))))
+      id === zeropId then
+        LCons([app1(zeropId, x), app2(equalId, x, zero)], LNil())
+      else LNil()
+  ))
+  /** The benchmark's initial substitution in source order. */
+  let binding1 = [
+    xId,
+    makeFun(
+      fId,
+      args1(
+        makeFun(plusId, args2(makeFun(plusId, args2(a, b)), makeFun(plusId, args2(c, zero))))
+      )
+    )
+  ]
+  let binding2 = [
+    yId,
+    makeFun(
+      fId,
+      args1(makeFun(timesId, args2(makeFun(timesId, args2(a, b)), makeFun(plusId, args2(c, d)))))
+    )
+  ]
+  let binding3 = [
+    zId,
+    makeFun(
+      fId,
+      args1(
+        makeFun(reverseId, args1(makeFun(appendId, args2(makeFun(appendId, args2(a, b)), nil))))
+      )
+    )
+  ]
+  let binding4 = [
+    uId,
+    makeFun(equalId, args2(makeFun(plusId, args2(a, b)), makeFun(differenceId, args2(x, y))))
+  ]
+  let binding5 = [
+    wId,
+    makeFun(
+      lessId,
+      args2(
+        makeFun(remainderId, args2(a, b)),
+        makeFun(memberId, args2(a, makeFun(lengthId, args1(b))))
+      )
+    )
+  ]
+  let subst = LCons(
+    binding1,
+    LCons(binding2, LCons(binding3, LCons(binding4, LCons(binding5, LNil()))))
+  )
+  /** The hypotheses form an implication chain from the input to w. */
+  let xy = makeFun(impliesId, args2(input, y))
+  let yz = makeFun(impliesId, args2(y, z))
+  let zu = makeFun(impliesId, args2(z, u))
+  let uw = makeFun(impliesId, args2(u, w))
+  let chain = makeFun(andId, args2(xy,
+    makeFun(andId, args2(yz, makeFun(andId, args2(zu, uw))))))
+  /** The final implication connects the chain's first and last variables. */
+  let theorem = makeFun(impliesId, args2(chain, makeFun(impliesId, args2(x, w))))
+  tautp(applySubst(subst, theorem))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The theorem checker has no inferred type.
+/** Check the theorem for each of the source's repeated variable arguments. */
+fun testBoyer_nofib(n) = all(test0, replicate(n, Var(xId)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark checker has no inferred type.
+/** Run the benchmark with five repetitions. */
+fun main() = testBoyer_nofib(5)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The benchmark entry point has no inferred type.
+main()
+//│ CTML translation succeeded.

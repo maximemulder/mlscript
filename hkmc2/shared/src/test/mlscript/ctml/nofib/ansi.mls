@@ -1,0 +1,288 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 90 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/ansi.mls.
+// The display and input use strict lists of source string code units. The input loop builds
+// a continuation and the deletion step runs it, so the dispatcher keeps those results distinct.
+
+/** The source clear-screen code. */
+val cls = nofibStringToList("L")
+//│ cls: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})
+
+:fixme // FIXME: The character producer cannot instantiate the append input type.
+/** Build the position code, printing the row before the column. */
+fun goto(x, y) = LCons("E", LCons("[",
+  append(nofibStringToList(stringOfFloat(y)),
+    LCons(";", append(nofibStringToList(stringOfFloat(x)), LCons("H", LNil()))))))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+:ctml-parse-only // FIXME: Position code construction has no inferred type.
+/** Prefix text with a cursor position. */
+fun at(pos, s) = if pos is [x, y] then append(goto(x, y), s)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Inferred character lists cannot instantiate append inputs.
+/** Enclose text in the source highlight controls. */
+fun highlight(s) = append(nofibStringToList("ESC[7m"), append(s, nofibStringToList("ESC[0m")))
+//│ CTML translation succeeded.
+
+/** End the program with an empty display suffix. */
+fun endInput(_) = nofibStringToList("")
+//│ endInput: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ⊤ → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+/** Consume one character or call the end-of-input continuation. */
+fun readChar(eof, consume, cs) = if cs is
+  LNil() then eof(LNil())
+  LCons(c, rest) then consume(c, rest)
+//│ readChar: ∀α, β, γ, δ, ε, ζ. {α ≤ ¬({γ ≤ LNil} ⟹ ¬(LNil → δ)) ∨ ¬({β ≤ ε → ζ → δ, γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons} ⟹ ⊥), γ ≤ ¬({α ≤ LNil → δ} ⟹ ¬LNil) ∨ ¬({β ≤ ε → ζ → δ} ⟹ ¬(({head: ε} ∧ {tail: ζ}) ∧ LCons)), β ≤ ¬({α ≤ LNil → δ, γ ≤ LNil} ⟹ ⊥) ∨ ¬({γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons} ⟹ ¬(ε → ζ → δ))} ⟹ α → β → γ → δ
+
+/** Read one character without consuming it. */
+fun peekChar(eof, consume, cs) = if cs is
+  LNil() then eof(LNil())
+  LCons(c, rest) then consume(c, LCons(c, rest))
+//│ peekChar: ∀α, β, γ, δ, ε, ζ. {α ≤ ¬({γ ≤ LNil} ⟹ ¬(LNil → δ)) ∨ ¬({β ≤ ε → ((LCons ∧ {head: ε}) ∧ {tail: ζ}) → δ, γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons} ⟹ ⊥), γ ≤ ¬({α ≤ LNil → δ} ⟹ ¬LNil) ∨ ¬({β ≤ ε → ((LCons ∧ {head: ε}) ∧ {tail: ζ}) → δ} ⟹ ¬(({head: ε} ∧ {tail: ζ}) ∧ LCons)), β ≤ ¬({α ≤ LNil → δ, γ ≤ LNil} ⟹ ⊥) ∨ ¬({γ ≤ ({head: ε} ∧ {tail: ζ}) ∧ LCons} ⟹ ¬(ε → ((LCons ∧ {head: ε}) ∧ {tail: ζ}) → δ))} ⟹ α → β → γ → δ
+
+:fixme // FIXME: Applying the inferred reader to an empty input exceeds the solver budget.
+readChar(_ => "EOF", (c, _) => c, LNil()) as Str
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
+
+:fixme // FIXME: Applying the inferred reader to a nonempty input exceeds the solver budget.
+readChar(_ => "EOF", (c, _) => c, LCons("x", LNil())) as Str
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
+
+:fixme // FIXME: Applying the inferred peek operation exceeds the solver budget.
+peekChar(_ => "EOF", (_, input) => head(input), LCons("x", LNil())) as Str
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
+
+:ctml-cfg no-search-limit no-check-limit
+
+:ctml-parse-only // FIXME: Composing the inferred reader and its continuation exceeds the budget.
+/** Advance past one character when there is any input. */
+fun pressAnyKey(prog, input) = readChar(prog, (_, rest) => prog(rest), input)
+//│ CTML translation succeeded.
+
+/** Prepend a character before calling the input continuation. */
+fun unreadChar(c, prog, cs) = prog(LCons(c, cs))
+//│ unreadChar: ∀α, β, γ. α → (((LCons ∧ {head: α}) ∧ {tail: β}) → γ) → β → γ
+
+unreadChar("x", head, LNil()) as Str
+//│ Str
+
+/** Emit a character before the continuation's display suffix. */
+fun writeChar(c, prog, cs) = LCons(c, prog(cs))
+//│ writeChar: ∀α, β, γ. α → (β → γ) → β → ((LCons ∧ {head: α}) ∧ {tail: γ})
+
+/** Emit a string before the continuation's display suffix. */
+fun writeString(s, prog, cs) = append(s, prog(cs))
+//│ writeString: ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil
+
+writeString(LNil(), _ => LNil(), LNil()) as LNil
+//│ LNil
+
+:fixme // FIXME: The inferred writeString prefix accepts only an empty list.
+writeString(LCons("x", LNil()), _ => LNil(), LNil()) as LCons
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil ≤ β → γ
+//│     (∀X. {X ≥ LNil} ⟹ X) → (∀Y. δ → ({Y ≥ LNil} ⟹ Y)) → δ → LNil ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               LCons ∧ {head: ε} ≤ η
+//│                 LCons ≤ η
+//│                   LCons ≤ LNil
+//│                 {head: ε} ≤ η
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       Str ≤ ⊥
+//│               {tail: ζ} ≤ η
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     θ ≤ ⊥
+//│                       LNil ≤ ⊥
+
+/** Concatenate display fragments and then emit the continuation's suffix. */
+fun writes(ss, a, b) = writeString(concat(ss), a, b)
+//│ writes: ∀α. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil
+
+/** Emit the source bell code. */
+fun ringBell(prog, cs) = writeChar("B", prog, cs)
+//│ ringBell: ∀α, β. (α → β) → α → ((LCons ∧ {head: Str}) ∧ {tail: β})
+
+:ctml-parse-only // FIXME: The inferred writeString type rejects nonempty prefixes.
+/** Emit the clear-screen code. */
+fun clearScreen(a, b) = writeString(cls, a, b)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Cursor position construction has no inferred type.
+/** Build a continuation that emits text at a position. */
+fun writeAt(pos, s, a) = if pos is [x, y] then p => writeString(append(goto(x, y), s), a, p)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Cursor position construction has no inferred type.
+/** Build a continuation that moves the cursor. */
+fun moveTo(pos, a) = if pos is [x, y] then p => writeString(goto(x, y), a, p)
+//│ CTML translation succeeded.
+
+ringBell(_ => LNil(), LNil()) as (LCons & {head: Str} & {tail: LNil})
+//│ (LCons ∧ {head: Str}) ∧ {tail: LNil}
+
+:ctml-parse-only // FIXME: Accumulator reversal exceeds the 20000-call diagnostic.
+/** Reverse the accumulated characters, stopping at the first non-Cons, including "". */
+fun reverseInput(s, acc) = if s is LCons(c, rest) then reverseInput(rest, LCons(c, acc)) else acc
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The accumulator reversal is translation-only.
+/** Supply the typed input in the order the user entered it. */
+fun returnn(s, consume) = consume(reverseInput(s, LNil()))
+//│ CTML translation succeeded.
+
+/** Build the continuation for the next editing step. */
+data class ReadInput(n, reversed, limit, consume)
+/** Delete a character and run the continuation on the remaining input. */
+data class DeleteInput(n, reversed, limit, consume, input)
+//│ ReadInput: ∀α, β, γ, δ. α → β → γ → δ → ((((ReadInput ∧ {n: α}) ∧ {reversed: β}) ∧ {limit: γ}) ∧ {consume: δ})
+//│ DeleteInput: ∀ε, ζ, η, θ, ι. ε → ζ → η → θ → ι → (((((DeleteInput ∧ {n: ε}) ∧ {reversed: ζ}) ∧ {limit: η}) ∧ {consume: θ}) ∧ {input: ι})
+
+:ctml-parse-only // FIXME: The input accumulator reversal is translation-only.
+/** Implement the source input loop and its two deletion branches. */
+fun edit(task) = if task is
+  DeleteInput(n, s, limit, consume, input) then
+    if 0 < n then
+      writeString(nofibStringToList("BS_BS"),
+        edit(ReadInput(n - 1, tail(s), limit, consume)), input)
+    else ringBell(edit(ReadInput(0, nofibStringToList(""), limit, consume)), input)
+  ReadInput(n, s, limit, consume) then input =>
+    let eof = returnn(s, consume)
+    /** Handle the next key and run the resulting display continuation. */
+    fun consumeChar(c, rest) =
+      if c == "B" then edit(DeleteInput(n, s, limit, consume, rest))
+      else if c == "D" then edit(DeleteInput(n, s, limit, consume, rest))
+      else if c == "`" then returnn(s, consume)(rest)
+      else if n < limit then
+        writeChar(c, edit(ReadInput(n + 1, LCons(c, s), limit, consume)), rest)
+      else ringBell(edit(ReadInput(n, s, limit, consume)), rest)
+    readChar(eof, consumeChar, input)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The input editing continuation is translation-only.
+/** Reserve input columns and read, retaining the source's empty-string initial accumulator. */
+fun readAt(pos, width, consume) =
+  writeAt(pos, replicate(width, "_"), moveTo(pos, edit(ReadInput(0, "", width, consume))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The input continuation is translation-only.
+/** Write the prompt and start reading immediately after it. */
+fun promptReadAt(pos, width, prompt, consume) = if pos is [x, y] then
+  writeAt(pos, prompt, readAt([numAdd(x, numFromInt(listLen(prompt))), y], width, consume))
+//│ CTML translation succeeded.
+
+/** Center the reply with the source's fractional division of the character count. */
+fun replyColumn(reply) = numSub(40.0, divideToNum(listLen(reply), 2))
+//│ replyColumn: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Num
+
+replyColumn(LCons("x", LNil())) as Num
+//│ Num
+
+:te
+replyColumn(LCons("x", "malformed tail"))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Num ≤ α → β.
+//│ Typing error tree:
+//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Num ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})} ⟹ ε
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
+//│               LCons ∧ {head: γ} ≤ LNil
+//│                 LCons ≤ LNil
+//│                 {head: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     Str ≤ ⊥
+//│               {tail: δ} ≤ LNil
+//│                 δ ≤ ⊥
+//│                   Str ≤ ⊥
+//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
+//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {tail: ε}
+//│                 LCons ∧ {head: γ} ≤ {tail: ε}
+//│                   LCons ≤ {tail: ε}
+//│                   {head: γ} ≤ {tail: ε}
+//│                     γ ≤ ⊥
+//│                       Str ≤ ⊥
+//│                 {tail: δ} ≤ {tail: ε}
+//│                   δ ≤ ε
+//│                     Str ≤ ε
+//│                       Str ≤ LNil
+//│                       Str ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
+//│                         Str ≤ LCons ∧ {head: ⊤}
+//│                           Str ≤ LCons
+
+/** The source list notation used to lay out the opening screen in order. */
+fun (::)(head, tail) = LCons(head, tail)
+//│ ::: ∀α, β. α → β → ((LCons ∧ {head: α}) ∧ {tail: β})
+
+:ctml-parse-only // FIXME: The prompt and input editing pipeline is translation-only.
+/** Display the introduction, read a name, and wait for another key after the reply. */
+fun program(input) = writes(
+  cls ::
+  at([17.0, 5.0], highlight(nofibStringToList("Demonstration program"))) ::
+  at([48.0, 5.0], nofibStringToList("Version 1.0")) ::
+  at([17.0, 7.0], nofibStringToList("This program illustrates a simple approach")) ::
+  at([17.0, 8.0], nofibStringToList("to screen-based interactive programs using")) ::
+  at([17.0, 9.0], nofibStringToList("the Hugs functional programming system.")) ::
+  at([17.0, 11.0], nofibStringToList("Please press any key to continue ...")) ::
+  LNil(),
+  x => pressAnyKey(promptReadAt(
+    [17.0, 15.0],
+    18,
+    nofibStringToList("Please enter your name: "),
+    name =>
+      let reply = append(nofibStringToList("Hello "), append(name, nofibStringToList("!")))
+      writeAt([replyColumn(reply), 18.0], reply,
+        moveTo([1.0, 23.0],
+          y => writeString(nofibStringToList("I'm waiting..."), x => pressAnyKey(endInput, x), y)))
+  ), x),
+  input
+)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The display program is translation-only.
+/** Pipe the fixed input through the requested number of copies of the program. */
+fun testAnsi_nofib(n) =
+  foldr(compose, x => x, replicate(n, program))(nofibStringToList("testtesttest"))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The full display program is translation-only.
+/** Join the display output for one run on the source input. */
+fun main() = nofibListToString(testAnsi_nofib(1))
+//│ CTML translation succeeded.

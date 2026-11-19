@@ -11,6 +11,10 @@ val (===): Top -> Top -> Bool
 declare fun raiseError: Str -> Bot
 //│ raiseError: Str → ⊥
 
+/** Trusted JavaScript Error message coercion, with the empty message for undefined. */
+declare fun errorMessage: Top -> Str
+//│ errorMessage: ⊤ → Str
+
 declare fun fst[A, B]: ([A, B]) -> A
 declare fun snd[A, B]: ([A, B]) -> B
 //│ fst: ∀A, B. ⟨A, B⟩ → A
@@ -405,6 +409,15 @@ declare fun strLt: Str -> Str -> Bool
 /** Trusted rendering of one string as a JSON string literal in a source list. */
 declare fun renderStringLiteral: Str -> Str
 //│ renderStringLiteral: Str → Str
+
+/** Render the bracketed list format used by source coercion. */
+fun renderStringList(ls) =
+  /** Prepend one quoted string with a comma when the suffix has elements. */
+  fun step(s, rest) =
+    let quoted = renderStringLiteral(s)
+    if rest === "" then quoted else quoted ++ "," ++ rest
+  "[" ++ foldr(step, "", ls) ++ "]"
+//│ renderStringList: ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Str
 
 /** Trusted deletion of the first element matching the comparator. The implementation is in
   * preludeDeferred.mls. */

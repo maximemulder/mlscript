@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/integer.mls.
 // Lists use LNil() and LCons. Both arithmetic passes keep the source progression and order.

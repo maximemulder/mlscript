@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // The error branch contributes no return value to the conditional.
 raiseError("missing result") as Bot

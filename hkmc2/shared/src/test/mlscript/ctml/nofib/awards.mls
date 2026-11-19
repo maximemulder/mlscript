@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/awards.mls.
 // One recursive dispatcher represents the source's two sorts and two partitions.

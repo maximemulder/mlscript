@@ -1,0 +1,423 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 90 member(s)
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/lambda.mls.
+// Names are lists of source string code units. Recursive constructor fields carry their
+// inferred payloads. Fixed names are written as literal constructor lists. Each mutually
+// recursive group uses its own tagged dispatcher.
+
+/** A successful environment lookup. */
+data class Some(x)
+/** A failed environment lookup. */
+data class None()
+//│ Some: ∀α. α → (Some ∧ {x: α})
+//│ None: Unit → None
+
+/** A state computation returning the new state and the result. */
+data class MyState(r)
+//│ MyState: ∀α. α → (MyState ∧ {r: α})
+
+/** Run a state computation on the supplied state. */
+fun myRunState(m, s) = if m is MyState(f) then f(s)
+//│ myRunState: ∀α, β. ({r: α → β} ∧ MyState) → α → β
+
+/** Thread the first computation's state and value to its continuation. */
+fun myBind(m, f) = MyState(s => if myRunState(m, s) is [next, a] then myRunState(f(a), next))
+//│ myBind: ∀α, β. α → β → (MyState ∧ {r: ∀γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ. {ξ ≤ η, ζ ≤ ⟨θ, κ⟩, λ ≥ κ, β ≤ λ → μ, μ ≤ {r: ν → ξ} ∧ MyState, ν ≥ ι, ι ≥ θ, ε ≤ ζ, δ ≥ γ, α ≤ {r: δ → ε} ∧ MyState} ⟹ γ → η})
+
+/** Return a value while preserving the state. */
+fun myReturn(a) = MyState(s => [s, a])
+//│ myReturn: ∀α. α → (MyState ∧ {r: ∀β. β → ⟨β, α⟩})
+
+/** Return the current state as the value as well. */
+val myGet = MyState(s => [s, s])
+//│ myGet: MyState ∧ {r: ∀α. α → ⟨α, α⟩}
+
+/** Extract the result of a state computation. */
+fun myEvalState(m, s) = if myRunState(m, s) is [_, a] then a
+//│ myEvalState: ∀α, β. ({r: α → ⟨⊤, β⟩} ∧ MyState) → α → β
+
+myRunState(myGet, "env") as [Str, Str]
+myEvalState(myReturn(7), "env") as Int
+myRunState(myBind(myReturn(7), n => MyState(s => [n, s])), "env") as [Int, Str]
+//│ ⟨Str, Str⟩
+//│ Int
+//│ ⟨Int, Str⟩
+
+:te
+myRunState(MyState(n => [n + 1, n]), "env")
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Str → β.
+//│ Typing error tree:
+//│   α ≤ Str → β
+//│     γ → δ ≤ Str → β
+//│       Str ≤ γ
+//│         Str ≤ Int
+
+/** A variable name made of source string code units. */
+type Name = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ Name = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+/** A variable reference. */
+data class Var(s: Name)
+/** An integer constant. */
+data class Con(i: Int)
+/** The increment operation. */
+data class Incr()
+/** An addition of two terms. */
+data class Add(a, b)
+/** A lambda abstraction. */
+data class Lam(s: Name, t)
+/** A function application. */
+data class App(a, b)
+/** A conditional with a zero test. */
+data class IfZero(a, b, c)
+/** A term with its captured environment. */
+data class Thunk(t, e)
+/** The value of the increment computation. */
+data class UnitValue()
+//│ Var: ∀α. {α ≤ Name} ⟹ α → (Var ∧ {s: α})
+//│ Con: ∀β. {β ≤ Int} ⟹ β → (Con ∧ {i: β})
+//│ Incr: Unit → Incr
+//│ Add: ∀γ, δ. γ → δ → ((Add ∧ {a: γ}) ∧ {b: δ})
+//│ Lam: ∀ε, ζ. {ε ≤ Name} ⟹ ε → ζ → ((Lam ∧ {s: ε}) ∧ {t: ζ})
+//│ App: ∀η, θ. η → θ → ((App ∧ {a: η}) ∧ {b: θ})
+//│ IfZero: ∀ι, κ, λ. ι → κ → λ → (((IfZero ∧ {a: ι}) ∧ {b: κ}) ∧ {c: λ})
+//│ Thunk: ∀μ, ν. μ → ν → ((Thunk ∧ {t: μ}) ∧ {e: ν})
+//│ UnitValue: Unit → UnitValue
+
+if Thunk(Lam(LCons("x", LNil()), Con(3)), LNil()) is Thunk(Lam(name, Con(i)), env) then
+  [name as Name, [i as Int, env as LNil]]
+//│ ⟨Name, ⟨Int, LNil⟩⟩
+
+:te
+Con("3")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ α → (Con ∧ {i: α}) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Int} ⟹ α → (Con ∧ {i: α}) ≤ Str → β
+//│     {γ ≤ Int} ⟹ γ → (Con ∧ {i: γ}) ≤ Str → β
+//│       γ → (Con ∧ {i: γ}) ≤ Str → β
+//│         Str ≤ γ
+//│           Str ≤ Int
+
+:te
+Var(LCons(3, LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Name} ⟹ α → (Var ∧ {s: α}) ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ Name} ⟹ α → (Var ∧ {s: α}) ≤ β → γ
+//│     {δ ≤ Name} ⟹ δ → (Var ∧ {s: δ}) ≤ β → γ
+//│       δ → (Var ∧ {s: δ}) ≤ β → γ
+//│         β ≤ δ
+//│           β ≤ Name
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ Name
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: η})} ⟹ η
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                       LCons ∧ {head: ε} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: ε} ≤ LNil
+//│                           ε ≤ ⊥
+//│                             Int ≤ ⊥
+//│                       {tail: ζ} ≤ LNil
+//│                         ζ ≤ ⊥
+//│                           θ ≤ ⊥
+//│                             LNil ≤ ⊥
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: Str}) ∧ {tail: η}
+//│                       (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: Str}
+//│                         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: Str}
+//│                           LCons ∧ {head: ε} ≤ {head: Str}
+//│                             LCons ≤ {head: Str}
+//│                             {head: ε} ≤ {head: Str}
+//│                               ε ≤ Str
+//│                                 Int ≤ Str
+//│                           {tail: ζ} ≤ {head: Str}
+//│                             ζ ≤ ⊥
+//│                               θ ≤ ⊥
+//│                                 LNil ≤ ⊥
+
+/** Apply the success continuation. The source helper has no branch for None. */
+fun myMaybe(_fallback, f, x) = if x is Some(value) then f(value)
+//│ myMaybe: ∀α, β. ⊤ → (α → β) → ({x: α} ∧ Some) → β
+
+myMaybe(_ => raiseError("undefined"), x => x + 1, Some(7)) as Int
+//│ Int
+
+:te
+myMaybe(_ => raiseError("undefined"), x => x, None())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     ({x: δ} ∧ Some) → ε ≤ β → γ
+//│       β ≤ {x: δ} ∧ Some
+//│         None ≤ {x: δ} ∧ Some
+//│           None ≤ {x: δ}
+
+/** Return the increment marker without changing the environment. */
+val incr = myReturn(UnitValue())
+//│ incr: MyState ∧ {r: ∀α. α → ⟨α, UnitValue⟩}
+
+/** Run in a temporary environment, returning the value in the caller's environment. */
+fun withEnv(tmp, m) = myReturn(myEvalState(m, tmp))
+//│ withEnv: ∀α, β. α → ({r: α → ⟨⊤, β⟩} ∧ MyState) → (MyState ∧ {r: ∀γ. γ → ⟨γ, β⟩})
+
+myRunState(withEnv(7, myGet), "outer") as [Str, Int]
+//│ ⟨Str, Int⟩
+
+/** Add a binding while evaluating a computation. */
+fun pushVar(v, t, m) = myBind(myGet, env => withEnv(LCons([v, t], env), m))
+//│ pushVar: ∀α, β, γ. α → β → γ → (MyState ∧ {r: ∀δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο. {ο ≤ θ, η ≤ ⟨ι, λ⟩, μ ≥ λ, ∀ρ, σ, τ, υ, φ, χ. {γ ≤ {r: φ → ⟨⊤, χ⟩} ∧ MyState, φ ≥ υ, υ ≥ (LCons ∧ {head: σ}) ∧ {tail: τ}, τ ≥ ρ, σ ≥ ⟨α, β⟩} ⟹ ρ → (MyState ∧ {r: ∀ψ. ψ → ⟨ψ, χ⟩}) ≤ μ → ν, ν ≤ {r: ξ → ο} ∧ MyState, ξ ≥ κ, κ ≥ ι, ζ ≤ η, ε ≥ δ, MyState ∧ {r: ∀π. π → ⟨π, π⟩} ≤ {r: ε → ζ} ∧ MyState} ⟹ δ → θ})
+
+myEvalState(pushVar(LCons("x", LNil()), Con(1), myGet), LNil()) as
+  (LCons & {head: [LCons, Con]} & {tail: LNil})
+//│ (LCons ∧ {head: ⟨LCons, Con⟩}) ∧ {tail: LNil}
+
+/** Compare two terms. */
+data class CompareTerm(a, b)
+/** Compare two environments. */
+data class CompareEnv(a, b)
+//│ CompareTerm: ∀α, β. α → β → ((CompareTerm ∧ {a: α}) ∧ {b: β})
+//│ CompareEnv: ∀γ, δ. γ → δ → ((CompareEnv ∧ {a: γ}) ∧ {b: δ})
+
+:ctml-parse-only // FIXME: Recursive environment lookup exceeds the 20000-call diagnostic.
+/** Find the first binding whose name equals the requested name. */
+fun lookup(k, env) = if env is
+  LNil() then None()
+  LCons([name, value], rest) then
+    if listEq(k, name) then Some(value) else lookup(k, rest)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Term and environment comparison exceed the 20000-call diagnostic.
+/** Compare the constructors and operands selected by the source patterns. */
+fun equal(task) = if task is
+  CompareEnv(a, b) and a is LNil() and b is LNil() then true
+  // The first pattern binds its tail before the next environment pattern reads it.
+  CompareEnv(a, _) and a is LCons([s1, t1], tail1) and tail1 is LCons([s2, t2], tail2) and
+    listEq(s1, s2) and equal(CompareTerm(t1, t2)) then equal(CompareEnv(tail1, tail2))
+  CompareTerm(a, b) and a is Var(v) and b is Var(w) then listEq(v, w)
+  CompareTerm(a, b) and a is Con(i) and b is Con(j) then i === j
+  CompareTerm(a, b) and a is Incr() and b is Incr() then true
+  // The right child of the first pattern is the scrutinee of the second pattern.
+  CompareTerm(a, _) and a is Add(l, r) and r is Add(c, d) then
+    equal(CompareTerm(l, c)) && equal(CompareTerm(r, d))
+  CompareTerm(a, _) and a is Lam(v, body) and body is Lam(w, inner) then
+    listEq(v, w) && equal(CompareTerm(body, inner))
+  CompareTerm(a, _) and a is App(f, arg) and arg is App(g, other) then
+    equal(CompareTerm(f, g)) && equal(CompareTerm(arg, other))
+  CompareTerm(a, _) and a is IfZero(c, t, f) and t is IfZero(d, u, v) then
+    equal(CompareTerm(c, d)) && equal(CompareTerm(t, u)) && equal(CompareTerm(f, v))
+  CompareTerm(a, _) and a is Thunk(t, env) and env is Thunk(u, other) then
+    equal(CompareTerm(t, u)) && equal(CompareEnv(env, other))
+  else false
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Environment lookup is translation-only.
+/** Look up a variable in the current state. */
+fun lookupVar(v) =
+  /** Extract the term selected by the source lookup. */
+  fun value(env) = myMaybe(_ => raiseError("undefined"), x => x, lookup(v, env))
+  myBind(myGet, env => myReturn(value(env)))
+//│ CTML translation succeeded.
+
+/** Evaluate a term in the state computation. */
+data class Eval(t)
+/** Evaluate a term and extract an integer in the state computation. */
+data class EvalCon(t)
+/** Apply a stateful closure to an unevaluated argument. */
+data class Apply(t, a)
+//│ Eval: ∀α. α → (Eval ∧ {t: α})
+//│ EvalCon: ∀β. β → (EvalCon ∧ {t: β})
+//│ Apply: ∀γ, δ. γ → δ → ((Apply ∧ {t: γ}) ∧ {a: δ})
+
+:ctml-parse-only // FIXME: Lookup and equality are translation-only.
+/** Evaluate with the environment threaded through the source state combinators. */
+fun eval(task) = if task is
+  EvalCon(t) then myBind(eval(Eval(t)),
+    value => if value is Con(c) then myReturn(c) else raiseError("Not a Con"))
+  Apply(Thunk(Lam(x, b), e), a) then
+    myBind(myGet, orig => withEnv(e, pushVar(x, Thunk(a, orig), eval(Eval(b)))))
+  Eval(t) and t is
+    Var(x) then myBind(myGet, _ => myBind(lookupVar(x), t => eval(Eval(t))))
+    Add(u, v) then
+      myBind(eval(EvalCon(u)), i => myBind(eval(EvalCon(v)), j => myReturn(Con(i + j))))
+    Thunk(t, e) then withEnv(e, eval(Eval(t)))
+    Lam(x, b) then myBind(myGet, env => myReturn(Thunk(Lam(x, b), env)))
+    App(u, v) then myBind(eval(Eval(u)), value => eval(Apply(value, v)))
+    IfZero(c, a, b) then
+      myBind(eval(Eval(c)),
+        value => if equal(CompareTerm(value, Con(0))) then eval(Eval(a)) else eval(Eval(b)))
+    Con(i) then myReturn(Con(i))
+    Incr() then myBind(incr, _ => myReturn(Con(0)))
+//│ CTML translation succeeded.
+
+/** Evaluate a term in a supplied environment. */
+data class SimpleEval(env, t)
+/** Apply a closure with its argument captured in the supplied environment. */
+data class SimpleApply(env, t, a)
+/** Evaluate a term in a supplied environment and extract its integer. */
+data class SimpleEvalCon(env, t)
+//│ SimpleEval: ∀α, β. α → β → ((SimpleEval ∧ {env: α}) ∧ {t: β})
+//│ SimpleApply: ∀γ, δ, ε. γ → δ → ε → (((SimpleApply ∧ {env: γ}) ∧ {t: δ}) ∧ {a: ε})
+//│ SimpleEvalCon: ∀ζ, η. ζ → η → ((SimpleEvalCon ∧ {env: ζ}) ∧ {t: η})
+
+:ctml-parse-only // FIXME: Lookup and equality are translation-only.
+/** Evaluate directly, retaining the source's evaluation order and throwing branches. */
+fun simpleEval(task) = if task is
+  SimpleApply(env, t, a) then
+    if t is Thunk(Lam(x, b), e) then simpleEval(SimpleEval(LCons([x, Thunk(a, env)], e), b))
+    else raiseError("bad application")
+  SimpleEvalCon(env, t) then
+    if simpleEval(SimpleEval(env, t)) is Con(i) then i else raiseError("Not a Con")
+  SimpleEval(env, t) and t is
+    Var(v) then
+      let value = myMaybe(_ => raiseError("undefined var"), x => x, lookup(v, env))
+      simpleEval(SimpleEval(env, value))
+    Con(i) then Con(i)
+    Incr() then Con(0)
+    Add(u, v) then
+      let i = simpleEval(SimpleEvalCon(env, u))
+      let j = simpleEval(SimpleEvalCon(env, v))
+      Con(i + j)
+    Lam(x, b) then Thunk(Lam(x, b), env)
+    App(u, v) then
+      let value = simpleEval(SimpleEval(env, u))
+      simpleEval(SimpleApply(env, value, v))
+    IfZero(c, a, b) then
+      let value = simpleEval(SimpleEval(env, c))
+      if equal(CompareTerm(value, Con(0))) then simpleEval(SimpleEval(env, a))
+      else simpleEval(SimpleEval(env, b))
+    Thunk(t, e) then simpleEval(SimpleEval(e, t))
+    else raiseError(errorMessage(t))
+//│ CTML translation succeeded.
+
+raiseError(errorMessage(42)) as Bot
+//│ ⊥
+
+/** Parenthesize a term at or below the surrounding precedence. */
+fun bracket(ambient, own, text) =
+  if own <= ambient then LCons("(", append(text, LCons(")", LNil()))) else text
+//│ bracket: ∀α, β. {β ≥ Str, α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ⟹ Int → Int → α → (α ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z}))
+
+bracket(1, 0, LCons("x", LNil())) as Name
+//│ Name
+
+/** Print a term at the given precedence. */
+data class PrintTerm(precedence, t)
+/** Print an environment with its surrounding brackets. */
+data class PrintEnv(env)
+/** Print successive bindings inside the brackets. */
+data class PrintBindings(env)
+//│ PrintTerm: ∀α, β. α → β → ((PrintTerm ∧ {precedence: α}) ∧ {t: β})
+//│ PrintEnv: ∀γ. γ → (PrintEnv ∧ {env: γ})
+//│ PrintBindings: ∀δ. δ → (PrintBindings ∧ {env: δ})
+
+:ctml-parse-only // FIXME: The character producers cannot instantiate the append input types.
+/** Render the term or environment with the source precedence and separators. */
+fun print(task) = if task is
+  PrintTerm(n, t) and t is
+    Var(v) then v
+    Con(i) then nofibStringToList(stringOfInt(i))
+    Incr() then nofibStringToList("INCR")
+    Lam(v, t) then bracket(n, 0, LCons("@",
+      append(v, append(nofibStringToList(". "), print(PrintTerm(0 - 1, t))))))
+    Add(a, b) then bracket(n, 1,
+      append(print(PrintTerm(1, a)), append(nofibStringToList(" + "), print(PrintTerm(1, b)))))
+    App(a, b) then bracket(n, 2,
+      append(print(PrintTerm(2, a)), append(nofibStringToList(" "), print(PrintTerm(2, b)))))
+    IfZero(c, a, b) then bracket(n, 0,
+      append(nofibStringToList("IF "), append(print(PrintTerm(0, c)),
+        append(nofibStringToList(" THEN "), append(print(PrintTerm(0, a)),
+          append(nofibStringToList(" ELSE "), print(PrintTerm(0, b))))))))
+    Thunk(t, e) then bracket(n, 0,
+      append(print(PrintTerm(3, t)), append(nofibStringToList("::"), print(PrintEnv(e)))))
+  PrintEnv(env) then LCons("[", append(print(PrintBindings(env)), LCons("]", LNil())))
+  PrintBindings(LNil()) then LNil()
+  PrintBindings(LCons([v, t], rest)) then
+    let binding = append(v, LCons("=", append(print(PrintTerm(0, t)), nofibStringToList(", "))))
+    append(binding, print(PrintBindings(rest)))
+//│ CTML translation succeeded.
+
+/** Build the self-application used twice by the source fixed-point term. */
+val lfxx = Lam(LCons("x", LNil()), App(Var(LCons("F", LNil())),
+  App(Var(LCons("x", LNil())), Var(LCons("x", LNil())))))
+//│ lfxx: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}
+
+/** The fixed-point term in the object language. */
+val fixTerm = Lam(LCons("F", LNil()), App(lfxx, lfxx))
+//│ fixTerm: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}}) ∧ {b: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}}}
+
+/** The decrement in the recursive summation term. */
+val nMinus1 = Add(Var(LCons("n", LNil())), Con(0 - 1))
+//│ nMinus1: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}
+
+/** A summation body taking its recursive call as an argument. */
+val partialSum0 =
+  let n = LCons("n", LNil())
+  let sum = LCons("s", LCons("u", LCons("m", LNil())))
+  Lam(sum, Lam(n, IfZero(Var(n), Con(0), Add(Var(n), App(Var(sum), nMinus1)))))
+//│ partialSum0: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}) ∧ {t: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: ((IfZero ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}) ∧ {c: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}) ∧ {b: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}}}}}}
+
+/** Tie the recursive knot in the object language. */
+val sum0 = App(fixTerm, partialSum0)
+//│ sum0: (App ∧ {a: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}}) ∧ {b: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}}}}) ∧ {b: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}) ∧ {t: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: ((IfZero ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}) ∧ {c: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}) ∧ {b: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}}}}}}}
+
+:fixme // FIXME: The character producers cannot instantiate the append input types.
+/** Render the direct evaluator's result with its constructor label. */
+fun showTerm(t) = if t is Con(i) then
+  append(nofibStringToList("Con "), nofibStringToList(stringOfInt(i)))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
+//│ Typing error tree:
+//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
+//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+:ctml-parse-only // FIXME: Stateful evaluation and printing are translation-only.
+/** Run the stateful evaluator in an empty environment and print both results. */
+fun ev(t) = if myRunState(eval(Eval(t)), LNil()) is [env, value] then
+  append(print(PrintTerm(0, value)), append(nofibStringToList("  "), print(PrintEnv(env))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Direct evaluation and result rendering have no inferred types.
+/** Run the direct evaluator on the first supplied input. */
+fun mainSimple(args) = if null_(args) then raiseError("Args: number-to-sum-up-to")
+  else showTerm(simpleEval(SimpleEval(LNil(), App(sum0, Con(head(args))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Stateful evaluation is translation-only.
+/** Run the stateful evaluator on the first supplied input. */
+fun mainMonad(args) = if null_(args) then raiseError("Args: number-to-sum-up-to")
+  else ev(App(sum0, Con(head(args))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Both evaluator drivers are translation-only.
+/** Run both evaluators in source order on the same input. */
+fun testLambda_nofib(n) = [mainSimple(LCons(n, LNil())), mainMonad(LCons(n, LNil()))]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The paired evaluator run is translation-only.
+/** Format the results with the comma used by the source pair's toString. */
+fun main() = if testLambda_nofib(80) is [direct, stateful] then
+  renderStringList(direct) ++ "," ++ renderStringList(stateful)
+//│ CTML translation succeeded.

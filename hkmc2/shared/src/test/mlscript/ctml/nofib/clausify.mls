@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/clausify.mls.
 // Formula and parser stack tags carry recursive children through structural fields.
@@ -48,15 +48,6 @@ fun charGt(a, b) = strLt(b, a)
 /** Compare code units in nonincreasing order. */
 fun charGeq(a, b) = charLeq(b, a)
 //│ charGeq: Str → Str → Bool
-
-/** Render the bracketed list format used by source coercion. */
-fun renderStringList(ls) =
-  /** Prepend one quoted string with a comma when the suffix has elements. */
-  fun step(s, rest) =
-    let quoted = renderStringLiteral(s)
-    if rest === "" then quoted else quoted ++ "," ++ rest
-  "[" ++ foldr(step, "", ls) ++ "]"
-//│ renderStringList: ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Str
 
 /** Render a pair as its two source list renderings separated by a comma. */
 fun clauseKey(pair) = if pair is [left, right] then

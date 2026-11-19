@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/fish.mls.
 // Represent each segment [x0, y0, x1, y1] as a pair of endpoint pairs.

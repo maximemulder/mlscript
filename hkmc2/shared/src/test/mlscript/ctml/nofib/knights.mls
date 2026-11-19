@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/knights.mls.
 // Directions use nullary tags. Board positions are pairs of integers, and the oldest

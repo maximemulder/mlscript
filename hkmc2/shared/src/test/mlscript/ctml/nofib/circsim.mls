@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 88 member(s)
+//│ Imported 90 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/circsim.mls.
 // Circuits, ports, and packets use right-nested pairs. Signals and component kinds use tags.
@@ -726,8 +726,8 @@ send_right([1, [2, [T(), [false, [0, [3, [3, 1]]]]]]], emptyPacket)
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο.
 //│ Typing error tree:
 //│   ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
-//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
-//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3653, ⟨3654, ⟨3655, ⟨3656, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3684, ⟨3685, ⟨3686, ⟨3687, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3684, ⟨3685, ⟨3686, ⟨3687, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3684, ⟨3685, ⟨3686, ⟨3687, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3684, ⟨3685, ⟨3686, ⟨3687, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
 //│         ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ≤ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩
 //│           ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩ ≤ ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩
 //│             ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩ ≤ ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩

@@ -499,3 +499,11 @@ fun nofibCodePointBigInt(c) =
   if code === (0 - 1) then raiseTypeError("Cannot convert undefined to a BigInt")
   else bigIntFrom(code)
 //│ nofibCodePointBigInt: Str → BigInt
+
+/** Trusted JavaScript String.fromCharCode conversion of a single UTF-16 code unit. */
+declare fun nofibFromCharCode: Int -> Str
+//│ nofibFromCharCode: Int → Str
+
+/** Trusted JavaScript parseInt with automatic radix selection and NaN for an invalid prefix. */
+declare fun nofibParseInt: Str -> Num
+//│ nofibParseInt: Str → Num

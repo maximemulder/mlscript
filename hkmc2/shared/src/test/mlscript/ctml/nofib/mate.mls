@@ -1,0 +1,1077 @@
+:ctml
+:import NofibPrelude.mls
+//│ Imported 108 member(s)
+
+:ctml-cfg search-steps 20000 check-steps 20000
+
+// Source: hkmc2/shared/src/test/mlscript-compile/nofib/mate.mls.
+// Shared nullary instances preserve the identity of piece kinds and colours. Recursive
+// dispatchers preserve the source quicksort, solution search, rendering, and compaction order.
+
+/** The king tag. */
+data class King()
+/** The queen tag. */
+data class Queen()
+/** The rook tag. */
+data class Rook()
+/** The bishop tag. */
+data class Bishop()
+/** The knight tag. */
+data class Knight()
+/** The pawn tag. */
+data class Pawn()
+/** The black side. */
+data class Black()
+/** The white side. */
+data class White()
+/** The shared king value. */
+val king = King()
+/** The shared queen value. */
+val queen = Queen()
+/** The shared rook value. */
+val rook = Rook()
+/** The shared bishop value. */
+val bishop = Bishop()
+/** The shared knight value. */
+val knight = Knight()
+/** The shared pawn value. */
+val pawn = Pawn()
+/** The shared black value. */
+val black = Black()
+/** The shared white value. */
+val white = White()
+//│ King: Unit → King
+//│ Queen: Unit → Queen
+//│ Rook: Unit → Rook
+//│ Bishop: Unit → Bishop
+//│ Knight: Unit → Knight
+//│ Pawn: Unit → Pawn
+//│ Black: Unit → Black
+//│ White: Unit → White
+//│ king: King
+//│ queen: Queen
+//│ rook: Rook
+//│ bishop: Bishop
+//│ knight: Knight
+//│ pawn: Pawn
+//│ black: Black
+//│ white: White
+
+/** An optional result with a value. */
+data class Some(value)
+/** An optional result without a value. */
+data class None()
+//│ Some: ∀α. α → (Some ∧ {value: α})
+//│ None: Unit → None
+
+/** The six distinct kinds of piece. */
+type Kind = King | Queen | Rook | Bishop | Knight | Pawn
+/** The two sides of the board. */
+type Colour = Black | White
+/** A coloured piece. */
+type Piece = [Colour, Kind]
+/** A file and rank, in that order. */
+type Square = [Int, Int]
+/** The occupied squares of one side, paired with their pieces. */
+type Forces = [X restricts (LNil | (LCons & {head: [Kind, Square]} & {tail: X}))] -> X
+/** An optional captured piece or promotion. */
+type OptionalPiece = None | (Some & {value: Piece})
+//│ Kind = ((((King ∨ Queen) ∨ Rook) ∨ Bishop) ∨ Knight) ∨ Pawn
+//│ Colour = Black ∨ White
+//│ Piece = ⟨Colour, Kind⟩
+//│ Square = ⟨Int, Int⟩
+//│ Forces = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Kind, Square⟩}) ∧ {tail: X})} ⟹ X
+//│ OptionalPiece = None ∨ (Some ∧ {value: Piece})
+
+/** A board with separate white and black forces. */
+data class Board(white: Forces, black: Forces)
+/** A destination, a possible capture, and a possible promotion. */
+data class Move(destination: Square, capture: OptionalPiece, promotion: OptionalPiece)
+/** A move paired with the piece and square it starts from. */
+data class MoveInFull(piece: Piece, origin: Square, move: Move)
+/** A mating move with the solution for each individual opposing reply. */
+data class Solution(move: MoveInFull, replies)
+/** A mating move with opposing replies grouped by their rendered solution. */
+data class Soln(move: MoveInFull, replies)
+//│ Board: ∀α, β. {β ≤ Forces, α ≤ Forces} ⟹ α → β → ((Board ∧ {white: α}) ∧ {black: β})
+//│ Move: ∀γ, δ, ε. {δ ≤ OptionalPiece, ε ≤ OptionalPiece, γ ≤ Square} ⟹ γ → δ → ε → (((Move ∧ {destination: γ}) ∧ {capture: δ}) ∧ {promotion: ε})
+//│ MoveInFull: ∀ζ, η, θ. {η ≤ Square, θ ≤ Move, ζ ≤ Piece} ⟹ ζ → η → θ → (((MoveInFull ∧ {piece: ζ}) ∧ {origin: η}) ∧ {move: θ})
+//│ Solution: ∀ι, κ. {ι ≤ MoveInFull} ⟹ ι → κ → ((Solution ∧ {move: ι}) ∧ {replies: κ})
+//│ Soln: ∀λ, μ. {λ ≤ MoveInFull} ⟹ λ → μ → ((Soln ∧ {move: λ}) ∧ {replies: μ})
+
+/** Sort by partitioning in forward mode. */
+data class Sort(ls, rest)
+/** Partition around the pivot in forward mode. */
+data class Part(pivot, ls, smaller, greaterEqual, rest)
+/** Sort by partitioning in reverse mode. */
+data class ReverseSort(ls, rest)
+/** Partition around the pivot in reverse mode. */
+data class ReversePart(pivot, ls, smallerEqual, greater, rest)
+//│ Sort: ∀α, β. α → β → ((Sort ∧ {ls: α}) ∧ {rest: β})
+//│ Part: ∀γ, δ, ε, ζ, η. γ → δ → ε → ζ → η → (((((Part ∧ {pivot: γ}) ∧ {ls: δ}) ∧ {smaller: ε}) ∧ {greaterEqual: ζ}) ∧ {rest: η})
+//│ ReverseSort: ∀θ, ι. θ → ι → ((ReverseSort ∧ {ls: θ}) ∧ {rest: ι})
+//│ ReversePart: ∀κ, λ, μ, ν, ξ. κ → λ → μ → ν → ξ → (((((ReversePart ∧ {pivot: κ}) ∧ {ls: λ}) ∧ {smallerEqual: μ}) ∧ {greater: ν}) ∧ {rest: ξ})
+
+:ctml-parse-only // FIXME: Recursive sort and partition dispatch exceeds bounded inference.
+/** Keep the source's two comparator directions and accumulator order. */
+fun quicksort(le, task) = if task is
+  Sort(ls, r) and ls is
+    LNil() then r
+    LCons(x, LNil()) then LCons(x, r)
+    LCons(x, xs) then quicksort(le, Part(x, xs, LNil(), LNil(), r))
+  Part(x, ls, rlt, rge, r) and ls is
+    LNil() then quicksort(le, ReverseSort(rlt, LCons(x, quicksort(le, ReverseSort(rge, r)))))
+    LCons(y, ys) then
+      if le(x, y) then quicksort(le, Part(x, ys, rlt, LCons(y, rge), r))
+      else quicksort(le, Part(x, ys, LCons(y, rlt), rge, r))
+  ReverseSort(ls, r) and ls is
+    LNil() then r
+    LCons(x, LNil()) then LCons(x, r)
+    LCons(x, xs) then quicksort(le, ReversePart(x, xs, LNil(), LNil(), r))
+  ReversePart(x, ls, rle, rgt, r) and ls is
+    LNil() then quicksort(le, Sort(rle, LCons(x, quicksort(le, Sort(rgt, r)))))
+    LCons(y, ys) then
+      if le(y, x) then quicksort(le, ReversePart(x, ys, LCons(y, rle), rgt, r))
+      else quicksort(le, ReversePart(x, ys, rle, LCons(y, rgt), r))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Quicksort has no inferred type.
+/** Sort groups of replies by the number of moves in each group. */
+fun sort(ls) =
+  quicksort((a, b) => if a is [aa, _] and b is [bb, _] then listLen(aa) <= listLen(bb),
+    Sort(ls, LNil()))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The six-way constructor match exceeds bounded inference.
+/** Rank piece kinds in the order used to sort replies. */
+fun kindOrder(k) = if k is
+  King() then 1
+  Queen() then 2
+  Rook() then 3
+  Bishop() then 4
+  Knight() then 5
+  Pawn() then 6
+//│ CTML translation succeeded.
+
+/** Order black before white. */
+fun colourOrder(c) = if c is Black() then 1 else 2
+//│ colourOrder: ∀α. α → (({α ≤ Black} ⟹ Int) ∧ ({α ≤ ¬Black} ⟹ Int))
+
+:ctml-parse-only // FIXME: The piece kind ordering has no inferred type.
+/** Compare pieces by colour and then by kind. */
+fun pieceCompare(p1, p2) = if p1 is [c1, k1] and p2 is [c2, k2] then
+  let co = colourOrder(c1) - colourOrder(c2)
+  if co === 0 then kindOrder(k1) - kindOrder(k2) else co
+//│ CTML translation succeeded.
+
+/** Compare squares by rank and then by file. */
+fun squareCompare(s1, s2) = if s1 is [f1, r1] and s2 is [f2, r2] then
+  let ro = r1 - r2
+  if ro === 0 then f1 - f2 else ro
+//│ squareCompare: ⟨Int, Int⟩ → ⟨Int, Int⟩ → Int
+
+:ctml-parse-only // FIXME: Piece comparison has no inferred type.
+/** Order absent pieces before present pieces. */
+fun optPieceCompare(op1, op2) = if op1 is
+  None() and op2 is
+    None() then 0
+    Some(_) then -1
+  Some(p1) and op2 is
+    None() then 1
+    Some(p2) then pieceCompare(p1, p2)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Optional piece comparison has no inferred type.
+/** Compare a move's destination, capture, and promotion, in that order. */
+fun moveCompare(m1, m2) = if m1 is Move(ma1, mb1, mc1) and m2 is Move(ma2, mb2, mc2) then
+  let ac = squareCompare(ma1, ma2)
+  if ac === 0 then
+    let bc = optPieceCompare(mb1, mb2)
+    if bc === 0 then optPieceCompare(mc1, mc2) else bc
+  else ac
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Move comparison has no inferred type.
+/** Compare the moving pieces and origins before comparing the moves. */
+fun moveInFullCompare(mif1, mif2) =
+  if mif1 is MoveInFull(p1, s1, m1) and mif2 is MoveInFull(p2, s2, m2) then
+    let pc = pieceCompare(p1, p2)
+    if pc === 0 then
+      let sc = squareCompare(s1, s2)
+      if sc === 0 then moveCompare(m1, m2) else sc
+    else pc
+//│ CTML translation succeeded.
+
+/** Use the default for an absent result and apply the callback to a present result. */
+fun maybe(d, f, x) = if x is
+  None() then d
+  Some(v) then f(v)
+//│ maybe: ∀α, β, γ, δ, ε. {δ ≥ ({γ ≤ None} ⟹ α) ∧ ({β ≤ ε → δ, γ ≤ {value: ε} ∧ Some} ⟹ ⊥), γ ≤ ¬({δ ≥ α} ⟹ ¬None) ∨ ¬({β ≤ ε → δ} ⟹ ¬({value: ε} ∧ Some)), β ≤ ¬({γ ≤ None, δ ≥ α} ⟹ ⊥) ∨ ¬({γ ≤ {value: ε} ∧ Some} ⟹ ¬(ε → δ))} ⟹ α → β → γ → δ
+
+/** Recognize an ASCII uppercase code unit. */
+fun isUpper(c) =
+  let x = nofibCharCode(c)
+  65 <= x && x <= 90
+//│ isUpper: Str → Bool
+
+/** Recognize an ASCII lowercase code unit. */
+fun isLower(c) =
+  let x = nofibCharCode(c)
+  97 <= x && x <= 122
+//│ isLower: Str → Bool
+
+/** Lowercase an ASCII uppercase initial and otherwise return the original string. */
+fun toLower(c) =
+  if isUpper(c) then nofibFromCharCode(nofibCharCode(c) + 32) else c
+//│ toLower: Str → Str
+
+:ctml-parse-only // FIXME: Recursive word splitting exceeds bounded inference.
+/** Split a line at spaces, skipping consecutive separators. */
+fun words(s) = if leaveWhile(x => x === " ", s) is
+  LNil() then LNil()
+  s_ and break_(x => x === " ", s_) is [w, rest] then LCons(w, words(rest))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive line splitting exceeds bounded inference.
+/** Split at newlines, keeping the final line before end of input. */
+fun lines(s) = if break_(x => x === "\n", s) is [l, rest] then
+  LCons(l, if rest is
+    LNil() then LNil()
+    LCons(_, tail) then lines(tail))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive short-circuit list traversal exceeds bounded inference.
+/** Check whether any element satisfies the predicate, stopping at the first match. */
+fun any(p, ls) = if ls is
+  LNil() then false
+  LCons(x, xs) then p(x) || any(p, xs)
+//│ CTML translation succeeded.
+
+/** Negate a Boolean using a conditional. */
+fun negate(value) = if value then false else true
+//│ negate: Bool → Bool
+
+/** Render the side's name. */
+fun showColour(c) = nofibStringToList(if c is Black() then "Black" else "White")
+//│ showColour: ∀α, β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), α ≤ ¬({α ≤ Black} ⟹ ¬Black) ∨ ¬({α ≤ ¬Black} ⟹ Black)} ⟹ α → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}))
+
+:ctml-parse-only // FIXME: Recursive lookup in the board's force lists exceeds bounded inference.
+/** Find the piece on a square, preferring white if both lists contain it. */
+fun pieceAt(bd, sq) = if bd is Board(wkss, bkss) then
+  /** Scan one side with a default supplied by the other side. */
+  fun pieceAtWith(c, d, ls) = if ls is
+    LNil() then d
+    LCons([k, s], xs) then
+      if eqTup2(s, sq) then Some([c, k])
+      else pieceAtWith(c, d, xs)
+  pieceAtWith(white, pieceAtWith(black, None(), bkss), wkss)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The six-way constructor match exceeds bounded inference.
+/** Render a piece kind as its uppercase initial. */
+fun kindToChar(k) = if k is
+  King() then "K"
+  Queen() then "Q"
+  Rook() then "R"
+  Bishop() then "B"
+  Knight() then "N"
+  Pawn() then "P"
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Piece kind rendering has no inferred type.
+/** Render black pieces in uppercase and white pieces in lowercase. */
+fun pieceToChar(p) = if p is
+  [Black(), k] then kindToChar(k)
+  [White(), k] then toLower(kindToChar(k))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup has no inferred type.
+/** Render ranks from eight to one and files from one to eight. */
+fun showBoard(bd) =
+  /** Render the squares of one rank from left to right. */
+  fun showRank(r) =
+    /** Prefix the next square, including its leading space. */
+    fun consFile(f, s) = if pieceAt(bd, [f, r]) is
+      None() then append(nofibStringToList(" -"), s)
+      Some(p) then LCons(" ", LCons(pieceToChar(p), s))
+    foldr(consFile, LNil(), enumFromTo(1, 8))
+  unlines(map(showRank, reverse(enumFromTo(1, 8))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Piece kind rendering has no inferred type.
+/** Render the piece kind for a move, independently of its colour. */
+fun showPiece(p) = if p is [_, k] then LCons(kindToChar(k), LNil())
+//│ CTML translation succeeded.
+
+:fixme // FIXME: The produced rank string does not instantiate the append contract.
+/** Render descriptive chess notation, numbering the ranks from the moving side. */
+fun showSquare(c, xy) = if xy is [x, y] then
+  let files = LCons(nofibStringToList("QR"),
+    LCons(nofibStringToList("QN"),
+      LCons(nofibStringToList("QB"),
+        LCons(nofibStringToList("Q"),
+          LCons(nofibStringToList("K"),
+            LCons(nofibStringToList("KB"),
+              LCons(nofibStringToList("KN"), LCons(nofibStringToList("KR"), LNil()))))))))
+  append(atIndex(x - 1, files), nofibStringToList(stringOfInt(if c is Black() then 9 - y else y)))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Z})} ⟹ Z) ≤ β → γ
+//│       β ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ ζ
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+//│               (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: δ}) ∧ {tail: ζ}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
+//│                     LCons ∧ {head: Str} ≤ {tail: ζ}
+//│                       LCons ≤ {tail: ζ}
+//│                       {head: Str} ≤ {tail: ζ}
+//│                         Str ≤ ⊥
+//│                     {tail: ε} ≤ {tail: ζ}
+//│                       ε ≤ ζ
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+
+:ctml-parse-only // FIXME: Traversal of both board force lists exceeds bounded inference.
+/** Check that no occupied square matches the predicate. */
+fun emptyAtAll(bd, e) = if bd is Board(wkss, bkss) then
+  /** Conjoin the checks for one side with the other side's result. */
+  fun emptyAtAllAnd(b, ls) = if ls is
+    LNil() then b
+    LCons([_, s], xs) then negate(e(s)) && emptyAtAllAnd(b, xs)
+  emptyAtAllAnd(emptyAtAllAnd(true, bkss), wkss)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive removal of a piece exceeds bounded inference.
+/** Remove the first entry at the square and report a missing entry. */
+fun rPa(sq, kss) = if kss is
+  LNil() then raiseError("rPa")
+  LCons([k, s], rest) then if eqTup2(s, sq) then rest else LCons([k, s], rPa(sq, rest))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Piece removal has no inferred type.
+/** Remove a piece from its side's force list. */
+fun rmPieceAt(c, sq, bd) = if bd is Board(wkss, bkss) and c is
+  White() then Board(rPa(sq, wkss), bkss)
+  Black() then Board(wkss, rPa(sq, bkss))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Prepending to a board force list exceeds bounded inference.
+/** Prepend a piece and square to the appropriate side of the board. */
+fun putPieceAt(sq, ck, bd) = if ck is [c, k] and bd is Board(wkss, bkss) and c is
+  White() then Board(LCons([k, sq], wkss), bkss)
+  Black() then Board(wkss, LCons([k, sq], bkss))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Recursive king lookup exceeds bounded inference.
+/** Find the first king in a side's force list. */
+fun kSq(kss) = if kss is
+  LCons([King(), s], _) then s
+  LCons(_, rest) then kSq(rest)
+  LNil() then raiseError("kSq")
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: King lookup has no inferred type.
+/** Find the king belonging to the given side. */
+fun kingSquare(c, bd) = if bd is Board(wkss, bkss) and c is
+  White() then kSq(wkss)
+  Black() then kSq(bkss)
+//│ CTML translation succeeded.
+
+/** Return the opposite side. */
+fun opponent(c) = if c is White() then black else white
+//│ opponent: ∀α, β. {β ≥ ({α ≤ White} ⟹ Black) ∧ ({α ≤ ¬White} ⟹ White), α ≤ ¬({β ≥ Black} ⟹ ¬White) ∨ ¬({β ≥ White} ⟹ White)} ⟹ α → β
+
+/** Project the colour of a piece. */
+fun colourOf(ck) = if ck is [c, _] then c
+//│ colourOf: ∀α. ⟨α, ⊤⟩ → α
+
+/** Project the kind of a piece. */
+fun kindOf(ck) = if ck is [_, k] then k
+//│ kindOf: ∀α. ⟨⊤, α⟩ → α
+
+/** Check the inclusive file and rank bounds. */
+fun onboard(pq) = if pq is [p, q] then
+  1 <= p && p <= 8 && 1 <= q && q <= 8
+//│ onboard: ⟨Int, Int⟩ → Bool
+
+/** Select one side's force list. */
+fun forcesColoured(c, bd) = if bd is Board(wkss, bkss) and c is
+  White() then wkss
+  Black() then bkss
+//│ forcesColoured: ∀α, β, γ, δ. {α ≤ ¬({δ ≥ β} ⟹ ¬White) ∨ ¬({δ ≥ γ} ⟹ ¬Black), δ ≥ ({α ≤ White} ⟹ β) ∧ ({α ≤ Black} ⟹ γ)} ⟹ α → (({black: γ} ∧ {white: β}) ∧ Board) → δ
+
+/** The board before placing any pieces. */
+val emptyBoard = Board(LNil(), LNil())
+//│ emptyBoard: (Board ∧ {white: LNil}) ∧ {black: LNil}
+
+:ctml-parse-only // FIXME: Piece and square rendering have no inferred types.
+/** Render a move, including its origin, capture, and promotion when required. */
+fun showMove(withPiece, m) =
+  if m is MoveInFull([c, k], sq, Move(dest, mcp, mpp)) then
+    let capt = mcp is Some(_)
+    let prom = mpp is Some(_)
+    let prefix = if withPiece then
+      append(showPiece([c, k]),
+        if (k is King()) || ((k is Pawn()) && negate(capt || prom)) then LNil()
+        else LCons("/", showSquare(c, sq)))
+    else LNil()
+    append(prefix,
+      append(maybe(LCons("-", LNil()),
+          cp => LCons("x", append(showPiece(cp), LCons("/", LNil()))), mcp),
+        append(showSquare(c, dest),
+          maybe(LNil(), pp => LCons("(", append(showPiece(pp), LCons(")", LNil()))), mpp))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Move rendering has no inferred type.
+/** Render a move with its moving piece. */
+fun showMoveInFull(a) = showMove(true, a)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Move rendering has no inferred type.
+/** Render subsequent alternatives, omitting repeated pieces and origins. */
+fun showMovesAfter(prev, mifs) = if mifs is
+  LNil() then LNil()
+  LCons(MoveInFull(p, sq, d), rest) and prev is MoveInFull(p_, sq_, _) then
+    append(nofibStringToList(", "),
+      append(showMove(negate(eqTup2(p, p_)) || negate(eqTup2(sq, sq_)), MoveInFull(p, sq, d)),
+        showMovesAfter(MoveInFull(p, sq, d), rest)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Move rendering has no inferred type.
+/** Render a nonempty group of alternative moves. */
+fun showMoves(mifs) = if mifs is
+  LNil() then raiseError("showMoves")
+  LCons(mif, rest) then append(showMoveInFull(mif), showMovesAfter(mif, rest))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup has no inferred type.
+/** Process jump destinations in source order, prepending each available move. */
+fun sift(c, bd, ms, sqs) = if sqs is
+  LNil() then ms
+  LCons(sq, rest) then
+    if onboard(sq) and pieceAt(bd, sq) is
+      None() then sift(c, bd, LCons(Move(sq, None(), None()), ms), rest)
+      Some(p) then
+        if colourOf(p) === c then sift(c, bd, ms, rest)
+        else sift(c, bd, LCons(Move(sq, Some(p), None()), ms), rest)
+    else sift(c, bd, ms, rest)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup has no inferred type.
+/** Pass the moves on one ray to the continuation, stopping at the board edge or a piece. */
+fun moveLine(bd, c, sq, inc, cont) =
+  /** Add the next empty square or opposing piece on the ray. */
+  fun ml(sq, ms) =
+    let dest = inc(sq)
+    if onboard(dest) and pieceAt(bd, dest) is
+      None() then ml(dest, LCons(Move(dest, None(), None()), ms))
+      Some(p) then
+        if negate(colourOf(p) === c) then cont(LCons(Move(dest, Some(p), None()), ms))
+        else cont(ms)
+    else cont(ms)
+  ms => ml(sq, ms)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The ray traversal has no inferred type.
+/** Visit the bishop's four diagonal rays in source order. */
+fun bishopmoves(c, sq, bd) =
+  moveLine(bd, c, sq, p => if p is [x, y] then [x - 1, y + 1],
+    moveLine(bd, c, sq, p => if p is [x, y] then [x + 1, y + 1],
+      moveLine(bd, c, sq, p => if p is [x, y] then [x - 1, y - 1],
+        moveLine(bd, c, sq, p => if p is [x, y] then [x + 1, y - 1], x => x))))(LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The ray traversal has no inferred type.
+/** Visit the rook's four orthogonal rays in source order. */
+fun rookmoves(c, sq, bd) =
+  moveLine(bd, c, sq, p => if p is [x, y] then [x - 1, y],
+    moveLine(bd, c, sq, p => if p is [x, y] then [x + 1, y],
+      moveLine(bd, c, sq, p => if p is [x, y] then [x, y - 1],
+        moveLine(bd, c, sq, p => if p is [x, y] then [x, y + 1], x => x))))(LNil())
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The jump traversal has no inferred type.
+/** Generate a king's jumps to the adjacent squares. */
+fun kingmoves(c, pq, bd) = if pq is [p, q] then
+  sift(c, bd, LNil(),
+    LCons([p - 1, q + 1], LCons([p, q + 1],
+      LCons([p + 1, q + 1], LCons([p - 1, q],
+        LCons([p + 1, q], LCons([p - 1, q - 1],
+          LCons([p, q - 1], LCons([p + 1, q - 1], LNil())))))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The jump traversal has no inferred type.
+/** Generate a knight's jumps in the source order. */
+fun knightmoves(c, pq, bd) = if pq is [p, q] then
+  sift(c, bd, LNil(),
+    LCons([p - 1, q + 2], LCons([p + 1, q + 2],
+      LCons([p - 2, q + 1], LCons([p + 2, q + 1],
+        LCons([p - 2, q - 1], LCons([p + 2, q - 1],
+          LCons([p - 1, q - 2], LCons([p + 1, q - 2], LNil())))))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board lookup has no inferred type.
+/** Generate forward moves before captures, expanding promotions in source order. */
+fun pawnmoves(c, pq, bd) = if pq is [p, q] then
+  let fwd = if c is White() then 1 else -1
+  /** Expand a move at the final rank into one move for each allowed promotion. */
+  fun promote(xy, mcp) = if xy is [x, y] then
+    if ((c is Black()) && y === 1) || ((c is White()) && y === 8) then
+      map(param => Move([x, y], mcp, Some(param)),
+        LCons([c, queen], LCons([c, rook], LCons([c, bishop], LCons([c, knight], LNil())))))
+    else LCons(Move([x, y], mcp, None()), LNil())
+  let movs =
+    let on1 = [p, q + fwd]
+    let on2 = [p, q + 2 * fwd]
+    if pieceAt(bd, on1) is None() then
+      append(promote(on1, None()),
+        if ((q === 2 && (c is White())) || (q === 7 && (c is Black()))) &&
+            (pieceAt(bd, on2) is None()) then LCons(Move(on2, None(), None()), LNil())
+        else LNil())
+    else LNil()
+  /** Visit each of the two possible capture squares. */
+  fun lscomp1(ls) = if ls is
+    LNil() then LNil()
+    LCons(sq, sqs) then
+      /** Collect captures from the source's singleton optional-piece list. */
+      fun lscomp2(ls) = if ls is
+        LNil() then lscomp1(sqs)
+        LCons(h, rest) then
+          if h is Some(p) and negate(colourOf(p) === c) then
+            LCons(promote(sq, Some(p)), lscomp2(rest))
+          else lscomp2(rest)
+      lscomp2(LCons(pieceAt(bd, sq), LNil()))
+  let caps = concat(lscomp1(LCons([p + 1, q + fwd], LCons([p - 1, q + fwd], LNil()))))
+  append(movs, caps)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The ray traversal has no inferred type.
+/** Generate the queen's diagonal moves before its orthogonal moves. */
+fun queenmoves(c, sq, bd) = append(bishopmoves(c, sq, bd), rookmoves(c, sq, bd))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: King lookup and force-list traversals have no inferred types.
+/** Check whether any opposing piece attacks the given side's king. */
+fun kingincheck(c, bd) =
+  /** Test the attack rule for one opposing piece. */
+  fun givesCheck(kxy) = if kxy is [k, [x, y]] then
+    /** A queen applies the rook and bishop rules in that order. */
+    fun kthreat(param) = if kingSquare(c, bd) is [xk, yk] and param is
+      King() then abs(x - xk) <= 1 && abs(y - yk) <= 1
+      Queen() then kthreat(rook) || kthreat(bishop)
+      Rook() then
+        (x === xk && emptyAtAll(bd, sq => if sq is [xe, ye] then
+          xe === xk && intMin(y, yk) < ye && ye < intMax(y, yk))) ||
+        (y === yk && emptyAtAll(bd, sq => if sq is [xe, ye] then
+          ye === yk && intMin(x, xk) < xe && xe < intMax(x, xk)))
+      Bishop() then
+        (x + y === xk + yk && emptyAtAll(bd, sq => if sq is [xe, ye] then
+          xe + ye === xk + yk && intMin(x, xk) < xe && xe < intMax(x, xk))) ||
+        (x - y === xk - yk && emptyAtAll(bd, sq => if sq is [xe, ye] then
+          xe - ye === xk - yk && intMin(x, xk) < xe && xe < intMax(x, xk)))
+      Knight() then
+        (abs(x - xk) === 2 && abs(y - yk) === 1) || (abs(x - xk) === 1 && abs(y - yk) === 2)
+      Pawn() then abs(x - xk) === 1 && (if c is Black() then yk === y + 1 else yk === y - 1)
+    kthreat(k)
+  any(givesCheck, forcesColoured(opponent(c), bd))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Board updates and the check predicate have no inferred types.
+/** Apply a move and discard it if the moving side would leave its king in check. */
+fun tryMove(c, ksq, m, bd) =
+  if ksq is [k, sq] and m is Move(dest, mcp, mpp) then
+    let p = [c, k]
+    let bd1 = rmPieceAt(c, sq, bd)
+    let p_ = maybe(p, x => x, mpp)
+    let bd2 = maybe(putPieceAt(dest, p_, bd1),
+      _ => putPieceAt(dest, p_, rmPieceAt(opponent(c), dest, bd1)), mcp)
+    if negate(kingincheck(c, bd2)) then Some([MoveInFull(p, sq, Move(dest, mcp, mpp)), bd2])
+    else None()
+  else raiseError(errorMessage(m))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The move generators have no inferred types.
+/** Select the move generator for the indicated piece. */
+fun rawmoves(c, ksq, bd) = if ksq is [k, sq] then
+  let m = if k is
+    King() then kingmoves
+    Queen() then queenmoves
+    Rook() then rookmoves
+    Bishop() then bishopmoves
+    Knight() then knightmoves
+    Pawn() then pawnmoves
+  m(c, sq, bd)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Move generation and validation have no inferred types.
+/** Fold over pieces and destinations in the source order, retaining legal moves. */
+fun moveDetailsFor(c, bd) =
+  /** Prepend all legal moves for this piece to the moves for subsequent pieces. */
+  fun collect(ksq, ms) =
+    /** Prepend one move if it passes validation. */
+    fun keep(rm, rest) = maybe(x => x, h => t => LCons(h, t), tryMove(c, ksq, rm, bd))(rest)
+    foldr(keep, ms, rawmoves(c, ksq, bd))
+  foldr(collect, LNil(), forcesColoured(c, bd))
+//│ CTML translation succeeded.
+
+:fixme // FIXME: The produced comment marker does not instantiate the listEq contract.
+/** Recognize an empty line or one beginning with the two comment characters. */
+fun comment(s) = (s is LNil()) || listEq(take(2, s), nofibStringToList("--"))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
+//│       β ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y
+//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})} ⟹ ε
+//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
+//│                   LCons ∧ {head: Str} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Str} ≤ LNil
+//│                       Str ≤ ⊥
+//│                   {tail: δ} ≤ LNil
+//│                     δ ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
+//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
+//│                     LCons ∧ {head: Str} ≤ {tail: ε}
+//│                       LCons ≤ {tail: ε}
+//│                       {head: Str} ≤ {tail: ε}
+//│                         Str ≤ ⊥
+//│                     {tail: δ} ≤ {tail: ε}
+//│                       δ ≤ ε
+//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+
+:ctml-parse-only // FIXME: Taking the last list element exceeds bounded inference.
+/** Return the last item of a nonempty list. */
+fun last(ls) = if ls is
+  LCons(x, LNil()) then x
+  LCons(_, t) then last(t)
+//│ CTML translation succeeded.
+
+/** Parse the JavaScript integer prefix of the assembled character list. */
+fun intOfString(s) = nofibParseInt(nofibListToString(s))
+//│ intOfString: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X) → Num
+
+:ctml-parse-only // FIXME: Word splitting and selecting the last item have no inferred types.
+/** Read the side from the first word and the target move count from the last word. */
+fun parseGoal(ls) = if ls is
+  LCons(gltxt, LNil()) then
+    let ws = words(gltxt)
+    let c = if listEq(head(ws), nofibStringToList("Black")) then black else white
+    let n = intOfString(last(ws))
+    [c, n]
+  else raiseError("parseGoal")
+//│ CTML translation succeeded.
+
+/** Parse an empty square or the piece at the given file and rank. */
+fun parseSquare(r, f, c) = if c === "-" then LNil() else
+  let clr = if isUpper(c) then black else white
+  let ch = toLower(c)
+  let kin = if
+    ch === "k" then king
+    ch === "q" then queen
+    ch === "r" then rook
+    ch === "b" then bishop
+    ch === "n" then knight
+    ch === "p" then pawn
+    else raiseError("match error")
+  LCons([[clr, kin], [f, r]], LNil())
+//│ parseSquare: ∀α, β. α → β → Str → (((LCons ∧ {head: ⟨⟨Black ∨ White, ((((Pawn ∨ Knight) ∨ Bishop) ∨ Rook) ∨ Queen) ∨ King⟩, ⟨β, α⟩⟩}) ∧ {tail: LNil}) ∨ LNil)
+
+:fixme // FIXME: The inferred file range does not instantiate the zipWith contract.
+/** Parse the nonspace characters in a rank, pairing them with files one through eight. */
+fun parseRank(r, x) =
+  concat(zipWith((a, b) => parseSquare(r, a, b), enumFromTo(1, 8),
+    filter(pp => negate(pp === " "), x)))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: Z})} ⟹ Z) ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
+//│             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ θ
+//│               (LCons ∧ {head: Int}) ∧ {tail: η} ≤ θ
+//│                 (LCons ∧ {head: Int}) ∧ {tail: η} ≤ LNil
+//│                   LCons ∧ {head: Int} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: Int} ≤ LNil
+//│                       Int ≤ ⊥
+//│                   {tail: η} ≤ LNil
+//│                     η ≤ ⊥
+//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: Int}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
+//│                   (LCons ∧ {head: Int}) ∧ {tail: η} ≤ {tail: θ}
+//│                     LCons ∧ {head: Int} ≤ {tail: θ}
+//│                       LCons ≤ {tail: θ}
+//│                       {head: Int} ≤ {tail: θ}
+//│                         Int ≤ ⊥
+//│                     {tail: η} ≤ {tail: θ}
+//│                       η ≤ θ
+//│                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ θ
+
+:ctml-parse-only // FIXME: Rank parsing has no inferred type.
+/** Read the ranks from top to bottom and place the parsed pieces in source fold order. */
+fun parseBoard(ls) =
+  /** Place one parsed piece. */
+  fun addPiece(psq, x) = if psq is [p, sq] then putPieceAt(sq, p, x)
+  foldr(addPiece, emptyBoard, concat(zipWith(parseRank, reverse(enumFromTo(1, 8)), ls)))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The comment check and board and goal parsing have no inferred types.
+/** Drop comments and split the eight board ranks from the goal. */
+fun parseProblem(s) =
+  if splitAt(8, filter(x => negate(comment(x)), s)) is [bdtxt, gltxt] then
+    let bd = parseBoard(bdtxt)
+    let gl = parseGoal(gltxt)
+    [bd, gl]
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The line splitter and puzzle parser have no inferred types.
+/** Read a complete puzzle from its character list. */
+fun readProblem(s) = parseProblem(lines(s))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Folding over a strict list with delayed tails exceeds bounded inference.
+/** Fold with a delayed result for the rest of the input. */
+fun foldr_lz(f, a, x) = if x is
+  LCons(h, t) then f(h, delay(() => foldr_lz(f, a, t)))
+  LNil() then a
+//│ CTML translation succeeded.
+
+/** Search for a solution after every legal defence. */
+data class Replies()
+/** Search for the first attacking move that has a solution after every defence. */
+data class Attack()
+//│ Replies: Unit → Replies
+//│ Attack: Unit → Attack
+
+:ctml-parse-only // FIXME: Move generation and the lazy fold have no inferred types.
+/** Alternate the source's all-replies and first-solution searches. */
+fun search(task, bd, c, n) = if task is
+  Replies() then
+    let mds = moveDetailsFor(c, bd)
+    /** Require a solution for this reply before inspecting the rest. */
+    fun solnAnd(mifb, rest) = if mifb is [mif, b] then
+      if search(Attack(), b, opponent(c), numSub(n, numFromInt(1))) is
+        None() then None()
+        Some(s) and force(rest) is
+          None() then None()
+          Some(ms) then Some(LCons([mif, s], ms))
+    if
+      n === numFromInt(0) then if null_(mds) then Some(LNil()) else None()
+      numGt(n, numFromInt(0)) then foldr_lz(solnAnd, Some(LNil()), mds)
+      else raiseError("n < 0")
+  Attack() then
+    /** Keep a mate or an attack with a solution after every reply. */
+    fun solnOr(mifb, other) = if mifb is [mif, b] then
+      if search(Replies(), b, opponent(c), numSub(n, numFromInt(1))) is
+        None() then force(other)
+        Some(LNil()) then
+          if kingincheck(opponent(c), b) then Some(Solution(mif, LNil())) else force(other)
+        Some(rs) then Some(Solution(mif, rs))
+    if numGt(n, numFromInt(0)) then
+      let mds = moveDetailsFor(c, bd)
+      foldr_lz(solnOr, None(), mds)
+    else raiseError("n <= 0")
+//│ CTML translation succeeded.
+
+/** Produce one space per positive indentation column. */
+fun tab(n) = if n <= 0 then LNil() else LCons(" ", tab(n - 1))
+//│ tab: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
+
+/** Render a mating move and its compacted replies. */
+data class ShowSolution(solution, turn)
+/** Render the alternatives at a turn. */
+data class ShowReplies(replies, turn)
+//│ ShowSolution: ∀α, β. α → β → ((ShowSolution ∧ {solution: α}) ∧ {turn: β})
+//│ ShowReplies: ∀γ, δ. γ → δ → ((ShowReplies ∧ {replies: γ}) ∧ {turn: δ})
+
+:ctml-parse-only // FIXME: Move rendering and reply sorting have no inferred types.
+/** Render the source's descriptive notation for an entire compacted solution. */
+fun render(task) = if task is
+  ShowReplies(rs, n) and rs is
+    LNil() then LNil()
+    LCons([mifs, s], rest) then
+      append(tab(n), append(nofibStringToList("if "),
+        if null_(rest) && 1 < listLen(mifs) then nofibStringToList("others")
+        else append(showMoves(mifs), append(nofibStringToList("; "),
+          append(render(ShowSolution(s, n + 1)), render(ShowReplies(rest, n)))))))
+  ShowSolution(Soln(mif, rs), n) then
+    append(nofibStringToList(stringOfInt(n)),
+      append(nofibStringToList(". "), append(showMoveInFull(mif),
+        if rs is
+          LNil() then nofibStringToList("++\n")
+          LCons([mifs, s], LNil()) then
+            append(nofibStringToList(", "),
+              append(if 1 < listLen(mifs) then nofibStringToList("...") else showMoves(mifs),
+                append(nofibStringToList("; "), render(ShowSolution(s, n + 1)))))
+          else append(nofibStringToList(",\n"), render(ShowReplies(sort(rs), n))))))
+//│ CTML translation succeeded.
+
+/** Compact one raw solution. */
+data class Compact(solution)
+/** Group one reply with any existing replies that render to the same continuation. */
+data class InsertCompact(reply, groups)
+//│ Compact: ∀α. α → (Compact ∧ {solution: α})
+//│ InsertCompact: ∀β, γ. β → γ → ((InsertCompact ∧ {reply: β}) ∧ {groups: γ})
+
+:ctml-parse-only // FIXME: Solution rendering and move comparison have no inferred types.
+/** Group replies with equal continuation text, preserving the source insertion order. */
+fun compact(task) = if task is
+  Compact(Solution(mif, rs)) then
+    Soln(mif, foldr((r, ls) => compact(InsertCompact(r, ls)), LNil(), rs))
+  InsertCompact([mif, s], ls) then
+    /** Insert a move before the first move greater than or equal to it. */
+    fun insert(x, ls) = if ls is
+      LNil() then LCons(x, LNil())
+      LCons(y, ys) then
+        if 0 < moveInFullCompare(x, y) then LCons(y, insert(x, ys))
+        else LCons(x, LCons(y, ys))
+    let cs = compact(Compact(s))
+    /** Insert a group into the sorted list or merge it with an equal continuation. */
+    fun ic(ls) = if ls is
+      LNil() then LCons([LCons(mif, LNil()), cs], LNil())
+      LCons([mifs, cs_], rest) then
+        let a = render(ShowSolution(cs, 1))
+        let b = render(ShowSolution(cs_, 1))
+        let gt = (x, y) => strLt(y, x)
+        if
+          ltList(a, b, strLt, gt) then LCons([LCons(mif, LNil()), cs], LCons([mifs, cs_], rest))
+          listEq(a, b) then LCons([insert(mif, mifs), cs], rest)
+          negate(ltList(a, b, strLt, gt)) then LCons([mifs, cs_], ic(rest))
+          else raiseError("compare error")
+    ic(ls)
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Compaction and rendering have no inferred types.
+/** Render a compacted solution or the source message for an unsolved puzzle. */
+fun showResult(s) = if s is
+  None() then nofibStringToList("No solution!")
+  Some(s) then render(ShowSolution(compact(Compact(s)), 1))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The recursive search and rendering have no inferred types.
+/** Search for mate with at most the advertised number of moves by the attacking side. */
+fun solve(bd, c, n) =
+  let plies = numSub(numMul(numFromInt(2), n), numFromInt(1))
+  showResult(search(Attack(), bd, c, plies))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: Puzzle parsing, search, and rendering have no inferred types.
+/** Read the Heathcote puzzle, then render the initial board and the solution. */
+fun testMate_nofib(dummy) =
+  let input = nofibStringToList(
+    nofibReadText("./hkmc2/shared/src/test/mlscript/nofib/input/heathcote3.prob"))
+  if readProblem(input) is [bd, [c, n]] then
+    append(showBoard(bd), append(nofibStringToList("\n"),
+      append(showColour(c), append(nofibStringToList(" to move and mate in "),
+        append(nofibStringToList(stringOfFloat(n)), append(nofibStringToList("\n"),
+          append(nofibStringToList("\n"), solve(bd, c, n))))))))
+//│ CTML translation succeeded.
+
+:ctml-parse-only // FIXME: The complete puzzle driver has no inferred type.
+/** Run the source benchmark with argument zero. */
+fun main() = nofibListToString(testMate_nofib(0))
+//│ CTML translation succeeded.
+
+// Concrete calls exercise the inferred square operations, optional results, and parser.
+squareCompare([3, 2], [4, 2]) as Int
+onboard([8, 1]) as Bool
+toLower("King") as Str
+intOfString(LCons("3", LNil())) as Num
+parseSquare(3, 5, "p") as (LNil | (LCons & {head: [Piece, Square]} & {tail: LNil}))
+//│ Int
+//│ Bool
+//│ Str
+//│ Num
+//│ LNil ∨ ((LCons ∧ {head: ⟨Piece, Square⟩}) ∧ {tail: LNil})
+
+:fixme // FIXME: The inferred optional eliminator rejects a present integer and its callback.
+maybe(0, x => x + 1, Some(2)) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ε ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ (¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))) ∧ (¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({θ ≤ η → ε} ⟹ ¬({value: η} ∧ Some)))
+//│           Some ∧ {value: ι} ≤ (¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))) ∧ (¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({θ ≤ η → ε} ⟹ ¬({value: η} ∧ Some)))
+//│             Some ∧ {value: ι} ≤ ¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))
+//│               Some ∧ {value: ι} ≤ ¬({ε ≥ ζ} ⟹ ¬None)
+//│                 ¬None ≤ ¬(Some ∧ {value: ι})
+//│                   Some ∧ {value: ι} ≤ None
+//│                     Some ≤ None
+//│                     {value: ι} ≤ None
+//│                       ι ≤ ⊥
+//│                         Int ≤ ⊥
+//│               Some ∧ {value: ι} ≤ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))
+//│                 {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬(Some ∧ {value: ι})
+//│                   {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬Some
+//│                     ¬({value: η} ∧ Some) ≤ ¬Some
+//│                       Some ≤ {value: η} ∧ Some
+//│                         Some ≤ {value: η}
+//│                   {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬{value: ι}
+//│                     ¬({value: η} ∧ Some) ≤ ¬{value: ι}
+//│                       {value: ι} ≤ {value: η} ∧ Some
+//│                         {value: ι} ≤ Some
+//│                           ι ≤ ⊥
+//│                             Int ≤ ⊥
+//│                   ({η ≤ Int} ⟹ ¬({value: η} ∧ Some)) ∧ Some ≤ ¬(Some ∧ {value: ι})
+//│                     ({η ≤ Int} ⟹ ¬({value: η} ∧ Some)) ∧ Some ≤ ¬Some
+//│                       {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬Some
+//│                         ¬({value: η} ∧ Some) ≤ ¬Some
+//│                           Some ≤ {value: η} ∧ Some
+//│                             Some ≤ {value: η}
+//│                       Some ≤ ¬Some
+//│                     ({η ≤ Int} ⟹ ¬({value: η} ∧ Some)) ∧ Some ≤ ¬{value: ι}
+//│                       {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬{value: ι}
+//│                         ¬({value: η} ∧ Some) ≤ ¬{value: ι}
+//│                           {value: ι} ≤ {value: η} ∧ Some
+//│                             {value: ι} ≤ Some
+//│                               ι ≤ ⊥
+//│                                 Int ≤ ⊥
+//│                       Some ≤ ¬{value: ι}
+
+val sampleBoard = Board(LCons([king, [5, 3]], LNil()), LCons([pawn, [2, 2]], LNil()))
+sampleBoard as Board
+//│ sampleBoard: (Board ∧ {white: (LCons ∧ {head: ⟨King, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}}) ∧ {black: (LCons ∧ {head: ⟨Pawn, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}}
+//│ Board
+
+forcesColoured(white, sampleBoard) as LCons
+//│ LCons
+
+:fixme // FIXME: Refining the selected forces with a nested pattern exhausts bounded inference.
+if forcesColoured(white, sampleBoard) is LCons([King(), [file, rank]], LNil()) then
+  file + rank
+else 0
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
+
+val sampleMove = MoveInFull([white, knight], [3, 3], Move([1, 2], None(), None()))
+sampleMove as MoveInFull
+//│ sampleMove: ((MoveInFull ∧ {piece: ⟨White, Knight⟩}) ∧ {origin: ⟨Int, Int⟩}) ∧ {move: ((Move ∧ {destination: ⟨Int, Int⟩}) ∧ {capture: None}) ∧ {promotion: None}}
+//│ MoveInFull
+
+Move([5, 4], Some([black, pawn]), Some([white, queen])) as Move
+//│ Move
+
+:te
+onboard([1, "2"])
+//│ ═══[TYPE ERROR] Cannot solve judgment ⟨Int, Int⟩ → Bool ≤ ⟨Int, Str⟩ → α.
+//│ Typing error tree:
+//│   ⟨Int, Int⟩ → Bool ≤ ⟨Int, Str⟩ → α
+//│     ⟨Int, Str⟩ ≤ ⟨Int, Int⟩
+//│       Str ≤ Int
+
+:te
+Move([5, "4"], None(), None())
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {β ≤ OptionalPiece, γ ≤ OptionalPiece, α ≤ Square} ⟹ α → β → γ → (((Move ∧ {destination: α}) ∧ {capture: β}) ∧ {promotion: γ}) ≤ ⟨Int, Str⟩ → δ.
+//│ Typing error tree:
+//│   ∀α, β, γ. {β ≤ OptionalPiece, γ ≤ OptionalPiece, α ≤ Square} ⟹ α → β → γ → (((Move ∧ {destination: α}) ∧ {capture: β}) ∧ {promotion: γ}) ≤ ⟨Int, Str⟩ → δ
+//│     {ζ ≤ OptionalPiece, η ≤ OptionalPiece, ε ≤ Square} ⟹ ε → ζ → η → (((Move ∧ {destination: ε}) ∧ {capture: ζ}) ∧ {promotion: η}) ≤ ⟨Int, Str⟩ → δ
+//│       {η ≤ OptionalPiece, ε ≤ Square} ⟹ ε → ζ → η → (((Move ∧ {destination: ε}) ∧ {capture: ζ}) ∧ {promotion: η}) ≤ ⟨Int, Str⟩ → δ
+//│         {ε ≤ Square} ⟹ ε → ζ → η → (((Move ∧ {destination: ε}) ∧ {capture: ζ}) ∧ {promotion: η}) ≤ ⟨Int, Str⟩ → δ
+//│           ε → ζ → η → (((Move ∧ {destination: ε}) ∧ {capture: ζ}) ∧ {promotion: η}) ≤ ⟨Int, Str⟩ → δ
+//│             ⟨Int, Str⟩ ≤ ε
+//│               ⟨Int, Str⟩ ≤ Square
+//│                 ⟨Int, Str⟩ ≤ ⟨Int, Int⟩
+//│                   Str ≤ Int
+
+:te
+Move([5, 4], Some([white, "pawn"]), None())
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     δ → ε → (((Move ∧ {destination: ζ}) ∧ {capture: δ}) ∧ {promotion: ε}) ≤ β → γ
+//│       β ≤ δ
+//│         β ≤ OptionalPiece
+//│           Some ∧ {value: η} ≤ OptionalPiece
+//│             Some ∧ {value: η} ≤ None ∨ (Some ∧ {value: Piece})
+//│               Some ∧ {value: η} ≤ None
+//│                 Some ≤ None
+//│                 {value: η} ≤ None
+//│                   η ≤ ⊥
+//│                     ⟨White, Str⟩ ≤ ⊥
+//│               Some ∧ {value: η} ≤ Some ∧ {value: Piece}
+//│                 Some ∧ {value: η} ≤ {value: Piece}
+//│                   Some ≤ {value: Piece}
+//│                   {value: η} ≤ {value: Piece}
+//│                     η ≤ Piece
+//│                       ⟨White, Str⟩ ≤ Piece
+//│                         ⟨White, Str⟩ ≤ ⟨Colour, Kind⟩
+//│                           Str ≤ Kind
+//│                             Str ≤ ((((King ∨ Queen) ∨ Rook) ∨ Bishop) ∨ Knight) ∨ Pawn
+//│                               Str ≤ (((King ∨ Queen) ∨ Rook) ∨ Bishop) ∨ Knight
+//│                                 Str ≤ ((King ∨ Queen) ∨ Rook) ∨ Bishop
+//│                                   Str ≤ (King ∨ Queen) ∨ Rook
+//│                                     Str ≤ King ∨ Queen
+//│                                       Str ≤ King
+//│                                       Str ≤ Queen
+//│                                     Str ≤ Rook
+//│                                   Str ≤ Bishop
+//│                                 Str ≤ Knight
+//│                               Str ≤ Pawn
+
+:te
+Board(LCons([white, [5, 3]], LNil()), LNil())
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β. {β ≤ Forces, α ≤ Forces} ⟹ α → β → ((Board ∧ {white: α}) ∧ {black: β}) ≤ γ → δ.
+//│ Typing error tree:
+//│   ∀α, β. {β ≤ Forces, α ≤ Forces} ⟹ α → β → ((Board ∧ {white: α}) ∧ {black: β}) ≤ γ → δ
+//│     {ζ ≤ Forces, ε ≤ Forces} ⟹ ε → ζ → ((Board ∧ {white: ε}) ∧ {black: ζ}) ≤ γ → δ
+//│       {ε ≤ Forces} ⟹ ε → ζ → ((Board ∧ {white: ε}) ∧ {black: ζ}) ≤ γ → δ
+//│         ε → ζ → ((Board ∧ {white: ε}) ∧ {black: ζ}) ≤ γ → δ
+//│           γ ≤ ε
+//│             γ ≤ Forces
+//│               (LCons ∧ {head: η}) ∧ {tail: θ} ≤ Forces
+//│                 (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Kind, Square⟩}) ∧ {tail: X})} ⟹ X
+//│                   (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {ι ≥ LNil ∨ ((LCons ∧ {head: ⟨Kind, Square⟩}) ∧ {tail: ι})} ⟹ ι
+//│                     (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ι
+//│                       (LCons ∧ {head: η}) ∧ {tail: θ} ≤ LNil
+//│                         LCons ∧ {head: η} ≤ LNil
+//│                           LCons ≤ LNil
+//│                           {head: η} ≤ LNil
+//│                             η ≤ ⊥
+//│                               ⟨White, ⟨Int, Int⟩⟩ ≤ ⊥
+//│                         {tail: θ} ≤ LNil
+//│                           θ ≤ ⊥
+//│                             κ ≤ ⊥
+//│                               LNil ≤ ⊥
+//│                       (LCons ∧ {head: η}) ∧ {tail: θ} ≤ (LCons ∧ {head: ⟨Kind, Square⟩}) ∧ {tail: ι}
+//│                         (LCons ∧ {head: η}) ∧ {tail: θ} ≤ LCons ∧ {head: ⟨Kind, Square⟩}
+//│                           (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {head: ⟨Kind, Square⟩}
+//│                             LCons ∧ {head: η} ≤ {head: ⟨Kind, Square⟩}
+//│                               LCons ≤ {head: ⟨Kind, Square⟩}
+//│                               {head: η} ≤ {head: ⟨Kind, Square⟩}
+//│                                 η ≤ ⟨Kind, Square⟩
+//│                                   ⟨White, ⟨Int, Int⟩⟩ ≤ ⟨Kind, Square⟩
+//│                                     White ≤ Kind
+//│                                       White ≤ ((((King ∨ Queen) ∨ Rook) ∨ Bishop) ∨ Knight) ∨ Pawn
+//│                                         White ≤ (((King ∨ Queen) ∨ Rook) ∨ Bishop) ∨ Knight
+//│                                           White ≤ ((King ∨ Queen) ∨ Rook) ∨ Bishop
+//│                                             White ≤ (King ∨ Queen) ∨ Rook
+//│                                               White ≤ King ∨ Queen
+//│                                                 White ≤ King
+//│                                                 White ≤ Queen
+//│                                               White ≤ Rook
+//│                                             White ≤ Bishop
+//│                                           White ≤ Knight
+//│                                         White ≤ Pawn
+//│                             {tail: θ} ≤ {head: ⟨Kind, Square⟩}
+//│                               θ ≤ ⊥
+//│                                 κ ≤ ⊥
+//│                                   LNil ≤ ⊥

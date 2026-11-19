@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 106 member(s)
+//│ Imported 108 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/eliza.mls.
 // The response tables and session state use strict lists, pairs, and delayed response streams.

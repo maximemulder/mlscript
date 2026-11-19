@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 106 member(s)
+//│ Imported 108 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/pretty.mls.
 // The sequence constructors use structural fields for their recursive children.

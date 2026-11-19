@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 106 member(s)
+//│ Imported 108 member(s)
 
 // Source: hkmc2/shared/src/test/mlscript-compile/nofib/cichelli.mls.
 // The source passes character lists into the key's s field. These lists use Str code units.

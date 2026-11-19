@@ -1,6 +1,6 @@
 :ctml
 :import NofibPrelude.mls
-//│ Imported 106 member(s)
+//│ Imported 108 member(s)
 
 // The error branch contributes no return value to the conditional.
 raiseError("missing result") as Bot
@@ -2052,3 +2052,22 @@ bigIntFrom(1.5)
 //│     Num ≤ Int ∨ Str
 //│       Num ≤ Int
 //│       Num ≤ Str
+
+nofibFromCharCode(107) as Str
+nofibParseInt("0x10") as Num
+//│ Str
+//│ Num
+
+:te
+nofibFromCharCode("k")
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → Str ≤ Str → α.
+//│ Typing error tree:
+//│   Int → Str ≤ Str → α
+//│     Str ≤ Int
+
+:te
+nofibParseInt(3)
+//│ ═══[TYPE ERROR] Cannot solve judgment Str → Num ≤ Int → α.
+//│ Typing error tree:
+//│   Str → Num ≤ Int → α
+//│     Int ≤ Str

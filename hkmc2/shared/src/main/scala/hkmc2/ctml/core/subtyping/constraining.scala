@@ -325,7 +325,7 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
   // are each decomposed in two judgments that must both hold, which loses no derivation (see
   // `splitAll`).
 
-  sub.splitAll(Polarity.Negative, sup, true) match
+  sub.splitAll(Polarity.Negative, sup) match
     case Some(subLeft, subRight) =>
       return ctx.all(
         subtype(subLeft,  sup),
@@ -347,7 +347,7 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
       return subtypeLam(sub, sup)
     case _ =>
 
-  sup.splitAll(Polarity.Positive, sub, true) match
+  sup.splitAll(Polarity.Positive, sub) match
     case Some(supLeft, supRight) =>
       return ctx.all(
         subtype(sub, supLeft),
@@ -582,23 +582,13 @@ private def leastCarrierInstance(scheme: TUniv): Option[Type] =
     case Direction.Super => (guard.right, guard.left)
     case Direction.Sub => (guard.left, guard.right)
 
-  /** Split a meet on the upper side, preserving the spelling and scope of each obligation. */
-  def splitUpper(g: Constraint): List[Constraint] = operands(g)._2 match
-    case TJointType(JointMode.Inter, left, right) =>
-      List(left, right).flatMap: part =>
-        splitUpper(if g.dir == Direction.Sub then g.copy(right = part) else g.copy(left = part))
-    case _ => List(g)
-
-  /** Each summand of a lower bound must be below the same carrier. */
-  def summands(t: Type): List[Type] = t match
-    case TJointType(JointMode.Union, left, right) => summands(left) ::: summands(right)
-    case _ => List(t)
-
-  val split = guards.flatMap(splitUpper)
+  val split = guards.flatMap: guard =>
+    operands(guard)._2.exactComponents(JointMode.Inter).map: upper =>
+      if guard.dir == Direction.Sub then guard.copy(right = upper) else guard.copy(left = upper)
   val lowerBounds = split.map(operands).collect:
     case (lower, TVar(x)) if variables.contains(x) => (lower, x)
 
-  val layers = lowerBounds.flatMap((lower, x) => summands(lower).map((_, x)))
+  val layers = lowerBounds.flatMap((lower, x) => lower.exactComponents(JointMode.Union).map((_, x)))
   val recursiveBounds = layers.filter((lower, x) => lower.hasVar(x))
   recursiveBounds.distinctBy(_._1).iterator.flatMap: (layer, representative) =>
     val peers = layers.collect { case (`layer`, x) if x != representative => x }.distinct

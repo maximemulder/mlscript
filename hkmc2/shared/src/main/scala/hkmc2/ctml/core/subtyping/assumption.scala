@@ -38,8 +38,7 @@ extension (ctx: SubContext)
    *  The judgment is decomposed by the invertible rules only, that is, the rules whose premises
    *  are equivalent to their conclusion, which thus apply to an assumption as they apply to a
    *  judgment to derive: the normalization of negations, the contraposition of negated variables,
-   *  and the splits of `splitAll`. The judgments that no such rule decomposes are the leaves of the
-   *  assumption:
+   *  and the splits of `splitExact`. The remaining judgments are the leaves of the assumption:
    *  - A leaf that holds by its atoms and the hypotheses (see `holdsByAtoms`) assumes nothing.
    *  - A leaf whose side is a variable is assumed as a bound of that variable, whether it is rigid
    *    or flexible, which the variable rules of `subtypeImpl` then read. A leaf between two
@@ -121,12 +120,12 @@ extension (ctx: SubContext)
 
     // Invertible splits, which never replace a variable by its bound.
 
-    sub.splitAll(Polarity.Negative, sup, false) match
+    sub.splitExact(JointMode.Union, expandProducts = true) match
       case Some(subLeft, subRight) =>
         return ctx.assume(subLeft, sup).flatMap(_.assume(subRight, sup))
       case _ =>
 
-    sup.splitAll(Polarity.Positive, sub, false) match
+    sup.splitExact(JointMode.Inter, expandProducts = true) match
       case Some(supLeft, supRight) =>
         return ctx.assume(sub, supLeft).flatMap(_.assume(sub, supRight))
       case _ =>

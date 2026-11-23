@@ -42,6 +42,23 @@ private enum SplitRule:
       case All => !mode.isNaturalPol(pol)
       case Any => mode.isNaturalPol(pol)
 
+/** Where a split may duplicate a sibling to distribute a joint or an arrow. */
+private enum Distribution:
+  /** Expose components through joints of the requested mode, negations and fields. */
+  case Disabled
+  /** Enable distribution after descending into a field or an arrow. */
+  case UnderConstructors
+  /** Enable distribution at this position as well. */
+  case Enabled
+
+  /** Distribution available within a field or an arrow. */
+  def inside: Distribution = if this == Disabled then Disabled else Enabled
+
+private object Distribution:
+  /** Search expands joint types on the left of a judgment and inside fields and arrows. */
+  def forJudgment(pol: Polarity): Distribution =
+    if pol == Polarity.Negative then Enabled else UnderConstructors
+
 extension (var_ : TypeVar)
   /** Get the bound that replaces a rigid variable at a polarity when splitting a type, which is its
    *  upper bound at the negative polarity, and its lower bound at the positive polarity.
@@ -73,14 +90,17 @@ extension (var_ : TypeVar)
   private def isBoundExact(rest: List[Type])(using ctx: SubContext): Boolean =
     !rest.exists(_.hasVar(var_)) || var_.lowerBound == var_.upperBound
 
-  /** Check whether a rigid variable that occurs at a polarity may be replaced by its bound at that
-   *  polarity by a split rule, given whether it is an operand of the type being split, the other
-   *  types of the judgment, whether variables may be looked up at all, and the variables already
-   *  replaced (see `split`). */
-  private def canSplit(rule: SplitRule, operand: Boolean, rest: List[Type], lookup: Boolean)(using ctx: SubContext, pol: Polarity, visited: Set[TypeVar]): Boolean =
-    lookup && var_.isRigid && !visited.contains(var_) &&
-      (rule == SplitRule.Any || var_.isBoundExact(rest)) &&
-      (!operand || var_.isAcyclicLookup(pol))
+/** The judgment information needed to split through rigid bounds during proof search. */
+private case class BoundLookup(ctx: SubContext, rest: List[Type],
+    operand: Boolean = false, visited: Set[TypeVar] = Set.empty):
+  /** Descend under a constructor, accounting for the sibling in the same judgment. */
+  def nested(sibling: Type): BoundLookup = copy(rest = sibling :: rest, operand = true)
+
+  /** Replace a variable only when search permits forgetting its identity at this occurrence. */
+  def bound(v: TypeVar, rule: SplitRule, pol: Polarity): Option[Type] =
+    given SubContext = ctx
+    Option.when(v.isRigid && !visited(v) && (rule == SplitRule.Any || v.isBoundExact(rest))
+        && (!operand || v.isAcyclicLookup(pol)))(v.splitBound(pol, visited + v))
 
 extension (type_ : Type)
   /** Split a type in two types by the invertible rule of its polarity, if it can be decomposed as a
@@ -93,12 +113,31 @@ extension (type_ : Type)
    *  - The distributivity of joint types over the joint types of the other mode, but only at the
    *    negative polarity and inside lambda types (see `split`).
    *
-   *  If `lookup`, the type is also decomposed through the bounds of its rigid variables, as long
-   *  as this is an equivalence as well given the other side of the judgment, `other`, and as long
-   *  as the bounds of the variables that are operands of the type do not lead back to them (see
-   *  `split`). */
-  def splitAll(pol: Polarity, other: Type, lookup: Boolean)(using ctx: SubContext): Option[(Type, Type)] =
-    type_.split(SplitRule.All, pol == Polarity.Negative, false, List(other), lookup)(using ctx, pol, Set())
+   *  Search may also split through the bounds of rigid variables (see `BoundLookup`). */
+  def splitAll(pol: Polarity, other: Type)(using ctx: SubContext): Option[(Type, Type)] =
+    type_.split(SplitRule.All, pol, Distribution.forJudgment(pol), Some(BoundLookup(ctx, List(other))))
+
+  /** Expose one union or intersection whose combination equals this type under every
+   *  substitution. Variables stay opaque. With product expansion disabled, only direct
+   *  joints, negations and fields are traversed. Enabling it uses the same distributivity
+   *  strategy as invertible subtyping, including arrow intersections. */
+  def splitExact(mode: JointMode, expandProducts: Boolean = false): Option[(Type, Type)] =
+    val pol = if mode == JointMode.Union then Polarity.Negative else Polarity.Positive
+    val distribution = if expandProducts then Distribution.forJudgment(pol) else Distribution.Disabled
+    type_.split(SplitRule.All, pol, distribution, None)
+
+  /** Collect exact components without distributing products of alternatives. */
+  def exactComponents(mode: JointMode): List[Type] =
+    /** Visit leaves in operand order, including both branches of a left-associated joint. */
+    @scala.annotation.tailrec
+    def collect(todo: List[Type], leaves: List[Type]): List[Type] = todo match
+      case Nil => leaves.reverse
+      // De Morgan may expose a component such as ¬¬X in ¬(¬X ∨ ¬Y).
+      case TNeg(TNeg(body)) :: tail => collect(body :: tail, leaves)
+      case head :: tail => head.splitExact(mode) match
+        case Some(left, right) => collect(left :: right :: tail, leaves)
+        case None => collect(tail, head :: leaves)
+    collect(List(type_), Nil)
 
   /** Split a type in two types by the choice rule of its polarity, if it is an intersection at the
    *  negative polarity, or a union at the positive polarity.
@@ -110,12 +149,11 @@ extension (type_ : Type)
    *
    *  The type is also decomposed through the bounds of its rigid variables (see `split`). */
   def splitAny(pol: Polarity)(using ctx: SubContext): Option[(Type, Type)] =
-    type_.split(SplitRule.Any, false, false, Nil, true)(using ctx, pol, Set())
+    type_.split(SplitRule.Any, pol, Distribution.Disabled, Some(BoundLookup(ctx, Nil)))
 
   /** Split a type in two types by a rule at a polarity (see `splitAll` and `splitAny`).
    *
-   *  `distribute` is whether joint types are distributed over the joint types of the other mode to
-   *  expose the joint types that the invertible rule decomposes.
+   *  `distribution` determines where joint types distribute over the opposite joint mode.
    *
    *  This is the case on the left of a judgment, which is normalised towards a union of
    *  intersections. It is not the case on the right, whose unions are left to the choice rule: once
@@ -130,20 +168,10 @@ extension (type_ : Type)
    *  rule, so that the lambda type on the right must first be decomposed as much as possible: e.g.
    *  `(A → B) ∧ (A → C) ≤ A → (D ∨ (B ∧ C))` is only derived from `A → (D ∨ B)` and `A → (D ∨ C)`.
    *
-   *  `operand` is whether the type is an operand of the type being split, that is, an operand of
-   *  one of its joint types or a component of one of its lambda types, rather than that type
-   *  itself. It tells whether a rigid variable may be replaced by its bound at all (see below).
-   *
-   *  `rest` are the other types of the judgment, which are the other side of the judgment and the
-   *  operands of the joint types and lambda types that the type is nested in. They tell whether a
-   *  rigid variable may be replaced by its bound by the invertible rules (see below), and are not
-   *  used by the choice rules.
-   *
-   *  `lookup` is whether a rigid variable may be replaced by its bound at all, which is the case
-   *  when the judgment is solved, and not when it is assumed (see below).
-   *
-   *  `visited` are the rigid variables that have already been replaced by their bound. */
-  private def split(rule: SplitRule, distribute: Boolean, operand: Boolean, rest: List[Type], lookup: Boolean)(using ctx: SubContext, pol: Polarity, visited: Set[TypeVar]): Option[(Type, Type)] =
+   *  The carrier matcher disables distribution throughout to avoid products of alternatives.
+   *  Only proof search supplies a lookup, which tracks siblings and visited variables. */
+  private def split(rule: SplitRule, pol: Polarity, distribution: Distribution,
+      lookup: Option[BoundLookup]): Option[(Type, Type)] =
     type_ match
       // A rigid variable is replaced by its bound. Unlike the other cases, this is not an
       // equivalence in general, since the variable itself is forgotten.
@@ -159,10 +187,9 @@ extension (type_ : Type)
       // the variable, as in `(α ∧ A) → (α ∨ C)` and `(α ∧ B) → (α ∨ C)`, and so to remember that the
       // variable has already been met with its bound, since it could otherwise be split forever.
 
-      // A variable is only replaced when the judgment is solved (see `lookup`), and never when it
-      // is assumed: the bound of a variable only approximates it, so that assuming the bound in
-      // place of the variable assumes more than the judgment, e.g. `τ ∨ β ≤ Int` for `α ∨ β ≤ Int`
-      // given an upper bound `τ` of `α` (see `assume`).
+      // Only proof search replaces a variable (see `BoundLookup`). Its bound only approximates
+      // the variable. Assuming the bound in its place can strengthen the judgment, for example
+      // from `α ∨ β ≤ Int` to `τ ∨ β ≤ Int` given an upper bound `τ` of `α` (see `assume`).
 
       // A variable that is an operand of the type being split, rather than that type itself, is
       // only replaced when the lookup of its bound is acyclic (see `isAcyclicLookup`). Replacing an
@@ -171,50 +198,48 @@ extension (type_ : Type)
       // given `B ≤ A ∧ Int` and `A ≤ B ∨ Str`, and so on. Replacing the type itself repeats the
       // judgment exactly at each turn of the cycle instead, which the trail cuts (see
       // `SubtypingTrail`), so the type itself is replaced whatever its bounds.
-      case TVar(var_) if var_.canSplit(rule, operand, rest, lookup) =>
-        val newVisited = visited + var_
-        var_.splitBound(pol, newVisited).split(rule, distribute, operand, rest, lookup)(using ctx, pol, newVisited)
+      case TVar(v) => lookup.flatMap: search =>
+        search.bound(v, rule, pol).flatMap(_.split(rule, pol, distribution,
+          Some(search.copy(visited = search.visited + v))))
 
-      // A negated rigid variable is replaced by the negation of its bound at the opposite polarity:
-      // e.g. `¬α` is at least `¬τ` when `α` is at most `τ`.
-      case TNeg(TVar(var_)) if var_.canSplit(rule, operand, rest, lookup)(using ctx, !pol, visited) =>
-        val newVisited = visited + var_
-        TNeg(var_.splitBound(!pol, newVisited)).split(rule, distribute, operand, rest, lookup)(using ctx, pol, newVisited)
+      case TNeg(TVar(v)) => lookup.flatMap: search =>
+        search.bound(v, rule, !pol).flatMap(t => TNeg(t).split(rule, pol, distribution,
+          Some(search.copy(visited = search.visited + v))))
 
       case TNeg(TNeg(body)) =>
-        body.split(rule, distribute, operand, rest, lookup)
+        body.split(rule, pol, distribution, lookup)
 
       // A negated joint type is the joint type of the dual mode by the De Morgan laws.
       case TNeg(TJointType(jointMode, left, right)) =>
-        TJointType(!jointMode, TNeg(left), TNeg(right)).split(rule, distribute, operand, rest, lookup)
+        TJointType(!jointMode, TNeg(left), TNeg(right)).split(rule, pol, distribution, lookup)
 
       // A field distributes over both unions and intersections of its payload. Negation reverses
       // the polarity of that decomposition; it does not move inside the field.
       case TNeg(field: TField) =>
-        field.split(rule, distribute, operand, rest, lookup)(using ctx, !pol, visited)
+        field.split(rule, !pol, distribution, lookup)
           .map((left, right) => (TNeg(left), TNeg(right)))
 
       case TField(name, value) if rule == SplitRule.All =>
-        value.split(rule, true, true, rest, lookup)
+        value.split(rule, pol, distribution.inside, lookup.map(_.copy(operand = true)))
           .map((left, right) => (TField(name, left), TField(name, right)))
 
       // A negated lambda type is split at the opposite polarity.
       case TNeg(lam: TLam) =>
-        lam.split(rule, distribute, operand, rest, lookup)(using ctx, !pol, visited).map((left, right) => (TNeg(left), TNeg(right)))
+        lam.split(rule, !pol, distribution, lookup).map((left, right) => (TNeg(left), TNeg(right)))
 
       case TJointType(jointMode, left, right) if rule.decomposes(jointMode, pol) =>
         Some(left, right)
 
       // Distribute a joint type over the joint types of the other mode that its operands expose.
-      case TJointType(jointMode, left, right) if rule == SplitRule.All && distribute =>
-        left.split(rule, distribute, true, right :: rest, lookup) match
+      case TJointType(jointMode, left, right) if rule == SplitRule.All && distribution == Distribution.Enabled =>
+        left.split(rule, pol, distribution, lookup.map(_.nested(right))) match
           case Some(innerLeft, innerRight) =>
             Some(
               structuralCombine(jointMode, innerLeft,  right),
               structuralCombine(jointMode, innerRight, right),
             )
           case None =>
-            right.split(rule, distribute, true, left :: rest, lookup).map((innerLeft, innerRight) =>
+            right.split(rule, pol, distribution, lookup.map(_.nested(left))).map((innerLeft, innerRight) =>
               (
                 structuralCombine(jointMode, left, innerLeft),
                 structuralCombine(jointMode, left, innerRight),
@@ -223,15 +248,15 @@ extension (type_ : Type)
 
       // Distribute a lambda type over the unions of its parameter, which is at the opposite
       // polarity, and over the intersections of its return type.
-      case TLam(param, ret) if rule == SplitRule.All && pol == Polarity.Positive =>
-        param.split(rule, true, true, ret :: rest, lookup)(using ctx, !pol, visited) match
+      case TLam(param, ret) if distribution != Distribution.Disabled && pol == Polarity.Positive =>
+        param.split(rule, !pol, distribution.inside, lookup.map(_.nested(ret))) match
           case Some(left, right) =>
             Some(
               TLam(left,  ret),
               TLam(right, ret),
             )
           case None =>
-            ret.split(rule, true, true, param :: rest, lookup).map((left, right) =>
+            ret.split(rule, pol, distribution.inside, lookup.map(_.nested(param))).map((left, right) =>
               (
                 TLam(param, left),
                 TLam(param, right),

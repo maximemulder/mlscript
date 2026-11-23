@@ -29,8 +29,9 @@ The same reasoning allows a private base Bi for each Xi. For bounds
 The tuple `Xi = Bi ∨ R` satisfies every bound by fold. For any admissible tuple with intersection
 M, each `Bi ∨ M ≤ Xi`, so monotonicity gives `H(B1 ∨ M, …, Bn ∨ M) ≤ H(Xs) ≤ M`.
 It follows that `R ≤ M` and the constructed tuple is componentwise least. The checker splits
-upper intersections and lower unions, recognizes shared summands structurally, and requires each
-private base to be independent of the group. Other guards mentioning a member prevent the rewrite.
+upper intersections and lower unions through explicit joints, negations and fields. It matches the
+resulting summands structurally and requires each private base to be independent of the group.
+Other guards mentioning a member prevent the rewrite.
 In Pretty’s `mkIndent`, the suffix bound `A ≤ X ∧ Y` supplies a common base. A string-list suffix
 therefore yields a string list, while an integer-list suffix fails the same result check.
 

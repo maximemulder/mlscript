@@ -254,3 +254,34 @@ type Core = [Z restricts F[[(Int | Z), (Str | Z)]]] -> Z
 
 Distinct <:< (Int -> [(Int | Core), (Str | Core)])
 //│ OK
+
+/** A union in a field payload gives both carriers the same recursive lower bounds. */
+type FieldTree = [Z restricts (Str | {tail: Z})] -> Z
+type FieldPair = [X, Y] -> ([{tail: X | Y} <:< X] => ([{tail: X} <:< Y] => ([{tail: Y} <:< Y] => ([Str <:< (X & Y)] => Int -> [X, Y]))))
+//│ FieldTree = ∀Z. {Z ≥ Str ∨ {tail: Z}} ⟹ Z
+//│ FieldPair = ∀X, Y. {{tail: X ∨ Y} ≤ X, {tail: X} ≤ Y, {tail: Y} ≤ Y, Str ≤ X ∧ Y} ⟹ Int → ⟨X, Y⟩
+
+FieldPair <:< (Int -> [FieldTree, FieldTree])
+//│ OK
+
+:te
+FieldPair <:< (Int -> [FieldTree, {tail: Top}])
+//│ ═══[TYPE ERROR] Cannot solve judgment FieldPair ≤ Int → ⟨FieldTree, {tail: ⊤}⟩.
+//│ Typing error tree:
+//│   FieldPair ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
+//│     ∀X, Y. {{tail: X ∨ Y} ≤ X, {tail: X} ≤ Y, {tail: Y} ≤ Y, Str ≤ X ∧ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
+//│       Int → ⟨∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X, ∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X⟩ ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
+//│         ⟨∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X, ∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X⟩ ≤ ⟨FieldTree, {tail: ⊤}⟩
+//│           ∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X ≤ {tail: ⊤}
+//│             {α ≥ {tail: α}, α ≥ Str} ⟹ α ≤ {tail: ⊤}
+//│               {α ≥ Str} ⟹ α ≤ {tail: ⊤}
+//│                 α ≤ {tail: ⊤}
+//│                   {tail: α} ∨ Str ≤ {tail: ⊤}
+//│                     Str ≤ {tail: ⊤}
+
+/** De Morgan exposes the two owners of the same recursive lower bound. */
+type BothOwners = [X, Y] -> ([F[[X, Y]] <:< ~(~X | ~Y)] => Int -> [X, Y])
+//│ BothOwners = ∀X, Y. {F[⟨X, Y⟩] ≤ ¬(¬X ∨ ¬Y)} ⟹ Int → ⟨X, Y⟩
+
+BothOwners <:< (Int -> [Tree, Tree])
+//│ OK

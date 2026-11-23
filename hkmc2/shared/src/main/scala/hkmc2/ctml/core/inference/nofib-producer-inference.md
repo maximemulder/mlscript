@@ -16,8 +16,16 @@ The abstract producer comparison, Power's `list() as Series`, PrimeTest's inline
 check. The PrimeTest prefix has integer elements and fails a string-list assertion. The focused
 subtyping tests also exercise contravariant uses, an additional guard, and negative recursion.
 
-The branch-free comparisons in `ctmlRecursiveCarrierBounds.mls` separate this rule from coupled
-recursion. For `F(Y) ≤ X` and `G(X) ≤ Y`, choose `X = R` for the carrier of `F(G(Z)) ≤ Z`,
+Mandel2's `build_tree` infers four result carriers with the same lower bound, one for each
+recursive child position. PrimeTest's `rands` infers two. For guards `H(Xs) ≤ Xi` with a common
+monotone H, let M be the intersection of an admissible tuple Xs. Then
+`H(M, …, M) ≤ H(Xs) ≤ M`. The diagonal tuple is admissible and gives a smaller or equal
+covariant result. Conversely, every admissible diagonal is already an instance of the original
+scheme. The checker can therefore close the single diagonal layer with the usual carrier rule.
+It requires structurally identical layers and checks every guard mentioning a group member.
+The inferred tree checks against `MandTree` and the random stream against `IntStream`.
+
+The branch-free comparisons in `ctmlRecursiveCarrierBounds.mls` also cover distinct layers. For `F(Y) ≤ X` and `G(X) ≤ Y`, choose `X = R` for the carrier of `F(G(Z)) ≤ Z`,
 and `Y = G(R)`. Both explicit guard checks succeed, but implicit instantiation fails. Neither
 bound contains a direct self-reference. This supplies a finite witness for testing elimination
 of a variable from a system of recursive bounds.

@@ -138,3 +138,86 @@ mutual[Str, Int] as (Int -> Combined)
 //│ ═══[TYPE ERROR] Cannot solve judgment G[Str] ≤ Int.
 //│ Typing error tree:
 //│   G[Str] ≤ Int
+
+/** Both result components are closed under the same covariant layer. */
+type Shared = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => Int -> [X, Y]))
+type Tree = [Z restricts F[[Z, Z]]] -> Z
+//│ Shared = ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y} ⟹ Int → ⟨X, Y⟩
+//│ Tree = ∀Z. {Z ≥ F[⟨Z, Z⟩]} ⟹ Z
+
+Shared <:< (Int -> [Tree, Tree])
+//│ OK
+
+:te
+Shared <:< (Int -> [Tree, Str])
+//│ ═══[TYPE ERROR] Cannot solve judgment Shared ≤ Int → ⟨Tree, Str⟩.
+//│ Typing error tree:
+//│   Shared ≤ Int → ⟨Tree, Str⟩
+//│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨Tree, Str⟩
+//│       Int → ⟨∀X. {X ≥ F[⟨X, X⟩]} ⟹ X, ∀X. {X ≥ F[⟨X, X⟩]} ⟹ X⟩ ≤ Int → ⟨Tree, Str⟩
+//│         ⟨∀X. {X ≥ F[⟨X, X⟩]} ⟹ X, ∀X. {X ≥ F[⟨X, X⟩]} ⟹ X⟩ ≤ ⟨Tree, Str⟩
+//│           ∀X. {X ≥ F[⟨X, X⟩]} ⟹ X ≤ Str
+//│             {α ≥ F[⟨α, α⟩]} ⟹ α ≤ Str
+//│               α ≤ Str
+//│                 F[⟨α, α⟩] ≤ Str
+
+/** The extra lower bound on Y must also hold at the chosen instance. */
+type SharedBase = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => ([Str <:< Y] => Int -> Y)))
+//│ SharedBase = ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Str ≤ Y} ⟹ Int → Y
+
+:te
+SharedBase <:< (Int -> Tree)
+//│ ═══[TYPE ERROR] Judgment F[⟨25, 26⟩] ≤ 27 repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   SharedBase ≤ Int → Tree
+//│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Str ≤ Y} ⟹ Int → Y ≤ Int → Tree
+//│       {F[⟨β, α⟩] ≤ β, F[⟨β, α⟩] ≤ α, Str ≤ α} ⟹ Int → α ≤ Int → Tree
+//│         {F[⟨β, α⟩] ≤ α, Str ≤ α} ⟹ Int → α ≤ Int → Tree
+//│           {Str ≤ α} ⟹ Int → α ≤ Int → Tree
+//│             Int → α ≤ Int → Tree
+//│               α ≤ Tree
+//│                 F[⟨β, α⟩] ∨ Str ≤ Tree
+//│                   F[⟨β, α⟩] ∨ Str ≤ ∀Z. {Z ≥ F[⟨Z, Z⟩]} ⟹ Z
+//│                     F[⟨β, α⟩] ∨ Str ≤ {γ ≥ F[⟨γ, γ⟩]} ⟹ γ
+//│                       F[⟨β, α⟩] ∨ Str ≤ γ
+//│                         F[⟨β, α⟩] ≤ γ
+//│                           F[⟨β, α⟩] ≤ F[⟨γ, γ⟩]
+//│                             ⟨β, α⟩ ≤ ⟨γ, γ⟩
+//│                               β ≤ γ
+//│                                 F[⟨β, α⟩] ≤ γ
+
+/** The result carrier and the argument may require different instances. */
+type SharedDomain = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => Y -> X))
+//│ SharedDomain = ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y} ⟹ Y → X
+
+declare fun sharedDomain: SharedDomain
+//│ sharedDomain: SharedDomain
+
+sharedDomain[Top, Top] as (Str -> Top)
+//│ Str → ⊤
+
+SharedDomain <:< (Str -> Top)
+//│ OK
+
+/** A carrier can share a recursive bound without occurring in its layer. */
+type SharedTail = [X, Y] -> ([F[X] <:< Y] => ([F[X] <:< X] => Int -> Y))
+//│ SharedTail = ∀X, Y. {F[X] ≤ Y, F[X] ≤ X} ⟹ Int → Y
+
+SharedTail <:< (Int -> Rec)
+//│ OK
+
+/** Every instance must also place Y below Str. */
+type SharedUpper = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => ([Y <:< Str] => Int -> X)))
+//│ SharedUpper = ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Y ≤ Str} ⟹ Int → X
+
+:te
+SharedUpper <:< (Int -> Tree)
+//│ ═══[TYPE ERROR] Cannot solve judgment SharedUpper ≤ Int → Tree.
+//│ Typing error tree:
+//│   SharedUpper ≤ Int → Tree
+//│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Y ≤ Str} ⟹ Int → X ≤ Int → Tree
+//│       {F[⟨α, β⟩] ≤ α, F[⟨α, β⟩] ≤ β, β ≤ Str} ⟹ Int → α ≤ Int → Tree
+//│         {F[⟨α, β⟩] ≤ β, β ≤ Str} ⟹ Int → α ≤ Int → Tree
+//│           {β ≤ Str} ⟹ Int → α ≤ Int → Tree
+//│             β ≤ Str
+//│               F[⟨α, β⟩] ≤ Str

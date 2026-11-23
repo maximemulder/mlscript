@@ -7,7 +7,7 @@ import hkmc2.ctml.core.{is, isSubClass}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.structural.hasVar
+import hkmc2.ctml.core.structural.{getVars, hasVar}
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.substitute.substitute
@@ -576,20 +576,44 @@ private def leastCarrierInstance(scheme: TUniv): Option[Type] =
     case Direction.Super => (guard.right, guard.left)
     case Direction.Sub => (guard.left, guard.right)
 
-  guards.iterator.map(operands).collectFirst:
-    case (lower, TVar(x)) if variables.contains(x) && lower.hasVar(x) => x
-  .flatMap: x =>
-    val owner = TVar(x)
-    val (defining, remaining) = guards.partition(_.hasVar(x))
-    val monotone = defining.forall: guard =>
-      val (lower, upper) = operands(guard)
-      upper == owner && !mentionsConstrained(lower) && !lower.getVarPolarities(x).negative
-    if body == owner || !monotone || mentionsConstrained(body) ||
-        body.getVarPolarities(x) != Polarities(false, true) then None
+  val lowerBounds = guards.map(operands).collect:
+    case (lower, TVar(x)) if variables.contains(x) => (lower, x)
+
+  // If several variables share H(xs) ≤ xi, any admissible tuple has a common lower bound
+  // M = ⋂xi with H(M, ..., M) ≤ H(xs) ≤ M. For a covariant body it suffices to consider
+  // these diagonal instances, provided no other guard depends on the group.
+  val recursiveBounds = lowerBounds.filter((lower, x) => lower.hasVar(x))
+  recursiveBounds.distinctBy(_._1).iterator.flatMap: (layer, representative) =>
+    val peers = lowerBounds.collect { case (`layer`, x) if x != representative => x }.distinct
+    val owner = TVar(representative)
+    val group = peers.toSet + representative
+    val (defining, remaining) = guards.partition(_.getVars.exists(group))
+    val validBounds = defining.forall: guard =>
+      operands(guard) match
+        case (lower, TVar(x)) if group(x) =>
+          peers.isEmpty || lower == layer
+        case _ => false
+
+    /** Identify the carriers before checking variance. Structural substitution preserves each
+     *  occurrence, so a negative use of any member remains negative. */
+    def diagonal(t: Type): Type = peers.foldLeft(t)((t, v) => t.substitute(v, owner))
+    if !validBounds || mentionsConstrained(body) then None
     else
-      val carrier = TUniv(x, defining.foldRight(owner: Type)((g, t) => TConstrained(t, g)))
-      val result = remaining.foldRight(body.substitute(x, carrier))((g, t) => TConstrained(t, g))
-      Some(variables.filterNot(_ == x).foldRight(result)(TUniv.apply))
+      val diagonalBody = diagonal(body)
+      val carrierGuards = if peers.isEmpty then defining else
+        List(Constraint(owner, Direction.Super, diagonal(layer)))
+      val monotone = carrierGuards.forall: guard =>
+        val (lower, _) = operands(guard)
+        !mentionsConstrained(lower) && !lower.getVarPolarities(representative).negative
+      if !monotone || diagonalBody.getVarPolarities(representative) != Polarities(false, true)
+          || (peers.isEmpty && body == owner) then None
+      else
+        val guardedOwner = carrierGuards.foldRight(owner: Type)((g, t) => TConstrained(t, g))
+        val carrier = TUniv(representative, guardedOwner)
+        val instance = diagonalBody.substitute(representative, carrier)
+        val result = remaining.foldRight(instance)((g, t) => TConstrained(t, g))
+        Some(variables.filterNot(group).foldRight(result)(TUniv.apply))
+  .nextOption()
 
 /** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
  *  elimination: constrain every substituted guard and return its obligations. Failure leaves

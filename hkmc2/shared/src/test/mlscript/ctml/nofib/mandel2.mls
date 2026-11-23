@@ -159,71 +159,10 @@ NS(Leaf(1), EW(Leaf(2), Leaf(3))) as MandTree
 //│ MandTree
 
 build_tree([0, 0], [1, 1]) as (Leaf | NS | EW)
-//│ ∀α, β, γ, δ. {α ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), β ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), γ ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β}), δ ≥ (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: γ}) ∧ {r: δ}) ∨ ((NS ∧ {l: α}) ∧ {r: β})} ⟹ (Leaf ∨ NS) ∨ EW
+//│ (Leaf ∨ NS) ∨ EW
 
-:fixme // FIXME: The inferred tree result fails to instantiate at the recursive invariant.
 build_tree([0, 0], [1, 1]) as MandTree
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ MandTree.
-//│ Typing error tree:
-//│   α ≤ MandTree
-//│     (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ MandTree
-//│       (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ∀X. {X ≥ (Leaf ∨ ((NS ∧ {l: X}) ∧ {r: X})) ∨ ((EW ∧ {l: X}) ∧ {r: X})} ⟹ X
-//│         (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ {ζ ≥ (Leaf ∨ ((NS ∧ {l: ζ}) ∧ {r: ζ})) ∨ ((EW ∧ {l: ζ}) ∧ {r: ζ})} ⟹ ζ
-//│           (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ζ
-//│             ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ζ
-//│               (EW ∧ {l: β}) ∧ {r: γ} ≤ ζ
-//│                 (EW ∧ {l: β}) ∧ {r: γ} ≤ Leaf ∨ ((NS ∧ {l: ζ}) ∧ {r: ζ})
-//│                   (EW ∧ {l: β}) ∧ {r: γ} ≤ Leaf
-//│                     EW ∧ {l: β} ≤ Leaf
-//│                       EW ≤ Leaf
-//│                       {l: β} ≤ Leaf
-//│                         β ≤ ⊥
-//│                           (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
-//│                             Leaf ∧ {colour: Int} ≤ ⊥
-//│                               Leaf ≤ ⊥
-//│                               {colour: Int} ≤ ⊥
-//│                                 Int ≤ ⊥
-//│                     {r: γ} ≤ Leaf
-//│                       γ ≤ ⊥
-//│                         (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
-//│                           Leaf ∧ {colour: Int} ≤ ⊥
-//│                             Leaf ≤ ⊥
-//│                             {colour: Int} ≤ ⊥
-//│                               Int ≤ ⊥
-//│                   (EW ∧ {l: β}) ∧ {r: γ} ≤ (NS ∧ {l: ζ}) ∧ {r: ζ}
-//│                     (EW ∧ {l: β}) ∧ {r: γ} ≤ NS ∧ {l: ζ}
-//│                       (EW ∧ {l: β}) ∧ {r: γ} ≤ NS
-//│                         EW ∧ {l: β} ≤ NS
-//│                           EW ≤ NS
-//│                           {l: β} ≤ NS
-//│                             β ≤ ⊥
-//│                               (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
-//│                                 Leaf ∧ {colour: Int} ≤ ⊥
-//│                                   Leaf ≤ ⊥
-//│                                   {colour: Int} ≤ ⊥
-//│                                     Int ≤ ⊥
-//│                         {r: γ} ≤ NS
-//│                           γ ≤ ⊥
-//│                             (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
-//│                               Leaf ∧ {colour: Int} ≤ ⊥
-//│                                 Leaf ≤ ⊥
-//│                                 {colour: Int} ≤ ⊥
-//│                                   Int ≤ ⊥
-//│                 (EW ∧ {l: β}) ∧ {r: γ} ≤ (EW ∧ {l: ζ}) ∧ {r: ζ}
-//│                   (EW ∧ {l: β}) ∧ {r: γ} ≤ EW ∧ {l: ζ}
-//│                     (EW ∧ {l: β}) ∧ {r: γ} ≤ {l: ζ}
-//│                       EW ∧ {l: β} ≤ {l: ζ}
-//│                         EW ≤ {l: ζ}
-//│                         {l: β} ≤ {l: ζ}
-//│                           β ≤ ζ
-//│                             (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ζ
-//│                       {r: γ} ≤ {l: ζ}
-//│                         γ ≤ ⊥
-//│                           (Leaf ∧ {colour: Int}) ∨ ((EW ∧ {l: β}) ∧ {r: γ}) ∨ ((NS ∧ {l: δ}) ∧ {r: ε}) ≤ ⊥
-//│                             Leaf ∧ {colour: Int} ≤ ⊥
-//│                               Leaf ≤ ⊥
-//│                               {colour: Int} ≤ ⊥
-//│                                 Int ≤ ⊥
+//│ MandTree
 
 :ctml-parse-only // FIXME: The recursive leaf check is translation-only.
 /** Check the tree built from the source rectangle. */

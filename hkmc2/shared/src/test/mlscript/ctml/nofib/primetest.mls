@@ -83,7 +83,7 @@ fun randomInts(s1, s2) =
   if (1 <= s1) and (s1 <= 2147483562) and (1 <= s2) and (s2 <= 2147483398)
   then rands(s1, s2)
   else raiseError("match error")
-//│ randomInts: ∀α, β. {α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})})} ⟹ Int → Int → ((Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}))
+//│ randomInts: Int → Int → (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}} ⟹ α})})
 
 /** Factor n - 1 as a power of two times an odd quotient. */
 fun findKQ(n) =
@@ -245,10 +245,10 @@ findKQ(47) as [Int, Int]
 fun firstTwoRandoms(s1, s2) =
   if force(randomInts(s1, s2)) is LzCons(h, t) and force(t) is LzCons(next, rest)
   then [h, next]
-//│ firstTwoRandoms: ∀α, β. {α ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed, β ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed, β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})})} ⟹ Int → Int → ⟨Int, Int⟩
+//│ firstTwoRandoms: Int → Int → ⟨Int, Int⟩
 
 firstTwoRandoms(111, 47) as [Int, Int]
-//│ ∀α, β. {α ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), β ≥ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: β})}) ∨ (Delayed ∧ {resume: Unit → ((LzCons ∧ {head: Int}) ∧ {tail: α})}), β ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed, α ≤ {resume: Unit → (({tail: ⊤} ∧ {head: ⊤}) ∧ LzCons)} ∧ Delayed} ⟹ ⟨Int, Int⟩
+//│ ⟨Int, Int⟩
 
 /** A proper strict list of integer digits. */
 type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
@@ -256,6 +256,9 @@ type IntList = [X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X
 type IntStream = [X restricts (Delayed & {resume: () -> (LzNil | (LzCons & {head: Int} & {tail: X}))})] -> X
 //│ IntList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
 //│ IntStream = ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: X}))}} ⟹ X
+
+rands(111, 47) as IntStream
+//│ IntStream
 
 splitAtLz(1, delay(() => LzCons(7, delay(() => LzNil())))) as [IntList, IntStream]
 //│ ⟨IntList, IntStream⟩

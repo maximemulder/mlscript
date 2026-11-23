@@ -104,3 +104,86 @@ Choice <:< (Int -> [Bot, Bot])
 //│                       γ ≤ ⊥
 //│                         Int ∨ F[γ] ≤ ⊥
 //│                           Int ≤ ⊥
+
+/** A closed constraint in a sibling component leaves the result covariant in X. */
+type FixedF = [T restricts F[T]] -> T
+type FixedG = [S restricts G[S]] -> S
+type NamedSibling = [X restricts F[X]] -> Int -> [X, FixedG]
+type InlineSibling = [X restricts F[X]] -> Int -> [X, ([S restricts G[S]] -> S)]
+//│ FixedF = ∀T. {T ≥ F[T]} ⟹ T
+//│ FixedG = ∀S. {S ≥ G[S]} ⟹ S
+//│ NamedSibling = ∀X. {X ≥ F[X]} ⟹ Int → ⟨X, FixedG⟩
+//│ InlineSibling = ∀X. {X ≥ F[X]} ⟹ Int → ⟨X, ∀S. {S ≥ G[S]} ⟹ S⟩
+
+NamedSibling <:< (Int -> [FixedF, Top])
+//│ OK
+
+InlineSibling <:< (Int -> [FixedF, Top])
+//│ OK
+
+declare fun sibling: InlineSibling
+sibling[FixedF] as (Int -> [FixedF, Top])
+//│ sibling: InlineSibling
+//│ Int → ⟨FixedF, ⊤⟩
+
+/** The negative occurrence in an arrow domain can require a larger admissible X. */
+type MixedSibling = [X restricts F[X]] -> Int -> [X -> X, ([S restricts G[S]] -> S)]
+//│ MixedSibling = ∀X. {X ≥ F[X]} ⟹ Int → ⟨X → X, ∀S. {S ≥ G[S]} ⟹ S⟩
+
+MixedSibling <:< (Int -> [(Top -> Top), Top])
+//│ OK
+
+/** At the least X the nested cap is satisfied and the result is FixedF. */
+type UnderCap = [X restricts F[X]] -> Int -> ([X <:< FixedF] => X)
+//│ UnderCap = ∀X. {X ≥ F[X]} ⟹ Int → ({X ≤ FixedF} ⟹ X)
+
+UnderCap <:< (Int -> FixedF)
+//│ OK
+
+:te
+UnderCap <:< (Int -> Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment UnderCap ≤ Int → Str.
+//│ Typing error tree:
+//│   UnderCap ≤ Int → Str
+//│     ∀X. {X ≥ F[X]} ⟹ Int → ({X ≤ FixedF} ⟹ X) ≤ Int → Str
+//│       Int → ({∀X. {X ≥ F[X]} ⟹ X ≤ FixedF} ⟹ ∀X. {X ≥ F[X]} ⟹ X) ≤ Int → Str
+//│         {∀X. {X ≥ F[X]} ⟹ X ≤ FixedF} ⟹ ∀X. {X ≥ F[X]} ⟹ X ≤ Str
+//│           ∀X. {X ≥ F[X]} ⟹ X ≤ Str
+//│             {α ≥ F[α]} ⟹ α ≤ Str
+//│               α ≤ Str
+//│                 F[α] ≤ Str
+
+/** The upper operand of a positive nested guard can require X = Top. */
+type NeedsTop = [X restricts F[X]] -> Int -> ([Top <:< X] => Str)
+//│ NeedsTop = ∀X. {X ≥ F[X]} ⟹ Int → ({⊤ ≤ X} ⟹ Str)
+
+NeedsTop <:< (Int -> Str)
+//│ OK
+
+/** An arrow domain reverses the variance of its nested guard. */
+type GuardedDomain = [X restricts F[X]] -> Int -> (([Top <:< X] => Str) -> X)
+declare fun guardedDomain: GuardedDomain
+//│ GuardedDomain = ∀X. {X ≥ F[X]} ⟹ Int → ({⊤ ≤ X} ⟹ Str) → X
+//│ guardedDomain: GuardedDomain
+
+GuardedDomain <:< (Int -> (Str -> FixedF))
+//│ OK
+
+guardedDomain[FixedF] as (Int -> (([Top <:< FixedF] => Str) -> FixedF))
+//│ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
+
+:fixme // FIXME: Guard entailment misses the named carrier after implicit instantiation.
+GuardedDomain <:< (Int -> (([Top <:< FixedF] => Str) -> FixedF))
+//│ ═══[TYPE ERROR] Cannot solve judgment GuardedDomain ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF.
+//│ Typing error tree:
+//│   GuardedDomain ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
+//│     ∀X. {X ≥ F[X]} ⟹ Int → ({⊤ ≤ X} ⟹ Str) → X ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
+//│       Int → ({⊤ ≤ ∀X. {X ≥ F[X]} ⟹ X} ⟹ Str) → (∀X. {X ≥ F[X]} ⟹ X) ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
+//│         ({⊤ ≤ ∀X. {X ≥ F[X]} ⟹ X} ⟹ Str) → (∀X. {X ≥ F[X]} ⟹ X) ≤ ({⊤ ≤ FixedF} ⟹ Str) → FixedF
+//│           {⊤ ≤ FixedF} ⟹ Str ≤ {⊤ ≤ ∀X. {X ≥ F[X]} ⟹ X} ⟹ Str
+//│             {⊤ ≤ FixedF} ⟹ Str ≤ Str
+//│               ⊤ ≤ FixedF
+//│                 ⊤ ≤ ∀T. {T ≥ F[T]} ⟹ T
+//│                   ⊤ ≤ {α ≥ F[α]} ⟹ α
+//│                     ⊤ ≤ α
+//│                       ⊤ ≤ F[α]

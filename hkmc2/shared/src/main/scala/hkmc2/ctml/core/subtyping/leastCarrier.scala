@@ -4,7 +4,6 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 import hkmc2.ctml.core.structural.{getVars, hasVar, removeDirectVar, structuralCombine}
-import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.newFreshVar
 import hkmc2.ctml.types.*
@@ -13,6 +12,9 @@ import hkmc2.utils.SccAnalysis
 /** Lower inequalities of a single coordinate. At the least tuple its value is their union. */
 private case class Carrier(variable: TypeVar, lowers: List[Type]):
   assert(lowers.nonEmpty)
+
+  /** Free variables are shared by the dependency analysis and successive elimination steps. */
+  lazy val dependencies: Set[TypeVar] = lowers.iterator.flatMap(_.getVars).toSet
 
 /** Instantiate cyclic coordinates of a covariant producer at their simultaneous least solution.
  *  For fixed values of the other parameters, each defining inequality has the form L(Xs) ≤ Xi.
@@ -29,30 +31,53 @@ private[subtyping] def leastCarrierInstance(scheme: TUniv): Option[Type] =
     upper.exactComponents(JointMode.Inter).map((lower, _))
   val byOwner = bounds.collect { case (l, TVar(x)) => (x, l) }.groupMap(_._1)(_._2)
 
-  /** Guard polarity inside nested constrained types requires a separate variance analysis. */
-  def occursOnly(t: Type, x: TypeVar, pol: Polarity): Boolean =
-    !t.hasVar(x) || !mentionsConstrained(t) && !t.getVarPolarities(x).contains(!pol)
+  /** In {L ≤ U} ⇒ B, to widen the type we may strengthen its guard and widen B.
+   *  Shrinking L and growing U therefore shrink the constrained type. An enclosing arrow
+   *  domain or negation reverses all three operand polarities.
+   */
+  def occursOnly(t: Type, x: TypeVar, pol: Polarity): Boolean = t match
+    case TVar(y) => x != y || pol == Polarity.Positive
+    case TNeg(t) => occursOnly(t, x, !pol)
+    case TLam(p, r) => occursOnly(p, x, !pol) && occursOnly(r, x, pol)
+    case TUniv(y, t) => y == x || occursOnly(t, x, pol)
+    case TConstrained(t, g) =>
+      occursOnly(t, x, pol) && occursOnly(g.left, x, pol * g.dir.rightPol) &&
+        occursOnly(g.right, x, pol * g.dir.leftPol)
+    case _ => t.components.forall(occursOnly(_, x, pol))
 
-  val eligible = variables.distinct.filter: x =>
-    byOwner.contains(x) && occursOnly(body, x, Polarity.Positive) && bounds.forall: (l, u) =>
-      occursOnly(l, x, Polarity.Positive) && (u == TVar(x) || occursOnly(u, x, Polarity.Negative))
-  val candidates = eligible.toSet
-  val deps = eligible.map(x => x -> byOwner(x).flatMap(_.getVars).filter(candidates)).toMap
-  val cyclic = SccAnalysis.sccsFrom[TypeVar](deps, eligible)
-    .filter(xs => xs.size > 1 || deps(xs.head).contains(xs.head)).flatten.toSet
-  if cyclic.isEmpty then return None
+  val carriers = variables.distinct.collect:
+    case x if byOwner.contains(x) => Carrier(x, byOwner(x))
+  val owners = carriers.iterator.map(_.variable).toSet
+  val eligible = carriers.filter: eq =>
+    val x = eq.variable
+    eq.dependencies.exists(owners) && occursOnly(body, x, Polarity.Positive) &&
+      bounds.forall: (l, u) =>
+        occursOnly(l, x, Polarity.Positive) && (u == TVar(x) || occursOnly(u, x, Polarity.Negative))
+  val components = eligible match
+    case Nil => return None
+    case eq :: Nil => if eq.dependencies(eq.variable) then List(List(eq.variable)) else Nil
+    case _ =>
+      val deps = eligible.map(eq => eq.variable -> eq.dependencies).toMap
+      SccAnalysis.sccsFrom[TypeVar](x => deps(x).filter(deps.contains), eligible.map(_.variable))
+        .filter(xs => xs.size > 1 || deps(xs.head)(xs.head))
 
-  val owners: Set[Type] = cyclic.map(TVar.apply)
-  val residual = bounds.filterNot((_, upper) => owners.contains(upper))
-  // A unary projection is already the encoding of its least carrier.
-  if cyclic.size == 1 && owners.contains(body) && residual.isEmpty then return None
-
-  val result = residual.foldRight(body)((bound, t) =>
-    TConstrained(t, Constraint(bound._1, Direction.Sub, bound._2)))
-  val equations = eligible.filter(cyclic).map(x => Carrier(x, byOwner(x)))
-  val prepared = if equations.size == 1 then equations else shareSubexpressions(equations)
-  eliminateCarriers(prepared, result).map: instance =>
-    variables.filterNot(cyclic).foldRight(instance)(TUniv.apply)
+  // Close dependencies first. A component whose witness exceeds the budget remains a parameter
+  // of any other component, with all its original inequalities still in scope.
+  components.iterator.flatMap: component =>
+    val members = component.toSet
+    val residual = bounds.filterNot:
+      case (_, TVar(x)) => members(x)
+      case _ => false
+    if component.size == 1 && body == TVar(component.head) && residual.isEmpty then None
+    else
+      val result = residual.foldRight(body)((bound, t) =>
+        TConstrained(t, Constraint(bound._1, Direction.Sub, bound._2)))
+      val equations = eligible.filter(eq => members(eq.variable))
+      val prepared = if equations.size == 1 then equations else shareSubexpressions(equations)
+      if carrierSize(result :: prepared.flatMap(_.lowers), component.head) > carrierBudget then None
+      else eliminateCarriers(prepared, result).map: instance =>
+        variables.filterNot(members).foldRight(instance)(TUniv.apply)
+  .nextOption()
 
 /** Give repeated positive subexpressions a single coordinate. Each definition E ≤ H is exact
  *  at the least tuple because replacing H by E preserves every covariant use. Elimination can
@@ -66,9 +91,22 @@ private def shareSubexpressions(equations: List[Carrier]): List[Carrier] =
   /** Name a union once, preserving its summands as individual lower bounds. */
   def node(lowers: List[Type]): Type = TVar(names.getOrElseUpdate(lowers, newFreshVar()))
 
-  /** Intern the covariant syntax as a directed acyclic graph of lower inequalities. */
+  // A second incoming edge justifies naming a node. Its children have already been visited
+  // through the first edge, and will occur only once in the shared definition.
+  val seen = mutable.HashSet.empty[Type]
+  val shared = mutable.HashSet.empty[Type]
+
+  /** Count incoming edges in the graph of covariant constructor subexpressions. */
+  def visit(t: Type): Unit = t match
+    case _: TApp | _: TTuple | _: TField | _: TJointType | _: TLam =>
+      if !seen.add(t) then shared += t
+      else t match
+        case TLam(_, r) => visit(r)
+        case _ => t.components.foreach(visit)
+    case _ => ()
+
+  /** Rebuild a layer with references to its shared, carrier-dependent subexpressions. */
   def name(t: Type): Type =
-    if !t.getVars.exists(owners) then return t
     val expr = t match
       case TApp(f, a) => TApp(name(f), name(a))
       case TTuple(l, r) => TTuple(name(l), name(r))
@@ -76,12 +114,13 @@ private def shareSubexpressions(equations: List[Carrier]): List[Carrier] =
       case TJointType(m, l, r) => TJointType(m, name(l), name(r))
       case TLam(p, r) => TLam(p, name(r))
       case _ => return t
-    node(List(expr))
+    if shared(t) && t.getVars.exists(owners) then node(List(expr)) else expr
 
   // A union of summands used by the same owners can itself be shared, including when each
   // owner has further, private lower bounds. Preserve first occurrence order in the guards.
   val layers = equations.flatMap: eq =>
     eq.lowers.flatMap(_.exactComponents(JointMode.Union)).distinct.map((_, eq.variable))
+  layers.foreach((t, _) => visit(t))
   val targets = layers.groupMap(_._1)(_._2)
   val summands = layers.map(_._1).distinct
   val byTargets = summands.groupBy(targets)
@@ -101,17 +140,18 @@ private def shareSubexpressions(equations: List[Carrier]): List[Carrier] =
  */
 @tailrec
 private def eliminateCarriers(equations: List[Carrier], result: Type): Option[Type] =
-  if !fitsCarrierBudget(result :: equations.flatMap(_.lowers)) then return None
   if equations.isEmpty then return Some(result)
 
   // A nonrecursive coordinate needs only a union. Prefer eliminating a coordinate used by
   // fewer other equations, so that a shared definition stays in scope until its uses are closed.
-  val free = equations.map(eq => eq.variable -> eq.lowers.flatMap(_.getVars).toSet).toMap
-  val uses = free.valuesIterator.flatten.toList.groupMapReduce(identity)(_ => 1)(_ + _)
   val inResult = result.getVars
-  val chosen = equations.minBy: eq =>
-    val x = eq.variable
-    (free(x)(x), uses.getOrElse(x, 0), inResult(x))
+  val chosen = equations match
+    case eq :: Nil => eq
+    case _ =>
+      val uses = equations.flatMap(_.dependencies).groupMapReduce(identity)(_ => 1)(_ + _)
+      equations.minBy: eq =>
+        val x = eq.variable
+        (eq.dependencies(x), uses.getOrElse(x, 0), inResult(x))
   val x = chosen.variable
   val lowers = chosen.lowers.map(_.removeDirectVar(x, Polarity.Positive)).distinct
     .filterNot(_ == TBot)
@@ -120,18 +160,30 @@ private def eliminateCarriers(equations: List[Carrier], result: Type): Option[Ty
       TConstrained(t, Constraint(TVar(x), Direction.Super, l)))
     TUniv(x, guarded)
   else lowers.foldRight(TBot: Type)(structuralCombine(JointMode.Union, _, _))
-  val rest = equations.collect:
-    case eq if eq.variable != x =>
-      if free(eq.variable)(x) then eq.copy(lowers = eq.lowers.map(_.substitute(x, witness))) else eq
+  val others = equations.filterNot(_.variable == x)
+  val nextTypes = result :: others.flatMap(_.lowers)
+  val witnessSize = carrierSize(List(witness), x)
+  if carrierSize(nextTypes, x, witnessSize) > carrierBudget then return None
+  val rest = others.map: eq =>
+    if eq.dependencies(x) then eq.copy(lowers = eq.lowers.map(_.substitute(x, witness))) else eq
   eliminateCarriers(rest, if inResult(x) then result.substitute(x, witness) else result)
 
-/** Dense systems can expand exponentially as ordinary type syntax. Count unfolded nodes before
- *  traversing the next intermediate system. Ordinary universal instantiation handles schemes
- *  beyond this budget. Substitution shares the inserted witness at every use.
+/** Maximum unfolded syntax size of an intermediate carrier system. */
+private val carrierBudget = 4096
+
+/** Size after substituting a witness of the given size for free X. Stop once the budget is
+ *  exceeded. Renaming a binder to avoid capture preserves its size.
  */
-private def fitsCarrierBudget(types: List[Type]): Boolean =
+private def carrierSize(types: List[Type], x: TypeVar, weight: Int = 1): Int =
+  /** Subtrees shadowing X are counted at unit weight after all free occurrences. */
   @tailrec
-  def visit(pending: List[Type], left: Int): Boolean = pending match
-    case Nil => true
-    case head :: tail => left > 0 && visit(head.components ::: tail, left - 1)
-  visit(types, 4096)
+  def count(todo: List[Type], shadowed: List[Type], cost: Int, size: Int): Int =
+    if size > carrierBudget then size
+    else todo match
+      case Nil =>
+        if shadowed.isEmpty then size else count(shadowed, Nil, 1, size)
+      case TVar(y) :: rest if y == x => count(rest, shadowed, cost, size + cost)
+      case TUniv(y, body) :: rest if y == x && cost != 1 =>
+        count(rest, body :: shadowed, cost, size + 1)
+      case t :: rest => count(t.components ::: rest, shadowed, cost, size + 1)
+  count(types, Nil, weight, 0)

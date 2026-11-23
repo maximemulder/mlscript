@@ -447,42 +447,42 @@ fun main() = map(nofibListToString, testEliza_nofib(20)).toString()
 //│ CTML translation succeeded.
 
 if ucase(LCons("a", LCons("b", LNil()))) is LCons(h, _) then h as Str else ""
-//│ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ({LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}) ≤ ({head: Str} ∧ LCons) ∧ {tail: ⊤}} ⟹ Str) ∧ ({LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}) ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: ⊤})} ⟹ Str)
+//│ ({∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y ≤ ({head: Str} ∧ LCons) ∧ {tail: ⊤}} ⟹ Str) ∧ ({∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y ≤ ¬((LCons ∧ {head: ⊤}) ∧ {tail: ⊤})} ⟹ Str)
 
 :te
 ucase(LCons(42, LNil()))
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y ≤ β → γ.
 //│ Typing error tree:
 //│   ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y ≤ β → γ
-//│     {ε ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}), δ ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
-//│       {δ ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
-//│         (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
+//│     ∀α. {α ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       {δ ≤ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│         (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
 //│           β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│             (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│               (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
-//│                 (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ θ
-//│                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LNil
-//│                     LCons ∧ {head: ζ} ≤ LNil
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                     LCons ∧ {head: ε} ≤ LNil
 //│                       LCons ≤ LNil
-//│                       {head: ζ} ≤ LNil
-//│                         ζ ≤ ⊥
+//│                       {head: ε} ≤ LNil
+//│                         ε ≤ ⊥
 //│                           Int ≤ ⊥
-//│                     {tail: η} ≤ LNil
-//│                       η ≤ ⊥
-//│                         ι ≤ ⊥
+//│                     {tail: ζ} ≤ LNil
+//│                       ζ ≤ ⊥
+//│                         θ ≤ ⊥
 //│                           LNil ≤ ⊥
-//│                   (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
-//│                     (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ LCons ∧ {head: δ}
-//│                       (LCons ∧ {head: ζ}) ∧ {tail: η} ≤ {head: δ}
-//│                         LCons ∧ {head: ζ} ≤ {head: δ}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: δ}
+//│                       (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: δ}
+//│                         LCons ∧ {head: ε} ≤ {head: δ}
 //│                           LCons ≤ {head: δ}
-//│                           {head: ζ} ≤ {head: δ}
-//│                             ζ ≤ δ
-//│                               ζ ≤ Str
+//│                           {head: ε} ≤ {head: δ}
+//│                             ε ≤ δ
+//│                               ε ≤ Str
 //│                                 Int ≤ Str
-//│                         {tail: η} ≤ {head: δ}
-//│                           η ≤ ⊥
-//│                             ι ≤ ⊥
+//│                         {tail: ζ} ≤ {head: δ}
+//│                           ζ ≤ ⊥
+//│                             θ ≤ ⊥
 //│                               LNil ≤ ⊥
 
 nullLz(delay(() => LzNil())) as Bool

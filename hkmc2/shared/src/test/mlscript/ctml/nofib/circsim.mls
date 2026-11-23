@@ -408,36 +408,9 @@ fun up_i(ipm, ins) = if ipm is [i, [p, [m, [_, [_, [_, [_, _]]]]]]] then
   map(x => compare_and_update([i, [p, m]], x), ins)
 //│ up_i: ∀α, β, γ. {β ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩, γ ≥ LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, α⟩⟩}) ∧ {tail: γ})} ⟹ ⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ
 
-:fixme // FIXME: Implicit instantiation rejects the composition of the two port maps.
 /** Deliver the packet from the right first, then the packet from the left. */
 fun update_i(lr, ins) = if lr is [l, r] then up_i(l, up_i(r, ins))
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
-//│ Typing error tree:
-//│   α ≤ β → γ
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → ε ≤ β → γ
-//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
-//│             LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ θ
-//│               (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ θ
-//│                 (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ LNil
-//│                   LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ LNil
-//│                       ⟨⊥, ⟨⊥, ζ⟩⟩ ≤ ⊥
-//│                   {tail: η} ≤ LNil
-//│                     η ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
-//│                   (LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η} ≤ {tail: θ}
-//│                     LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ {tail: θ}
-//│                       LCons ≤ {tail: θ}
-//│                       {head: ⟨⊥, ⟨⊥, ζ⟩⟩} ≤ {tail: θ}
-//│                         ⟨⊥, ⟨⊥, ζ⟩⟩ ≤ ⊥
-//│                     {tail: η} ≤ {tail: θ}
-//│                       η ≤ θ
-//│                         LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, ζ⟩⟩}) ∧ {tail: η}) ≤ θ
+//│ update_i: ∀α, β, γ. {β ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩, γ ≥ LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, α⟩⟩}) ∧ {tail: γ})} ⟹ ⟨⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ
 
 /** Clear the output's right request when the packet from the left is done. */
 fun check_left(a, b) = if
@@ -726,8 +699,8 @@ send_right([1, [2, [T(), [false, [0, [3, [3, 1]]]]]]], emptyPacket)
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο.
 //│ Typing error tree:
 //│   ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
-//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3700, ⟨3701, ⟨3702, ⟨3703, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3700, ⟨3701, ⟨3702, ⟨3703, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
-//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3700, ⟨3701, ⟨3702, ⟨3703, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3700, ⟨3701, ⟨3702, ⟨3703, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
 //│         ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ≤ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩
 //│           ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩ ≤ ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩
 //│             ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩ ≤ ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩

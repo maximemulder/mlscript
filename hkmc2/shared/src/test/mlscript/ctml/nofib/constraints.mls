@@ -400,69 +400,68 @@ fun union(xs, ys) =
 
 // The second argument may contain conflicts when the first argument is empty.
 union(LNil(), LCons(1, LNil()))
-//│ ∀α, β. {α ≥ {Int ≤ α} ⟹ Int, β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})
+//│ ∀α, β. {α ≥ {Int ≤ α} ⟹ Int, β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β
 
-:fixme // FIXME: The result of the singleton call fails its integer-list assertion.
 union(LNil(), LCons(1, LNil())) as ([X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X)
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X.
+//│ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+:te
+union(LNil(), LCons(1, LNil())) as ([X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X.
 //│ Typing error tree:
-//│   α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
-//│     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
-//│       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
-//│         LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ δ
-//│           (LCons ∧ {head: β}) ∧ {tail: γ} ≤ δ
-//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ LNil
-//│               LCons ∧ {head: β} ≤ LNil
-//│                 LCons ≤ LNil
-//│                 {head: β} ≤ LNil
-//│                   β ≤ ⊥
-//│                     {ε ≤ β} ⟹ ε ≤ ⊥
-//│                       ε ≤ β
-//│                         ε ≤ ⊥
-//│                           ζ ≤ ⊥
-//│                             Int ≤ ⊥
-//│               {tail: γ} ≤ LNil
-//│                 γ ≤ ⊥
-//│                   LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ ⊥
-//│                     LNil ≤ ⊥
-//│             (LCons ∧ {head: β}) ∧ {tail: γ} ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
-//│               (LCons ∧ {head: β}) ∧ {tail: γ} ≤ {tail: δ}
-//│                 LCons ∧ {head: β} ≤ {tail: δ}
-//│                   LCons ≤ {tail: δ}
-//│                   {head: β} ≤ {tail: δ}
-//│                     β ≤ ⊥
-//│                       {ε ≤ β} ⟹ ε ≤ ⊥
-//│                         ε ≤ β
-//│                           ε ≤ ⊥
-//│                             ζ ≤ ⊥
-//│                               Int ≤ ⊥
-//│                 {tail: γ} ≤ {tail: δ}
-//│                   γ ≤ δ
-//│                     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ δ
+//│   α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│     ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│       ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ
+//│         ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ δ
+//│           ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LNil
+//│             {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ LNil
+//│               ε ≤ LNil
+//│                 LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ LNil
+//│                   (LCons ∧ {head: γ}) ∧ {tail: ε} ≤ LNil
+//│                     LCons ∧ {head: γ} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: γ} ≤ LNil
+//│                         γ ≤ ⊥
+//│                           {ζ ≤ γ} ⟹ ζ ≤ ⊥
+//│                             ζ ≤ γ
+//│                               ζ ≤ ⊥
+//│                                 η ≤ ⊥
+//│                                   Int ≤ ⊥
+//│                     {tail: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ ⊥
+//│                           LNil ≤ ⊥
+//│           ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ (LCons ∧ {head: Str}) ∧ {tail: δ}
+//│             ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons ∧ {head: Str}
+//│               ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons
+//│                 {θ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: θ})} ⟹ θ ≤ LCons
+//│                   θ ≤ LCons
+//│                     LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: θ}) ≤ LCons
+//│                       LNil ≤ LCons
 
 :fixme // FIXME: The inferred union rejects a nonempty list in its first argument.
 union(LCons(1, LNil()), LNil())
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {α ≥ {β ≤ α} ⟹ β, γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ ≤ δ → ε.
 //│ Typing error tree:
 //│   ∀α, β, γ. {α ≥ {β ≤ α} ⟹ β, γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ ≤ δ → ε
-//│     {θ ≥ {ζ ≤ θ} ⟹ ζ, η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X) → η ≤ δ → ε
-//│       {η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X) → η ≤ δ → ε
-//│         (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X) → η ≤ δ → ε
+//│     ∀α, β. {{β ≤ α} ⟹ β ≤ α} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: γ})} ⟹ γ) ≤ δ → ε
+//│       {{ζ ≤ η} ⟹ ζ ≤ η} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: γ})} ⟹ γ) ≤ δ → ε
+//│         (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: X})} ⟹ X) → (∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: γ})} ⟹ γ) ≤ δ → ε
 //│           δ ≤ ∀X. {X ≥ LNil} ⟹ X
-//│             (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ∀X. {X ≥ LNil} ⟹ X
-//│               (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ {λ ≥ LNil} ⟹ λ
-//│                 (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ λ
-//│                   LCons ∧ {head: ι} ≤ λ
-//│                     LCons ≤ λ
+//│             (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│               (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ {κ ≥ LNil} ⟹ κ
+//│                 (LCons ∧ {head: θ}) ∧ {tail: ι} ≤ κ
+//│                   LCons ∧ {head: θ} ≤ κ
+//│                     LCons ≤ κ
 //│                       LCons ≤ LNil
-//│                     {head: ι} ≤ λ
-//│                       {head: ι} ≤ LNil
-//│                         ι ≤ ⊥
+//│                     {head: θ} ≤ κ
+//│                       {head: θ} ≤ LNil
+//│                         θ ≤ ⊥
 //│                           Int ≤ ⊥
-//│                   {tail: κ} ≤ λ
-//│                     {tail: κ} ≤ LNil
-//│                       κ ≤ ⊥
-//│                         μ ≤ ⊥
+//│                   {tail: ι} ≤ κ
+//│                     {tail: ι} ≤ LNil
+//│                       ι ≤ ⊥
+//│                         λ ≤ ⊥
 //│                           LNil ≤ ⊥
 
 :ctml-parse-only // FIXME: The inferred conflict-set union rejects nonempty input.

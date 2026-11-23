@@ -125,40 +125,8 @@ fun glue(s, xs, ys) = append(xs, append(s, ys))
 glue(LCons("n", LNil()), LCons("a", LNil()), LCons("b", LNil())) as (LNil | (LCons & {head: Str}))
 //│ LNil ∨ (LCons ∧ {head: Str})
 
-:fixme // FIXME: The inferred glue result fails to instantiate at the encoded listLen parameter.
 listLen(glue(LCons("n", LNil()), LCons("a", LNil()), LCons("b", LNil()))) as Int
-//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β.
-//│ Typing error tree:
-//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β
-//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│       LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})} ⟹ ε
-//│           LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ ε
-//│             (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
-//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
-//│                 LCons ∧ {head: γ} ≤ LNil
-//│                   LCons ≤ LNil
-//│                   {head: γ} ≤ LNil
-//│                     γ ≤ ⊥
-//│                       ζ ∨ η ∨ θ ≤ ⊥
-//│                         ζ ≤ ⊥
-//│                           Str ≤ ⊥
-//│                 {tail: δ} ≤ LNil
-//│                   δ ≤ ⊥
-//│                     LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ ⊥
-//│                       LNil ≤ ⊥
-//│               (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
-//│                 (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {tail: ε}
-//│                   LCons ∧ {head: γ} ≤ {tail: ε}
-//│                     LCons ≤ {tail: ε}
-//│                     {head: γ} ≤ {tail: ε}
-//│                       γ ≤ ⊥
-//│                         ζ ∨ η ∨ θ ≤ ⊥
-//│                           ζ ≤ ⊥
-//│                             Str ≤ ⊥
-//│                   {tail: δ} ≤ {tail: ε}
-//│                     δ ≤ ε
-//│                       LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ ε
+//│ Int
 
 // FIXME: This traversal depends on the disabled listEqBy and listEq.
 // /** Collect generations up to and including the first one that equals its successor. */
@@ -167,8 +135,7 @@ listLen(glue(LCons("n", LNil()), LCons("a", LNil()), LCons("b", LNil()))) as Int
 //     if listEqBy(listEq, x, y) then LCons(x, LNil())
 //     else LCons(x, limit(delay(() => LzCons(y, xs))))
 
-// FIXME: Rendering depends on the disabled foldr and concat. The inferred glue result
-// also fails to instantiate at an encoded list parameter.
+// FIXME: Rendering depends on the disabled foldr and concat.
 // /** Delay rendering the generation number and the rows, separated by the source literal n. */
 // fun disp(numberBoard) = if numberBoard is [genn, xss] then delay(() =>
 //   append(genn, append(nofibStringToList("nn"),

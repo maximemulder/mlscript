@@ -7,7 +7,7 @@ For a scheme `∀X. {F(X) ≤ X} ⇒ B(X)`, implicit elimination can choose
 B(R) is below every admissible instance. The checker applies this equivalence before opening the
 target. Several lower bounds on the same X correspond to closure under their union. The checker
 keeps all of them in R and preserves guards independent of X around the resulting instance.
-It checks variance structurally for guard-free operators and bodies. Other quantifiers bind the
+It checks variance structurally through operators, binders, and nested guards. Other quantifiers bind the
 same parameters around the result. The identity body already denotes R.
 The [fold derivation](../subtyping/recursive-encoding.md#fold) gives the finite proof.
 
@@ -45,8 +45,17 @@ of lower bounds. Exact lower unions expose summands that can be shared among own
 covariant subexpression E adds a coordinate H with `E ≤ H`. Every original solution extends
 by taking `H = E`, and shrinking H to E preserves its uses. Elimination can thus close a cycle
 at a shared subexpression, including the common layer of `mkIndent` or the tuple argument of
-several different constructors in `ctmlCarrierStress.mls`. Intermediate systems exceeding 4,096
-unfolded syntax nodes fall back to ordinary universal instantiation.
+several different constructors in `ctmlCarrierStress.mls`. The checker counts edges into each
+subexpression and names repeated constructor expressions that depend on a carrier. It tries a
+strongly connected component at a time in dependency order. Before substituting a witness, it
+counts its size at each free occurrence, up to 4,096 unfolded syntax nodes. A component that
+exceeds this budget keeps its quantified parameters and guards while other components are tried.
+
+For a nested type `{L ≤ U} ⇒ B`, assume the guard at the larger instance. If L shrinks and U
+grows at the smaller instance, transitivity supplies its guard. Covariance of B then gives
+the result comparison. This makes L and B covariant and U contravariant in this constructor.
+An enclosing arrow domain or negation reverses all three signs. The same check applies when
+a closed guarded type is written inline beside a carrier.
 
 Mandel has an independent precision problem. In its integer reduction, extract the step as
 `step(c, self) = delay(() => LzCons(c, mapLz(z => z + c, self())))`. The inferred callback

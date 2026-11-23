@@ -378,8 +378,8 @@ prune(0, scoredLeaf) as Branch & {a: Score} & {cs: LNil}
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}.
 //│ Typing error tree:
 //│   α ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}
-//│     (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}
-//│       (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ {cs: LNil}
+//│     (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: Y})} ⟹ Y} ≤ (Branch ∧ {a: Score}) ∧ {cs: LNil}
+//│       (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: Y})} ⟹ Y} ≤ {cs: LNil}
 //│         Branch ∧ {a: β} ≤ {cs: LNil}
 //│           Branch ≤ {cs: LNil}
 //│           {a: β} ≤ {cs: LNil}
@@ -388,34 +388,36 @@ prune(0, scoredLeaf) as Branch & {a: Score} & {cs: LNil}
 //│                 Score ≤ ⊥
 //│                 {i: Int} ≤ ⊥
 //│                   Int ≤ ⊥
-//│         {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ {cs: LNil}
-//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ LNil
-//│             {δ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ})} ⟹ δ ≤ LNil
-//│               δ ≤ LNil
-//│                 LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ LNil
-//│                   (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ LNil
-//│                     LCons ∧ {head: γ} ≤ LNil
+//│         {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: Y})} ⟹ Y} ≤ {cs: LNil}
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│             {δ ≥ LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│               LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: δ}) ≤ δ
+//│                 LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: δ}) ≤ LNil
+//│                   (LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: δ} ≤ LNil
+//│                     LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ} ≤ LNil
 //│                       LCons ≤ LNil
-//│                       {head: γ} ≤ LNil
-//│                         γ ≤ ⊥
-//│                           (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ ⊥
-//│                             Branch ∧ {a: β} ≤ ⊥
-//│                               Branch ≤ ⊥
-//│                               {a: β} ≤ ⊥
-//│                                 β ≤ ⊥
-//│                                   Score ∧ {i: Int} ≤ ⊥
-//│                                     Score ≤ ⊥
-//│                                     {i: Int} ≤ ⊥
-//│                                       Int ≤ ⊥
-//│                             {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y} ≤ ⊥
-//│                               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y ≤ ⊥
-//│                                 {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
-//│                                   ε ≤ ⊥
-//│                                     LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ ⊥
-//│                                       LNil ≤ ⊥
+//│                       {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ} ≤ LNil
+//│                         ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ ≤ ⊥
+//│                           {ε ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y}} ⟹ ε ≤ ⊥
+//│                             (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y} ≤ ε
+//│                               (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y} ≤ ⊥
+//│                                 Branch ∧ {a: β} ≤ ⊥
+//│                                   Branch ≤ ⊥
+//│                                   {a: β} ≤ ⊥
+//│                                     β ≤ ⊥
+//│                                       Score ∧ {i: Int} ≤ ⊥
+//│                                         Score ≤ ⊥
+//│                                         {i: Int} ≤ ⊥
+//│                                           Int ≤ ⊥
+//│                                 {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y} ≤ ⊥
+//│                                   ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y ≤ ⊥
+//│                                     {ζ ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: ζ})} ⟹ ζ ≤ ⊥
+//│                                       ζ ≤ ⊥
+//│                                         LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: ζ}) ≤ ⊥
+//│                                           LNil ≤ ⊥
 //│                     {tail: δ} ≤ LNil
 //│                       δ ≤ ⊥
-//│                         LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}) ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Branch ∧ {a: β}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: δ}) ≤ ⊥
 //│                           LNil ≤ ⊥
 
 :te

@@ -614,7 +614,7 @@ def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Su
     subtypeSeq(constrained.body, type_, clauses)
 
 /** Check whether a type contains a constrained type, including a negated constrained type. */
-private[subtyping] def mentionsConstrained(type_ : Type): Boolean =
+private def mentionsConstrained(type_ : Type): Boolean =
   type_ match
     case _: TConstrained => true
     case _ => type_.components.exists(mentionsConstrained)

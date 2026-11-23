@@ -2,6 +2,7 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.*
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.structural.TypeSyntaxKey
 import hkmc2.ctml.types.*
 
 /** The judgments assumed on the current path of the subtyping search that are not bounds, which
@@ -11,16 +12,19 @@ import hkmc2.ctml.types.*
  *  Like the trail, the hypotheses are passed down the search and never returned: they are scoped
  *  to the body of the constrained type whose constraint they are assumed from. */
 case class Hypotheses(
-  /** The judgments assumed, as pairs of a subtype and a supertype. */
-  val judgments: Set[(Type, Type)] = Set(),
+  /** Each pair retains its source types for cuts and compares modulo bound variable names. */
+  private val keys: Set[(TypeSyntaxKey, TypeSyntaxKey)] = Set.empty,
 ):
-  /** Check whether a judgment is assumed. */
+  /** Iterate over the assumed subtype and supertype in their original syntax. */
+  def judgments: Iterator[(Type, Type)] = keys.iterator.map((l, r) => (l.type_, r.type_))
+
+  /** Check whether a judgment is assumed up to renaming its bound variables. */
   def contains(sub: Type, sup: Type): Boolean =
-    this.judgments.contains((sub, sup))
+    keys.nonEmpty && keys.contains((TypeSyntaxKey(sub), TypeSyntaxKey(sup)))
 
   /** Assume a judgment. */
   def add(sub: Type, sup: Type): Hypotheses =
-    Hypotheses(this.judgments + ((sub, sup)))
+    Hypotheses(keys + ((TypeSyntaxKey(sub), TypeSyntaxKey(sup))))
 
 extension (ctx: SubContext)
   /** Assume a constraint: get the context extended with the assumption, or `None` if the

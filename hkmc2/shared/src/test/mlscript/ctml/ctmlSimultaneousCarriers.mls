@@ -172,18 +172,5 @@ GuardedDomain <:< (Int -> (Str -> FixedF))
 guardedDomain[FixedF] as (Int -> (([Top <:< FixedF] => Str) -> FixedF))
 //│ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
 
-:fixme // FIXME: Guard entailment misses the named carrier after implicit instantiation.
 GuardedDomain <:< (Int -> (([Top <:< FixedF] => Str) -> FixedF))
-//│ ═══[TYPE ERROR] Cannot solve judgment GuardedDomain ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF.
-//│ Typing error tree:
-//│   GuardedDomain ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
-//│     ∀X. {X ≥ F[X]} ⟹ Int → ({⊤ ≤ X} ⟹ Str) → X ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
-//│       Int → ({⊤ ≤ ∀X. {X ≥ F[X]} ⟹ X} ⟹ Str) → (∀X. {X ≥ F[X]} ⟹ X) ≤ Int → ({⊤ ≤ FixedF} ⟹ Str) → FixedF
-//│         ({⊤ ≤ ∀X. {X ≥ F[X]} ⟹ X} ⟹ Str) → (∀X. {X ≥ F[X]} ⟹ X) ≤ ({⊤ ≤ FixedF} ⟹ Str) → FixedF
-//│           {⊤ ≤ FixedF} ⟹ Str ≤ {⊤ ≤ ∀X. {X ≥ F[X]} ⟹ X} ⟹ Str
-//│             {⊤ ≤ FixedF} ⟹ Str ≤ Str
-//│               ⊤ ≤ FixedF
-//│                 ⊤ ≤ ∀T. {T ≥ F[T]} ⟹ T
-//│                   ⊤ ≤ {α ≥ F[α]} ⟹ α
-//│                     ⊤ ≤ α
-//│                       ⊤ ≤ F[α]
+//│ OK

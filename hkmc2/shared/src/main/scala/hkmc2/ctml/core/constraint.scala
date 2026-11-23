@@ -41,7 +41,8 @@ def makeConstrainedType(type_ : Type, constraints: List[Constraint]): Type =
       )
     case _ =>
       val (body, nestedConstraints) = type_.getConstrainedComponents
-      val constraints2 = (constraints ::: nestedConstraints).distinct
+      val constraints2 = (constraints ::: nestedConstraints).distinctBy: c =>
+        (TypeSyntaxKey(c.left), c.dir, TypeSyntaxKey(c.right))
       constraints2 match
         case Nil =>
           body
@@ -65,7 +66,8 @@ def makeJointType(mode: JointMode, left: Type, right: Type): Type =
       (TBot, TTop)
     case JointMode.Inter =>
       (TTop, TBot)
-  if left == identity || right == absorbing || right.getJointComponents(mode).contains(left) then
+  if left == identity || right == absorbing ||
+      right.getJointComponents(mode).exists(sameTypeSyntax(left, _)) then
     right
   else if right == identity || left == absorbing then
     left

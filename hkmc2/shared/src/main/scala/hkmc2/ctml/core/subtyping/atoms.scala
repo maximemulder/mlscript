@@ -2,6 +2,7 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.*
 import hkmc2.ctml.core.context.*
+import hkmc2.ctml.core.structural.sameTypeSyntax
 import hkmc2.ctml.types.*
 
 /** Check whether a judgment holds by its atoms alone, and by the hypotheses. The judgment `τ ≤ σ` is
@@ -14,7 +15,7 @@ import hkmc2.ctml.types.*
  *  - When `⊥` is a left atom or `⊤` a right atom: e.g. `τ ∧ ¬⊤ ≤ σ`.
  *  - When two left atoms are disjoint constructors (see `areDisjointConstructors`): e.g.
  *    `Int ∧ τ ∧ Str ≤ ⊥`, and `⊤ ≤ ¬Int ∨ τ ∨ ¬Str`.
- *  - When it holds by these rules once the hypotheses are added to it (see `saturate`): e.g.
+ *  - When it holds by these rules once the hypotheses are added to it (see `isClosedWith`): e.g.
  *    `Str ≤ ⊥` assuming `Str ≤ Int`, since `Str ∧ Int ≤ ⊥` holds.
  *
  *  These are the rules of the mechanization that close a clause by an atom on both sides or by two
@@ -31,7 +32,7 @@ import hkmc2.ctml.types.*
  *  is rigid: `α` is replaced by its lower bound before the left constrained type is opened. */
 def holdsByAtoms(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
   val hypotheses = if config.hypothesis then ctx.hypotheses.judgments.toList else Nil
-  ClauseAtoms(Nil, Nil).add(sub, Polarity.Negative).add(sup, Polarity.Positive).saturate(hypotheses).isClosed
+  ClauseAtoms(Nil, Nil).add(sub, Polarity.Negative).add(sup, Polarity.Positive).isClosedWith(hypotheses)
 
 /** The atoms of a clause, as read from a subtyping judgment (see `holdsByAtoms`). */
 private case class ClauseAtoms(
@@ -65,20 +66,19 @@ private case class ClauseAtoms(
   /** Check whether the clause holds by its atoms alone, without the hypotheses (see
    *  `holdsByAtoms`). */
   def isClosed(using ctx: SubContext): Boolean =
-    this.left.exists(this.right.contains) || this.left.contains(TBot) || this.right.contains(TTop) ||
+    this.left.contains(TBot) || this.right.contains(TTop) ||
+      this.left.exists(l => this.right.exists(sameTypeSyntax(l, _))) ||
       this.left.combinations(2).exists((pair) => areDisjointConstructors(pair(0), pair(1)))
 
-  /** Add the hypotheses to the clause, each as a cut, until the clause is closed or no hypothesis is
-   *  left to add (see `cut`). */
-  def saturate(hypotheses: List[(Type, Type)])(using ctx: SubContext): ClauseAtoms =
-    if this.isClosed then
-      return this
-
-    hypotheses.iterator.flatMap((hypothesis) => this.cut(hypothesis).map((hypothesis, _))).nextOption() match
-      case Some(hypothesis, atoms) =>
-        atoms.saturate(hypotheses.filterNot(_ == hypothesis))
-      case None =>
-        this
+  /** Check closure after each cut, stopping as soon as the atoms prove the clause. */
+  @scala.annotation.tailrec
+  final def isClosedWith(hypotheses: List[(Type, Type)])(using ctx: SubContext): Boolean =
+    if this.isClosed then true
+    else if hypotheses.isEmpty then false
+    else
+      hypotheses.iterator.flatMap(h => this.cut(h).map((h, _))).nextOption() match
+        case Some((used, atoms)) => atoms.isClosedWith(hypotheses.filterNot(_ eq used))
+        case None => false
 
   /** Get the clause that this clause follows from by a cut on a hypothesis `l ≤ r`, if one of the two
    *  premises of the cut is closed: from `l ≤ r`, the clause `P ≤ N` follows from `P ≤ N ∨ l` and

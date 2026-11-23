@@ -117,6 +117,11 @@ Top <:< ([Str <:< Int] => ~Str)
 //│           S2 ≤ ⊥
 //│             ⊤ ≤ ⊥
 
+// The two hypotheses compose through the same polymorphic type under different binder names.
+([S1[Int] <:< S2[Str]] => Str) <:< ([S1[Int] <:< S2[([A] -> (A -> A))]] =>
+  ([S2[([B] -> (B -> B))] <:< S2[Str]] => Str))
+//│ OK
+
 // A hypothesis is normalized as the judgments are.
 
 ((S2 -> Int) -> Bool) <:< ([~(~(S1 -> Int)) <:< (S2 -> Int)] => (S1 -> Int) -> Bool)

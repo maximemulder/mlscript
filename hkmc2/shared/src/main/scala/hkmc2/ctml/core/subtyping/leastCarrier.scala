@@ -3,7 +3,7 @@ package hkmc2.ctml.core.subtyping
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-import hkmc2.ctml.core.structural.{getVars, hasVar, removeDirectVar, structuralCombine}
+import hkmc2.ctml.core.structural.{TypeSyntaxKey, getVars, hasVar, removeDirectVar, structuralCombine}
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.newFreshVar
 import hkmc2.ctml.types.*
@@ -85,21 +85,23 @@ private[subtyping] def leastCarrierInstance(scheme: TUniv): Option[Type] =
  *  Binding constructs and contravariant operands are opaque to this transformation.
  */
 private def shareSubexpressions(equations: List[Carrier]): List[Carrier] =
-  val names = mutable.LinkedHashMap.empty[List[Type], TypeVar]
+  val names = mutable.LinkedHashMap.empty[List[TypeSyntaxKey], TypeVar]
   val owners = equations.map(_.variable).toSet
 
   /** Name a union once, preserving its summands as individual lower bounds. */
-  def node(lowers: List[Type]): Type = TVar(names.getOrElseUpdate(lowers, newFreshVar()))
+  def node(lowers: List[Type]): Type =
+    TVar(names.getOrElseUpdate(lowers.map(TypeSyntaxKey(_)), newFreshVar()))
 
   // A second incoming edge justifies naming a node. Its children have already been visited
   // through the first edge, and will occur only once in the shared definition.
-  val seen = mutable.HashSet.empty[Type]
-  val shared = mutable.HashSet.empty[Type]
+  val seen = mutable.HashSet.empty[TypeSyntaxKey]
+  val shared = mutable.HashSet.empty[TypeSyntaxKey]
 
   /** Count incoming edges in the graph of covariant constructor subexpressions. */
   def visit(t: Type): Unit = t match
     case _: TApp | _: TTuple | _: TField | _: TJointType | _: TLam =>
-      if !seen.add(t) then shared += t
+      val key = TypeSyntaxKey(t)
+      if !seen.add(key) then shared += key
       else t match
         case TLam(_, r) => visit(r)
         case _ => t.components.foreach(visit)
@@ -114,23 +116,24 @@ private def shareSubexpressions(equations: List[Carrier]): List[Carrier] =
       case TJointType(m, l, r) => TJointType(m, name(l), name(r))
       case TLam(p, r) => TLam(p, name(r))
       case _ => return t
-    if shared(t) && t.getVars.exists(owners) then node(List(expr)) else expr
+    if shared(TypeSyntaxKey(t)) && t.getVars.exists(owners) then node(List(expr)) else expr
 
   // A union of summands used by the same owners can itself be shared, including when each
   // owner has further, private lower bounds. Preserve first occurrence order in the guards.
   val layers = equations.flatMap: eq =>
-    eq.lowers.flatMap(_.exactComponents(JointMode.Union)).distinct.map((_, eq.variable))
-  layers.foreach((t, _) => visit(t))
+    eq.lowers.flatMap(_.exactComponents(JointMode.Union)).map(TypeSyntaxKey(_)).distinct
+      .map((_, eq.variable))
+  layers.foreach((key, _) => visit(key.type_))
   val targets = layers.groupMap(_._1)(_._2)
   val summands = layers.map(_._1).distinct
   val byTargets = summands.groupBy(targets)
   val groups = summands.map(targets).distinct.map: xs =>
-    val parts = byTargets(xs).map(name)
+    val parts = byTargets(xs).map(key => name(key.type_))
     xs -> (if xs.size > 1 && parts.size > 1 then List(node(parts)) else parts)
   val roots = equations.map: eq =>
     val lowers = groups.collect { case (xs, ls) if xs.contains(eq.variable) => ls }.flatten
     Carrier(eq.variable, lowers)
-  roots ++ names.iterator.map((ls, x) => Carrier(x, ls))
+  roots ++ names.iterator.map((ls, x) => Carrier(x, ls.map(_.type_)))
 
 /** Bekić elimination. With the remaining coordinates Y fixed, the least X is
  *  W(Y) = μX.⋁L(X,Y), encoded as ∀X. {L(X,Y) ≤ X} ⇒ X. W is monotone in Y.
@@ -153,7 +156,7 @@ private def eliminateCarriers(equations: List[Carrier], result: Type): Option[Ty
         val x = eq.variable
         (eq.dependencies(x), uses.getOrElse(x, 0), inResult(x))
   val x = chosen.variable
-  val lowers = chosen.lowers.map(_.removeDirectVar(x, Polarity.Positive)).distinct
+  val lowers = chosen.lowers.map(_.removeDirectVar(x, Polarity.Positive)).distinctBy(TypeSyntaxKey(_))
     .filterNot(_ == TBot)
   val witness = if lowers.exists(_.hasVar(x)) then
     val guarded = lowers.foldRight(TVar(x): Type)((l, t) =>

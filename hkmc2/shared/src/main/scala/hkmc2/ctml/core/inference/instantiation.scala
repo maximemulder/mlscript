@@ -22,7 +22,7 @@ private def instantiateArguments(type_ : Type, arguments: List[Type], seen: Set[
       case TConstrained(body, guard) =>
         TConstrained(instantiateArguments(body, arguments, seen), guard)
       case TVar(variable) if variable.isRigid && !seen.contains(variable) &&
-          variable.lowerBound == variable.upperBound =>
+          variable.hasEqualBounds =>
         instantiateArguments(variable.upperBound, arguments, seen + variable)
       case _ =>
         throw TypeError(Some(s"Cannot apply a type argument to non-universal type ${type_}."))

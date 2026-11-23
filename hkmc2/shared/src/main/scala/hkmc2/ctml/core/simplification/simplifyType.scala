@@ -4,6 +4,7 @@ import hkmc2.ctml.core.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.subtyping.*
 import hkmc2.ctml.core.var_.*
+import hkmc2.ctml.core.structural.sameTypeSyntax
 import hkmc2.ctml.types.*
 
 /** Implementation of semantic type simplification. */
@@ -73,8 +74,8 @@ private def redundantJointOperand(
     case JointMode.Inter => Direction.Sub
     case JointMode.Union => Direction.Super
   (left, right) match
-    case (TVar(var_), _) if var_.bound(dir) == right => Some(left)
-    case (_, TVar(var_)) if var_.bound(dir) == left => Some(right)
+    case (TVar(var_), _) if sameTypeSyntax(var_.bound(dir), right) => Some(left)
+    case (_, TVar(var_)) if sameTypeSyntax(var_.bound(dir), left) => Some(right)
     case _ => None
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */

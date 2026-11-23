@@ -252,9 +252,9 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   // TODO: Investigate this block.
 
   (sub, sup) match
-    case (TVar(sub), _) if sub.isRigid && sub.lowerBound == sub.upperBound =>
+    case (TVar(sub), _) if sub.isRigid && sub.hasEqualBounds =>
       return subtype(sub.upperBound, sup)
-    case (_, TVar(sup)) if sup.isRigid && sup.lowerBound == sup.upperBound =>
+    case (_, TVar(sup)) if sup.isRigid && sup.hasEqualBounds =>
       return subtype(sub, sup.lowerBound)
     case (_, _) =>
 

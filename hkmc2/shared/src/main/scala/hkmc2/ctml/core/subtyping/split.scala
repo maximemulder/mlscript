@@ -88,7 +88,7 @@ extension (var_ : TypeVar)
    *    since flow-sensitive inference relies on the case analysis that it enables, on judgments that
    *    do contain flexible variables. */
   private def isBoundExact(rest: List[Type])(using ctx: SubContext): Boolean =
-    !rest.exists(_.hasVar(var_)) || var_.lowerBound == var_.upperBound
+    !rest.exists(_.hasVar(var_)) || var_.hasEqualBounds
 
 /** The judgment information needed to split through rigid bounds during proof search. */
 private case class BoundLookup(ctx: SubContext, rest: List[Type],

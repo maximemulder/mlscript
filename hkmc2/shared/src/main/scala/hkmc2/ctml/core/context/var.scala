@@ -105,6 +105,9 @@ extension (var_ : TypeVar)(using ctx: SubContext)
   def level: Int =
     var_.decl.level
 
+  /** Whether both effective bounds denote the same type by their syntax. */
+  def hasEqualBounds: Boolean = sameTypeSyntax(var_.lowerBound, var_.upperBound)
+
   /** Get the bound of a type variable in a given direction. */
   def bound(dir: Direction) =
     ctx.getVarBound(var_, dir)

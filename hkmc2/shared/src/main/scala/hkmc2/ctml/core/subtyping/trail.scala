@@ -17,9 +17,10 @@ import hkmc2.ctml.types.*
  *  of the search rather than the whole search: a judgment that repeats one of another branch of the
  *  search is resolved again, in the context of that branch.
  *
- *  The exact judgments are compared syntactically, without their contexts. Flexible repeats use
- *  the pending-bound rule described in `subtypeTrail`. Checking opposite bounds before recording
- *  a flexible bound avoids some self-application loops, but does not bound fresh instantiation.
+ *  The trail compares literal judgments, including binder names, without their contexts. A match
+ *  can discharge a pending flexible bound (see `subtypeTrail`). Checking opposite bounds before
+ *  recording a flexible bound avoids some self-application loops, but does not bound fresh
+ *  instantiation.
  *
  *  The separate provenance keys recognize paths up to the origins of newly opened variables and
  *  a bounded description of their goals and side bounds. Input variables are anchored at each

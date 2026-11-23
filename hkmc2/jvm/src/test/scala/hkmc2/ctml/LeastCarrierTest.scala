@@ -30,3 +30,17 @@ class LeastCarrierTest extends AnyFunSuite:
       assert(result.getVars.isEmpty)
       val (remaining, _) = result.getUnivComponents
       assert(!remaining.contains(x) && !remaining.contains(y))
+
+  test("renamed polymorphic payloads contribute a single recursive lower bound"):
+    val x = TypeVar("X")
+    val carrier = TVar(x)
+    /** Changing the payload binder leaves the recursive layer's free carrier untouched. */
+    def layer(name: String): Type =
+      val a = TypeVar(name)
+      TTuple(TUniv(a, TLam(TVar(a), TVar(a))), carrier)
+    val first = layer("A")
+    val guards = List(first, layer("B")).map(t => Constraint(t, Direction.Sub, carrier))
+    val body = TField("result", carrier)
+    val producer = TUniv(x, guards.foldRight(body: Type)((g, t) => TConstrained(t, g)))
+    val witness = TUniv(x, TConstrained(carrier, Constraint(carrier, Direction.Super, first)))
+    assert(leastCarrierInstance(producer).contains(TField("result", witness)))

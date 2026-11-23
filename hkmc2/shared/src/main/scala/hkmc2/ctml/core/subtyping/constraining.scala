@@ -1,15 +1,11 @@
 package hkmc2.ctml.core.subtyping
 
-import scala.collection.immutable.Set as Set
-
 import hkmc2.ctml.config.*
 import hkmc2.ctml.core.{is, isSubClass}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
-import hkmc2.ctml.core.structural.{getVars, hasVar}
 import hkmc2.ctml.core.type_.*
-import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.inference.*
@@ -561,78 +557,6 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
     subtypeSeq(instanceBody, sup, outs)(using ctx)
   )
 
-/** For monotone F, the intersection R of all X satisfying F[X] ≤ X is itself such a
- *  carrier: R ≤ X implies F[R] ≤ F[X] ≤ X for each carrier X. A covariant body B thus
- *  has least instance B[R]. Unrelated quantifiers remain in scope around that instance.
- *
- *  For a group with bounds Bi ∨ H(Xs) ≤ Xi, each Bi is independent of the group and H
- *  collects all shared lower bounds. Write Xi = Bi ∨ Z and close H(B1 ∨ Z, ..., Bn ∨ Z)
- *  at its least carrier R. For any admissible tuple, M = ⋂Xi gives Bi ∨ M ≤ Xi, hence
- *  H(B1 ∨ M, ..., Bn ∨ M) ≤ H(Xs) ≤ M. Thus R ≤ M and Bi ∨ R ≤ Xi for every i.
- *  Fold gives the converse obligation: the tuple (Bi ∨ R)i is itself admissible.
- *
- *  With several lower bounds on X the argument applies to each one separately. Guards
- *  independent of X remain obligations of the surrounding scheme. Nested constrained types
- *  require a variance analysis of their guards and are outside this structural rule. */
-private def leastCarrierInstance(scheme: TUniv): Option[Type] =
-  val (variables, guarded) = scheme.getUnivComponents
-  val (body, guards) = guarded.getConstrainedComponents
-  /** Orient either spelling of a guard as lower ≤ upper. */
-  def operands(guard: Constraint): (Type, Type) = guard.dir match
-    case Direction.Super => (guard.right, guard.left)
-    case Direction.Sub => (guard.left, guard.right)
-
-  val split = guards.flatMap: guard =>
-    operands(guard)._2.exactComponents(JointMode.Inter).map: upper =>
-      if guard.dir == Direction.Sub then guard.copy(right = upper) else guard.copy(left = upper)
-  val lowerBounds = split.map(operands).collect:
-    case (lower, TVar(x)) if variables.contains(x) => (lower, x)
-
-  val layers = lowerBounds.flatMap((lower, x) => lower.exactComponents(JointMode.Union).map((_, x)))
-  val recursiveBounds = layers.filter((lower, x) => lower.hasVar(x))
-  recursiveBounds.distinctBy(_._1).iterator.flatMap: (layer, representative) =>
-    val peers = layers.collect { case (`layer`, x) if x != representative => x }.distinct
-    val members = representative :: peers
-    val group = members.toSet
-    val owner = TVar(representative)
-    val (defining, remaining) = split.partition(_.getVars.exists(group))
-    val byOwner = layers.filter((_, x) => group(x)).groupMap(_._2)(_._1)
-    val common = byOwner(representative).distinct.filter(l => peers.forall(x => byOwner(x).contains(l)))
-    val bases = byOwner.view.mapValues(_.filterNot(common.contains).distinct).toMap
-
-    // All dependent guards must be accounted for. Private bases may depend on outer parameters,
-    // but only layers shared by every member may refer back to the group.
-    val allLower = defining.forall: guard =>
-      operands(guard)._2 match
-        case TVar(x) => group(x)
-        case _ => false
-    val independentBases = bases.valuesIterator.flatten.forall: base =>
-      !base.getVars.exists(group) && !mentionsConstrained(base)
-
-    /** Write Xi as Bi ∨ Z, with Bi the member's private bases. Replace the owner first, so the
-     *  free Z introduced for a peer cannot itself be replaced. */
-    def withBases(t: Type): Type = members.foldLeft(t): (result, x) =>
-      val replacement = bases(x).foldRight(owner: Type)(TJointType(JointMode.Union, _, _))
-      if replacement == TVar(x) then result else result.substitute(x, replacement)
-
-    if !allLower || !independentBases || mentionsConstrained(body) then None
-    else
-      val instanceBody = withBases(body)
-      val carrierGuards = if peers.isEmpty then defining else
-        common.map(withBases).distinct.map(Constraint(owner, Direction.Super, _))
-      val monotone = carrierGuards.forall: guard =>
-        val (lower, _) = operands(guard)
-        !mentionsConstrained(lower) && !lower.getVarPolarities(representative).negative
-      if !monotone || instanceBody.getVarPolarities(representative) != Polarities(false, true)
-          || (peers.isEmpty && body == owner) then None
-      else
-        val guardedOwner = carrierGuards.foldRight(owner: Type)((g, t) => TConstrained(t, g))
-        val carrier = TUniv(representative, guardedOwner)
-        val instance = instanceBody.substitute(representative, carrier)
-        val result = remaining.foldRight(instance)((g, t) => TConstrained(t, g))
-        Some(variables.filterNot(group).foldRight(result)(TUniv.apply))
-  .nextOption()
-
 /** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
  *  elimination: constrain every substituted guard and return its obligations. Failure leaves
  *  other instances available. Repeated attempts are skipped, never discharged coinductively. */
@@ -690,7 +614,7 @@ def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: Su
     subtypeSeq(constrained.body, type_, clauses)
 
 /** Check whether a type contains a constrained type, including a negated constrained type. */
-private def mentionsConstrained(type_ : Type): Boolean =
+private[subtyping] def mentionsConstrained(type_ : Type): Boolean =
   type_ match
     case _: TConstrained => true
     case _ => type_.components.exists(mentionsConstrained)

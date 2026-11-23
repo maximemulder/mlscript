@@ -28,17 +28,25 @@ The same reasoning allows a private base Bi for each Xi. For bounds
 `Bi ∨ H(Xs) ≤ Xi`, close the unary layer `Z ↦ H(B1 ∨ Z, …, Bn ∨ Z)` at its least carrier R.
 The tuple `Xi = Bi ∨ R` satisfies every bound by fold. For any admissible tuple with intersection
 M, each `Bi ∨ M ≤ Xi`, so monotonicity gives `H(B1 ∨ M, …, Bn ∨ M) ≤ H(Xs) ≤ M`.
-It follows that `R ≤ M` and the constructed tuple is componentwise least. The checker splits
-upper intersections and lower unions through explicit joints, negations and fields. It matches the
-resulting summands structurally and requires each private base to be independent of the group.
-Other guards mentioning a member prevent the rewrite.
-In Pretty’s `mkIndent`, the suffix bound `A ≤ X ∧ Y` supplies a common base. A string-list suffix
-therefore yields a string list, while an integer-list suffix fails the same result check.
+It follows that `R ≤ M` and the constructed tuple is componentwise least.
+In Pretty’s `mkIndent`, the suffix bound `A ≤ X ∧ Y` supplies a common base. A string-list
+suffix yields a string list. An integer-list suffix fails the same result check.
 
-The branch-free comparisons in `ctmlRecursiveCarrierBounds.mls` also cover distinct layers. For `F(Y) ≤ X` and `G(X) ≤ Y`, choose `X = R` for the carrier of `F(G(Z)) ≤ Z`,
-and `Y = G(R)`. Both explicit guard checks succeed, but implicit instantiation fails. Neither
-bound contains a direct self-reference. This supplies a finite witness for testing elimination
-of a variable from a system of recursive bounds.
+The checker uses Bekić elimination for monotone systems of lower inequalities. With the other
+coordinates Y held fixed, it closes one coordinate X at its least admissible value W(Y). It
+substitutes W(Y) in the remaining inequalities and in the result. Shrinking X this way preserves
+the other defining inequalities by monotonicity. A residual guard such as `X ≤ U` stays around
+the result with W(Y) substituted for X. The structural variance check requires that shrinking the
+chosen coordinates preserve every such guard. In `F(Y) ≤ X, G(X) ≤ Y`, eliminating Y gives
+`X = μZ.F(G(Z))` and `Y = G(X)`. Implicit and explicit instantiation both check.
+
+The representation affects which proofs CTML finds. Exact upper intersections identify owners
+of lower bounds. Exact lower unions expose summands that can be shared among owners. Naming a
+covariant subexpression E adds a coordinate H with `E ≤ H`. Every original solution extends
+by taking `H = E`, and shrinking H to E preserves its uses. Elimination can thus close a cycle
+at a shared subexpression, including the common layer of `mkIndent` or the tuple argument of
+several different constructors in `ctmlCarrierStress.mls`. Intermediate systems exceeding 4,096
+unfolded syntax nodes fall back to ordinary universal instantiation.
 
 Mandel has an independent precision problem. In its integer reduction, extract the step as
 `step(c, self) = delay(() => LzCons(c, mapLz(z => z + c, self())))`. The inferred callback

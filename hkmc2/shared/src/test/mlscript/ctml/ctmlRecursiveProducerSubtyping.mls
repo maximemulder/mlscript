@@ -72,14 +72,14 @@ WithBase <:< (Int -> Rec)
 //│ Typing error tree:
 //│   WithBase ≤ Int → Rec
 //│     ∀X. {X ≥ F[X], Str ≤ X} ⟹ Int → X ≤ Int → Rec
-//│       Int → (∀X. {X ≥ F[X], Str ≤ X} ⟹ X) ≤ Int → Rec
-//│         ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ Rec
-//│           ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
-//│             ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ {α ≥ F[α]} ⟹ α
-//│               ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ α
-//│                 ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ F[α]
-//│                   {β ≥ F[β], Str ≤ β} ⟹ β ≤ F[α]
-//│                     {Str ≤ β} ⟹ β ≤ F[α]
+//│       Int → (∀X. {X ≥ F[X], X ≥ Str} ⟹ X) ≤ Int → Rec
+//│         ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ Rec
+//│           ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│             ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ {α ≥ F[α]} ⟹ α
+//│               ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ α
+//│                 ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ F[α]
+//│                   {β ≥ F[β], β ≥ Str} ⟹ β ≤ F[α]
+//│                     {β ≥ Str} ⟹ β ≤ F[α]
 //│                       β ≤ F[α]
 //│                         F[β] ∨ Str ≤ F[α]
 //│                           F[β] ≤ F[α]

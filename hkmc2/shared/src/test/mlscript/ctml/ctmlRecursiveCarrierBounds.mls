@@ -27,14 +27,14 @@ Separate <:< (Int -> Rec)
 //│ Typing error tree:
 //│   Separate ≤ Int → Rec
 //│     ∀X. {X ≥ F[X], Str ≤ X} ⟹ Int → X ≤ Int → Rec
-//│       Int → (∀X. {X ≥ F[X], Str ≤ X} ⟹ X) ≤ Int → Rec
-//│         ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ Rec
-//│           ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
-//│             ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ {α ≥ F[α]} ⟹ α
-//│               ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ α
-//│                 ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ F[α]
-//│                   {β ≥ F[β], Str ≤ β} ⟹ β ≤ F[α]
-//│                     {Str ≤ β} ⟹ β ≤ F[α]
+//│       Int → (∀X. {X ≥ F[X], X ≥ Str} ⟹ X) ≤ Int → Rec
+//│         ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ Rec
+//│           ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│             ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ {α ≥ F[α]} ⟹ α
+//│               ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ α
+//│                 ∀X. {X ≥ F[X], X ≥ Str} ⟹ X ≤ F[α]
+//│                   {β ≥ F[β], β ≥ Str} ⟹ β ≤ F[α]
+//│                     {β ≥ Str} ⟹ β ≤ F[α]
 //│                       β ≤ F[α]
 //│                         F[β] ∨ Str ≤ F[α]
 //│                           F[β] ≤ F[α]
@@ -58,14 +58,14 @@ TwoSteps <:< (Int -> Rec)
 //│ Typing error tree:
 //│   TwoSteps ≤ Int → Rec
 //│     ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ Int → X ≤ Int → Rec
-//│       Int → (∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X) ≤ Int → Rec
-//│         ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ Rec
-//│           ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
-//│             ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ {α ≥ F[α]} ⟹ α
-//│               ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ α
-//│                 ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ F[α]
-//│                   {β ≥ F[β], G[β] ≤ β} ⟹ β ≤ F[α]
-//│                     {G[β] ≤ β} ⟹ β ≤ F[α]
+//│       Int → (∀X. {X ≥ F[X], X ≥ G[X]} ⟹ X) ≤ Int → Rec
+//│         ∀X. {X ≥ F[X], X ≥ G[X]} ⟹ X ≤ Rec
+//│           ∀X. {X ≥ F[X], X ≥ G[X]} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│             ∀X. {X ≥ F[X], X ≥ G[X]} ⟹ X ≤ {α ≥ F[α]} ⟹ α
+//│               ∀X. {X ≥ F[X], X ≥ G[X]} ⟹ X ≤ α
+//│                 ∀X. {X ≥ F[X], X ≥ G[X]} ⟹ X ≤ F[α]
+//│                   {β ≥ F[β], β ≥ G[β]} ⟹ β ≤ F[α]
+//│                     {β ≥ G[β]} ⟹ β ≤ F[α]
 //│                       β ≤ F[α]
 //│                         F[β] ∨ G[β] ≤ F[α]
 //│                           F[β] ≤ F[α]
@@ -107,25 +107,8 @@ type Combined = [Z restricts F[G[Z]]] -> Z
 //│ Mutual = ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y} ⟹ Int → X
 //│ Combined = ∀Z. {Z ≥ F[G[Z]]} ⟹ Z
 
-:fixme // FIXME: Implicit instantiation does not synthesize a carrier for coupled bounds.
 Mutual <:< (Int -> Combined)
-//│ ═══[TYPE ERROR] Judgment F[18] ≤ 19 repeats a judgment in progress through a cycle of bounds.
-//│ Typing error tree:
-//│   Mutual ≤ Int → Combined
-//│     ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y} ⟹ Int → X ≤ Int → Combined
-//│       {F[β] ≤ α, G[α] ≤ β} ⟹ Int → α ≤ Int → Combined
-//│         {G[α] ≤ β} ⟹ Int → α ≤ Int → Combined
-//│           Int → α ≤ Int → Combined
-//│             α ≤ Combined
-//│               F[β] ≤ Combined
-//│                 F[β] ≤ ∀Z. {Z ≥ F[G[Z]]} ⟹ Z
-//│                   F[β] ≤ {γ ≥ F[G[γ]]} ⟹ γ
-//│                     F[β] ≤ γ
-//│                       F[β] ≤ F[G[γ]]
-//│                         β ≤ G[γ]
-//│                           G[α] ≤ G[γ]
-//│                             α ≤ γ
-//│                               F[β] ≤ γ
+//│ OK
 
 declare fun mutual: Mutual
 //│ mutual: Mutual
@@ -154,12 +137,12 @@ Shared <:< (Int -> [Tree, Str])
 //│ Typing error tree:
 //│   Shared ≤ Int → ⟨Tree, Str⟩
 //│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨Tree, Str⟩
-//│       Int → ⟨∀X. {X ≥ F[⟨X, X⟩]} ⟹ X, ∀X. {X ≥ F[⟨X, X⟩]} ⟹ X⟩ ≤ Int → ⟨Tree, Str⟩
-//│         ⟨∀X. {X ≥ F[⟨X, X⟩]} ⟹ X, ∀X. {X ≥ F[⟨X, X⟩]} ⟹ X⟩ ≤ ⟨Tree, Str⟩
-//│           ∀X. {X ≥ F[⟨X, X⟩]} ⟹ X ≤ Str
-//│             {α ≥ F[⟨α, α⟩]} ⟹ α ≤ Str
-//│               α ≤ Str
-//│                 F[⟨α, α⟩] ≤ Str
+//│       Int → ⟨∀α. {α ≥ F[⟨α, α⟩]} ⟹ α, ∀α. {α ≥ F[⟨α, α⟩]} ⟹ α⟩ ≤ Int → ⟨Tree, Str⟩
+//│         ⟨∀α. {α ≥ F[⟨α, α⟩]} ⟹ α, ∀α. {α ≥ F[⟨α, α⟩]} ⟹ α⟩ ≤ ⟨Tree, Str⟩
+//│           ∀α. {α ≥ F[⟨α, α⟩]} ⟹ α ≤ Str
+//│             {β ≥ F[⟨β, β⟩]} ⟹ β ≤ Str
+//│               β ≤ Str
+//│                 F[⟨β, β⟩] ≤ Str
 
 /** The extra lower bound on Y must also hold at the chosen instance. */
 type SharedBase = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => ([Str <:< Y] => Int -> Y)))
@@ -171,13 +154,24 @@ SharedBase <:< (Int -> Tree)
 //│ Typing error tree:
 //│   SharedBase ≤ Int → Tree
 //│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Str ≤ Y} ⟹ Int → Y ≤ Int → Tree
-//│       Int → (Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X)) ≤ Int → Tree
-//│         Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ Tree
-//│           Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ ∀Z. {Z ≥ F[⟨Z, Z⟩]} ⟹ Z
-//│             Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ {α ≥ F[⟨α, α⟩]} ⟹ α
-//│               Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ α
-//│                 Str ≤ α
-//│                   Str ≤ F[⟨α, α⟩]
+//│       Int → ((∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str) ≤ Int → Tree
+//│         (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ Tree
+//│           (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ ∀Z. {Z ≥ F[⟨Z, Z⟩]} ⟹ Z
+//│             (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ {β ≥ F[⟨β, β⟩]} ⟹ β
+//│               (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ β
+//│                 ∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α ≤ β
+//│                   ∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α ≤ F[⟨β, β⟩]
+//│                     {γ ≥ F[⟨γ, γ ∨ Str⟩]} ⟹ γ ≤ F[⟨β, β⟩]
+//│                       γ ≤ F[⟨β, β⟩]
+//│                         F[⟨γ, γ ∨ Str⟩] ≤ F[⟨β, β⟩]
+//│                           ⟨γ, γ ∨ Str⟩ ≤ ⟨β, β⟩
+//│                             γ ≤ β
+//│                               F[⟨γ, γ ∨ Str⟩] ≤ β
+//│                                 F[⟨γ, γ ∨ Str⟩] ≤ F[⟨β, β⟩]
+//│                                   ⟨γ, γ ∨ Str⟩ ≤ ⟨β, β⟩
+//│                                     γ ∨ Str ≤ β
+//│                                       Str ≤ β
+//│                                         Str ≤ F[⟨β, β⟩]
 
 /** The result carrier and the argument may require different instances. */
 type SharedDomain = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => Y -> X))
@@ -209,11 +203,11 @@ SharedUpper <:< (Int -> Tree)
 //│ Typing error tree:
 //│   SharedUpper ≤ Int → Tree
 //│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Y ≤ Str} ⟹ Int → X ≤ Int → Tree
-//│       {F[⟨α, β⟩] ≤ α, F[⟨α, β⟩] ≤ β, β ≤ Str} ⟹ Int → α ≤ Int → Tree
-//│         {F[⟨α, β⟩] ≤ β, β ≤ Str} ⟹ Int → α ≤ Int → Tree
-//│           {β ≤ Str} ⟹ Int → α ≤ Int → Tree
+//│       {∀α. {α ≥ F[⟨α, α⟩]} ⟹ α ≤ Str} ⟹ Int → (∀α. {α ≥ F[⟨α, α⟩]} ⟹ α) ≤ Int → Tree
+//│         ∀α. {α ≥ F[⟨α, α⟩]} ⟹ α ≤ Str
+//│           {β ≥ F[⟨β, β⟩]} ⟹ β ≤ Str
 //│             β ≤ Str
-//│               F[⟨α, β⟩] ≤ Str
+//│               F[⟨β, β⟩] ≤ Str
 
 /** Only the second component needs the string base. Both contain the recursive layer. */
 type Offset = [Z restricts F[[Z, (Str | Z)]]] -> Z
@@ -230,14 +224,14 @@ Unequal <:< (Int -> [Offset, Offset])
 //│ Typing error tree:
 //│   Unequal ≤ Int → ⟨Offset, Offset⟩
 //│     ∀X, Y. {F[⟨X, Y⟩] ≤ X ∧ Y, Str ≤ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨Offset, Offset⟩
-//│       Int → ⟨∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X, Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X)⟩ ≤ Int → ⟨Offset, Offset⟩
-//│         ⟨∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X, Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X)⟩ ≤ ⟨Offset, Offset⟩
-//│           Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ Offset
-//│             Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ ∀Z. {Z ≥ F[⟨Z, Str ∨ Z⟩]} ⟹ Z
-//│               Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ {α ≥ F[⟨α, Str ∨ α⟩]} ⟹ α
-//│                 Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ α
-//│                   Str ≤ α
-//│                     Str ≤ F[⟨α, Str ∨ α⟩]
+//│       Int → ⟨∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α, (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str⟩ ≤ Int → ⟨Offset, Offset⟩
+//│         ⟨∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α, (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str⟩ ≤ ⟨Offset, Offset⟩
+//│           (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ Offset
+//│             (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ ∀Z. {Z ≥ F[⟨Z, Str ∨ Z⟩]} ⟹ Z
+//│               (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ {β ≥ F[⟨β, Str ∨ β⟩]} ⟹ β
+//│                 (∀α. {α ≥ F[⟨α, α ∨ Str⟩]} ⟹ α) ∨ Str ≤ β
+//│                   Str ≤ β
+//│                     Str ≤ F[⟨β, Str ∨ β⟩]
 
 /** A union on the lower side gives the same obligations as separate guards. */
 type Packed = [X, Y] -> ([F[[X, Y]] <:< X] => ([(Str | F[[X, Y]]) <:< Y] => Int -> [X, Y]))
@@ -270,13 +264,13 @@ FieldPair <:< (Int -> [FieldTree, {tail: Top}])
 //│ Typing error tree:
 //│   FieldPair ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
 //│     ∀X, Y. {{tail: X ∨ Y} ≤ X, {tail: X} ≤ Y, {tail: Y} ≤ Y, Str ≤ X ∧ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
-//│       Int → ⟨∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X, ∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X⟩ ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
-//│         ⟨∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X, ∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X⟩ ≤ ⟨FieldTree, {tail: ⊤}⟩
-//│           ∀X. {X ≥ {tail: X}, X ≥ Str} ⟹ X ≤ {tail: ⊤}
-//│             {α ≥ {tail: α}, α ≥ Str} ⟹ α ≤ {tail: ⊤}
-//│               {α ≥ Str} ⟹ α ≤ {tail: ⊤}
-//│                 α ≤ {tail: ⊤}
-//│                   {tail: α} ∨ Str ≤ {tail: ⊤}
+//│       Int → ⟨∀α. {α ≥ {tail: α}, α ≥ Str} ⟹ α, ∀α. {α ≥ {tail: α}, α ≥ Str} ⟹ α⟩ ≤ Int → ⟨FieldTree, {tail: ⊤}⟩
+//│         ⟨∀α. {α ≥ {tail: α}, α ≥ Str} ⟹ α, ∀α. {α ≥ {tail: α}, α ≥ Str} ⟹ α⟩ ≤ ⟨FieldTree, {tail: ⊤}⟩
+//│           ∀α. {α ≥ {tail: α}, α ≥ Str} ⟹ α ≤ {tail: ⊤}
+//│             {β ≥ {tail: β}, β ≥ Str} ⟹ β ≤ {tail: ⊤}
+//│               {β ≥ Str} ⟹ β ≤ {tail: ⊤}
+//│                 β ≤ {tail: ⊤}
+//│                   {tail: β} ∨ Str ≤ {tail: ⊤}
 //│                     Str ≤ {tail: ⊤}
 
 /** De Morgan exposes the two owners of the same recursive lower bound. */

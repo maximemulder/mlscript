@@ -1,0 +1,106 @@
+:ctml
+
+type F
+type G
+type H
+type R = [T restricts F[G[T]]] -> T
+type Pair = [X, Y] -> ([F[Y] <:< X] => ([G[X] <:< Y] => Int -> [X, Y]))
+type Reordered = [Y, X] -> ([G[X] <:< Y] => ([F[Y] <:< X] => Int -> [X, Y]))
+//│ R = ∀T. {T ≥ F[G[T]]} ⟹ T
+//│ Pair = ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y} ⟹ Int → ⟨X, Y⟩
+//│ Reordered = ∀Y, X. {G[X] ≤ Y, F[Y] ≤ X} ⟹ Int → ⟨X, Y⟩
+
+Pair <:< (Int -> [R, G[R]])
+//│ OK
+
+Reordered <:< (Int -> [R, G[R]])
+//│ OK
+
+:te
+Pair <:< (Int -> [R, Str])
+//│ ═══[TYPE ERROR] Cannot solve judgment Pair ≤ Int → ⟨R, Str⟩.
+//│ Typing error tree:
+//│   Pair ≤ Int → ⟨R, Str⟩
+//│     ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨R, Str⟩
+//│       Int → ⟨F[∀Y. {Y ≥ G[F[Y]]} ⟹ Y], ∀Y. {Y ≥ G[F[Y]]} ⟹ Y⟩ ≤ Int → ⟨R, Str⟩
+//│         ⟨F[∀Y. {Y ≥ G[F[Y]]} ⟹ Y], ∀Y. {Y ≥ G[F[Y]]} ⟹ Y⟩ ≤ ⟨R, Str⟩
+//│           ∀Y. {Y ≥ G[F[Y]]} ⟹ Y ≤ Str
+//│             {α ≥ G[F[α]]} ⟹ α ≤ Str
+//│               α ≤ Str
+//│                 G[F[α]] ≤ Str
+
+/** Closing a three-variable cycle yields one recursive type and its two unfoldings. */
+type Ring = [Y, X, Z] -> ([H[X] <:< Z] => ([F[Y] <:< X] => ([G[Z] <:< Y] => Int -> [X, [Y, Z]])))
+type Root = [T restricts F[G[H[T]]]] -> T
+//│ Ring = ∀Y, X, Z. {H[X] ≤ Z, F[Y] ≤ X, G[Z] ≤ Y} ⟹ Int → ⟨X, ⟨Y, Z⟩⟩
+//│ Root = ∀T. {T ≥ F[G[H[T]]]} ⟹ T
+
+Ring <:< (Int -> [Root, [G[H[Root]], H[Root]]])
+//│ OK
+
+declare fun ring: Ring
+ring[G[H[Root]], Root, H[Root]] as (Int -> [Root, [G[H[Root]], H[Root]]])
+//│ ring: Ring
+//│ Int → ⟨Root, ⟨G[H[Root]], H[Root]⟩⟩
+
+/** Both coordinates have self-loops as well as a dependency on the other coordinate. */
+type Nested = [X, Y] -> ([(Str | F[[X, Y]]) <:< X] => ([(Int | G[[Y, X]]) <:< Y] => Int -> [X, Y]))
+type Outer = [S restricts (Str | F[[S, ([T restricts (Int | G[[T, S]])] -> T)]])] -> S
+//│ Nested = ∀X, Y. {Str ∨ F[⟨X, Y⟩] ≤ X, Int ∨ G[⟨Y, X⟩] ≤ Y} ⟹ Int → ⟨X, Y⟩
+//│ Outer = ∀S. {S ≥ Str ∨ F[⟨S, ∀T. {T ≥ Int ∨ G[⟨T, S⟩]} ⟹ T⟩]} ⟹ S
+
+type Inner = [T restricts (Int | G[[T, Outer]])] -> T
+//│ Inner = ∀T. {T ≥ Int ∨ G[⟨T, Outer⟩]} ⟹ T
+
+Nested <:< (Int -> [Outer, Inner])
+//│ OK
+
+declare fun nested: Nested
+nested[Outer, Inner] as (Int -> [Outer, Inner])
+//│ nested: Nested
+//│ Int → ⟨Outer, Inner⟩
+
+/** The cap on Y must hold after substituting the mutually recursive witnesses. */
+type Capped = [X, Y] -> ([F[Y] <:< X] => ([G[X] <:< Y] => ([Y <:< G[Top]] => Int -> X)))
+//│ Capped = ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y, Y ≤ G[⊤]} ⟹ Int → X
+
+Capped <:< (Int -> R)
+//│ OK
+
+/** Either branch can contain the recursive carrier. Taking both minima violates the guard. */
+type Based = [T restricts (Int | F[T])] -> T
+type Choice = [X, Y, Z] -> ([(Int | F[X]) <:< X] => ([X <:< (Y | Z)] => Int -> [Y, Z]))
+declare fun choice: Choice
+//│ Based = ∀T. {T ≥ Int ∨ F[T]} ⟹ T
+//│ Choice = ∀X, Y, Z. {Int ∨ F[X] ≤ X, X ≤ Y ∨ Z} ⟹ Int → ⟨Y, Z⟩
+//│ choice: Choice
+
+choice[Based, Based, Bot] as (Int -> [Based, Bot])
+//│ Int → ⟨Based, ⊥⟩
+
+choice[Based, Bot, Based] as (Int -> [Bot, Based])
+//│ Int → ⟨⊥, Based⟩
+
+Choice <:< (Int -> [Based, Bot])
+//│ OK
+
+Choice <:< (Int -> [Bot, Based])
+//│ OK
+
+:te
+Choice <:< (Int -> [Bot, Bot])
+//│ ═══[TYPE ERROR] Cannot solve judgment Choice ≤ Int → ⟨⊥, ⊥⟩.
+//│ Typing error tree:
+//│   Choice ≤ Int → ⟨⊥, ⊥⟩
+//│     ∀X, Y, Z. {Int ∨ F[X] ≤ X, X ≤ Y ∨ Z} ⟹ Int → ⟨Y, Z⟩ ≤ Int → ⟨⊥, ⊥⟩
+//│       ∀Y, Z. {∀X. {X ≥ Int ∨ F[X]} ⟹ X ≤ Y ∨ Z} ⟹ Int → ⟨Y, Z⟩ ≤ Int → ⟨⊥, ⊥⟩
+//│         {∀X. {X ≥ Int ∨ F[X]} ⟹ X ≤ α ∨ β} ⟹ Int → ⟨α, β⟩ ≤ Int → ⟨⊥, ⊥⟩
+//│           ∀X. {X ≥ Int ∨ F[X]} ⟹ X ≤ α ∨ β
+//│             (∀X. {X ≥ Int ∨ F[X]} ⟹ X) ∧ ¬α ≤ β
+//│               (∀X. {X ≥ Int ∨ F[X]} ⟹ X) ∧ ¬α ≤ ⊥
+//│                 ∀X. {X ≥ Int ∨ F[X]} ⟹ X ≤ α
+//│                   ∀X. {X ≥ Int ∨ F[X]} ⟹ X ≤ ⊥
+//│                     {γ ≥ Int ∨ F[γ]} ⟹ γ ≤ ⊥
+//│                       γ ≤ ⊥
+//│                         Int ∨ F[γ] ≤ ⊥
+//│                           Int ≤ ⊥

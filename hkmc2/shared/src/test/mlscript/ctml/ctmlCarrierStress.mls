@@ -1,0 +1,38 @@
+:ctml
+
+type F
+type G
+type H
+type I
+
+/** All four lower bounds use the same tuple under different constructors. */
+type Dense4 = [A, B, C, D] -> ([F[[[[A, B], C], D]] <:< A] => ([G[[[[A, B], C], D]] <:< B] => ([H[[[[A, B], C], D]] <:< C] => ([I[[[[A, B], C], D]] <:< D] => Int -> [[[A, B], C], D]))))
+//│ Dense4 = ∀A, B, C, D. {F[⟨⟨⟨A, B⟩, C⟩, D⟩] ≤ A, G[⟨⟨⟨A, B⟩, C⟩, D⟩] ≤ B, H[⟨⟨⟨A, B⟩, C⟩, D⟩] ≤ C, I[⟨⟨⟨A, B⟩, C⟩, D⟩] ≤ D} ⟹ Int → ⟨⟨⟨A, B⟩, C⟩, D⟩
+
+Dense4 <:< (Int -> Top)
+//│ OK
+
+type Packed = [T restricts [[[F[T], G[T]], H[T]], I[T]]] -> T
+declare fun dense4: Dense4
+//│ Packed = ∀T. {T ≥ ⟨⟨⟨F[T], G[T]⟩, H[T]⟩, I[T]⟩} ⟹ T
+//│ dense4: Dense4
+
+dense4[F[Packed], G[Packed], H[Packed], I[Packed]] as (Int -> [[[F[Packed], G[Packed]], H[Packed]], I[Packed]])
+//│ Int → ⟨⟨⟨F[Packed], G[Packed]⟩, H[Packed]⟩, I[Packed]⟩
+
+Dense4 <:< (Int -> [[[F[Packed], G[Packed]], H[Packed]], I[Packed]])
+//│ OK
+
+/** Naming the shared tuple gives Bekić elimination a compact recursive coordinate. */
+type Named = [A, B, C, D, P] -> ([[[[A, B], C], D] <:< P] => ([F[P] <:< A] => ([G[P] <:< B] => ([H[P] <:< C] => ([I[P] <:< D] => Int -> [[[A, B], C], D])))))
+//│ Named = ∀A, B, C, D, P. {⟨⟨⟨A, B⟩, C⟩, D⟩ ≤ P, F[P] ≤ A, G[P] ≤ B, H[P] ≤ C, I[P] ≤ D} ⟹ Int → ⟨⟨⟨A, B⟩, C⟩, D⟩
+
+Named <:< (Int -> [[[F[Packed], G[Packed]], H[Packed]], I[Packed]])
+//│ OK
+
+/** Each constructor uses a different rotation of the same four coordinates. */
+type Rotated = [A, B, C, D] -> ([F[[[[A, B], C], D]] <:< A] => ([G[[[[B, C], D], A]] <:< B] => ([H[[[[C, D], A], B]] <:< C] => ([I[[[[D, A], B], C]] <:< D] => Int -> [[[A, B], C], D]))))
+//│ Rotated = ∀A, B, C, D. {F[⟨⟨⟨A, B⟩, C⟩, D⟩] ≤ A, G[⟨⟨⟨B, C⟩, D⟩, A⟩] ≤ B, H[⟨⟨⟨C, D⟩, A⟩, B⟩] ≤ C, I[⟨⟨⟨D, A⟩, B⟩, C⟩] ≤ D} ⟹ Int → ⟨⟨⟨A, B⟩, C⟩, D⟩
+
+Rotated <:< (Int -> [[[F[Top], G[Top]], H[Top]], I[Top]])
+//│ OK

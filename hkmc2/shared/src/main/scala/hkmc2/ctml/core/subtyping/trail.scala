@@ -48,6 +48,8 @@ case class SubtypingTrail(
   /** Latest concrete pair for each abstract key on this path. Under Cut, a collision may continue
    *  only through strict syntactic descent; Observe records pairs without restricting search. */
   provenanceKeys: Map[ProvenanceKey, (Type, Type)] = Map.empty,
+  /** Whether this path is checking a link between endpoints of assumed inequalities. */
+  checkingGuardLink: Boolean = false,
   /** A budget for nested optional queries; absent in required constraint solving. */
   checking: Option[CheckingBudget] = None,
 ):

@@ -106,8 +106,18 @@ def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   else
     subtypeImpl(sub, sup)(using ctx.mapTrail(_ => trail))
 
-/** Implementation of `subtype` by the subtyping rules. */
+/** Try the ordinary rules first. A completed failure may have a proof through a scoped guard. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
+  if !config.hypothesis || ctx.trail.checkingGuardLink || !ctx.hypotheses.nonEmpty then
+    subtypeRules(sub, sup)
+  else
+    try subtypeRules(sub, sup)
+    catch
+      case error: TypeError =>
+        if holdsThroughGuards(sub, sup) then SubClauses.empty else throw error
+
+/** Implementation of the ordinary subtyping rules. */
+private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
 
   // A judgment that holds by its atoms and the hypotheses holds (see `holdsByAtoms`).
 

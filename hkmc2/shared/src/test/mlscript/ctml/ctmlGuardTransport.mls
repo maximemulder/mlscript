@@ -1,0 +1,157 @@
+:ctml
+
+type F
+type H
+type J
+type K
+type M = F[Int]
+type N = M
+//│ M = F[Int]
+//│ N = M
+
+// Standalone endpoint proofs.
+H[N] <:< H[F[Int]]
+//│ OK
+
+H[F[Int]] <:< H[N]
+//│ OK
+
+F[Int] <:< F[Int | Str]
+//│ OK
+
+// A nested alias in each direction.
+([Top <:< H[N]] => Str) <:< ([Top <:< H[F[Int]]] => Str)
+//│ OK
+
+([Top <:< H[F[Int]]] => Str) <:< ([Top <:< H[N]] => Str)
+//│ OK
+
+// Strict transport separately at each endpoint and then at both.
+([H[Int] <:< F[Int | Str]] => Str) <:< ([H[Int] <:< F[Int]] => Str)
+//│ OK
+
+([H[Int] <:< F[Int]] => Str) <:< ([H[Int | Str] <:< F[Int]] => Str)
+//│ OK
+
+([H[Int] <:< F[Int | Bool]] => Str) <:< ([H[Int | Str] <:< F[Int]] => Str)
+//│ OK
+
+// The ordinary arrow rule reverses the comparison of parameters inside an endpoint.
+([H[Int] <:< (Int -> Bool)] => Str) <:< ([H[Int] <:< ((Int | Str) -> Bool)] => Str)
+//│ OK
+
+:te
+([H[Int] <:< ((Int | Str) -> Bool)] => Str) <:< ([H[Int] <:< (Int -> Bool)] => Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int] ≤ (Int ∨ Str) → Bool} ⟹ Str ≤ {H[Int] ≤ Int → Bool} ⟹ Str.
+//│ Typing error tree:
+//│   {H[Int] ≤ (Int ∨ Str) → Bool} ⟹ Str ≤ {H[Int] ≤ Int → Bool} ⟹ Str
+//│     {H[Int] ≤ (Int ∨ Str) → Bool} ⟹ Str ≤ Str
+//│       H[Int] ≤ (Int ∨ Str) → Bool
+//│         H[Int] ≤ Str → Bool
+
+// The middle of a two-hypothesis chain widens under a constructor.
+([H[Int] <:< J[Int | Bool]] => Str) <:< ([H[Int | Str] <:< F[Int]] =>
+  ([F[Int | Bool] <:< J[Int]] => Str))
+//│ OK
+
+// A link under J itself requires strict transport through a second guard.
+:fixme // FIXME: the endpoint check under J needs its own strict guard cut.
+([J[H[Int]] <:< K[Int | Bool]] => Str) <:< ([H[Int] <:< F[Int]] =>
+  ([J[F[Int | Str]] <:< K[Int]] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment {J[H[Int]] ≤ K[Int ∨ Bool]} ⟹ Str ≤ {H[Int] ≤ F[Int], J[F[Int ∨ Str]] ≤ K[Int]} ⟹ Str.
+//│ Typing error tree:
+//│   {J[H[Int]] ≤ K[Int ∨ Bool]} ⟹ Str ≤ {H[Int] ≤ F[Int], J[F[Int ∨ Str]] ≤ K[Int]} ⟹ Str
+//│     {J[H[Int]] ≤ K[Int ∨ Bool]} ⟹ Str ≤ {J[F[Int ∨ Str]] ≤ K[Int]} ⟹ Str
+//│       {J[H[Int]] ≤ K[Int ∨ Bool]} ⟹ Str ≤ Str
+//│         J[H[Int]] ≤ K[Int ∨ Bool]
+//│           J ≤ K
+//│             J ≤ ⊥
+//│               ⊤ ≤ ⊥
+
+// Independent directional, scope, and body checks.
+:te
+([H[Int] <:< F[Int]] => Str) <:< ([H[Int] <:< F[Int | Str]] => Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int] ≤ F[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int ∨ Str]} ⟹ Str.
+//│ Typing error tree:
+//│   {H[Int] ≤ F[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int ∨ Str]} ⟹ Str
+//│     {H[Int] ≤ F[Int]} ⟹ Str ≤ Str
+//│       H[Int] ≤ F[Int]
+//│         H ≤ F
+//│           H ≤ ⊥
+//│             ⊤ ≤ ⊥
+
+:te
+([H[Int | Str] <:< F[Int]] => Str) <:< ([H[Int] <:< F[Int]] => Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int ∨ Str] ≤ F[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int]} ⟹ Str.
+//│ Typing error tree:
+//│   {H[Int ∨ Str] ≤ F[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int]} ⟹ Str
+//│     {H[Int ∨ Str] ≤ F[Int]} ⟹ Str ≤ Str
+//│       H[Int ∨ Str] ≤ F[Int]
+//│         H ≤ F
+//│           H ≤ ⊥
+//│             ⊤ ≤ ⊥
+
+:te
+([Top <:< H[F[Str]]] => Str) <:< ([Top <:< H[N]] => Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment {⊤ ≤ H[F[Str]]} ⟹ Str ≤ {⊤ ≤ H[N]} ⟹ Str.
+//│ Typing error tree:
+//│   {⊤ ≤ H[F[Str]]} ⟹ Str ≤ {⊤ ≤ H[N]} ⟹ Str
+//│     {⊤ ≤ H[F[Str]]} ⟹ Str ≤ Str
+//│       ⊤ ≤ H[F[Str]]
+
+:te
+([H[Int] <:< F[Int | Str]] => Str) <:< ([H[Int] <:< F[Int]] => Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int] ≤ F[Int ∨ Str]} ⟹ Str ≤ {H[Int] ≤ F[Int]} ⟹ Int.
+//│ Typing error tree:
+//│   {H[Int] ≤ F[Int ∨ Str]} ⟹ Str ≤ {H[Int] ≤ F[Int]} ⟹ Int
+//│     {H[Int] ≤ F[Int ∨ Str]} ⟹ Str ≤ Int
+//│       Str ≤ Int
+
+:te
+H[Int] <:< F[Int | Str]
+//│ ═══[TYPE ERROR] Cannot solve judgment H[Int] ≤ F[Int ∨ Str].
+//│ Typing error tree:
+//│   H[Int] ≤ F[Int ∨ Str]
+//│     H ≤ F
+//│       H ≤ ⊥
+//│         ⊤ ≤ ⊥
+
+// A cyclic chain cannot prove an unrelated endpoint.
+:te
+([H[Int] <:< J[Int]] => Str) <:< ([H[Int] <:< F[Int]] => ([F[Int] <:< H[Int]] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int] ≤ J[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int], F[Int] ≤ H[Int]} ⟹ Str.
+//│ Typing error tree:
+//│   {H[Int] ≤ J[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int], F[Int] ≤ H[Int]} ⟹ Str
+//│     {H[Int] ≤ J[Int]} ⟹ Str ≤ {F[Int] ≤ H[Int]} ⟹ Str
+//│       {H[Int] ≤ J[Int]} ⟹ Str ≤ Str
+//│         H[Int] ≤ J[Int]
+//│           H ≤ J
+//│             H ≤ ⊥
+//│               ⊤ ≤ ⊥
+
+// The strict middle link cannot be traversed backwards.
+:te
+([H[Int] <:< J[Int]] => Str) <:< ([H[Int] <:< F[Int | Str]] =>
+  ([F[Int] <:< J[Int]] => Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int] ≤ J[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int ∨ Str], F[Int] ≤ J[Int]} ⟹ Str.
+//│ Typing error tree:
+//│   {H[Int] ≤ J[Int]} ⟹ Str ≤ {H[Int] ≤ F[Int ∨ Str], F[Int] ≤ J[Int]} ⟹ Str
+//│     {H[Int] ≤ J[Int]} ⟹ Str ≤ {F[Int] ≤ J[Int]} ⟹ Str
+//│       {H[Int] ≤ J[Int]} ⟹ Str ≤ Str
+//│         H[Int] ≤ J[Int]
+//│           H ≤ J
+//│             H ≤ ⊥
+//│               ⊤ ≤ ⊥
+
+:ctml-cfg no-hypothesis
+
+:te
+([H[Int] <:< F[Int | Str]] => Str) <:< ([H[Int] <:< F[Int]] => Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment {H[Int] ≤ F[Int ∨ Str]} ⟹ Str ≤ {H[Int] ≤ F[Int]} ⟹ Str.
+//│ Typing error tree:
+//│   {H[Int] ≤ F[Int ∨ Str]} ⟹ Str ≤ {H[Int] ≤ F[Int]} ⟹ Str
+//│     {H[Int] ≤ F[Int ∨ Str]} ⟹ Str ≤ Str
+//│       H[Int] ≤ F[Int ∨ Str]
+//│         H ≤ F
+//│           H ≤ ⊥
+//│             ⊤ ≤ ⊥

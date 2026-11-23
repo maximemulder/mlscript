@@ -106,16 +106,8 @@ Top <:< ([Str <:< Int] => ~Str)
 ((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Int) -> Bool)
 //│ OK
 
-:fixme // FIXME: `S1 → Nat ≤ S2 → Int` follows from the hypothesis through `S1 → Int`, which is not a cut that the closing rules find.
 ((S2 -> Int) -> Bool) <:< ([(S1 -> Int) <:< (S2 -> Int)] => (S1 -> Nat) -> Bool)
-//│ ═══[TYPE ERROR] Cannot solve judgment (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Nat) → Bool.
-//│ Typing error tree:
-//│   (S2 → Int) → Bool ≤ {S1 → Int ≤ S2 → Int} ⟹ (S1 → Nat) → Bool
-//│     (S2 → Int) → Bool ≤ (S1 → Nat) → Bool
-//│       S1 → Nat ≤ S2 → Int
-//│         S2 ≤ S1
-//│           S2 ≤ ⊥
-//│             ⊤ ≤ ⊥
+//│ OK
 
 // The two hypotheses compose through the same polymorphic type under different binder names.
 ([S1[Int] <:< S2[Str]] => Str) <:< ([S1[Int] <:< S2[([A] -> (A -> A))]] =>

@@ -137,6 +137,30 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
     assert(checkSubtypeResult(TLam(int, int), TLam(int, str)) == SubtypeCheck.Inconclusive)
     assert(!checkSubtype(TLam(int, int), TLam(int, str)))
 
+  test("a guard link may use an existing flexible bound but cannot introduce one"):
+    val x = TypeVar("X")
+    val f = TypeVar("F")
+    val h = TypeVar("H")
+    val ctx = classes.declTypeVar(f, TypeVarKind.Rigid).declTypeVar(h, TypeVarKind.Rigid)
+      .declTypeVar(x, TypeVarKind.Flex)
+      .mapHypotheses(_.add(TApp(TVar(h), int), TApp(TVar(f), int)))
+    val sub = TApp(TVar(h), TVar(x))
+    val sup = TApp(TVar(f), TJointType(JointMode.Union, int, str))
+    intercept[TypeError](subtype(sub, sup)(using ctx))
+    val bounded = ctx.extend(Bound(x, Direction.Sub, int, BoundKind.Asserted))
+    assert(subtype(sub, sup)(using bounded) == SubClauses.empty)
+
+  test("an exhausted guard endpoint check preserves an inconclusive outcome"):
+    val f = TypeVar("F")
+    val h = TypeVar("H")
+    val sub = TApp(TVar(h), int)
+    val ctx = classes.declTypeVar(f, TypeVarKind.Rigid).declTypeVar(h, TypeVarKind.Rigid)
+      .mapHypotheses(_.add(sub, TApp(TVar(f), int)))
+    val sup = TApp(TVar(f), TJointType(JointMode.Union, int, str))
+    assert(subtype(sub, sup)(using ctx) == SubClauses.empty)
+    config.checkSteps = Some(1)
+    intercept[SearchInconclusive](subtype(sub, sup)(using ctx))
+
   test("an exhausted decided-type query cannot justify ex falso"):
     config.provenancePolicy = ProvenancePolicy.Cut
     config.exFalso = true

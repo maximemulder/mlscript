@@ -2,12 +2,11 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.structural.TypeSyntaxKey
+import hkmc2.ctml.core.structural.{sameTypeSyntax, TypeSyntaxKey}
 import hkmc2.ctml.types.*
 
-/** The judgments assumed on the current path of the subtyping search that are not bounds, which
- *  the hypothesis rule derives when they are met again exactly (see `assume` and `subtypeImpl`),
- *  and which close the judgments that they are a cut of (see `holdsByAtoms`).
+/** The assumed judgments that are not variable bounds. Subtyping uses them by exact lookup,
+ *  by cuts between clause atoms (`holdsByAtoms`), and by transitivity (`holdsThroughGuards`).
  *
  *  Like the trail, the hypotheses are passed down the search and never returned: they are scoped
  *  to the body of the constrained type whose constraint they are assumed from. */
@@ -15,6 +14,9 @@ case class Hypotheses(
   /** Each pair retains its source types for cuts and compares modulo bound variable names. */
   private val keys: Set[(TypeSyntaxKey, TypeSyntaxKey)] = Set.empty,
 ):
+  /** Whether this scope contains an assumed judgment other than a variable bound. */
+  def nonEmpty: Boolean = keys.nonEmpty
+
   /** Iterate over the assumed subtype and supertype in their original syntax. */
   def judgments: Iterator[(Type, Type)] = keys.iterator.map((l, r) => (l.type_, r.type_))
 
@@ -25,6 +27,39 @@ case class Hypotheses(
   /** Assume a judgment. */
   def add(sub: Type, sup: Type): Hypotheses =
     Hypotheses(keys + ((TypeSyntaxKey(sub), TypeSyntaxKey(sup))))
+
+/** Follow the inequalities assumed on this path by transitivity. From a reachable P, a guard
+ *  L ≤ R makes R reachable when P ≤ L. Reaching any R ≤ sup finishes the proof. Each guard is
+ *  consumed at most once, so h guards require at most quadratically many endpoint queries.
+ *  An endpoint query can use the ordinary rules, including exact cuts and variable bounds. */
+def holdsThroughGuards(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
+  val checking = ctx.mapTrail(_.copy(checkingGuardLink = true))
+  var inconclusive = false
+
+  /** Only a completed proof may connect endpoints. Existing inference variables are rigidified
+   *  by the optional proof query, and its descendants cannot restart this search. */
+  def reaches(left: Type, right: Type): Boolean =
+    sameTypeSyntax(left, right) || (checkSubtypeResult(left, right)(using checking) match
+      case SubtypeCheck.Proven => true
+      case SubtypeCheck.NotProved => false
+      case SubtypeCheck.Inconclusive =>
+        inconclusive = true
+        false)
+
+  /** Each reached lower endpoint makes its upper endpoint available once, even around a cycle. */
+  @scala.annotation.tailrec
+  def search(frontier: List[Type], remaining: List[(Type, Type)]): Boolean = frontier match
+    case Nil => false
+    case _ if remaining.isEmpty => false
+    case current :: rest =>
+      val (next, unseen) = remaining.partition((lower, _) => reaches(current, lower))
+      next.exists((_, upper) => reaches(upper, sup)) ||
+        search(next.map(_._2) ::: rest, unseen)
+
+  val proven = search(List(sub), ctx.hypotheses.judgments.toList)
+  if !proven && inconclusive then
+    throw SearchInconclusive("a guard endpoint check was inconclusive")
+  proven
 
 extension (ctx: SubContext)
   /** Assume a constraint: get the context extended with the assumption, or `None` if the
@@ -48,8 +83,8 @@ extension (ctx: SubContext)
    *    or flexible, which the variable rules of `subtypeImpl` then read. A leaf between two
    *    variables is a bound of both.
    *  - Any other leaf is assumed as a hypothesis, which the hypothesis rule of `subtypeImpl`
-   *    derives when it is met again exactly, and which the check of the atoms of a judgment uses
-   *    as a cut (see `holdsByAtoms`).
+   *    derives when it is met again exactly. It also supplies a cut to `holdsByAtoms` and a
+   *    step of a transitive proof to `holdsThroughGuards`.
    *
    *  The other rules would decompose an assumption into premises that it does not entail, since
    *  their conclusion holds in cases where their premises do not: the choice rules (`S1 ∧ S2 ≤ Int`

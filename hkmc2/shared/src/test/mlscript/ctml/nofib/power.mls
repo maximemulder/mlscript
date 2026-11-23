@@ -34,6 +34,10 @@ Pc("coefficient", delay(() => Pz()))
 fun list() = delay(() => Pc(1.0, list()))
 //│ list: ∀α. {α ≥ Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: α})}} ⟹ Unit → (Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: α})})
 
+// The inferred infinite producer satisfies the recursive series contract.
+list() as Series
+//│ Series
+
 /** The series for x. */
 fun x_() = delay(() => Pc(0.0, delay(() => Pc(1.0, delay(() => Pz())))))
 //│ x_: Unit → (Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: Delayed ∧ {resume: Unit → ((Pc ∧ {f: Num}) ∧ {s: Delayed ∧ {resume: Unit → Pz}})}})})

@@ -217,7 +217,7 @@ fun redstar(s) = while_(x => if spri(x) === 0 then false else true, red, s)
 
 /** Build a list of display spaces. */
 fun spaces(n) = replicate(n, " ")
-//│ spaces: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ Int → (((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil)
+//│ spaces: Int → (((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ ((LCons ∧ {head: Str}) ∧ {tail: α}) ∨ LNil} ⟹ α}) ∨ LNil)
 
 :ctml-parse-only // FIXME: Stack reduction is translation-only.
 /** Parse the input using the source stack and precedence rules. */

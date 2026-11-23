@@ -55,39 +55,12 @@ fun evaluationEq(x, y) = if x is
 data class Branch(a, cs)
 //│ Branch: ∀α, β. α → β → ((Branch ∧ {a: α}) ∧ {cs: β})
 
-:fixme // FIXME: append cannot instantiate its recursive input from nofibStringToList.
 /** Render the winning side or the numeric evaluation. */
 fun showEvaluation(e) = if e is
   XWin() then nofibStringToList("XWin")
   OWin() then nofibStringToList("OWin")
   Score(i) then append(nofibStringToList("Score "), nofibStringToList(stringOfInt(i)))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
-//│ Typing error tree:
-//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
-//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: δ} ≤ LNil
-//│                     δ ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
-//│                     LCons ∧ {head: Str} ≤ {tail: ε}
-//│                       LCons ≤ {tail: ε}
-//│                       {head: Str} ≤ {tail: ε}
-//│                         Str ≤ ⊥
-//│                     {tail: δ} ≤ {tail: ε}
-//│                       δ ≤ ε
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│ showEvaluation: ∀α, β, γ. {β ≥ ({α ≤ XWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ})) ∧ ({α ≤ OWin ∨ ¬({β ≥ {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ} ⟹ ¬({i: Int} ∧ Score))} ⟹ ({α ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ})) ∧ ({α ≤ {i: Int} ∧ Score, γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ)), α ≤ XWin ∨ ¬({β ≥ ({α ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ})) ∧ ({α ≤ {i: Int} ∧ Score, γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ)} ⟹ ¬(OWin ∨ ¬({β ≥ {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ} ⟹ ¬({i: Int} ∧ Score))))} ⟹ α → β
 
 /** Assemble three pieces or three rows in order. */
 fun triple(a, b, c) = LCons(a, LCons(b, LCons(c, LNil())))
@@ -217,7 +190,7 @@ fun newPositions(piece, board) =
 
 /** The source empty starting board. */
 val initialBoard = replicate(3, replicate(3, Empty()))
-//│ initialBoard: ∀α, β. {β ≥ ((LCons ∧ {head: Empty}) ∧ {tail: β}) ∨ LNil, α ≥ ((LCons ∧ {head: ((LCons ∧ {head: Empty}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil} ⟹ ((LCons ∧ {head: ((LCons ∧ {head: Empty}) ∧ {tail: β}) ∨ LNil}) ∧ {tail: α}) ∨ LNil
+//│ initialBoard: ((LCons ∧ {head: ((LCons ∧ {head: Empty}) ∧ {tail: ∀α. {α ≥ ((LCons ∧ {head: Empty}) ∧ {tail: α}) ∨ LNil} ⟹ α}) ∨ LNil}) ∧ {tail: ∀α. {α ≥ ((LCons ∧ {head: ((LCons ∧ {head: Empty}) ∧ {tail: ∀α. {α ≥ ((LCons ∧ {head: Empty}) ∧ {tail: α}) ∨ LNil} ⟹ α}) ∨ LNil}) ∧ {tail: α}) ∨ LNil} ⟹ α}) ∨ LNil
 
 /** Interpret the two winning scores, keeping other scores as numbers. */
 fun eval(x) = if

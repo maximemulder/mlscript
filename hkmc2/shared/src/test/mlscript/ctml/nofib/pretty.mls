@@ -183,69 +183,13 @@ cStr(LCons(1, LNil()))
 //│                           θ ≤ ⊥
 //│                             LNil ≤ ⊥
 
-:fixme // FIXME: The inferred string producer cannot instantiate ppStr's recursive list input.
 /** Render an integer as a document. */
 fun ppInt(n, width, is_vert) = ppStr(nofibStringToList(stringOfInt(n)), width, is_vert)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ.
-//│ Typing error tree:
-//│   ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
-//│     {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ δ → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: δ}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
-//│       δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})} ⟹ ζ
-//│               LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
-//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
-//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
-//│                     LCons ∧ {head: Str} ≤ LNil
-//│                       LCons ≤ LNil
-//│                       {head: Str} ≤ LNil
-//│                         Str ≤ ⊥
-//│                     {tail: ε} ≤ LNil
-//│                       ε ≤ ⊥
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
-//│                           LNil ≤ ⊥
-//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: Str}) ∧ {tail: ζ}
-//│                     (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
-//│                       LCons ∧ {head: Str} ≤ {tail: ζ}
-//│                         LCons ≤ {tail: ζ}
-//│                         {head: Str} ≤ {tail: ζ}
-//│                           Str ≤ ⊥
-//│                       {tail: ε} ≤ {tail: ζ}
-//│                         ε ≤ ζ
-//│                           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+//│ ppInt: Int → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
 
-:fixme // FIXME: The inferred string producer cannot instantiate ppStr's recursive list input.
 /** Print a comma followed by a space. */
 fun pp_SP(a, b) = ppStr(nofibStringToList(", "), a, b)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ.
-//│ Typing error tree:
-//│   ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ α → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: α}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
-//│     {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ δ → Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: δ}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool}) ≤ β → γ
-//│       δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})} ⟹ ζ
-//│               LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
-//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
-//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
-//│                     LCons ∧ {head: Str} ≤ LNil
-//│                       LCons ≤ LNil
-//│                       {head: Str} ≤ LNil
-//│                         Str ≤ ⊥
-//│                     {tail: ε} ≤ LNil
-//│                       ε ≤ ⊥
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
-//│                           LNil ≤ ⊥
-//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: Str}) ∧ {tail: ζ}
-//│                     (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
-//│                       LCons ∧ {head: Str} ≤ {tail: ζ}
-//│                         LCons ≤ {tail: ζ}
-//│                         {head: Str} ≤ {tail: ζ}
-//│                           Str ≤ ⊥
-//│                       {tail: ε} ≤ {tail: ζ}
-//│                         ε ≤ ζ
-//│                           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+//│ pp_SP: Int → ⊤ → ((((MkPrettyRep ∧ {cseq: CStr ∧ {a: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})}}) ∧ {n: Int}) ∧ {b1: Bool}) ∧ {b2: Bool})
 
 /** Print a space. */
 fun ppSP(a, b) = ppChar(" ", a, b)

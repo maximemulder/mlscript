@@ -55,39 +55,37 @@ fun nullLz(ls) = if force(ls) is
   LzCons(_, _) then false
 //│ nullLz: ∀α. {α ≤ LzNil ∨ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤})} ⟹ (Delayed ∧ {resume: Unit → α}) → (({α ≤ LzNil} ⟹ Bool) ∧ ({α ≤ (LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}} ⟹ Bool))
 
-:fixme // FIXME: Implicit instantiation rejects the string-list producer at inList.
 /** Trim spaces and punctuation from both ends of the input. */
 fun trim(ls) =
   /** Discard trailing punctuation until a retained character is seen. */
   fun cons(x, xs) = if inList(x, nofibStringToList(" .!?,")) and null_(xs) then LNil() else LCons(x, xs)
   foldr(cons, LNil(), leaveWhile(x => inList(x, nofibStringToList(" .!?,")), ls))
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ trim: (∀X. {X ≥ LNil} ⟹ X) → LNil
+
+trim(LNil()) as LNil
+//│ LNil
+
+:fixme // FIXME: The inferred trim accepts only the empty list.
+trim(LCons("a", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ α → β.
 //│ Typing error tree:
-//│   α ≤ β → γ
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ β → γ
-//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})} ⟹ ε
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
-//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: δ} ≤ LNil
-//│                     δ ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
-//│                     LCons ∧ {head: Str} ≤ {tail: ε}
-//│                       LCons ≤ {tail: ε}
-//│                       {head: Str} ≤ {tail: ε}
-//│                         Str ≤ ⊥
-//│                     {tail: δ} ≤ {tail: ε}
-//│                       δ ≤ ε
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│   (∀X. {X ≥ LNil} ⟹ X) → LNil ≤ α → β
+//│     α ≤ ∀X. {X ≥ LNil} ⟹ X
+//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil} ⟹ ε
+//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
+//│             LCons ∧ {head: γ} ≤ ε
+//│               LCons ≤ ε
+//│                 LCons ≤ LNil
+//│               {head: γ} ≤ ε
+//│                 {head: γ} ≤ LNil
+//│                   γ ≤ ⊥
+//│                     Str ≤ ⊥
+//│             {tail: δ} ≤ ε
+//│               {tail: δ} ≤ LNil
+//│                 δ ≤ ⊥
+//│                   ζ ≤ ⊥
+//│                     LNil ≤ ⊥
 
 // The source pattern expects a strict list here, although initial stores a delayed stream.
 // A repeated input hits a match error in the source. Keep that pattern for the inference port.
@@ -122,7 +120,7 @@ val repeatMsgs =
   nofibStringToList("Come, come, elucidate your thoughts.") ::
   nofibStringToList("Please don't repeat yourself!") ::
   LNil()
-//│ repeatMsgs: ∀α, β, γ, δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}), γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}), β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})}) ∧ {tail: LNil}}}}
+//│ repeatMsgs: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})}) ∧ {tail: (LCons ∧ {head: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})}) ∧ {tail: LNil}}}}
 
 :ctml-parse-only // FIXME: Inference for the response table exhausts bounded search.
 /** The source keyword templates, in priority order, ending with the fallback. */

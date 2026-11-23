@@ -8,40 +8,13 @@
 
 /** The source clear-screen code. */
 val cls = nofibStringToList("L")
-//│ cls: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})
+//│ cls: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})
 
-:fixme // FIXME: The character producer cannot instantiate the append input type.
 /** Build the position code, printing the row before the column. */
 fun goto(x, y) = LCons("E", LCons("[",
   append(nofibStringToList(stringOfFloat(y)),
     LCons(";", append(nofibStringToList(stringOfFloat(x)), LCons("H", LNil()))))))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
-//│ Typing error tree:
-//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
-//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: δ} ≤ LNil
-//│                     δ ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
-//│                     LCons ∧ {head: Str} ≤ {tail: ε}
-//│                       LCons ≤ {tail: ε}
-//│                       {head: Str} ≤ {tail: ε}
-//│                         Str ≤ ⊥
-//│                     {tail: δ} ≤ {tail: ε}
-//│                       δ ≤ ε
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│ goto: Num → Num → ((LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z}})
 
 :ctml-parse-only // FIXME: Position code construction has no inferred type.
 /** Prefix text with a cursor position. */
@@ -55,7 +28,7 @@ fun highlight(s) = append(nofibStringToList("ESC[7m"), append(s, nofibStringToLi
 
 /** End the program with an empty display suffix. */
 fun endInput(_) = nofibStringToList("")
-//│ endInput: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ⊤ → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
+//│ endInput: ⊤ → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α}))
 
 :ctml-cfg search-steps 20000 check-steps 20000
 

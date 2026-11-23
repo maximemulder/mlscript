@@ -361,37 +361,10 @@ val partialSum0 =
 val sum0 = App(fixTerm, partialSum0)
 //│ sum0: (App ∧ {a: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}}) ∧ {b: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}}}}) ∧ {b: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}) ∧ {t: (Lam ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}) ∧ {t: ((IfZero ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}) ∧ {c: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: (App ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}}}) ∧ {b: (Add ∧ {a: Var ∧ {s: (LCons ∧ {head: Str}) ∧ {tail: LNil}}}) ∧ {b: Con ∧ {i: Int}}}}}}}}
 
-:fixme // FIXME: The character producers cannot instantiate the append input types.
 /** Render the direct evaluator's result with its constructor label. */
 fun showTerm(t) = if t is Con(i) then
   append(nofibStringToList("Con "), nofibStringToList(stringOfInt(i)))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
-//│ Typing error tree:
-//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
-//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: δ} ≤ LNil
-//│                     δ ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
-//│                     LCons ∧ {head: Str} ≤ {tail: ε}
-//│                       LCons ≤ {tail: ε}
-//│                       {head: Str} ≤ {tail: ε}
-//│                         Str ≤ ⊥
-//│                     {tail: δ} ≤ {tail: ε}
-//│                       δ ≤ ε
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│ showTerm: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ({i: Int} ∧ Con) → α
 
 :ctml-parse-only // FIXME: Stateful evaluation and printing are translation-only.
 /** Run the stateful evaluator in an empty environment and print both results. */

@@ -133,7 +133,8 @@ fun notSeen(state, states) =
   all(pair => if pair is [_, s] then if stateEq(state, s) then false else true, states)
 //│ CTML translation succeeded.
 
-:fixme // FIXME: append cannot instantiate its recursive input from nofibStringToList.
+:ctml-cfg search-steps 20000
+:fixme // FIXME: Checking the nested item and bank cases exhausts bounded inference.
 /** Prepend the source display line for one member. */
 fun writeItem(i, b, rest) = if i is
   Bono() and b is LeftBank() then
@@ -152,33 +153,9 @@ fun writeItem(i, b, rest) = if i is
     append(nofibStringToList("         |                    | Larry\n"), rest)
   Adam() and b is RightBank() then
     append(nofibStringToList("         |                    | Adam\n"), rest)
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β.
-//│ Typing error tree:
-//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ Z) ≤ α → β
-//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
-//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: δ} ≤ LNil
-//│                     δ ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: γ}) ∧ {tail: ε}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
-//│                     LCons ∧ {head: Str} ≤ {tail: ε}
-//│                       LCons ≤ {tail: ε}
-//│                       {head: Str} ≤ {tail: ε}
-//│                         Str ≤ ⊥
-//│                     {tail: δ} ≤ {tail: ε}
-//│                       δ ≤ ε
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
+
+:ctml-cfg no-search-limit
 
 :ctml-parse-only // FIXME: The item formatter has no checked type.
 /** Prepend the display for the entire state. */

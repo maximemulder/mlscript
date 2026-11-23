@@ -61,35 +61,9 @@ fun powerMod(a, b, m) =
     else f(a_, b - 1, a_)
 //│ powerMod: Int → Int → Int → Int
 
-:fixme // FIXME: listLen cannot instantiate the inferred recursive digit list.
 /** Count the source binary digits. */
 fun log2(x) = listLen(chop(2, x))
-//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β.
-//│ Typing error tree:
-//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β
-//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│       ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│         ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})} ⟹ δ
-//│           ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ δ
-//│             (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ δ
-//│               (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ LNil
-//│                 LCons ∧ {head: Int} ≤ LNil
-//│                   LCons ≤ LNil
-//│                   {head: Int} ≤ LNil
-//│                     Int ≤ ⊥
-//│                 {tail: γ} ≤ LNil
-//│                   γ ≤ ⊥
-//│                     ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ ⊥
-//│                       LNil ≤ ⊥
-//│               (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: δ}
-//│                 (LCons ∧ {head: Int}) ∧ {tail: γ} ≤ {tail: δ}
-//│                   LCons ∧ {head: Int} ≤ {tail: δ}
-//│                     LCons ≤ {tail: δ}
-//│                     {head: Int} ≤ {tail: δ}
-//│                       Int ≤ ⊥
-//│                   {tail: γ} ≤ {tail: δ}
-//│                     γ ≤ δ
-//│                       ((LCons ∧ {head: Int}) ∧ {tail: γ}) ∨ LNil ≤ δ
+//│ log2: Int → Int
 
 /** Produce the source combined pseudorandom stream from two seed states. */
 fun rands(s1, s2) =
@@ -141,7 +115,42 @@ fun random(n, rs) =
   if splitAtLz(listLen(ns), rs) is [rs1, rs2] then [makeNumber(65536, uniform(ns, rs1)), rs2]
 //│ CTML translation succeeded.
 
-:fixme // FIXME: takeLz cannot instantiate the inferred stream from iterate.
+// The prefix of an inferred stream has the corresponding strict list element type.
+takeLz(2, iterate(x => x + 1, 1)) as ([X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X)
+//│ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+
+:te
+takeLz(2, iterate(x => x + 1, 1)) as ([X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X)
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X.
+//│ Typing error tree:
+//│   α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│             {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│               δ ≤ LNil
+//│                 LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                   (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                     LCons ∧ {head: β} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: β} ≤ LNil
+//│                         β ≤ ⊥
+//│                           ε ≤ ⊥
+//│                             Int ≤ ⊥
+//│                     {tail: δ} ≤ LNil
+//│                       δ ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
+//│                           LNil ≤ ⊥
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Str}) ∧ {tail: γ}
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Str}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                 {ζ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                   ζ ≤ LCons
+//│                     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ}) ≤ LCons
+//│                       LNil ≤ LCons
+
+:fixme // FIXME: Inference fails at the nonempty prefix match in the modular witness test.
 /** Test whether a supplied base passes the modular witness test. */
 fun singleTestX(n, kq, x) =
   /** Square a residue modulo the candidate prime. */
@@ -155,43 +164,22 @@ fun singleTestX(n, kq, x) =
       else witness(ts)
   if kq is [k, q] and takeLz(k, iterate(square, powerMod(x, q, n))) is LCons(t, ts) then
     (t == 1) || (t == (n - 1)) || witness(ts)
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≤ Bool, ε ≤ β → γ, δ ≤ Int, β ≥ α} ⟹ (({tail: α} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η.
 //│ Typing error tree:
-//│   α ≤ β → γ
-//│     (∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
-//│       β ≤ ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X
-//│         Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ ∀X. {X ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: X}))}} ⟹ X
-//│           Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {η ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: η}))}} ⟹ η
-//│             Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ η
-//│               Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: δ}) ∧ {tail: η}))}
-//│                 Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {resume: Unit → (LzNil ∨ {tail: η})}
-//│                   Delayed ≤ {resume: Unit → (LzNil ∨ {tail: η})}
-//│                   {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ {resume: Unit → (LzNil ∨ {tail: η})}
-//│                     Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ≤ Unit → (LzNil ∨ {tail: η})
-//│                       (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LzNil ∨ {tail: η}
-//│                         (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LzNil
-//│                           LzCons ∧ {head: ε} ≤ LzNil
-//│                             LzCons ≤ LzNil
-//│                             {head: ε} ≤ LzNil
-//│                               ε ≤ ⊥
-//│                                 θ ≤ ⊥
-//│                                   Int ≤ ⊥
-//│                           {tail: ζ} ≤ LzNil
-//│                             ζ ≤ ⊥
-//│                               Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ ⊥
-//│                                 Delayed ≤ ⊥
-//│                                 {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ ⊥
-//│                                   Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ≤ ⊥
-//│                         (LzCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {tail: η}
-//│                           LzCons ∧ {head: ε} ≤ {tail: η}
-//│                             LzCons ≤ {tail: η}
-//│                             {head: ε} ≤ {tail: η}
-//│                               ε ≤ ⊥
-//│                                 θ ≤ ⊥
-//│                                   Int ≤ ⊥
-//│                           {tail: ζ} ≤ {tail: η}
-//│                             ζ ≤ η
-//│                               Delayed ∧ {resume: Unit → ((LzCons ∧ {head: ε}) ∧ {tail: ζ})} ≤ η
+//│   ∀α, β, γ. {γ ≤ Bool, ε ≤ β → γ, δ ≤ Int, β ≥ α} ⟹ (({tail: α} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η
+//│     {κ ≤ Bool, ε ≤ ι → κ, δ ≤ Int, ι ≥ θ} ⟹ (({tail: θ} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η
+//│       {ε ≤ ι → κ, δ ≤ Int, ι ≥ θ} ⟹ (({tail: θ} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η
+//│         {δ ≤ Int, ι ≥ θ} ⟹ (({tail: θ} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η
+//│           {ι ≥ θ} ⟹ (({tail: θ} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η
+//│             (({tail: θ} ∧ {head: ⊤}) ∧ LCons) → Bool ≤ ζ → η
+//│               ζ ≤ ({tail: θ} ∧ {head: ⊤}) ∧ LCons
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: λ}) ∧ {tail: Y})} ⟹ Y ≤ ({tail: θ} ∧ {head: ⊤}) ∧ LCons
+//│                   ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: λ}) ∧ {tail: Y})} ⟹ Y ≤ {tail: θ} ∧ {head: ⊤}
+//│                     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: λ}) ∧ {tail: Y})} ⟹ Y ≤ {tail: θ}
+//│                       {μ ≥ LNil ∨ ((LCons ∧ {head: λ}) ∧ {tail: μ})} ⟹ μ ≤ {tail: θ}
+//│                         μ ≤ {tail: θ}
+//│                           LNil ∨ ((LCons ∧ {head: λ}) ∧ {tail: μ}) ≤ {tail: θ}
+//│                             LNil ≤ {tail: θ}
 
 :ctml-parse-only // FIXME: The random draw and witness test have no inferred types.
 /** Draw a base, test it, and return the remaining stream. */

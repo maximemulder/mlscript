@@ -8,6 +8,7 @@ import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
 import hkmc2.ctml.core.type_.*
+import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.inference.*
@@ -259,6 +260,13 @@ def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
     case (_, TVar(sup)) if sup.isRigid && sup.lowerBound == sup.upperBound =>
       return subtype(sub, sup.lowerBound)
     case (_, _) =>
+
+  sub match
+    case scheme: TUniv =>
+      leastCarrierInstance(scheme) match
+        case Some(instance) => return subtype(instance, sup)
+        case None =>
+    case _ =>
 
   // Introduce right universal variables before decomposing the subtype. This keeps a single
   // arbitrary instance in scope for every conjunctive branch of the same judgment.
@@ -551,6 +559,30 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
     val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)(using ctx)
     subtypeSeq(instanceBody, sup, outs)(using ctx)
   )
+
+/** For monotone F, the intersection R of all X satisfying F[X] ≤ X is itself such a
+ *  carrier: R ≤ X implies F[R] ≤ F[X] ≤ X for each carrier X. A covariant body B thus
+ *  has least instance B[R]. Unrelated quantifiers remain in scope around that instance.
+ *
+ *  Only a single defining guard is discharged by this argument. The variance check is
+ *  structural and excludes guards nested in F or B. An identity body is the carrier encoding
+ *  itself, so ordinary universal elimination handles that case. */
+private def leastCarrierInstance(scheme: TUniv): Option[Type] =
+  val (variables, guarded) = scheme.getUnivComponents
+  guarded match
+    case TConstrained(body, guard) =>
+      val (lower, upper) = guard.dir match
+        case Direction.Super => (guard.right, guard.left)
+        case Direction.Sub => (guard.left, guard.right)
+      upper match
+        case TVar(x) if variables.contains(x) && body != upper &&
+            !mentionsConstrained(lower) && !mentionsConstrained(body) &&
+            lower.getVarPolarities(x) == Polarities(false, true) &&
+            body.getVarPolarities(x) == Polarities(false, true) =>
+          val carrier = TUniv(x, TConstrained(upper, guard))
+          Some(variables.filterNot(_ == x).foldRight(body.substitute(x, carrier))(TUniv.apply))
+        case _ => None
+    case _ => None
 
 /** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
  *  elimination: constrain every substituted guard and return its obligations. Failure leaves

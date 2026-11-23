@@ -25,7 +25,7 @@ val const128 = bigIntFrom(128)
 
 /** Render a bigint as a list of decimal characters. */
 fun string_of_z(x) = nofibStringToList(stringOfBigInt(x))
-//│ string_of_z: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ BigInt → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α}))
+//│ string_of_z: BigInt → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α}))
 
 /** Accumulate the ciphertext's character codes in the source rolling hash. */
 fun hash(str) = foldl(
@@ -137,35 +137,9 @@ collect(1, LCons("a", LNil()))
 //│               ζ ≤ ⊥
 //│                 LNil ≤ ⊥
 
-:fixme // FIXME: The inferred decimal character list cannot instantiate listLen.
 /** Derive the plaintext block width from the modulus's decimal length. */
 fun size(n) = intDiv(listLen(string_of_z(n)) * 47, 100)
-//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β.
-//│ Typing error tree:
-//│   (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Int ≤ α → β
-//│     α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: δ})} ⟹ δ
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ δ
-//│             (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ δ
-//│               (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ LNil
-//│                 LCons ∧ {head: Str} ≤ LNil
-//│                   LCons ≤ LNil
-//│                   {head: Str} ≤ LNil
-//│                     Str ≤ ⊥
-//│                 {tail: γ} ≤ LNil
-//│                   γ ≤ ⊥
-//│                     LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ ⊥
-//│                       LNil ≤ ⊥
-//│               (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: δ}
-//│                 (LCons ∧ {head: Str}) ∧ {tail: γ} ≤ {tail: δ}
-//│                   LCons ∧ {head: Str} ≤ {tail: δ}
-//│                     LCons ≤ {tail: δ}
-//│                     {head: Str} ≤ {tail: δ}
-//│                       Str ≤ ⊥
-//│                   {tail: γ} ≤ {tail: δ}
-//│                     γ ≤ δ
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ≤ δ
+//│ size: BigInt → Int
 
 :ctml-parse-only // FIXME: Block collection and decimal length do not check on nonempty inputs.
 /** Encrypt each block and terminate each decimal result with a newline. */
@@ -176,7 +150,7 @@ fun encrypt(n, e, s) =
 /** Read the original plaintext fixture. */
 val input = nofibStringToList(
   nofibReadText("./hkmc2/shared/src/test/mlscript/nofib/input/rsa.faststdin"))
-//│ input: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})
+//│ input: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})
 
 :ctml-parse-only // FIXME: The encryption pipeline is translation-only.
 /** Encrypt the fixture with the source modulus and exponent, then hash the result. */

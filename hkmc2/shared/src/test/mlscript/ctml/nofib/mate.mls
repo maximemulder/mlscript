@@ -253,7 +253,7 @@ fun negate(value) = if value then false else true
 
 /** Render the side's name. */
 fun showColour(c) = nofibStringToList(if c is Black() then "Black" else "White")
-//│ showColour: ∀α, β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), α ≤ ¬({α ≤ Black} ⟹ ¬Black) ∨ ¬({α ≤ ¬Black} ⟹ Black)} ⟹ α → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}))
+//│ showColour: ∀α. {α ≤ ¬({α ≤ Black} ⟹ ¬Black) ∨ ¬({α ≤ ¬Black} ⟹ Black)} ⟹ α → (LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ β}))
 
 :ctml-parse-only // FIXME: Recursive lookup in the board's force lists exceeds bounded inference.
 /** Find the piece on a square, preferring white if both lists contain it. */
@@ -314,33 +314,7 @@ fun showSquare(c, xy) = if xy is [x, y] then
             LCons(nofibStringToList("KB"),
               LCons(nofibStringToList("KN"), LCons(nofibStringToList("KR"), LNil()))))))))
   append(atIndex(x - 1, files), nofibStringToList(stringOfInt(if c is Black() then 9 - y else y)))
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
-//│ Typing error tree:
-//│   α ≤ β → γ
-//│     (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Z})} ⟹ Z) ≤ β → γ
-//│       β ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ ζ
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
-//│               (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ ζ
-//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: ε} ≤ LNil
-//│                     ε ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ (LCons ∧ {head: δ}) ∧ {tail: ζ}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: ε} ≤ {tail: ζ}
-//│                     LCons ∧ {head: Str} ≤ {tail: ζ}
-//│                       LCons ≤ {tail: ζ}
-//│                       {head: Str} ≤ {tail: ζ}
-//│                         Str ≤ ⊥
-//│                     {tail: ε} ≤ {tail: ζ}
-//│                       ε ≤ ζ
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ζ
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
 
 :ctml-parse-only // FIXME: Traversal of both board force lists exceeds bounded inference.
 /** Check that no occupied square matches the predicate. */
@@ -625,36 +599,34 @@ fun moveDetailsFor(c, bd) =
   foldr(collect, LNil(), forcesColoured(c, bd))
 //│ CTML translation succeeded.
 
-:fixme // FIXME: The produced comment marker does not instantiate the listEq contract.
 /** Recognize an empty line or one beginning with the two comment characters. */
 fun comment(s) = (s is LNil()) || listEq(take(2, s), nofibStringToList("--"))
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ comment: ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ α → Bool
+
+:fixme // FIXME: The inferred comment predicate rejects a nonempty line.
+comment(LCons("-", LNil())) as Bool
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ α → Bool ≤ β → γ.
 //│ Typing error tree:
-//│   α ≤ β → γ
-//│     (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
-//│       β ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y
-//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: Y})} ⟹ Y
-//│           LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: ε})} ⟹ ε
-//│             LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
-//│               (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ ε
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ LNil
-//│                   LCons ∧ {head: Str} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Str} ≤ LNil
-//│                       Str ≤ ⊥
-//│                   {tail: δ} ≤ LNil
-//│                     δ ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ (LCons ∧ {head: ⊤}) ∧ {tail: ε}
-//│                   (LCons ∧ {head: Str}) ∧ {tail: δ} ≤ {tail: ε}
-//│                     LCons ∧ {head: Str} ≤ {tail: ε}
-//│                       LCons ≤ {tail: ε}
-//│                       {head: Str} ≤ {tail: ε}
-//│                         Str ≤ ⊥
-//│                     {tail: δ} ≤ {tail: ε}
-//│                       δ ≤ ε
-//│                         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ}) ≤ ε
+//│   ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ α → Bool ≤ β → γ
+//│     {δ ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ δ → Bool ≤ β → γ
+//│       δ ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)
+//│         β ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                   LCons ∧ {head: ε} ≤ η
+//│                     LCons ≤ η
+//│                       LCons ≤ LNil
+//│                     {head: ε} ≤ η
+//│                       {head: ε} ≤ LNil
+//│                         ε ≤ ⊥
+//│                           Str ≤ ⊥
+//│                   {tail: ζ} ≤ η
+//│                     {tail: ζ} ≤ LNil
+//│                       ζ ≤ ⊥
+//│                         θ ≤ ⊥
+//│                           LNil ≤ ⊥
 
 :ctml-parse-only // FIXME: Taking the last list element exceeds bounded inference.
 /** Return the last item of a nonempty list. */
@@ -693,38 +665,11 @@ fun parseSquare(r, f, c) = if c === "-" then LNil() else
   LCons([[clr, kin], [f, r]], LNil())
 //│ parseSquare: ∀α, β. α → β → Str → (((LCons ∧ {head: ⟨⟨Black ∨ White, ((((Pawn ∨ Knight) ∨ Bishop) ∨ Rook) ∨ Queen) ∨ King⟩, ⟨β, α⟩⟩}) ∧ {tail: LNil}) ∨ LNil)
 
-:fixme // FIXME: The inferred file range does not instantiate the zipWith contract.
 /** Parse the nonspace characters in a rank, pairing them with files one through eight. */
 fun parseRank(r, x) =
   concat(zipWith((a, b) => parseSquare(r, a, b), enumFromTo(1, 8),
     filter(pp => negate(pp === " "), x)))
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
-//│ Typing error tree:
-//│   α ≤ β → γ
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: Y})} ⟹ Y) → (∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: Z})} ⟹ Z) ≤ β → γ
-//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
-//│           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: θ})} ⟹ θ
-//│             LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ θ
-//│               (LCons ∧ {head: Int}) ∧ {tail: η} ≤ θ
-//│                 (LCons ∧ {head: Int}) ∧ {tail: η} ≤ LNil
-//│                   LCons ∧ {head: Int} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Int} ≤ LNil
-//│                       Int ≤ ⊥
-//│                   {tail: η} ≤ LNil
-//│                     η ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ ⊥
-//│                         LNil ≤ ⊥
-//│                 (LCons ∧ {head: Int}) ∧ {tail: η} ≤ (LCons ∧ {head: δ}) ∧ {tail: θ}
-//│                   (LCons ∧ {head: Int}) ∧ {tail: η} ≤ {tail: θ}
-//│                     LCons ∧ {head: Int} ≤ {tail: θ}
-//│                       LCons ≤ {tail: θ}
-//│                       {head: Int} ≤ {tail: θ}
-//│                         Int ≤ ⊥
-//│                     {tail: η} ≤ {tail: θ}
-//│                       η ≤ θ
-//│                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: η}) ≤ θ
+//│ parseRank: ∀α, β, Y. {β ≤ Str, Y ≥ LNil ∨ ((LCons ∧ {head: ⟨⟨Black ∨ White, ((((Pawn ∨ Knight) ∨ Bishop) ∨ Rook) ∨ Queen) ∨ King⟩, ⟨Int, α⟩⟩}) ∧ {tail: Y})} ⟹ α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → Y
 
 :ctml-parse-only // FIXME: Rank parsing has no inferred type.
 /** Read the ranks from top to bottom and place the parsed pieces in source fold order. */

@@ -341,7 +341,7 @@ H(None(), Some("bad"), LNil())
 // A forced range can be empty or expose a first integer and a delayed remainder.
 val shortRange = enumFromToLz(4, 5)
 force(shortRange) as LzNil | (LzCons & {head: Int} & {tail: Delayed})
-//│ shortRange: ∀α. {α ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}} ⟹ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}
+//│ shortRange: Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}} ⟹ α}))}
 //│ LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: Delayed})
 
 :fixme // FIXME: The inferred subset function accepts only an empty first list.

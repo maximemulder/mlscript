@@ -7,7 +7,7 @@
 
 /** Build an inclusive progression from the start and step used by both passes. */
 fun integerRange(start, step, limit) = enumFromThenTo(start, start + step, limit)
-//│ integerRange: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α}))
+//│ integerRange: Int → Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}))
 
 // The benchmark's inclusive progression produces integers when it is nonempty.
 :fixme // FIXME: Matching the inferred progression leaves a guarded result at the Int ascription.
@@ -22,20 +22,22 @@ fun integerRange(start, step, limit) = enumFromThenTo(start, start + step, limit
 //│         {β ≤ LNil} ⟹ Int ≤ Int
 //│           β ≤ LNil
 //│             δ ≤ LNil
-//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ LNil
-//│                 (LCons ∧ {head: Int}) ∧ {tail: ε} ≤ LNil
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε}) ≤ LNil
+//│                 (LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε} ≤ LNil
 //│                   LCons ∧ {head: Int} ≤ LNil
 //│                     LCons ≤ LNil
 //│                     {head: Int} ≤ LNil
 //│                       Int ≤ ⊥
-//│                   {tail: ε} ≤ LNil
-//│                     ε ≤ ⊥
-//│                       LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ ⊥
-//│                         LNil ≤ ⊥
+//│                   {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε} ≤ LNil
+//│                     ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
+//│                       {ζ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ})} ⟹ ζ ≤ ⊥
+//│                         ζ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ}) ≤ ⊥
+//│                             LNil ≤ ⊥
 //│         {β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥ ≤ Int
 //│           β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
 //│             δ ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
-//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε}) ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
+//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε}) ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
 //│                 LNil ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
 //│                   LNil ≤ ({tail: ⊤} ∧ LCons) ∧ {head: ⊤}
 //│                     LNil ≤ {tail: ⊤} ∧ LCons

@@ -1,6 +1,31 @@
 # Unannotated Nofib range inference
 
-## Result
+## Using positive recursive producers
+
+For a scheme `∀X. {F(X) ≤ X} ⇒ B(X)`, implicit elimination can choose
+`R = ∀Y. {F(Y) ≤ Y} ⇒ Y`. When F is monotone, R satisfies the guard. When B is covariant,
+B(R) is below every admissible instance. The checker applies this equivalence before opening the
+target. It checks variance structurally for one defining guard with guard-free F and B. Other
+quantifiers bind the same parameters around the result. The identity body already denotes R.
+The [fold derivation](../subtyping/recursive-encoding.md#fold) gives the finite proof.
+
+The abstract producer comparison, Power's `list() as Series`, PrimeTest's inline
+`takeLz(2, iterate(x => x + 1, 1))`, and Nofib's implicit map/range and take/range compositions
+check. The PrimeTest prefix has integer elements and fails a string-list assertion. The focused
+subtyping tests also exercise contravariant uses, an additional guard, and negative recursion.
+
+Mandel has an independent precision problem. In its integer reduction, extract the step as
+`step(c, self) = delay(() => LzCons(c, mapLz(z => z + c, self())))`. The inferred callback
+requires a stream of empty nodes. A callback returning a general integer stream fails. Explicit
+integer arguments to mapLz make that callback check. An experiment propagating enclosing variance
+through constraint operands in both the simplifier and dependency analyses also makes the implicit
+step check. Closing the recursive orbit then exhausts 20,000 solver calls. The same variance
+experiment takes Sorting's lines function past its budget and Constraints past its file timeout.
+These outcomes concern the separate experiment.
+
+The remaining sections record the baseline investigation and its original test counts.
+
+## Baseline result
 
 The inclusive `enumFromTo` from the Nofib prelude already infers a compact recursive constrained
 type without parameter annotations, a result annotation, or explicit type arguments. Using that

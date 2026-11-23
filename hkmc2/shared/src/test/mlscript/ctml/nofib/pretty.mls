@@ -69,6 +69,100 @@ fun mkIndent(n, s) = if
   else LCons(" ", mkIndent(n - 1, s))
 //│ mkIndent: ∀α, β, γ. {α ≤ β ∧ γ, γ ≥ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ∨ ((LCons ∧ {head: Str}) ∧ {tail: β}), β ≥ ((LCons ∧ {head: Str}) ∧ {tail: γ}) ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ Int → α → ((((LCons ∧ {head: Str}) ∧ {tail: γ}) ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})) ∨ α)
 
+/** Proper list of source characters. */
+type Text = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ Text = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+mkIndent(3, LNil()) as Text
+//│ Text
+
+declare fun suffix: Text
+//│ suffix: Text
+
+mkIndent(9, suffix) as Text
+//│ Text
+
+mkIndent as (Int -> Text -> Text)
+//│ Int → Text → Text
+
+:te
+mkIndent(9, LCons(1, LNil())) as Text
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Text.
+//│ Typing error tree:
+//│   α ≤ Text
+//│     ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β}) ∨ γ ≤ Text
+//│       ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β}) ∨ γ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│         ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β}) ∨ γ ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ
+//│           ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β}) ∨ γ ≤ δ
+//│             (LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β} ≤ δ
+//│               (LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β} ≤ LNil
+//│                 LCons ∧ {head: Str} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: Str} ≤ LNil
+//│                     Str ≤ ⊥
+//│                 {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β} ≤ LNil
+//│                   ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β ≤ ⊥
+//│                     {ε ≥ γ, ε ≥ (LCons ∧ {head: Str}) ∧ {tail: ε}} ⟹ ε ≤ ⊥
+//│                       {ε ≥ (LCons ∧ {head: Str}) ∧ {tail: ε}} ⟹ ε ≤ ⊥
+//│                         ε ≤ ⊥
+//│                           γ ∨ ((LCons ∧ {head: Str}) ∧ {tail: ε}) ≤ ⊥
+//│                             γ ≤ ⊥
+//│                               ζ ≤ ⊥
+//│                                 (LCons ∧ {head: η}) ∧ {tail: θ} ≤ ⊥
+//│                                   LCons ∧ {head: η} ≤ ⊥
+//│                                     LCons ≤ ⊥
+//│                                     {head: η} ≤ ⊥
+//│                                       η ≤ ⊥
+//│                                         Int ≤ ⊥
+//│                                   {tail: θ} ≤ ⊥
+//│                                     θ ≤ ⊥
+//│                                       ι ≤ ⊥
+//│                                         LNil ≤ ⊥
+//│               (LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β} ≤ (LCons ∧ {head: Str}) ∧ {tail: δ}
+//│                 (LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β} ≤ {tail: δ}
+//│                   LCons ∧ {head: Str} ≤ {tail: δ}
+//│                     LCons ≤ {tail: δ}
+//│                     {head: Str} ≤ {tail: δ}
+//│                       Str ≤ ⊥
+//│                   {tail: ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β} ≤ {tail: δ}
+//│                     ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β ≤ δ
+//│                       ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β ≤ LNil
+//│                         {κ ≥ γ, κ ≥ (LCons ∧ {head: Str}) ∧ {tail: κ}} ⟹ κ ≤ LNil
+//│                           {κ ≥ (LCons ∧ {head: Str}) ∧ {tail: κ}} ⟹ κ ≤ LNil
+//│                             κ ≤ LNil
+//│                               γ ∨ ((LCons ∧ {head: Str}) ∧ {tail: κ}) ≤ LNil
+//│                                 γ ≤ LNil
+//│                                   ζ ≤ LNil
+//│                                     (LCons ∧ {head: η}) ∧ {tail: θ} ≤ LNil
+//│                                       LCons ∧ {head: η} ≤ LNil
+//│                                         LCons ≤ LNil
+//│                                         {head: η} ≤ LNil
+//│                                           η ≤ ⊥
+//│                                             Int ≤ ⊥
+//│                                       {tail: θ} ≤ LNil
+//│                                         θ ≤ ⊥
+//│                                           ι ≤ ⊥
+//│                                             LNil ≤ ⊥
+//│                       ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β ≤ (LCons ∧ {head: Str}) ∧ {tail: δ}
+//│                         ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β ≤ LCons ∧ {head: Str}
+//│                           ∀β. {β ≥ γ, β ≥ (LCons ∧ {head: Str}) ∧ {tail: β}} ⟹ β ≤ {head: Str}
+//│                             {λ ≥ γ, λ ≥ (LCons ∧ {head: Str}) ∧ {tail: λ}} ⟹ λ ≤ {head: Str}
+//│                               {λ ≥ (LCons ∧ {head: Str}) ∧ {tail: λ}} ⟹ λ ≤ {head: Str}
+//│                                 λ ≤ {head: Str}
+//│                                   γ ∨ ((LCons ∧ {head: Str}) ∧ {tail: λ}) ≤ {head: Str}
+//│                                     γ ≤ {head: Str}
+//│                                       ζ ≤ {head: Str}
+//│                                         (LCons ∧ {head: η}) ∧ {tail: θ} ≤ {head: Str}
+//│                                           LCons ∧ {head: η} ≤ {head: Str}
+//│                                             LCons ≤ {head: Str}
+//│                                             {head: η} ≤ {head: Str}
+//│                                               η ≤ Str
+//│                                                 Int ≤ Str
+//│                                           {tail: θ} ≤ {head: Str}
+//│                                             θ ≤ ⊥
+//│                                               ι ≤ ⊥
+//│                                                 LNil ≤ ⊥
+
 /** Resume the pending stack of column and fragment pairs. */
 data class Pending(seqs)
 /** Process a fragment at the given column before resuming the stack. */

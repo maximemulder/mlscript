@@ -167,24 +167,17 @@ type SharedBase = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => ([Str <:
 
 :te
 SharedBase <:< (Int -> Tree)
-//│ ═══[TYPE ERROR] Judgment F[⟨25, 26⟩] ≤ 27 repeats a judgment in progress through a cycle of bounds.
+//│ ═══[TYPE ERROR] Cannot solve judgment SharedBase ≤ Int → Tree.
 //│ Typing error tree:
 //│   SharedBase ≤ Int → Tree
 //│     ∀X, Y. {F[⟨X, Y⟩] ≤ X, F[⟨X, Y⟩] ≤ Y, Str ≤ Y} ⟹ Int → Y ≤ Int → Tree
-//│       {F[⟨β, α⟩] ≤ β, F[⟨β, α⟩] ≤ α, Str ≤ α} ⟹ Int → α ≤ Int → Tree
-//│         {F[⟨β, α⟩] ≤ α, Str ≤ α} ⟹ Int → α ≤ Int → Tree
-//│           {Str ≤ α} ⟹ Int → α ≤ Int → Tree
-//│             Int → α ≤ Int → Tree
-//│               α ≤ Tree
-//│                 F[⟨β, α⟩] ∨ Str ≤ Tree
-//│                   F[⟨β, α⟩] ∨ Str ≤ ∀Z. {Z ≥ F[⟨Z, Z⟩]} ⟹ Z
-//│                     F[⟨β, α⟩] ∨ Str ≤ {γ ≥ F[⟨γ, γ⟩]} ⟹ γ
-//│                       F[⟨β, α⟩] ∨ Str ≤ γ
-//│                         F[⟨β, α⟩] ≤ γ
-//│                           F[⟨β, α⟩] ≤ F[⟨γ, γ⟩]
-//│                             ⟨β, α⟩ ≤ ⟨γ, γ⟩
-//│                               β ≤ γ
-//│                                 F[⟨β, α⟩] ≤ γ
+//│       Int → (Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X)) ≤ Int → Tree
+//│         Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ Tree
+//│           Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ ∀Z. {Z ≥ F[⟨Z, Z⟩]} ⟹ Z
+//│             Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ {α ≥ F[⟨α, α⟩]} ⟹ α
+//│               Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ α
+//│                 Str ≤ α
+//│                   Str ≤ F[⟨α, α⟩]
 
 /** The result carrier and the argument may require different instances. */
 type SharedDomain = [X, Y] -> ([F[[X, Y]] <:< X] => ([F[[X, Y]] <:< Y] => Y -> X))
@@ -221,3 +214,43 @@ SharedUpper <:< (Int -> Tree)
 //│           {β ≤ Str} ⟹ Int → α ≤ Int → Tree
 //│             β ≤ Str
 //│               F[⟨α, β⟩] ≤ Str
+
+/** Only the second component needs the string base. Both contain the recursive layer. */
+type Offset = [Z restricts F[[Z, (Str | Z)]]] -> Z
+type Unequal = [X, Y] -> ([F[[X, Y]] <:< (X & Y)] => ([Str <:< Y] => Int -> [X, Y]))
+//│ Offset = ∀Z. {Z ≥ F[⟨Z, Str ∨ Z⟩]} ⟹ Z
+//│ Unequal = ∀X, Y. {F[⟨X, Y⟩] ≤ X ∧ Y, Str ≤ Y} ⟹ Int → ⟨X, Y⟩
+
+Unequal <:< (Int -> [Offset, (Str | Offset)])
+//│ OK
+
+:te
+Unequal <:< (Int -> [Offset, Offset])
+//│ ═══[TYPE ERROR] Cannot solve judgment Unequal ≤ Int → ⟨Offset, Offset⟩.
+//│ Typing error tree:
+//│   Unequal ≤ Int → ⟨Offset, Offset⟩
+//│     ∀X, Y. {F[⟨X, Y⟩] ≤ X ∧ Y, Str ≤ Y} ⟹ Int → ⟨X, Y⟩ ≤ Int → ⟨Offset, Offset⟩
+//│       Int → ⟨∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X, Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X)⟩ ≤ Int → ⟨Offset, Offset⟩
+//│         ⟨∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X, Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X)⟩ ≤ ⟨Offset, Offset⟩
+//│           Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ Offset
+//│             Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ ∀Z. {Z ≥ F[⟨Z, Str ∨ Z⟩]} ⟹ Z
+//│               Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ {α ≥ F[⟨α, Str ∨ α⟩]} ⟹ α
+//│                 Str ∨ (∀X. {X ≥ F[⟨X, Str ∨ X⟩]} ⟹ X) ≤ α
+//│                   Str ≤ α
+//│                     Str ≤ F[⟨α, Str ∨ α⟩]
+
+/** A union on the lower side gives the same obligations as separate guards. */
+type Packed = [X, Y] -> ([F[[X, Y]] <:< X] => ([(Str | F[[X, Y]]) <:< Y] => Int -> [X, Y]))
+//│ Packed = ∀X, Y. {F[⟨X, Y⟩] ≤ X, Str ∨ F[⟨X, Y⟩] ≤ Y} ⟹ Int → ⟨X, Y⟩
+
+Packed <:< (Int -> [Offset, (Str | Offset)])
+//│ OK
+
+/** Each component retains its own base when closing the common recursive layer. */
+type Distinct = [X, Y] -> ([(Int | F[[X, Y]]) <:< X] => ([(Str | F[[X, Y]]) <:< Y] => Int -> [X, Y]))
+type Core = [Z restricts F[[(Int | Z), (Str | Z)]]] -> Z
+//│ Distinct = ∀X, Y. {Int ∨ F[⟨X, Y⟩] ≤ X, Str ∨ F[⟨X, Y⟩] ≤ Y} ⟹ Int → ⟨X, Y⟩
+//│ Core = ∀Z. {Z ≥ F[⟨Int ∨ Z, Str ∨ Z⟩]} ⟹ Z
+
+Distinct <:< (Int -> [(Int | Core), (Str | Core)])
+//│ OK

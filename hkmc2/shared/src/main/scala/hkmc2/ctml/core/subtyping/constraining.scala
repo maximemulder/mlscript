@@ -565,6 +565,12 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
  *  carrier: R ≤ X implies F[R] ≤ F[X] ≤ X for each carrier X. A covariant body B thus
  *  has least instance B[R]. Unrelated quantifiers remain in scope around that instance.
  *
+ *  For a group with bounds Bi ∨ H(Xs) ≤ Xi, each Bi is independent of the group and H
+ *  collects all shared lower bounds. Write Xi = Bi ∨ Z and close H(B1 ∨ Z, ..., Bn ∨ Z)
+ *  at its least carrier R. For any admissible tuple, M = ⋂Xi gives Bi ∨ M ≤ Xi, hence
+ *  H(B1 ∨ M, ..., Bn ∨ M) ≤ H(Xs) ≤ M. Thus R ≤ M and Bi ∨ R ≤ Xi for every i.
+ *  Fold gives the converse obligation: the tuple (Bi ∨ R)i is itself admissible.
+ *
  *  With several lower bounds on X the argument applies to each one separately. Guards
  *  independent of X remain obligations of the surrounding scheme. Nested constrained types
  *  require a variance analysis of their guards and are outside this structural rule. */
@@ -576,41 +582,63 @@ private def leastCarrierInstance(scheme: TUniv): Option[Type] =
     case Direction.Super => (guard.right, guard.left)
     case Direction.Sub => (guard.left, guard.right)
 
-  val lowerBounds = guards.map(operands).collect:
+  /** Split a meet on the upper side, preserving the spelling and scope of each obligation. */
+  def splitUpper(g: Constraint): List[Constraint] = operands(g)._2 match
+    case TJointType(JointMode.Inter, left, right) =>
+      List(left, right).flatMap: part =>
+        splitUpper(if g.dir == Direction.Sub then g.copy(right = part) else g.copy(left = part))
+    case _ => List(g)
+
+  /** Each summand of a lower bound must be below the same carrier. */
+  def summands(t: Type): List[Type] = t match
+    case TJointType(JointMode.Union, left, right) => summands(left) ::: summands(right)
+    case _ => List(t)
+
+  val split = guards.flatMap(splitUpper)
+  val lowerBounds = split.map(operands).collect:
     case (lower, TVar(x)) if variables.contains(x) => (lower, x)
 
-  // If several variables share H(xs) ≤ xi, any admissible tuple has a common lower bound
-  // M = ⋂xi with H(M, ..., M) ≤ H(xs) ≤ M. For a covariant body it suffices to consider
-  // these diagonal instances, provided no other guard depends on the group.
-  val recursiveBounds = lowerBounds.filter((lower, x) => lower.hasVar(x))
+  val layers = lowerBounds.flatMap((lower, x) => summands(lower).map((_, x)))
+  val recursiveBounds = layers.filter((lower, x) => lower.hasVar(x))
   recursiveBounds.distinctBy(_._1).iterator.flatMap: (layer, representative) =>
-    val peers = lowerBounds.collect { case (`layer`, x) if x != representative => x }.distinct
+    val peers = layers.collect { case (`layer`, x) if x != representative => x }.distinct
+    val members = representative :: peers
+    val group = members.toSet
     val owner = TVar(representative)
-    val group = peers.toSet + representative
-    val (defining, remaining) = guards.partition(_.getVars.exists(group))
-    val validBounds = defining.forall: guard =>
-      operands(guard) match
-        case (lower, TVar(x)) if group(x) =>
-          peers.isEmpty || lower == layer
-        case _ => false
+    val (defining, remaining) = split.partition(_.getVars.exists(group))
+    val byOwner = layers.filter((_, x) => group(x)).groupMap(_._2)(_._1)
+    val common = byOwner(representative).distinct.filter(l => peers.forall(x => byOwner(x).contains(l)))
+    val bases = byOwner.view.mapValues(_.filterNot(common.contains).distinct).toMap
 
-    /** Identify the carriers before checking variance. Structural substitution preserves each
-     *  occurrence, so a negative use of any member remains negative. */
-    def diagonal(t: Type): Type = peers.foldLeft(t)((t, v) => t.substitute(v, owner))
-    if !validBounds || mentionsConstrained(body) then None
+    // All dependent guards must be accounted for. Private bases may depend on outer parameters,
+    // but only layers shared by every member may refer back to the group.
+    val allLower = defining.forall: guard =>
+      operands(guard)._2 match
+        case TVar(x) => group(x)
+        case _ => false
+    val independentBases = bases.valuesIterator.flatten.forall: base =>
+      !base.getVars.exists(group) && !mentionsConstrained(base)
+
+    /** Write Xi as Bi ∨ Z, with Bi the member's private bases. Replace the owner first, so the
+     *  free Z introduced for a peer cannot itself be replaced. */
+    def withBases(t: Type): Type = members.foldLeft(t): (result, x) =>
+      val replacement = bases(x).foldRight(owner: Type)(TJointType(JointMode.Union, _, _))
+      if replacement == TVar(x) then result else result.substitute(x, replacement)
+
+    if !allLower || !independentBases || mentionsConstrained(body) then None
     else
-      val diagonalBody = diagonal(body)
+      val instanceBody = withBases(body)
       val carrierGuards = if peers.isEmpty then defining else
-        List(Constraint(owner, Direction.Super, diagonal(layer)))
+        common.map(withBases).distinct.map(Constraint(owner, Direction.Super, _))
       val monotone = carrierGuards.forall: guard =>
         val (lower, _) = operands(guard)
         !mentionsConstrained(lower) && !lower.getVarPolarities(representative).negative
-      if !monotone || diagonalBody.getVarPolarities(representative) != Polarities(false, true)
+      if !monotone || instanceBody.getVarPolarities(representative) != Polarities(false, true)
           || (peers.isEmpty && body == owner) then None
       else
         val guardedOwner = carrierGuards.foldRight(owner: Type)((g, t) => TConstrained(t, g))
         val carrier = TUniv(representative, guardedOwner)
-        val instance = diagonalBody.substitute(representative, carrier)
+        val instance = instanceBody.substitute(representative, carrier)
         val result = remaining.foldRight(instance)((g, t) => TConstrained(t, g))
         Some(variables.filterNot(group).foldRight(result)(TUniv.apply))
   .nextOption()

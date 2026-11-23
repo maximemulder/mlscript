@@ -22,8 +22,17 @@ monotone H, let M be the intersection of an admissible tuple Xs. Then
 `H(M, …, M) ≤ H(Xs) ≤ M`. The diagonal tuple is admissible and gives a smaller or equal
 covariant result. Conversely, every admissible diagonal is already an instance of the original
 scheme. The checker can therefore close the single diagonal layer with the usual carrier rule.
-It requires structurally identical layers and checks every guard mentioning a group member.
 The inferred tree checks against `MandTree` and the random stream against `IntStream`.
+
+The same reasoning allows a private base Bi for each Xi. For bounds
+`Bi ∨ H(Xs) ≤ Xi`, close the unary layer `Z ↦ H(B1 ∨ Z, …, Bn ∨ Z)` at its least carrier R.
+The tuple `Xi = Bi ∨ R` satisfies every bound by fold. For any admissible tuple with intersection
+M, each `Bi ∨ M ≤ Xi`, so monotonicity gives `H(B1 ∨ M, …, Bn ∨ M) ≤ H(Xs) ≤ M`.
+It follows that `R ≤ M` and the constructed tuple is componentwise least. The checker splits
+upper intersections and lower unions, recognizes shared summands structurally, and requires each
+private base to be independent of the group. Other guards mentioning a member prevent the rewrite.
+In Pretty’s `mkIndent`, the suffix bound `A ≤ X ∧ Y` supplies a common base. A string-list suffix
+therefore yields a string list, while an integer-list suffix fails the same result check.
 
 The branch-free comparisons in `ctmlRecursiveCarrierBounds.mls` also cover distinct layers. For `F(Y) ≤ X` and `G(X) ≤ Y`, choose `X = R` for the carrier of `F(G(Z)) ≤ Z`,
 and `Y = G(R)`. Both explicit guard checks succeed, but implicit instantiation fails. Neither

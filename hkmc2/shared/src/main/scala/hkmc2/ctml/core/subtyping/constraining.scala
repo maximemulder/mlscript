@@ -7,6 +7,7 @@ import hkmc2.ctml.core.{is, isSubClass}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
+import hkmc2.ctml.core.structural.hasVar
 import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.getVarPolarities.getVarPolarities
 import hkmc2.ctml.core.type_.impls.substitute.substitute
@@ -564,25 +565,31 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
  *  carrier: R ≤ X implies F[R] ≤ F[X] ≤ X for each carrier X. A covariant body B thus
  *  has least instance B[R]. Unrelated quantifiers remain in scope around that instance.
  *
- *  Only a single defining guard is discharged by this argument. The variance check is
- *  structural and excludes guards nested in F or B. An identity body is the carrier encoding
- *  itself, so ordinary universal elimination handles that case. */
+ *  With several lower bounds on X the argument applies to each one separately. Guards
+ *  independent of X remain obligations of the surrounding scheme. Nested constrained types
+ *  require a variance analysis of their guards and are outside this structural rule. */
 private def leastCarrierInstance(scheme: TUniv): Option[Type] =
   val (variables, guarded) = scheme.getUnivComponents
-  guarded match
-    case TConstrained(body, guard) =>
-      val (lower, upper) = guard.dir match
-        case Direction.Super => (guard.right, guard.left)
-        case Direction.Sub => (guard.left, guard.right)
-      upper match
-        case TVar(x) if variables.contains(x) && body != upper &&
-            !mentionsConstrained(lower) && !mentionsConstrained(body) &&
-            lower.getVarPolarities(x) == Polarities(false, true) &&
-            body.getVarPolarities(x) == Polarities(false, true) =>
-          val carrier = TUniv(x, TConstrained(upper, guard))
-          Some(variables.filterNot(_ == x).foldRight(body.substitute(x, carrier))(TUniv.apply))
-        case _ => None
-    case _ => None
+  val (body, guards) = guarded.getConstrainedComponents
+  /** Orient either spelling of a guard as lower ≤ upper. */
+  def operands(guard: Constraint): (Type, Type) = guard.dir match
+    case Direction.Super => (guard.right, guard.left)
+    case Direction.Sub => (guard.left, guard.right)
+
+  guards.iterator.map(operands).collectFirst:
+    case (lower, TVar(x)) if variables.contains(x) && lower.hasVar(x) => x
+  .flatMap: x =>
+    val owner = TVar(x)
+    val (defining, remaining) = guards.partition(_.hasVar(x))
+    val monotone = defining.forall: guard =>
+      val (lower, upper) = operands(guard)
+      upper == owner && !mentionsConstrained(lower) && !lower.getVarPolarities(x).negative
+    if body == owner || !monotone || mentionsConstrained(body) ||
+        body.getVarPolarities(x) != Polarities(false, true) then None
+    else
+      val carrier = TUniv(x, defining.foldRight(owner: Type)((g, t) => TConstrained(t, g)))
+      val result = remaining.foldRight(body.substitute(x, carrier))((g, t) => TConstrained(t, g))
+      Some(variables.filterNot(_ == x).foldRight(result)(TUniv.apply))
 
 /** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
  *  elimination: constrain every substituted guard and return its obligations. Failure leaves

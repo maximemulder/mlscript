@@ -5,14 +5,22 @@
 For a scheme `∀X. {F(X) ≤ X} ⇒ B(X)`, implicit elimination can choose
 `R = ∀Y. {F(Y) ≤ Y} ⇒ Y`. When F is monotone, R satisfies the guard. When B is covariant,
 B(R) is below every admissible instance. The checker applies this equivalence before opening the
-target. It checks variance structurally for one defining guard with guard-free F and B. Other
-quantifiers bind the same parameters around the result. The identity body already denotes R.
+target. Several lower bounds on the same X correspond to closure under their union. The checker
+keeps all of them in R and preserves guards independent of X around the resulting instance.
+It checks variance structurally for guard-free operators and bodies. Other quantifiers bind the
+same parameters around the result. The identity body already denotes R.
 The [fold derivation](../subtyping/recursive-encoding.md#fold) gives the finite proof.
 
 The abstract producer comparison, Power's `list() as Series`, PrimeTest's inline
 `takeLz(2, iterate(x => x + 1, 1))`, and Nofib's implicit map/range and take/range compositions
 check. The PrimeTest prefix has integer elements and fails a string-list assertion. The focused
 subtyping tests also exercise contravariant uses, an additional guard, and negative recursion.
+
+The branch-free comparisons in `ctmlRecursiveCarrierBounds.mls` separate this rule from coupled
+recursion. For `F(Y) ≤ X` and `G(X) ≤ Y`, choose `X = R` for the carrier of `F(G(Z)) ≤ Z`,
+and `Y = G(R)`. Both explicit guard checks succeed, but implicit instantiation fails. Neither
+bound contains a direct self-reference. This supplies a finite witness for testing elimination
+of a variable from a system of recursive bounds.
 
 Mandel has an independent precision problem. In its integer reduction, extract the step as
 `step(c, self) = delay(() => LzCons(c, mapLz(z => z + c, self())))`. The inferred callback

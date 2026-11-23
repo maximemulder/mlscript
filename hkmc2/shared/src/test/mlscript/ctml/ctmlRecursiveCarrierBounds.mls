@@ -1,0 +1,140 @@
+:ctml
+
+type F
+type Rec = [X restricts F[X]] -> X
+type Based = [X restricts (Str | F[X])] -> X
+type Separate = [X restricts F[X]] -> ([Str <:< X] => Int -> X)
+type Reversed = [X restricts Str] -> ([F[X] <:< X] => Int -> X)
+//│ Rec = ∀X. {X ≥ F[X]} ⟹ X
+//│ Based = ∀X. {X ≥ Str ∨ F[X]} ⟹ X
+//│ Separate = ∀X. {X ≥ F[X], Str ≤ X} ⟹ Int → X
+//│ Reversed = ∀X. {X ≥ Str, F[X] ≤ X} ⟹ Int → X
+
+Separate <:< (Int -> Based)
+//│ OK
+
+Reversed <:< (Int -> Based)
+//│ OK
+
+declare fun separate: Separate
+separate[Based] as (Int -> Based)
+//│ separate: Separate
+//│ Int → Based
+
+:te
+Separate <:< (Int -> Rec)
+//│ ═══[TYPE ERROR] Cannot solve judgment Separate ≤ Int → Rec.
+//│ Typing error tree:
+//│   Separate ≤ Int → Rec
+//│     ∀X. {X ≥ F[X], Str ≤ X} ⟹ Int → X ≤ Int → Rec
+//│       Int → (∀X. {X ≥ F[X], Str ≤ X} ⟹ X) ≤ Int → Rec
+//│         ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ Rec
+//│           ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│             ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ {α ≥ F[α]} ⟹ α
+//│               ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ α
+//│                 ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ F[α]
+//│                   {β ≥ F[β], Str ≤ β} ⟹ β ≤ F[α]
+//│                     {Str ≤ β} ⟹ β ≤ F[α]
+//│                       β ≤ F[α]
+//│                         F[β] ∨ Str ≤ F[α]
+//│                           F[β] ≤ F[α]
+//│                             β ≤ α
+//│                               F[β] ∨ Str ≤ α
+//│                                 Str ≤ α
+//│                                   Str ≤ F[α]
+
+type G
+type Both = [X restricts (F[X] | G[X])] -> X
+type TwoSteps = [X restricts F[X]] -> ([G[X] <:< X] => Int -> X)
+//│ Both = ∀X. {X ≥ F[X] ∨ G[X]} ⟹ X
+//│ TwoSteps = ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ Int → X
+
+TwoSteps <:< (Int -> Both)
+//│ OK
+
+:te
+TwoSteps <:< (Int -> Rec)
+//│ ═══[TYPE ERROR] Cannot solve judgment TwoSteps ≤ Int → Rec.
+//│ Typing error tree:
+//│   TwoSteps ≤ Int → Rec
+//│     ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ Int → X ≤ Int → Rec
+//│       Int → (∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X) ≤ Int → Rec
+//│         ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ Rec
+//│           ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│             ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ {α ≥ F[α]} ⟹ α
+//│               ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ α
+//│                 ∀X. {X ≥ F[X], G[X] ≤ X} ⟹ X ≤ F[α]
+//│                   {β ≥ F[β], G[β] ≤ β} ⟹ β ≤ F[α]
+//│                     {G[β] ≤ β} ⟹ β ≤ F[α]
+//│                       β ≤ F[α]
+//│                         F[β] ∨ G[β] ≤ F[α]
+//│                           F[β] ≤ F[α]
+//│                             β ≤ α
+//│                               F[β] ∨ G[β] ≤ α
+//│                                 G[β] ≤ α
+//│                                   G[β] ≤ F[α]
+//│                                     G ≤ F
+//│                                       G ≤ ⊥
+//│                                         ⊤ ≤ ⊥
+
+// The parameter bound remains an obligation after closing the result carrier.
+type Parameter = [A, X restricts F[X]] -> ([A <:< Int] => A -> X)
+//│ Parameter = ∀A, X. {X ≥ F[X], A ≤ Int} ⟹ A → X
+
+Parameter <:< (Int -> Rec)
+//│ OK
+
+:te
+Parameter <:< (Str -> Rec)
+//│ ═══[TYPE ERROR] Cannot solve judgment Parameter ≤ Str → Rec.
+//│ Typing error tree:
+//│   Parameter ≤ Str → Rec
+//│     ∀A, X. {X ≥ F[X], A ≤ Int} ⟹ A → X ≤ Str → Rec
+//│       ∀A. {A ≤ Int} ⟹ A → (∀X. {X ≥ F[X]} ⟹ X) ≤ Str → Rec
+//│         {α ≤ Int} ⟹ α → (∀X. {X ≥ F[X]} ⟹ X) ≤ Str → Rec
+//│           α → (∀X. {X ≥ F[X]} ⟹ X) ≤ Str → Rec
+//│             Str ≤ α
+//│               Str ≤ Int
+
+declare fun parameter: Parameter
+//│ parameter: Parameter
+
+parameter[Int, Rec] as (Int -> Rec)
+//│ Int → Rec
+
+type Mutual = [X, Y] -> ([F[Y] <:< X] => ([G[X] <:< Y] => Int -> X))
+type Combined = [Z restricts F[G[Z]]] -> Z
+//│ Mutual = ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y} ⟹ Int → X
+//│ Combined = ∀Z. {Z ≥ F[G[Z]]} ⟹ Z
+
+:fixme // FIXME: Implicit instantiation does not synthesize a carrier for coupled bounds.
+Mutual <:< (Int -> Combined)
+//│ ═══[TYPE ERROR] Judgment F[18] ≤ 19 repeats a judgment in progress through a cycle of bounds.
+//│ Typing error tree:
+//│   Mutual ≤ Int → Combined
+//│     ∀X, Y. {F[Y] ≤ X, G[X] ≤ Y} ⟹ Int → X ≤ Int → Combined
+//│       {F[β] ≤ α, G[α] ≤ β} ⟹ Int → α ≤ Int → Combined
+//│         {G[α] ≤ β} ⟹ Int → α ≤ Int → Combined
+//│           Int → α ≤ Int → Combined
+//│             α ≤ Combined
+//│               F[β] ≤ Combined
+//│                 F[β] ≤ ∀Z. {Z ≥ F[G[Z]]} ⟹ Z
+//│                   F[β] ≤ {γ ≥ F[G[γ]]} ⟹ γ
+//│                     F[β] ≤ γ
+//│                       F[β] ≤ F[G[γ]]
+//│                         β ≤ G[γ]
+//│                           G[α] ≤ G[γ]
+//│                             α ≤ γ
+//│                               F[β] ≤ γ
+
+declare fun mutual: Mutual
+//│ mutual: Mutual
+
+mutual[Combined, G[Combined]] as (Int -> Combined)
+//│ Int → Combined
+
+:te
+mutual[Str, Int] as (Int -> Combined)
+//│ ═══[TYPE ERROR] Cannot solve judgment G[Str] ≤ Int.
+//│ Typing error tree:
+//│   G[Str] ≤ Int

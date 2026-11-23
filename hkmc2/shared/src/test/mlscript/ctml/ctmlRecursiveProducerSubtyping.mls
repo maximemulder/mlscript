@@ -68,22 +68,25 @@ type WithBase = [X restricts F[X]] -> ([Str <:< X] => Int -> X)
 
 :te
 WithBase <:< (Int -> Rec)
-//│ ═══[TYPE ERROR] Judgment F[15] ∨ Str ≤ 16 repeats a judgment in progress through a cycle of bounds.
+//│ ═══[TYPE ERROR] Cannot solve judgment WithBase ≤ Int → Rec.
 //│ Typing error tree:
 //│   WithBase ≤ Int → Rec
 //│     ∀X. {X ≥ F[X], Str ≤ X} ⟹ Int → X ≤ Int → Rec
-//│       {α ≥ F[α], Str ≤ α} ⟹ Int → α ≤ Int → Rec
-//│         {Str ≤ α} ⟹ Int → α ≤ Int → Rec
-//│           Int → α ≤ Int → Rec
-//│             α ≤ Rec
-//│               F[α] ∨ Str ≤ Rec
-//│                 F[α] ∨ Str ≤ ∀X. {X ≥ F[X]} ⟹ X
-//│                   F[α] ∨ Str ≤ {β ≥ F[β]} ⟹ β
-//│                     F[α] ∨ Str ≤ β
-//│                       F[α] ≤ β
-//│                         F[α] ≤ F[β]
-//│                           α ≤ β
-//│                             F[α] ∨ Str ≤ β
+//│       Int → (∀X. {X ≥ F[X], Str ≤ X} ⟹ X) ≤ Int → Rec
+//│         ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ Rec
+//│           ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ ∀X. {X ≥ F[X]} ⟹ X
+//│             ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ {α ≥ F[α]} ⟹ α
+//│               ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ α
+//│                 ∀X. {X ≥ F[X], Str ≤ X} ⟹ X ≤ F[α]
+//│                   {β ≥ F[β], Str ≤ β} ⟹ β ≤ F[α]
+//│                     {Str ≤ β} ⟹ β ≤ F[α]
+//│                       β ≤ F[α]
+//│                         F[β] ∨ Str ≤ F[α]
+//│                           F[β] ≤ F[α]
+//│                             β ≤ α
+//│                               F[β] ∨ Str ≤ α
+//│                                 Str ≤ α
+//│                                   Str ≤ F[α]
 
 // A negative occurrence in the defining guard need not satisfy a positive fixed-point law.
 type NegativeProducer = [X restricts ~X] -> Int -> X

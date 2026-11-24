@@ -315,6 +315,76 @@ PermutedSeed <:< (Int -> ({left: (Int | {next: BackRoot})} & {right: BackRoot}))
 //│ α rigid (2), eff β ≥ Int, β ≥ Int, eff β ≤ Int, β ≤ Int, β flex (1), γ rigid (2), δ rigid (2), eff ε ≥ Int, ε ≥ Int, eff ε ≤ Int, ε ≤ Int, ε flex (1)
 //│ OK
 
+// Observing only Y still checks its buried seed. Widen Int to Int | Str.
+type WideBack = [T restricts {back: ((Int | Str) | {next: T})}] -> T
+PermutedSeed <:< (Int -> ({right: WideBack}))
+//│ WideBack = ∀T. {T ≥ {back: (Int ∨ Str) ∨ {next: T}}} ⟹ T
+//│ α rigid (2), eff β ≥ Int, β ≥ Int, eff β ≤ Int, β ≤ Int, β flex (1)
+//│ OK
+
+// Replacing the buried seed with Str excludes the Int admitted by the argument.
+type StringBack = [T restricts {back: (Str | {next: T})}] -> T
+//│ StringBack = ∀T. {T ≥ {back: Str ∨ {next: T}}} ⟹ T
+
+:te
+PermutedSeed <:< (Int -> ({right: StringBack}))
+//│ ═══[TYPE ERROR] Cannot solve judgment PermutedSeed ≤ Int → {right: StringBack}.
+//│ Typing error tree:
+//│   PermutedSeed ≤ Int → {right: StringBack}
+//│     ∀Y, X, P. {{back: X} ≤ Y, P ∨ {next: Y} ≤ X, P ≤ Int} ⟹ P → ({left: X} ∧ {right: Y}) ≤ Int → {right: StringBack}
+//│       ∀P. {P ≤ Int} ⟹ P → ({left: ∀X. {X ≥ P, X ≥ {next: {back: X}}} ⟹ X} ∧ {right: {back: ∀X. {X ≥ P, X ≥ {next: {back: X}}} ⟹ X}}) ≤ Int → {right: StringBack}
+//│         {α ≤ Int} ⟹ α → ({left: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ∧ {right: {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X}}) ≤ Int → {right: StringBack}
+//│           α → ({left: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ∧ {right: {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X}}) ≤ Int → {right: StringBack}
+//│             {left: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ∧ {right: {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X}} ≤ {right: StringBack}
+//│               {left: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ≤ {right: StringBack}
+//│                 ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X ≤ ⊥
+//│                   {β ≥ α, β ≥ {next: {back: β}}} ⟹ β ≤ ⊥
+//│                     {β ≥ {next: {back: β}}} ⟹ β ≤ ⊥
+//│                       β ≤ ⊥
+//│                         α ∨ {next: {back: β}} ≤ ⊥
+//│                           α ≤ ⊥
+//│                             Int ≤ ⊥
+//│               {right: {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X}} ≤ {right: StringBack}
+//│                 {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ≤ StringBack
+//│                   {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ≤ ∀T. {T ≥ {back: Str ∨ {next: T}}} ⟹ T
+//│                     {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ≤ {γ ≥ {back: Str ∨ {next: γ}}} ⟹ γ
+//│                       {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ≤ γ
+//│                         {back: ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X} ≤ {back: Str ∨ {next: γ}}
+//│                           ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X ≤ Str ∨ {next: γ}
+//│                             ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X ≤ Str
+//│                               {δ ≥ α, δ ≥ {next: {back: δ}}} ⟹ δ ≤ Str
+//│                                 {δ ≥ {next: {back: δ}}} ⟹ δ ≤ Str
+//│                                   δ ≤ Str
+//│                                     α ∨ {next: {back: δ}} ≤ Str
+//│                                       α ≤ Str
+//│                                         Int ≤ Str
+//│                             ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X ≤ {next: γ}
+//│                               {ε ≥ α, ε ≥ {next: {back: ε}}} ⟹ ε ≤ {next: γ}
+//│                                 {ε ≥ {next: {back: ε}}} ⟹ ε ≤ {next: γ}
+//│                                   ε ≤ {next: γ}
+//│                                     α ∨ {next: {back: ε}} ≤ {next: γ}
+//│                                       α ≤ {next: γ}
+//│                                         Int ≤ {next: γ}
+//│                             (∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X) ∧ ¬Str ≤ Str ∨ {next: γ}
+//│                               (∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X) ∧ ¬Str ≤ Str
+//│                                 ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X ≤ Str
+//│                                   {ζ ≥ α, ζ ≥ {next: {back: ζ}}} ⟹ ζ ≤ Str
+//│                                     {ζ ≥ {next: {back: ζ}}} ⟹ ζ ≤ Str
+//│                                       ζ ≤ Str
+//│                                         α ∨ {next: {back: ζ}} ≤ Str
+//│                                           α ≤ Str
+//│                                             Int ≤ Str
+//│                                 ¬Str ≤ Str
+//│                               (∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X) ∧ ¬Str ≤ {next: γ}
+//│                                 ∀X. {X ≥ α, X ≥ {next: {back: X}}} ⟹ X ≤ {next: γ}
+//│                                   {η ≥ α, η ≥ {next: {back: η}}} ⟹ η ≤ {next: γ}
+//│                                     {η ≥ {next: {back: η}}} ⟹ η ≤ {next: γ}
+//│                                       η ≤ {next: γ}
+//│                                         α ∨ {next: {back: η}} ≤ {next: γ}
+//│                                           α ≤ {next: γ}
+//│                                             Int ≤ {next: γ}
+//│                                 ¬Str ≤ {next: γ}
+
 // The argument would force Str <: P while the original guard requires P <: Int.
 
 :te

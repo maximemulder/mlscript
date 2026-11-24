@@ -272,6 +272,20 @@ grow("bad")
 //│     Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ α})) ≤ Str → β
 //│       Str ≤ Int
 
+// P supplies the seed of X and the argument type. Every instance must satisfy P <: Int.
+type Seeded = [X, P, Y] ->
+  ([(P | {next: Y}) <:< X] => ([P <:< Int] => ([{back: X} <:< Y] =>
+    P -> ({left: X} & {right: Y}))))
+type IntRoot = [T restricts (Int | {next: {back: T}})] -> T
+type IntPair = Int -> ({left: IntRoot} & {right: {back: IntRoot}})
+declare fun seeded: Seeded
+seeded[IntRoot, Int, {back: IntRoot}] as IntPair
+//│ Seeded = ∀X, P, Y. {P ∨ {next: Y} ≤ X, P ≤ Int, {back: X} ≤ Y} ⟹ P → ({left: X} ∧ {right: Y})
+//│ IntRoot = ∀T. {T ≥ Int ∨ {next: {back: T}}} ⟹ T
+//│ IntPair = Int → ({left: IntRoot} ∧ {right: {back: IntRoot}})
+//│ seeded: Seeded
+//│ IntPair
+
 :ctml-dbg output
 // The closed comparison emits no obligations. The open result retains a lower bound.
 declare type Result
@@ -280,4 +294,73 @@ P <:< (Int -> Result)
 //│ α rigid (1)
 //│ OK
 //│ eff Result ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X}), Result ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X})
+//│ OK
+
+Seeded <:< IntPair
+//│ α rigid (2), β rigid (2), γ rigid (2), δ rigid (2), eff ε ≥ Int, ε ≥ Int, eff ε ≤ Int, ε ≤ Int, ε flex (1), ζ rigid (2), η rigid (2), eff θ ≥ Int, θ ≥ Int, eff θ ≤ Int, θ ≤ Int, θ flex (1)
+//│ OK
+
+type PermutedSeed = [Y, X, P] ->
+  ([{back: X} <:< Y] => ([(P | {next: Y}) <:< X] => ([P <:< Int] =>
+    P -> ({left: X} & {right: Y}))))
+PermutedSeed <:< IntPair
+//│ PermutedSeed = ∀Y, X, P. {{back: X} ≤ Y, P ∨ {next: Y} ≤ X, P ≤ Int} ⟹ P → ({left: X} ∧ {right: Y})
+//│ α rigid (2), β rigid (2), eff γ ≥ Int, γ ≥ Int, eff γ ≤ Int, γ ≤ Int, γ flex (1), δ rigid (2), ε rigid (2), eff ζ ≥ Int, ζ ≥ Int, eff ζ ≤ Int, ζ ≤ Int, ζ flex (1)
+//│ OK
+
+// Close the same cycle at Y, with P fixed to Int by the argument and guard.
+type BackRoot = [T restricts {back: (Int | {next: T})}] -> T
+PermutedSeed <:< (Int -> ({left: (Int | {next: BackRoot})} & {right: BackRoot}))
+//│ BackRoot = ∀T. {T ≥ {back: Int ∨ {next: T}}} ⟹ T
+//│ α rigid (2), eff β ≥ Int, β ≥ Int, eff β ≤ Int, β ≤ Int, β flex (1), γ rigid (2), δ rigid (2), eff ε ≥ Int, ε ≥ Int, eff ε ≤ Int, ε ≤ Int, ε flex (1)
+//│ OK
+
+// The argument would force Str <: P while the original guard requires P <: Int.
+
+:te
+Seeded <:< (Str -> Top)
+//│ ═══[TYPE ERROR] Cannot solve judgment Seeded ≤ Str → ⊤.
+//│ Typing error tree:
+//│   Seeded ≤ Str → ⊤
+//│     ∀X, P, Y. {P ∨ {next: Y} ≤ X, P ≤ Int, {back: X} ≤ Y} ⟹ P → ({left: X} ∧ {right: Y}) ≤ Str → ⊤
+//│       ∀P. {P ≤ Int} ⟹ P → ({left: P ∨ {next: ∀Y. {Y ≥ {back: P ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: P ∨ {next: Y}}} ⟹ Y}) ≤ Str → ⊤
+//│         {α ≤ Int} ⟹ α → ({left: α ∨ {next: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}) ≤ Str → ⊤
+//│           α → ({left: α ∨ {next: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}) ≤ Str → ⊤
+//│             Str ≤ α
+//│               Str ≤ Int
+
+// Int <: P <: X follows from the argument and the seed, and contradicts this result.
+
+:te
+Seeded <:< (Int -> ({left: Str}))
+//│ ═══[TYPE ERROR] Cannot solve judgment Seeded ≤ Int → {left: Str}.
+//│ Typing error tree:
+//│   Seeded ≤ Int → {left: Str}
+//│     ∀X, P, Y. {P ∨ {next: Y} ≤ X, P ≤ Int, {back: X} ≤ Y} ⟹ P → ({left: X} ∧ {right: Y}) ≤ Int → {left: Str}
+//│       ∀P. {P ≤ Int} ⟹ P → ({left: P ∨ {next: ∀Y. {Y ≥ {back: P ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: P ∨ {next: Y}}} ⟹ Y}) ≤ Int → {left: Str}
+//│         {α ≤ Int} ⟹ α → ({left: α ∨ {next: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}) ≤ Int → {left: Str}
+//│           α → ({left: α ∨ {next: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}) ≤ Int → {left: Str}
+//│             {left: α ∨ {next: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y} ≤ {left: Str}
+//│               {left: α} ∧ {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y} ≤ {left: Str}
+//│                 {left: α} ≤ {left: Str}
+//│                   α ≤ Str
+//│                     Int ≤ Str
+//│                 {right: ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y} ≤ {left: Str}
+//│                   ∀Y. {Y ≥ {back: α ∨ {next: Y}}} ⟹ Y ≤ ⊥
+//│                     {β ≥ {back: α ∨ {next: β}}} ⟹ β ≤ ⊥
+//│                       β ≤ ⊥
+//│                         {back: α ∨ {next: β}} ≤ ⊥
+//│                           {back: α} ≤ ⊥
+//│                             α ≤ ⊥
+//│                               Int ≤ ⊥
+
+// Each independent cycle has its own base and distinct recursive fields.
+type Independent = [X, U, Y, V] ->
+  ([(Nil | {next: Y}) <:< X] => ([(Str | {rest: V}) <:< U] =>
+    ([{back: X} <:< Y] => ([{prev: U} <:< V] => Int -> ({left: X} & {right: U})))))
+type StrRoot = [T restricts (Str | {rest: {prev: T}})] -> T
+Independent <:< (Int -> ({left: Root} & {right: StrRoot}))
+//│ Independent = ∀X, U, Y, V. {Nil ∨ {next: Y} ≤ X, Str ∨ {rest: V} ≤ U, {back: X} ≤ Y, {prev: U} ≤ V} ⟹ Int → ({left: X} ∧ {right: U})
+//│ StrRoot = ∀T. {T ≥ Str ∨ {rest: {prev: T}}} ⟹ T
+//│ α rigid (1), β rigid (1), γ rigid (1), δ rigid (1)
 //│ OK

@@ -2,6 +2,7 @@ package hkmc2.ctml.core.subtyping
 
 import org.scalatest.funsuite.AnyFunSuite
 
+import hkmc2.ctml.core.var_.declClass
 import hkmc2.ctml.core.structural.getVars
 import hkmc2.ctml.types.*
 
@@ -32,6 +33,13 @@ class LeastCarrierTest extends AnyFunSuite:
       val (remaining, _) = result.getUnivComponents
       assert(!remaining.contains(x) && !remaining.contains(y))
 
+    // The dense component by itself has a compact admissible tuple despite the expansion bound.
+    val denseBody = denseGuards.foldRight(tuple(dense))((g, t) => TConstrained(t, g))
+    val denseScheme = TUniv(dense.head, dense.tail.foldRight(denseBody)(TUniv.apply))
+    val allTop = dense.map(_ => TTop: Type).reduceLeft(TTuple.apply)
+    assert(leastCarrierInstances(denseScheme).isEmpty)
+    assert(subtypeProjectedInstance(denseScheme, allTop)(using SubContext.empty).exists(_.elems.isEmpty))
+
   test("renamed polymorphic payloads contribute a single recursive lower bound"):
     val x = TypeVar("X")
     val carrier = TVar(x)
@@ -57,3 +65,18 @@ class LeastCarrierTest extends AnyFunSuite:
     val guard = Constraint(lower, Direction.Sub, v)
     val scheme = TUniv(x, TConstrained(TLam(nil, v), guard))
     assert(leastCarrierInstances(scheme).isEmpty)
+
+  test("a projected tuple must satisfy the original cross-coordinate guards and fixed result"):
+    given SubContext = SubContext.empty.declClass("Seed", None).declClass("Other", None)
+    val seed = TClass(ClassVar("Seed"))
+    val other = TClass(ClassVar("Other"))
+    val x = TypeVar("X")
+    val y = TypeVar("Y")
+    val output = TTuple(TVar(x), TTuple(TVar(y), seed))
+    val guards = List(Constraint(seed, Direction.Sub, TVar(x)),
+      Constraint(TField("back", TVar(x)), Direction.Sub, TVar(y)))
+    val scheme = TUniv(x, TUniv(y, guards.foldRight(output: Type)((g, t) => TConstrained(t, g))))
+    val back = TField("back", seed)
+    assert(subtypeProjectedInstance(scheme, TTuple(seed, TTuple(back, seed))).nonEmpty)
+    assert(subtypeProjectedInstance(scheme, TTuple(seed, TTuple(TField("back", other), seed))).isEmpty)
+    assert(subtypeProjectedInstance(scheme, TTuple(seed, TTuple(back, other))).isEmpty)

@@ -83,7 +83,7 @@ private[subtyping] def leastCarrierInstances(scheme: TUniv): Option[CarrierInsta
         TConstrained(t, Constraint(bound._1, Direction.Sub, bound._2)))
       val equations = eligible.filter(eq => members(eq.variable))
       val prepared = if equations.size == 1 then equations else shareSubexpressions(equations)
-      if carrierSize(result :: prepared.flatMap(_.lowers), component.head) > carrierBudget then None
+      if !carrierSyntaxFits(result :: prepared.flatMap(_.lowers)) then None
       else eliminateCarriers(prepared, result).map: instance =>
         val parameters = variables.filterNot(members)
         /** Preserve the binders of coordinates outside the selected component. */
@@ -184,8 +184,7 @@ private def eliminateCarriers(equations: List[Carrier], result: Type): Option[Ty
   else lowers.foldRight(TBot: Type)(structuralCombine(JointMode.Union, _, _))
   val others = equations.filterNot(_.variable == x)
   val nextTypes = result :: others.flatMap(_.lowers)
-  val witnessSize = carrierSize(List(witness), x)
-  if carrierSize(nextTypes, x, witnessSize) > carrierBudget then return None
+  if !carrierSubstitutionFits(nextTypes, x, witness) then return None
   val rest = others.map: eq =>
     if eq.dependencies(x) then eq.copy(lowers = eq.lowers.map(_.substitute(x, witness))) else eq
   eliminateCarriers(rest, if inResult(x) then result.substitute(x, witness) else result)
@@ -193,10 +192,18 @@ private def eliminateCarriers(equations: List[Carrier], result: Type): Option[Ty
 /** Maximum unfolded syntax size of an intermediate carrier system. */
 private val carrierBudget = 4096
 
+/** Bound the traversal of the input to witness selection. */
+private[subtyping] def carrierSyntaxFits(types: List[Type]): Boolean =
+  carrierSize(types) <= carrierBudget
+
+/** Check a proposed substitution before materializing the type passed back to ordinary search. */
+private[subtyping] def carrierSubstitutionFits(bodies: List[Type], x: TypeVar, argument: Type): Boolean =
+  carrierSize(bodies, Some(x), carrierSize(List(argument))) <= carrierBudget
+
 /** Size after substituting a witness of the given size for free X. Stop once the budget is
  *  exceeded. Renaming a binder to avoid capture preserves its size.
  */
-private def carrierSize(types: List[Type], x: TypeVar, weight: Int = 1): Int =
+private def carrierSize(types: List[Type], x: Option[TypeVar] = None, weight: Int = 1): Int =
   /** Subtrees shadowing X are counted at unit weight after all free occurrences. */
   @tailrec
   def count(todo: List[Type], shadowed: List[Type], cost: Int, size: Int): Int =
@@ -204,8 +211,8 @@ private def carrierSize(types: List[Type], x: TypeVar, weight: Int = 1): Int =
     else todo match
       case Nil =>
         if shadowed.isEmpty then size else count(shadowed, Nil, 1, size)
-      case TVar(y) :: rest if y == x => count(rest, shadowed, cost, size + cost)
-      case TUniv(y, body) :: rest if y == x && cost != 1 =>
+      case TVar(y) :: rest if cost != 1 && x.contains(y) => count(rest, shadowed, cost, size + cost)
+      case TUniv(y, body) :: rest if cost != 1 && x.contains(y) =>
         count(rest, body :: shadowed, cost, size + 1)
       case t :: rest => count(t.components ::: rest, shadowed, cost, size + 1)
   count(types, Nil, weight, 0)

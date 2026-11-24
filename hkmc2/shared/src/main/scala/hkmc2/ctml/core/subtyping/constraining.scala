@@ -276,6 +276,14 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
 
   sub match
     case scheme: TUniv =>
+      withInstance(subtypeProjectedInstance(scheme, sup), preferDischarged = true)(
+        subtypeBinders(sub, sup))
+    case _ => subtypeBinders(sub, sup)
+
+/** Compare universals after transparent aliases expose the whole target. */
+private def subtypeBinders(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
+  sub match
+    case scheme: TUniv =>
       leastCarrierInstances(scheme) match
         case Some(instances) =>
           return try subtype(instances.primary, sup)
@@ -296,7 +304,7 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
       // variables first hides that witness, even though right introduction remains sound.
       sub match
         case sub: TUniv =>
-          return withTargetInstance(sub, sup)(subtypeUnivSup(sub, sup))
+          return withInstance(subtypeTargetInstance(sub, sup))(subtypeUnivSup(sub, sup))
         case _ =>
       return subtypeUnivSup(sub, sup)
     case _ =>
@@ -325,7 +333,7 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
   // guards before exposing a rigid target or choosing one branch of a target union.
   sub match
     case sub: TUniv =>
-      withTargetInstance(sub, sup)(subtypeStructural(sub, sup))
+      withInstance(subtypeTargetInstance(sub, sup))(subtypeStructural(sub, sup))
     case _ => subtypeStructural(sub, sup)
 
 /** Apply structural and bound-lookup rules after primitive and right-binder rules. */
@@ -592,22 +600,24 @@ private def subtypeTargetInstance(sub: TUniv, sup: Type)(using ctx: SubContext):
   catch
     case _: TypeError => None
 
-/** A cut in the target-witness heuristic leaves ordinary instantiation available. If that also
- *  fails, retain the inconclusive outcome rather than reporting a completed search failure. */
-private def withTargetInstance(sub: TUniv, sup: Type)(fallback: => SubClauses)
-    (using ctx: SubContext): SubClauses =
+/** A local cut leaves ordinary inference available. A projected instance with residual bounds
+ *  is kept in reserve so a completed ordinary solution retains its original constraints. */
+private def withInstance(check: => Option[SubClauses], preferDischarged: Boolean = false)
+    (fallback: => SubClauses): SubClauses =
   var inconclusive: Option[SearchInconclusive] = None
-  val candidate = try subtypeTargetInstance(sub, sup)
+  val candidate = try check
   catch
     case error: SearchInconclusive if !error.global =>
       inconclusive = Some(error)
       None
   candidate match
-    case Some(clauses) => clauses
-    case None =>
+    case Some(clauses) if !preferDischarged || !clauses.elems.exists(_.isInstanceOf[Bound]) =>
+      clauses
+    case _ =>
       try fallback
       catch
-        case error: TypeError => throw inconclusive.getOrElse(error)
+        case error: TypeError => candidate.getOrElse(throw inconclusive.getOrElse(error))
+        case error: SearchInconclusive if !error.global => candidate.getOrElse(throw error)
 
 /** Constrain a universal type to be a supertype of another type.. */
 def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: SubContext): SubClauses =

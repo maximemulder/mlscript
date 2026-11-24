@@ -175,6 +175,18 @@ Ring3 <:< (Int -> ({x: AtX} & {y: AtY} & {z: AtZ}))
 //│ AtX = Nil ∨ (First ∧ {next: AtY})
 //│ OK
 
+// A tuple folded at the middle coordinate exposes all three witnesses to the result.
+type MidY = [T restricts (Second & {middle: (Third & {back: (Nil | (First & {next: T}))})})] -> T
+type MidX = Nil | (First & {next: MidY})
+type MidZ = Third & {back: MidX}
+Ring3 <:< (Int -> ({x: MidX} & {y: MidY} & {z: MidZ}))
+Ring3 <:< (Int -> ({z: MidZ} & {x: MidX} & {y: MidY}))
+//│ MidY = ∀T. {T ≥ Second ∧ {middle: Third ∧ {back: Nil ∨ (First ∧ {next: T})}}} ⟹ T
+//│ MidX = Nil ∨ (First ∧ {next: MidY})
+//│ MidZ = Third ∧ {back: MidX}
+//│ OK
+//│ OK
+
 // The x coordinate of every admissible tuple includes the Nil seed.
 
 :te

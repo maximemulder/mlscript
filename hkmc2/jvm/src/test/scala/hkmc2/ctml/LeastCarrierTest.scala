@@ -26,7 +26,8 @@ class LeastCarrierTest extends AnyFunSuite:
     for order <- List(dense ++ List(x, y), List(x, y) ++ dense) do
       val guarded = (denseGuards ++ pairGuards).foldRight(body: Type)((g, t) => TConstrained(t, g))
       val scheme = TUniv(order.head, order.tail.foldRight(guarded)(TUniv.apply))
-      val result = leastCarrierInstance(scheme).getOrElse(fail("the independent cycle fits"))
+      val instances = leastCarrierInstances(scheme).getOrElse(fail("the independent cycle fits"))
+      val result = instances.primary
       assert(result.getVars.isEmpty)
       val (remaining, _) = result.getUnivComponents
       assert(!remaining.contains(x) && !remaining.contains(y))
@@ -43,7 +44,9 @@ class LeastCarrierTest extends AnyFunSuite:
     val body = TField("result", carrier)
     val producer = TUniv(x, guards.foldRight(body: Type)((g, t) => TConstrained(t, g)))
     val witness = TUniv(x, TConstrained(carrier, Constraint(carrier, Direction.Super, first)))
-    assert(leastCarrierInstance(producer).contains(TField("result", witness)))
+    val instances = leastCarrierInstances(producer).getOrElse(fail("the unary cycle fits"))
+    assert(instances.primary == TField("result", witness))
+    assert(instances.alternative().isEmpty)
 
   test("Boolean self normalization does not cross a field when choosing a carrier"):
     val x = TypeVar("X")
@@ -53,4 +56,4 @@ class LeastCarrierTest extends AnyFunSuite:
     val lower = TJointType(JointMode.Union, seed, TField("tail", TNeg(v)))
     val guard = Constraint(lower, Direction.Sub, v)
     val scheme = TUniv(x, TConstrained(TLam(nil, v), guard))
-    assert(leastCarrierInstance(scheme).isEmpty)
+    assert(leastCarrierInstances(scheme).isEmpty)

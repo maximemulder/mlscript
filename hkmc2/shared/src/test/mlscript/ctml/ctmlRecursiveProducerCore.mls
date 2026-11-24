@@ -118,6 +118,117 @@ Swapped <:< (Int -> ({left: Root} & {right: {back: Root}}))
 //│ Swapped = ∀Y, X. {{back: X} ≤ Y, Nil ∨ {next: Y} ≤ X} ⟹ Int → ({left: X} ∧ {right: Y})
 //│ OK
 
+// Follow the fields around the ring once, then observe the tag at its root.
+data class First(next)
+data class Second(middle)
+data class Third(back)
+type Ring3 = [X, Y, Z] ->
+  ([(Nil | (First & {next: Y})) <:< X] => ([(Second & {middle: Z}) <:< Y] =>
+    ([(Third & {back: X}) <:< Z] => Int -> ({x: X} & {y: Y} & {z: Z}))))
+type Root3 = Nil | (First & {next: (Second & {middle: (Third & {back: (Nil | First)})})})
+type Z3 = Third & {back: Root3}
+type Y3 = Second & {middle: Z3}
+type Result3 = Int -> ({x: Root3} & {y: Y3} & {z: Z3})
+Ring3 <:< Result3
+//│ First: ∀α. α → (First ∧ {next: α})
+//│ Second: ∀β. β → (Second ∧ {middle: β})
+//│ Third: ∀γ. γ → (Third ∧ {back: γ})
+//│ Ring3 = ∀X, Y, Z. {Nil ∨ (First ∧ {next: Y}) ≤ X, Second ∧ {middle: Z} ≤ Y, Third ∧ {back: X} ≤ Z} ⟹ Int → (({x: X} ∧ {y: Y}) ∧ {z: Z})
+//│ Root3 = Nil ∨ (First ∧ {next: Second ∧ {middle: Third ∧ {back: Nil ∨ First}}})
+//│ Z3 = Third ∧ {back: Root3}
+//│ Y3 = Second ∧ {middle: Z3}
+//│ Result3 = Int → (({x: Root3} ∧ {y: Y3}) ∧ {z: Z3})
+//│ OK
+
+// Rotate both the quantifiers and the guards while observing the same result coordinates.
+type Rotated3 = [Z, X, Y] ->
+  ([(Second & {middle: Z}) <:< Y] => ([(Third & {back: X}) <:< Z] =>
+    ([(Nil | (First & {next: Y})) <:< X] => Int -> ({x: X} & {y: Y} & {z: Z}))))
+Rotated3 <:< Result3
+//│ Rotated3 = ∀Z, X, Y. {Second ∧ {middle: Z} ≤ Y, Third ∧ {back: X} ≤ Z, Nil ∨ (First ∧ {next: Y}) ≤ X} ⟹ Int → (({x: X} ∧ {y: Y}) ∧ {z: Z})
+//│ OK
+
+// This exact target closes the ring at x. Compare explicit and inferred witnesses.
+type FoldX = [T restricts (Nil | (First & {next: (Second & {middle: (Third & {back: T})})}))] -> T
+type FoldZ = Third & {back: FoldX}
+type FoldY = Second & {middle: FoldZ}
+type Folded3 = Int -> ({x: FoldX} & {y: FoldY} & {z: FoldZ})
+declare fun three: Ring3
+three[FoldX, FoldY, FoldZ] as Folded3
+//│ FoldX = ∀T. {T ≥ Nil ∨ (First ∧ {next: Second ∧ {middle: Third ∧ {back: T}}})} ⟹ T
+//│ FoldZ = Third ∧ {back: FoldX}
+//│ FoldY = Second ∧ {middle: FoldZ}
+//│ Folded3 = Int → (({x: FoldX} ∧ {y: FoldY}) ∧ {z: FoldZ})
+//│ three: Ring3
+//│ Folded3
+
+Ring3 <:< Folded3
+//│ OK
+
+// Close the same three coordinates at z.
+type AtZ = [T restricts (Third & {back: (Nil | (First & {next: (Second & {middle: T})}))})] -> T
+type AtY = Second & {middle: AtZ}
+type AtX = Nil | (First & {next: AtY})
+Ring3 <:< (Int -> ({x: AtX} & {y: AtY} & {z: AtZ}))
+//│ AtZ = ∀T. {T ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: T}})}} ⟹ T
+//│ AtY = Second ∧ {middle: AtZ}
+//│ AtX = Nil ∨ (First ∧ {next: AtY})
+//│ OK
+
+// The x coordinate of every admissible tuple includes the Nil seed.
+
+:te
+Ring3 <:< (Int -> ({x: Str}))
+//│ ═══[TYPE ERROR] Cannot solve judgment Ring3 ≤ Int → {x: Str}.
+//│ Typing error tree:
+//│   Ring3 ≤ Int → {x: Str}
+//│     ∀X, Y, Z. {Nil ∨ (First ∧ {next: Y}) ≤ X, Second ∧ {middle: Z} ≤ Y, Third ∧ {back: X} ≤ Z} ⟹ Int → (({x: X} ∧ {y: Y}) ∧ {z: Z}) ≤ Int → {x: Str}
+//│       Int → (({x: Nil ∨ (First ∧ {next: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}})} ∧ {y: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}}) ∧ {z: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}) ≤ Int → {x: Str}
+//│         ({x: Nil ∨ (First ∧ {next: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}})} ∧ {y: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}}) ∧ {z: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z} ≤ {x: Str}
+//│           ({x: Nil} ∧ {y: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}}) ∧ {z: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z} ≤ {x: Str}
+//│             {x: Nil} ∧ {y: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}} ≤ {x: Str}
+//│               {x: Nil} ≤ {x: Str}
+//│                 Nil ≤ Str
+//│               {y: Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z}} ≤ {x: Str}
+//│                 Second ∧ {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z} ≤ ⊥
+//│                   Second ≤ ⊥
+//│                   {middle: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z} ≤ ⊥
+//│                     ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z ≤ ⊥
+//│                       {α ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: α}})}} ⟹ α ≤ ⊥
+//│                         α ≤ ⊥
+//│                           Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: α}})} ≤ ⊥
+//│                             Third ∧ {back: Nil} ≤ ⊥
+//│                               Third ≤ ⊥
+//│                               {back: Nil} ≤ ⊥
+//│                                 Nil ≤ ⊥
+//│             {z: ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z} ≤ {x: Str}
+//│               ∀Z. {Z ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: Z}})}} ⟹ Z ≤ ⊥
+//│                 {β ≥ Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: β}})}} ⟹ β ≤ ⊥
+//│                   β ≤ ⊥
+//│                     Third ∧ {back: Nil ∨ (First ∧ {next: Second ∧ {middle: β}})} ≤ ⊥
+//│                       Third ∧ {back: Nil} ≤ ⊥
+//│                         Third ≤ ⊥
+//│                         {back: Nil} ≤ ⊥
+//│                           Nil ≤ ⊥
+
+data class Fourth(last)
+type Ring4 = [X, Y, Z, W] ->
+  ([(Nil | (First & {next: Y})) <:< X] => ([(Second & {middle: Z}) <:< Y] =>
+    ([(Third & {back: W}) <:< Z] => ([(Fourth & {last: X}) <:< W] =>
+      Int -> ({x: X} & {y: Y} & {z: Z} & {w: W})))))
+type Root4 = Nil | (First & {next: (Second & {middle: (Third & {back: (Fourth & {last: (Nil | First)})})})})
+type W4 = Fourth & {last: Root4}
+type Z4 = Third & {back: W4}
+type Y4 = Second & {middle: Z4}
+Ring4 <:< (Int -> ({x: Root4} & {y: Y4} & {z: Z4} & {w: W4}))
+//│ Fourth: ∀α. α → (Fourth ∧ {last: α})
+//│ Ring4 = ∀X, Y, Z, W. {Nil ∨ (First ∧ {next: Y}) ≤ X, Second ∧ {middle: Z} ≤ Y, Third ∧ {back: W} ≤ Z, Fourth ∧ {last: X} ≤ W} ⟹ Int → ((({x: X} ∧ {y: Y}) ∧ {z: Z}) ∧ {w: W})
+//│ Root4 = Nil ∨ (First ∧ {next: Second ∧ {middle: Third ∧ {back: Fourth ∧ {last: Nil ∨ First}}}})
+//│ W4 = Fourth ∧ {last: Root4}
+//│ Z4 = Third ∧ {back: W4}
+//│ Y4 = Second ∧ {middle: Z4}
+//│ OK
+
 // Membership outside X turns the first summand of this lower bound into Nil.
 type BooleanBase = [X restricts ((~X & Nil) | (Cons & {head: Int} & {tail: X}))] ->
   Int -> X

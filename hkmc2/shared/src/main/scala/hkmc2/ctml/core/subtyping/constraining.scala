@@ -276,8 +276,14 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
 
   sub match
     case scheme: TUniv =>
-      leastCarrierInstance(scheme) match
-        case Some(instance) => return subtype(instance, sup)
+      leastCarrierInstances(scheme) match
+        case Some(instances) =>
+          return try subtype(instances.primary, sup)
+          catch
+            case original: TypeError =>
+              val other = instances.alternative().getOrElse(throw original)
+              try subtype(other, sup)
+              catch case _: TypeError => throw original
         case None =>
     case _ =>
 

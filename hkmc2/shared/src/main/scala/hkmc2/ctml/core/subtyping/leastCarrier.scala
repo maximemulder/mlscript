@@ -3,7 +3,8 @@ package hkmc2.ctml.core.subtyping
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-import hkmc2.ctml.core.structural.{TypeSyntaxKey, getVars, hasVar, removeDirectVar, structuralCombine}
+import hkmc2.ctml.core.structural.{TypeSyntaxKey, getVars, hasVar, removeDirectVar, sameTypeSyntax,
+  structuralCombine}
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.newFreshVar
 import hkmc2.ctml.types.*
@@ -16,12 +17,15 @@ private case class Carrier(variable: TypeVar, lowers: List[Type]):
   /** Free variables are shared by the dependency analysis and successive elimination steps. */
   lazy val dependencies: Set[TypeVar] = lowers.iterator.flatMap(_.getVars).toSet
 
+/** Two presentations of the same least instance. Build the alternative only on demand. */
+private[subtyping] case class CarrierInstances(primary: Type, alternative: () => Option[Type])
+
 /** Instantiate cyclic coordinates of a covariant producer at their simultaneous least solution.
  *  For fixed values of the other parameters, each defining inequality has the form L(Xs) ≤ Xi.
  *  Shrinking the tuple to the least one preserves every residual guard because its lower operand
  *  can only shrink and its upper operand can only grow. Each substituted guard remains in scope.
  */
-private[subtyping] def leastCarrierInstance(scheme: TUniv): Option[Type] =
+private[subtyping] def leastCarrierInstances(scheme: TUniv): Option[CarrierInstances] =
   val (variables, guarded) = scheme.getUnivComponents
   val (body, guards) = guarded.getConstrainedComponents
   if guards.isEmpty then return None
@@ -81,7 +85,17 @@ private[subtyping] def leastCarrierInstance(scheme: TUniv): Option[Type] =
       val prepared = if equations.size == 1 then equations else shareSubexpressions(equations)
       if carrierSize(result :: prepared.flatMap(_.lowers), component.head) > carrierBudget then None
       else eliminateCarriers(prepared, result).map: instance =>
-        variables.filterNot(members).foldRight(instance)(TUniv.apply)
+        val parameters = variables.filterNot(members)
+        /** Preserve the binders of coordinates outside the selected component. */
+        def close(t: Type): Type = parameters.foldRight(t)(TUniv.apply)
+        // Tied elimination orders can fold the same cycle at different coordinates. An exact
+        // target can match one presentation even when bounded subtyping fails on the other.
+        CarrierInstances(close(instance), () =>
+          if equations.size == 1 then None
+          else
+            val (binders, shared) = prepared.splitAt(equations.size)
+            eliminateCarriers(binders.reverse ::: shared, result)
+              .filterNot(sameTypeSyntax(_, instance)).map(close))
   .nextOption()
 
 /** Give repeated positive subexpressions a single coordinate. Each definition E ≤ H is exact

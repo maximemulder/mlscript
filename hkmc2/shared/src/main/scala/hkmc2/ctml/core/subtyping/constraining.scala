@@ -106,15 +106,21 @@ def subtypeTrail(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   else
     subtypeImpl(sub, sup)(using ctx.mapTrail(_ => trail))
 
-/** Try the ordinary rules first. A completed failure may have a proof through a scoped guard. */
+/** A proof through a scoped guard needs no new bounds, so it subsumes a conditional solution
+ *  from the ordinary rules. Check the guard in the incoming context, before adding those bounds. */
 def subtypeImpl(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =
   if !config.hypothesis || ctx.trail.checkingGuardLink || !ctx.hypotheses.nonEmpty then
-    subtypeRules(sub, sup)
-  else
+    return subtypeRules(sub, sup)
+  val clauses =
     try subtypeRules(sub, sup)
     catch
       case error: TypeError =>
-        if holdsThroughGuards(sub, sup) then SubClauses.empty else throw error
+        if holdsThroughGuards(sub, sup) then return SubClauses.empty else throw error
+  if clauses.elems.isEmpty then clauses
+  else
+    try if holdsThroughGuards(sub, sup) then SubClauses.empty else clauses
+    catch
+      case error: SearchInconclusive if !error.global => clauses
 
 /** Implementation of the ordinary subtyping rules. */
 private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClauses =

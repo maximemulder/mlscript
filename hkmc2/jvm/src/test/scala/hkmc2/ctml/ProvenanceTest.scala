@@ -161,6 +161,22 @@ class ProvenanceTest extends AnyFunSuite with BeforeAndAfterEach:
     config.checkSteps = Some(1)
     intercept[SearchInconclusive](subtype(sub, sup)(using ctx))
 
+  test("an unsuccessful guard search preserves the ordinary solution's bounds"):
+    val x = TypeVar("X")
+    val h = TypeVar("H")
+    val ctx = classes.declTypeVar(h, TypeVarKind.Rigid).declTypeVar(x, TypeVarKind.Flex)
+    val sub = TApp(TVar(h), TVar(x))
+    val sup = TApp(TVar(h), TJointType(JointMode.Union, int, str))
+    val ordinary = subtype(sub, sup)(using ctx)
+    assert(ordinary.elems.nonEmpty)
+    val lower = TApp(TVar(h), TTop)
+    val unrelated = ctx.mapHypotheses(_.add(lower, str))
+    assert(subtype(sub, sup)(using unrelated) == ordinary)
+    val sufficient = ctx.mapHypotheses(_.add(lower, TApp(TVar(h), int)))
+    assert(subtype(sub, sup)(using sufficient) == SubClauses.empty)
+    config.checkSteps = Some(1)
+    assert(subtype(sub, sup)(using sufficient) == ordinary)
+
   test("an exhausted decided-type query cannot justify ex falso"):
     config.provenancePolicy = ProvenancePolicy.Cut
     config.exFalso = true

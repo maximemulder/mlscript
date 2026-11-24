@@ -36,6 +36,13 @@ F[Int] <:< F[Int | Str]
 ([H[Int] <:< F[Int | Bool]] => Str) <:< ([H[Int | Str] <:< F[Int]] => Str)
 //│ OK
 
+// The guard proves H[X] ≤ H[Int | Str] for every X. Either component order admits X = Bool.
+([X] -> [H[X], X -> Bool]) <:< ([H[Top] <:< H[Int]] => [H[Int | Str], Bool -> Bool])
+//│ OK
+
+([X] -> [X -> Bool, H[X]]) <:< ([H[Top] <:< H[Int]] => [Bool -> Bool, H[Int | Str]])
+//│ OK
+
 // The ordinary arrow rule reverses the comparison of parameters inside an endpoint.
 ([H[Int] <:< (Int -> Bool)] => Str) <:< ([H[Int] <:< ((Int | Str) -> Bool)] => Str)
 //│ OK

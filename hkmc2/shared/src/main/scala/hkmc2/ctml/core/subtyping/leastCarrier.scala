@@ -28,7 +28,12 @@ private[subtyping] def leastCarrierInstance(scheme: TUniv): Option[Type] =
 
   val bounds = guards.flatMap: g =>
     val (lower, upper) = if g.dir == Direction.Sub then (g.left, g.right) else (g.right, g.left)
-    upper.exactComponents(JointMode.Inter).map((lower, _))
+    upper.exactComponents(JointMode.Inter).map:
+      // In L(X) ≤ X, Boolean occurrences of X at the tested value can be set to bottom.
+      // Structural occurrences still govern monotonicity and the recursive witness.
+      case owner @ TVar(x) if variables.contains(x) =>
+        (normalizeRecursiveBound(x, Direction.Super, lower), owner)
+      case other => (lower, other)
   val byOwner = bounds.collect { case (l, TVar(x)) => (x, l) }.groupMap(_._1)(_._2)
 
   /** In {L ≤ U} ⇒ B, to widen the type we may strengthen its guard and widen B.

@@ -1,0 +1,172 @@
+:ctml
+
+data class Nil()
+data class Cons(head, tail)
+type R = [X restricts (Nil | (Cons & {head: Int} & {tail: X}))] -> X
+type P = [X restricts (Nil | (Cons & {head: Int} & {tail: X}))] ->
+  Int -> (Nil | (Cons & {head: Int} & {tail: X}))
+declare fun p: P
+//│ Nil: Unit → Nil
+//│ Cons: ∀α, β. α → β → ((Cons ∧ {head: α}) ∧ {tail: β})
+//│ R = ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│ P = ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}))
+//│ p: P
+
+p[R] as (Int -> R)
+p[R](1) as R
+p(1) as R
+//│ Int → R
+//│ R
+//│ R
+
+:te
+p("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment P ≤ Str → α.
+//│ Typing error tree:
+//│   P ≤ Str → α
+//│     ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})) ≤ Str → α
+//│       Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X})) ≤ Str → α
+//│         Str ≤ Int
+
+// A further lower bound changes the set of admissible carriers.
+type WithBase = [X restricts (Nil | (Cons & {head: Int} & {tail: X}))] ->
+  ([Str <:< X] => Int -> X)
+//│ WithBase = ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), Str ≤ X} ⟹ Int → X
+
+:te
+WithBase <:< (Int -> R)
+//│ ═══[TYPE ERROR] Cannot solve judgment WithBase ≤ Int → R.
+//│ Typing error tree:
+//│   WithBase ≤ Int → R
+//│     ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), Str ≤ X} ⟹ Int → X ≤ Int → R
+//│       Int → (∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X) ≤ Int → R
+//│         ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ R
+//│           ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│             ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
+//│               ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ α
+//│                 ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ Nil
+//│                   {β ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: β}), β ≥ Str} ⟹ β ≤ Nil
+//│                     {β ≥ Str} ⟹ β ≤ Nil
+//│                       β ≤ Nil
+//│                         (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: β})) ∨ Str ≤ Nil
+//│                           Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: β}) ≤ Nil
+//│                             (Cons ∧ {head: Int}) ∧ {tail: β} ≤ Nil
+//│                               Cons ∧ {head: Int} ≤ Nil
+//│                                 Cons ≤ Nil
+//│                                 {head: Int} ≤ Nil
+//│                                   Int ≤ ⊥
+//│                               {tail: β} ≤ Nil
+//│                                 β ≤ ⊥
+//│                                   (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: β})) ∨ Str ≤ ⊥
+//│                                     Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: β}) ≤ ⊥
+//│                                       Nil ≤ ⊥
+//│                 ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ (Cons ∧ {head: Int}) ∧ {tail: α}
+//│                   ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ Cons ∧ {head: Int}
+//│                     ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X}), X ≥ Str} ⟹ X ≤ Cons
+//│                       {γ ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: γ}), γ ≥ Str} ⟹ γ ≤ Cons
+//│                         {γ ≥ Str} ⟹ γ ≤ Cons
+//│                           γ ≤ Cons
+//│                             (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: γ})) ∨ Str ≤ Cons
+//│                               Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: γ}) ≤ Cons
+//│                                 Nil ≤ Cons
+
+// The mixed-variance result may need the larger witness Top.
+type Endo = [X restricts (Nil | (Cons & {head: Int} & {tail: X}))] -> X -> X
+Endo <:< (Top -> Top)
+//│ Endo = ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X → X
+//│ OK
+
+// Close the two record coordinates at their simultaneous least solution.
+type Root = [T restricts (Nil | {next: {back: T}})] -> T
+type Pair = [X, Y] ->
+  ([(Nil | {next: Y}) <:< X] => ([{back: X} <:< Y] => Int -> ({left: X} & {right: Y})))
+Pair <:< (Int -> ({left: Root} & {right: {back: Root}}))
+//│ Root = ∀T. {T ≥ Nil ∨ {next: {back: T}}} ⟹ T
+//│ Pair = ∀X, Y. {Nil ∨ {next: Y} ≤ X, {back: X} ≤ Y} ⟹ Int → ({left: X} ∧ {right: Y})
+//│ OK
+
+declare fun both: Pair
+both[Root, {back: Root}] as (Int -> ({left: Root} & {right: {back: Root}}))
+//│ both: Pair
+//│ Int → ({left: Root} ∧ {right: {back: Root}})
+
+// Each admissible first coordinate includes Nil.
+
+:te
+Pair <:< (Int -> ({left: Str} & {right: {back: Root}}))
+//│ ═══[TYPE ERROR] Cannot solve judgment Pair ≤ Int → ({left: Str} ∧ {right: {back: Root}}).
+//│ Typing error tree:
+//│   Pair ≤ Int → ({left: Str} ∧ {right: {back: Root}})
+//│     ∀X, Y. {Nil ∨ {next: Y} ≤ X, {back: X} ≤ Y} ⟹ Int → ({left: X} ∧ {right: Y}) ≤ Int → ({left: Str} ∧ {right: {back: Root}})
+//│       Int → ({left: Nil ∨ {next: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y}) ≤ Int → ({left: Str} ∧ {right: {back: Root}})
+//│         {left: Nil ∨ {next: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y}} ∧ {right: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y} ≤ {left: Str} ∧ {right: {back: Root}}
+//│           {left: Nil} ∧ {right: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y} ≤ {left: Str} ∧ {right: {back: Root}}
+//│             {left: Nil} ∧ {right: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y} ≤ {left: Str}
+//│               {left: Nil} ≤ {left: Str}
+//│                 Nil ≤ Str
+//│               {right: ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y} ≤ {left: Str}
+//│                 ∀Y. {Y ≥ {back: Nil ∨ {next: Y}}} ⟹ Y ≤ ⊥
+//│                   {α ≥ {back: Nil ∨ {next: α}}} ⟹ α ≤ ⊥
+//│                     α ≤ ⊥
+//│                       {back: Nil ∨ {next: α}} ≤ ⊥
+//│                         {back: Nil} ≤ ⊥
+//│                           Nil ≤ ⊥
+
+type Swapped = [Y, X] ->
+  ([{back: X} <:< Y] => ([(Nil | {next: Y}) <:< X] => Int -> ({left: X} & {right: Y})))
+Swapped <:< (Int -> ({left: Root} & {right: {back: Root}}))
+//│ Swapped = ∀Y, X. {{back: X} ≤ Y, Nil ∨ {next: Y} ≤ X} ⟹ Int → ({left: X} ∧ {right: Y})
+//│ OK
+
+// Membership outside X turns the first summand of this lower bound into Nil.
+type BooleanBase = [X restricts ((~X & Nil) | (Cons & {head: Int} & {tail: X}))] ->
+  Int -> X
+BooleanBase <:< (Int -> R)
+//│ BooleanBase = ∀X. {X ≥ (¬X ∧ Nil) ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ Int → X
+//│ OK
+
+:te
+BooleanBase <:< (Int -> Bot)
+//│ ═══[TYPE ERROR] Cannot solve judgment BooleanBase ≤ Int → ⊥.
+//│ Typing error tree:
+//│   BooleanBase ≤ Int → ⊥
+//│     ∀X. {X ≥ (¬X ∧ Nil) ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ Int → X ≤ Int → ⊥
+//│       Int → (∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X) ≤ Int → ⊥
+//│         ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X ≤ ⊥
+//│           {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ α ≤ ⊥
+//│             α ≤ ⊥
+//│               Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α}) ≤ ⊥
+//│                 Nil ≤ ⊥
+
+// The two separate lower bounds define the same list carrier.
+type Split = [X restricts Nil] -> ([(Cons & {head: Int} & {tail: X}) <:< X] => Int -> X)
+Split <:< (Int -> R)
+//│ Split = ∀X. {X ≥ Nil, (Cons ∧ {head: Int}) ∧ {tail: X} ≤ X} ⟹ Int → X
+//│ OK
+
+// A polymorphic choice of thunks exercises generation without a class test.
+declare fun choose[A]: (Unit -> A) -> (Unit -> A) -> A
+fun grow(n) = choose(() => Nil(), () => Cons(n, grow(n + 1)))
+//│ choose: ∀A. (Unit → A) → (Unit → A) → A
+//│ grow: ∀α. {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α}))
+
+grow(1) as R
+//│ R
+
+:te
+grow("bad")
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β.
+//│ Typing error tree:
+//│   ∀α. {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})) ≤ Str → β
+//│     Int → (Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: α})} ⟹ α})) ≤ Str → β
+//│       Str ≤ Int
+
+:ctml-dbg output
+// The closed comparison emits no obligations. The open result retains a lower bound.
+declare type Result
+P <:< (Int -> R)
+P <:< (Int -> Result)
+//│ α rigid (1)
+//│ OK
+//│ eff Result ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X}), Result ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: ∀X. {X ≥ Nil ∨ ((Cons ∧ {head: Int}) ∧ {tail: X})} ⟹ X})
+//│ OK

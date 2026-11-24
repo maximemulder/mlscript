@@ -44,3 +44,13 @@ class LeastCarrierTest extends AnyFunSuite:
     val producer = TUniv(x, guards.foldRight(body: Type)((g, t) => TConstrained(t, g)))
     val witness = TUniv(x, TConstrained(carrier, Constraint(carrier, Direction.Super, first)))
     assert(leastCarrierInstance(producer).contains(TField("result", witness)))
+
+  test("Boolean self normalization does not cross a field when choosing a carrier"):
+    val x = TypeVar("X")
+    val v = TVar(x)
+    val nil = TClass(ClassVar("Nil"))
+    val seed = TJointType(JointMode.Inter, TNeg(v), nil)
+    val lower = TJointType(JointMode.Union, seed, TField("tail", TNeg(v)))
+    val guard = Constraint(lower, Direction.Sub, v)
+    val scheme = TUniv(x, TConstrained(TLam(nil, v), guard))
+    assert(leastCarrierInstance(scheme).isEmpty)

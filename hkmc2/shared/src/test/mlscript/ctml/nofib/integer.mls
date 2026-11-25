@@ -10,38 +10,10 @@ fun integerRange(start, step, limit) = enumFromThenTo(start, start + step, limit
 //│ integerRange: Int → Int → Int → (LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α}))
 
 // The benchmark's inclusive progression produces integers when it is nonempty.
-:fixme // FIXME: Matching the inferred progression leaves a guarded result at the Int ascription.
 (if integerRange(0 - 2100000000, 700000001, 2100000000) is
   LNil() then 0
   LCons(first, rest) then first) as Int
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
-//│ Typing error tree:
-//│   α ≤ Int
-//│     (({β ≤ LNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥)) ∨ Int ≤ Int
-//│       ({β ≤ LNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥) ≤ Int
-//│         {β ≤ LNil} ⟹ Int ≤ Int
-//│           β ≤ LNil
-//│             δ ≤ LNil
-//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε}) ≤ LNil
-//│                 (LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε} ≤ LNil
-//│                   LCons ∧ {head: Int} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Int} ≤ LNil
-//│                       Int ≤ ⊥
-//│                   {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε} ≤ LNil
-//│                     ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
-//│                       {ζ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ})} ⟹ ζ ≤ ⊥
-//│                         ζ ≤ ⊥
-//│                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ}) ≤ ⊥
-//│                             LNil ≤ ⊥
-//│         {β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ ⊥ ≤ Int
-//│           β ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
-//│             δ ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
-//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε}) ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
-//│                 LNil ≤ (({tail: ⊤} ∧ LCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil
-//│                   LNil ≤ ({tail: ⊤} ∧ LCons) ∧ {head: ⊤}
-//│                     LNil ≤ {tail: ⊤} ∧ LCons
-//│                       LNil ≤ {tail: ⊤}
+//│ Int
 
 /** Add two integers. */
 fun z_add(a, b) = a + b

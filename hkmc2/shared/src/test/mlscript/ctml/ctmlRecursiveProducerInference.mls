@@ -57,35 +57,8 @@ fun firstOrZero(xs) = if xs is
   LCons(head, _) then head
 //│ firstOrZero: ∀α, β. {β ≥ ({α ≤ LNil} ⟹ Int) ∧ ({α ≤ ({head: β} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ (({head: β} ∧ LCons) ∧ {tail: ⊤})} ⟹ α → β
 
-:fixme // FIXME: Case splitting skips the flexible argument produced by the range application.
 firstOrZero(enumFromTo(1, 5)) as Int
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
-//│ Typing error tree:
-//│   α ≤ Int
-//│     Int ∨ (({β ≤ LNil} ⟹ Int) ∧ ({β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥)) ≤ Int
-//│       ({β ≤ LNil} ⟹ Int) ∧ ({β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥) ≤ Int
-//│         {β ≤ LNil} ⟹ Int ≤ Int
-//│           β ≤ LNil
-//│             δ ≤ LNil
-//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε}) ≤ LNil
-//│                 (LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε} ≤ LNil
-//│                   LCons ∧ {head: Int} ≤ LNil
-//│                     LCons ≤ LNil
-//│                     {head: Int} ≤ LNil
-//│                       Int ≤ ⊥
-//│                   {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε} ≤ LNil
-//│                     ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε ≤ ⊥
-//│                       {ζ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ})} ⟹ ζ ≤ ⊥
-//│                         ζ ≤ ⊥
-//│                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ζ}) ≤ ⊥
-//│                             LNil ≤ ⊥
-//│         {β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}} ⟹ ⊥ ≤ Int
-//│           β ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
-//│             δ ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
-//│               LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ∀ε. {ε ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: ε})} ⟹ ε}) ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
-//│                 LNil ≤ ({head: γ} ∧ LCons) ∧ {tail: ⊤}
-//│                   LNil ≤ {head: γ} ∧ LCons
-//│                     LNil ≤ {head: γ}
+//│ Int
 
 firstOrZero(LNil()) as Int
 //│ Int

@@ -2,7 +2,7 @@ package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
-import hkmc2.ctml.core.isSubClass
+import hkmc2.ctml.core.{isSubClass, makeJointType}
 import hkmc2.ctml.core.combine.{join, meet}
 import hkmc2.ctml.core.structural.getVars
 
@@ -98,15 +98,22 @@ extension (type_ : Type)
       checkSubtypeResult(type_, class_.negate()) == SubtypeCheck.NotProved
 
 extension (constraint: Constraint)
-  /** Get the upper bound of a type variable that this constraint is, if any. */
-  def getUpperBound(var_ : TypeVar): Option[Type] =
-    (constraint.left, constraint.dir, constraint.right) match
-      case (TVar(`var_`), Direction.Sub, bound) =>
-        Some(bound)
-      case (bound, Direction.Super, TVar(`var_`)) =>
-        Some(bound)
-      case _ =>
-        None
+  /** Get the bound imposed on a variable in the given direction, in either orientation. */
+  private def boundOf(var_ : TypeVar, dir: Direction): Option[Type] =
+    (constraint.left, constraint.right) match
+      case (TVar(`var_`), bound) if constraint.dir == dir => Some(bound)
+      case (bound, TVar(`var_`)) if constraint.dir != dir => Some(bound)
+      case _ => None
+
+/** Classes tested by guards on the parameter in a Boolean combination of result types. */
+private def resultGuardClasses(result: Type, param: TypeVar): List[TClass] = result match
+  case TConstrained(body, guard) =>
+    guard.boundOf(param, Direction.Sub).toList.flatMap(_.getBooleanClasses) :::
+      resultGuardClasses(body, param)
+  case TJointType(_, left, right) =>
+    resultGuardClasses(left, param) ::: resultGuardClasses(right, param)
+  case TNeg(body) => resultGuardClasses(body, param)
+  case _ => Nil
 
 /** Derive a subtyping judgment `τ ≤ σ` by cases on a class `C` of the Boolean structure of `σ`, by
  *  excluded middle at `C`: `τ ≤ σ` follows from `τ ∧ C ≤ σ` and `τ ∧ ¬C ≤ σ`, since
@@ -136,10 +143,9 @@ def subtypeCases(sub: Type, sup: Type, error: TypeError)(using ctx: SubContext):
     case None =>
       throw error
 
-/** Derive a subtyping judgment `∀ᾱ. {c̄} ⟹ α → σ ≤ τ → ρ` by cases on a class `C` of the upper
- *  bounds of its parameter `α` in `c̄`, by excluded middle at `C` and the distributivity of lambda
- *  types over the unions of their parameter: from `∀ᾱ. {c̄} ⟹ α → σ ≤ (τ ∧ C) → ρ` and
- *  `∀ᾱ. {c̄} ⟹ α → σ ≤ (τ ∧ ¬C) → ρ`. Get `None` if no such class splits `τ` (see `isSplitBy`).
+/** Derive `∀ᾱ. {c̄} ⟹ α → σ ≤ τ → ρ` by checking a separate instance at `τ ∧ C` and `τ ∧ ¬C`.
+ *  The two domains cover τ by excluded middle, and arrows distribute over a union of domains.
+ *  Parameter bounds and branch guards supply the candidate classes C.
  *
  *  The universal type is thus instantiated once per case, as it is for an argument that is a
  *  union, whose lambda type the invertible rules decompose into an intersection (see `splitAll`).
@@ -149,23 +155,47 @@ def subtypeCases(sub: Type, sup: Type, error: TypeError)(using ctx: SubContext):
  *  an instance at `Int` gives `(({Int ≤ Nat} ⟹ Str) ∧ ({Int ≤ Int ∧ ¬Nat} ⟹ Int)) ∨ Str ∨ Int`,
  *  while an instance at `Nat` gives `Str`, and an instance at `Int ∧ ¬Nat` gives `Int`.
  *
- *  An argument with flexible variables is not split, since these variables are bounded by the
- *  parameter instead, which carries the case analysis to the function that binds them. */
+ *  A flexible argument's lower bound can witness several alternatives. It guides the choice of
+ *  partitions, while the proof covers the entire argument, including values outside that bound. */
 def subtypeUnivCases(sub: TUniv, sup: TLam)(using ctx: SubContext): Option[SubClauses] =
-  if sup.param.getVars.exists(_.isFlex) then
-    return None
-
   val (_, body) = sub.getUnivComponents
   val (lambda, constraints) = body.getConstrainedComponents
-  val classes = lambda match
-    case TLam(TVar(param), _) =>
-      constraints.flatMap(_.getUpperBound(param)).flatMap(_.getBooleanClasses).distinct
-    case _ =>
-      Nil
+  val (param, ret) = lambda match
+    case TLam(TVar(param), ret) => (param, ret)
+    case _ => return None
 
-  classes.find(sup.param.isSplitBy(_)).map((class_) =>
-    ctx.all(
-      subtype(sub, TLam(meet(sup.param, class_), sup.ret)),
-      subtype(sub, TLam(meet(sup.param, class_.negate()), sup.ret)),
-    )
-  )
+  val domain = sup.param
+  val domains = domain match
+    case TVar(v) if v.isFlex =>
+      val alternatives = v.lowerBound.exactComponents(JointMode.Union)
+      if alternatives.size < 2 then return None
+      val results = ret match
+        case TVar(r) => constraints.flatMap(_.boundOf(r, Direction.Super))
+        case _ => List(ret)
+      val classes = results.flatMap(resultGuardClasses(_, param)).distinct
+      partitionDomain(domain, alternatives, classes)
+    case _ if domain.getVars.exists(_.isFlex) => return None
+    case _ =>
+      val classes = constraints.flatMap(_.boundOf(param, Direction.Sub))
+        .flatMap(_.getBooleanClasses)
+      classes.distinct.find(domain.isSplitBy(_)) match
+        case Some(pivot) => List(meet(domain, pivot), meet(domain, pivot.negate()))
+        case None => return None
+
+  Option.when(domains.size > 1):
+    domains.foldLeft(SubClauses.empty): (clauses, part) =>
+      ctx.seqUnit(subtype(sub, TLam(part, sup.ret)), clauses)
+
+/** Partition the domain by excluded middle only where a result guard distinguishes alternatives
+ *  of its known lower bound. Each recursive split has fewer witnesses in each branch. Unknown
+ *  alternatives still belong to the full domain covered by the two complementary intersections. */
+private def partitionDomain(domain: Type, alternatives: List[Type], classes: List[TClass])
+    (using SubContext): List[Type] = classes match
+  case pivot :: rest if alternatives.size >= 2 =>
+    val (inside, others) = alternatives.partition(checkSubtype(_, pivot))
+    val outside = others.filter(checkSubtype(_, pivot.negate()))
+    if inside.isEmpty || outside.isEmpty then partitionDomain(domain, alternatives, rest)
+    else
+      partitionDomain(makeJointType(JointMode.Inter, domain, pivot), inside, rest) :::
+        partitionDomain(makeJointType(JointMode.Inter, domain, pivot.negate()), outside, rest)
+  case _ => List(domain)

@@ -1,0 +1,66 @@
+:ctml
+
+/** Produce either an integer or a string. */
+val source: Unit -> (Int | Str)
+//│ source: Unit → (Int ∨ Str)
+
+/** Encode the integer test as zero or one. */
+fun tag(x) = if x is Int then 0 else 1
+//│ tag: ∀α. α → (({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Int))
+
+// Both branches of the consumer return an integer for a computed union.
+tag(source(()))
+//│ Int
+
+/** Preserve the branch-specific result types on a computed union. */
+fun label(x) = if x is Int then 0 else "other"
+//│ label: ∀α, β. {β ≥ ({α ≤ Int} ⟹ Int) ∧ ({α ≤ ¬Int} ⟹ Str), α ≤ ¬({β ≥ Int} ⟹ ¬Int) ∨ ¬({β ≥ Str} ⟹ Int)} ⟹ α → β
+
+label(source(()))
+//│ Int ∨ Str
+
+/** Produce one of three disjoint inputs. */
+val threeCases: Unit -> (Int | Str | Bool)
+//│ threeCases: Unit → ((Int ∨ Str) ∨ Bool)
+
+/** Assign an integer code to each of the three cases. */
+fun code(x) = if x is
+  Int then 1
+  Str then 2
+  Bool then 3
+//│ code: ∀α, β. {α ≥ ({β ≤ Int} ⟹ Int) ∧ ({β ≤ Str ∨ Bool} ⟹ ({β ≤ Str} ⟹ Int) ∧ ({β ≤ Bool} ⟹ Int)), β ≤ Int ∨ ¬({α ≥ ({β ≤ Str} ⟹ Int) ∧ ({β ≤ Bool} ⟹ Int)} ⟹ ¬(Str ∨ Bool))} ⟹ β → α
+
+code(threeCases(())) as Int
+//│ Int
+
+/** The callback must accept every member of X. A later argument may also require Bool in X. */
+type Use = [X restricts (Int | Str)] -> (X -> Int) -> X -> Int
+//│ Use = ∀X. {X ≥ Int ∨ Str} ⟹ (X → Int) → X → Int
+
+/** Promise an integer result on integers and strings. */
+type TwoCases = [A] -> A -> (([A <:< Int] => Int) & ([A <:< Str] => Int))
+//│ TwoCases = ∀A. A → (({A ≤ Int} ⟹ Int) ∧ ({A ≤ Str} ⟹ Int))
+
+/** Promise an integer result on integers and on their complement. */
+type AllCases = [A] -> A -> (([A <:< Int] => Int) & ([A <:< ~Int] => Int))
+//│ AllCases = ∀A. A → (({A ≤ Int} ⟹ Int) ∧ ({A ≤ ¬Int} ⟹ Int))
+
+Use <:< (TwoCases -> Int -> Int)
+//│ OK
+
+Use <:< (AllCases -> Bool -> Int)
+//│ OK
+
+:te
+Use <:< (TwoCases -> Bool -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment Use ≤ TwoCases → Bool → Int.
+//│ Typing error tree:
+//│   Use ≤ TwoCases → Bool → Int
+//│     ∀X. {X ≥ Int ∨ Str} ⟹ (X → Int) → X → Int ≤ TwoCases → Bool → Int
+//│       {α ≥ Int ∨ Str} ⟹ (α → Int) → α → Int ≤ TwoCases → Bool → Int
+//│         (α → Int) → α → Int ≤ TwoCases → Bool → Int
+//│           α → Int ≤ Bool → Int
+//│             Bool ≤ α
+//│               Bool ≤ Int ∨ Str
+//│                 Bool ≤ Int
+//│                 Bool ≤ Str

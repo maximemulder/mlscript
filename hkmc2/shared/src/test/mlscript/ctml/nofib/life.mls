@@ -178,41 +178,10 @@ elt(["bad", [1, 0]], [0, [1, 0]], [0, [0, 0]])
 force(copyLz(2, 5)) as (LzNil | (LzCons & {head: Int}))
 //│ LzNil ∨ (LzCons ∧ {head: Int})
 
-:fixme // FIXME: The match cannot discharge the guarded result type of the forced union.
 (if force(copyLz(2, 5)) is
   LzNil() then 0
   LzCons(h, t) then h) as Int
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
-//│ Typing error tree:
-//│   α ≤ Int
-//│     (({β ≤ LzNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil} ⟹ ⊥)) ∨ Int ≤ Int
-//│       ({β ≤ LzNil} ⟹ Int) ∧ ({β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil} ⟹ ⊥) ≤ Int
-//│         {β ≤ LzNil} ⟹ Int ≤ Int
-//│           β ≤ LzNil
-//│             δ ≤ LzNil
-//│               ((LzCons ∧ {head: ε}) ∧ {tail: ∀ζ. {ζ ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)}} ⟹ ζ}) ∨ LzNil ≤ LzNil
-//│                 (LzCons ∧ {head: ε}) ∧ {tail: ∀ζ. {ζ ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)}} ⟹ ζ} ≤ LzNil
-//│                   LzCons ∧ {head: ε} ≤ LzNil
-//│                     LzCons ≤ LzNil
-//│                     {head: ε} ≤ LzNil
-//│                       ε ≤ ⊥
-//│                         Int ≤ ⊥
-//│                   {tail: ∀ζ. {ζ ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)}} ⟹ ζ} ≤ LzNil
-//│                     ∀ζ. {ζ ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)}} ⟹ ζ ≤ ⊥
-//│                       {η ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: η}) ∨ LzNil)}} ⟹ η ≤ ⊥
-//│                         η ≤ ⊥
-//│                           Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: η}) ∨ LzNil)} ≤ ⊥
-//│                             Delayed ≤ ⊥
-//│                             {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: η}) ∨ LzNil)} ≤ ⊥
-//│                               Unit → (((LzCons ∧ {head: ε}) ∧ {tail: η}) ∨ LzNil) ≤ ⊥
-//│         {β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil} ⟹ ⊥ ≤ Int
-//│           β ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
-//│             δ ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
-//│               ((LzCons ∧ {head: ε}) ∧ {tail: ∀ζ. {ζ ≥ Delayed ∧ {resume: Unit → (((LzCons ∧ {head: ε}) ∧ {tail: ζ}) ∨ LzNil)}} ⟹ ζ}) ∨ LzNil ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
-//│                 LzNil ≤ (({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}) ∧ {head: γ} ∧ ((LzCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LzNil
-//│                   LzNil ≤ ({tail: ⊤} ∧ LzCons) ∧ {head: ⊤}
-//│                     LzNil ≤ {tail: ⊤} ∧ LzCons
-//│                       LzNil ≤ {tail: ⊤}
+//│ Int
 
 :te
 copyLz("bad", 5)

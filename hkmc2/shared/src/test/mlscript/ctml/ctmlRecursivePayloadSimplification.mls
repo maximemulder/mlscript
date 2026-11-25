@@ -53,3 +53,48 @@ forwarded[Int][IntList](LCons("bad", LNil()))
 //│                     δ ≤ ⊥
 //│                       ζ ≤ ⊥
 //│                         LNil ≤ ⊥
+
+/** Copy the list produced by a callback. Its element type flows through the result guard. */
+fun copyResult(x, produce) = copy(produce(x))
+//│ copyResult: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ α → (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → Y
+
+/** Supply the same arguments in callback-first order. */
+fun copyResultFrom(produce, x) = copy(produce(x))
+//│ copyResultFrom: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → Y
+
+copyResult(1, n => LCons(n, LNil())) as IntList
+copyResultFrom(n => LCons(n, LNil()), 1) as IntList
+//│ IntList
+//│ IntList
+
+:te
+copyResult("bad", s => LCons(s, LNil())) as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ IntList
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│               {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│                 δ ≤ LNil
+//│                   LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                     (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: β} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: β} ≤ LNil
+//│                           β ≤ ⊥
+//│                             ε ≤ ⊥
+//│                               Str ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                     ζ ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ}) ≤ LCons
+//│                         LNil ≤ LCons

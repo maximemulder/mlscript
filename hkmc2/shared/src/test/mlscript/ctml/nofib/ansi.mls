@@ -74,56 +74,50 @@ fun writeChar(c, prog, cs) = LCons(c, prog(cs))
 
 /** Emit a string before the continuation's display suffix. */
 fun writeString(s, prog, cs) = append(s, prog(cs))
-//│ writeString: ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil
+//│ writeString: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → α → Z
 
 writeString(LNil(), _ => LNil(), LNil()) as LNil
 //│ LNil
 
-:fixme // FIXME: The inferred writeString prefix accepts only an empty list.
+type StrList = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ StrList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+writeString(LCons("x", LNil()), _ => LNil(), LNil()) as StrList
+writeString(LNil(), x => LCons(x, LNil()), "y") as StrList
+//│ StrList
+//│ StrList
+
+// The declared append result includes the empty list for every input.
+:te
 writeString(LCons("x", LNil()), _ => LNil(), LNil()) as LCons
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil ≤ β → γ.
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ LCons.
 //│ Typing error tree:
-//│   ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil ≤ β → γ
-//│     (∀X. {X ≥ LNil} ⟹ X) → (∀Y. δ → ({Y ≥ LNil} ⟹ Y)) → δ → LNil ≤ β → γ
-//│       β ≤ ∀X. {X ≥ LNil} ⟹ X
-//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
-//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
-//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
-//│               LCons ∧ {head: ε} ≤ η
-//│                 LCons ≤ η
-//│                   LCons ≤ LNil
-//│                 {head: ε} ≤ η
-//│                   {head: ε} ≤ LNil
-//│                     ε ≤ ⊥
-//│                       Str ≤ ⊥
-//│               {tail: ζ} ≤ η
-//│                 {tail: ζ} ≤ LNil
-//│                   ζ ≤ ⊥
-//│                     θ ≤ ⊥
-//│                       LNil ≤ ⊥
+//│   α ≤ LCons
+//│     ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ LCons
+//│       {γ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ})} ⟹ γ ≤ LCons
+//│         γ ≤ LCons
+//│           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}) ≤ LCons
+//│             LNil ≤ LCons
 
 /** Concatenate display fragments and then emit the continuation's suffix. */
 fun writes(ss, a, b) = writeString(concat(ss), a, b)
-//│ writes: ∀α. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. α → ({Y ≥ LNil} ⟹ Y)) → α → LNil
+//│ writes: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), γ ≥ β} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → Z
 
 /** Emit the source bell code. */
 fun ringBell(prog, cs) = writeChar("B", prog, cs)
 //│ ringBell: ∀α, β. (α → β) → α → ((LCons ∧ {head: Str}) ∧ {tail: β})
 
-:ctml-parse-only // FIXME: The inferred writeString type rejects nonempty prefixes.
 /** Emit the clear-screen code. */
 fun clearScreen(a, b) = writeString(cls, a, b)
-//│ CTML translation succeeded.
+//│ clearScreen: ∀α, β, γ, Z. {γ ≥ Str, Z ≥ (LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})) ∨ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ ((∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) ∧ (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y))) → α → Z
 
-:ctml-parse-only // FIXME: The inferred writeString type rejects nonempty prefixes.
 /** Build a continuation that emits text at a position. */
 fun writeAt(pos, s, a) = if pos is [x, y] then p => writeString(append(goto(x, y), s), a, p)
-//│ CTML translation succeeded.
+//│ writeAt: ∀α, β, γ, δ. {δ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}), β ≥ Str, γ ≥ β} ⟹ ⟨Num, Num⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → δ
 
-:ctml-parse-only // FIXME: The inferred writeString type rejects nonempty prefixes.
 /** Build a continuation that moves the cursor. */
 fun moveTo(pos, a) = if pos is [x, y] then p => writeString(goto(x, y), a, p)
-//│ CTML translation succeeded.
+//│ moveTo: ∀α, β, γ. {β ≥ Str, γ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ})} ⟹ ⟨Num, Num⟩ → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → α → γ
 
 ringBell(_ => LNil(), LNil()) as (LCons & {head: Str} & {tail: LNil})
 //│ (LCons ∧ {head: Str}) ∧ {tail: LNil}

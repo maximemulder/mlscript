@@ -23,13 +23,9 @@ object NoInlineVars:
     NoInlineVars(Set.empty)
 
 extension (type_ : Type)
-  /** Determine whether a quantified variable can be inlined, following the effective bounds of
-   *  the other variables reachable from the type. Mixed polarities require equal bounds. */
+  /** Determine the inlining polarities of a variable whose guard dependencies have been checked.
+   *  Follow the effective bounds reachable from the type. Mixed polarities require equal bounds. */
   private[simplification] def getInlinePolarities(var_ : TypeVar)(using ctx: SubContext): Option[Polarities] =
-    // A payload related to a nested quantified carrier must retain that relationship. The
-    // direction-only guard traversal does not account for the carrier's enclosing variance.
-    // Inlining it can turn `forall A. List[A] -> List[A]` into `List[Bottom] -> LNil`.
-    if nestedGuardDependency(type_, var_) then return None
     val polarities = type_.getAllVarPolarities(var_)
 
     if polarities == Polarities(false, false) then
@@ -99,13 +95,32 @@ private def canInlineOpenState(type_ : Type, outs: SubClauses, var_ : TypeVar)(u
   (!polarities.negative || !var_.isIndirectRecursive(Polarity.Negative)) &&
     (!polarities.positive || !var_.isIndirectRecursive(Polarity.Positive))
 
-/** Whether a nested quantifier relates its carrier to the variable being considered for inlining. */
-private[simplification] def nestedGuardDependency(type_ : Type, variable: TypeVar): Boolean = type_ match
-  case TUniv(bound, body) if bound != variable =>
-    val (_, guards) = body.getConstrainedComponents
-    guards.exists(c =>
-      (c.left.hasVar(bound) || c.right.hasVar(bound)) &&
-      (c.left.hasVar(variable) || c.right.hasVar(variable))) ||
-      nestedGuardDependency(body, variable)
-  case TUniv(_, _) => false
-  case _ => type_.components.exists(nestedGuardDependency(_, variable))
+/** Free variables related to a quantified variable by a guard. Function construction can move
+ *  the quantifier outside an arrow while the guard stays in its result. The direction-based
+ *  polarities of the guard alone cannot justify eliminating those free variables. */
+private[simplification] def nestedGuardDependencies(type_ : Type): Set[TypeVar] =
+  val dependencies = Set.newBuilder[TypeVar]
+
+  /** Collect the free variables of guards that mention an enclosing binder. */
+  def visit(type_ : Type, binders: Set[TypeVar]): Unit = type_ match
+    case TUniv(bound, body) => visit(body, binders + bound)
+    case TConstrained(_, guard) if binders.nonEmpty =>
+      val refs = guard.getVars
+      if refs.exists(binders.contains) then dependencies ++= refs.diff(binders)
+      type_.components.foreach(visit(_, binders))
+    case _ => type_.components.foreach(visit(_, binders))
+
+  visit(type_, Set.empty)
+  dependencies.result()
+
+extension (outs: SubClauses)
+  /** A negative occurrence uses its upper bound when inlined. For example, in `K → R` with
+   *  `K ≤ Unit → List[A]`, the input's guard already depends on `A`. Protecting it here allows
+   *  the simplifier to process `K` and `A` in either order. */
+  private[simplification] def inputGuardDependencies(type_ : Type): Set[TypeVar] =
+    val inputs = type_.getDeps(Polarity.Positive).all.collect:
+      case PolarVar(variable, Polarity.Negative) => variable
+    outs.assertedBounds.iterator
+      .filter(bound => bound.dir == Direction.Sub && inputs.contains(bound.var_))
+      .flatMap(bound => nestedGuardDependencies(bound.type_))
+      .toSet

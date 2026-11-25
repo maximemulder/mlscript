@@ -120,7 +120,7 @@ fun star(x) = if
 
 /** Insert a separator between two lists, preserving source association. */
 fun glue(s, xs, ys) = append(xs, append(s, ys))
-//│ glue: ∀α, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Z
+//│ glue: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z}), α ≥ β} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) → Z
 
 glue(LCons("n", LNil()), LCons("a", LNil()), LCons("b", LNil())) as (LNil | (LCons & {head: Str}))
 //│ LNil ∨ (LCons ∧ {head: Str})

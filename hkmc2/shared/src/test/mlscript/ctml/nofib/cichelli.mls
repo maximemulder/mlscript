@@ -113,7 +113,7 @@ fun histo(ls) = foldr(histins, LNil(), ls)
 
 /** Test whether every element of xs is in ys. */
 fun subset(xs, ys) = all(x => inList(x, ys), xs)
-//│ subset: (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool
+//│ subset: ∀α. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool
 
 :ctml-parse-only // FIXME: The list of new members exceeds the 20000-call solver budget.
 /** Append the members of ys that do not occur in xs. */
@@ -344,27 +344,8 @@ force(shortRange) as LzNil | (LzCons & {head: Int} & {tail: Delayed})
 //│ shortRange: Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: ∀α. {α ≥ Delayed ∧ {resume: Unit → (LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: α}))}} ⟹ α}))}
 //│ LzNil ∨ ((LzCons ∧ {head: Int}) ∧ {tail: Delayed})
 
-:fixme // FIXME: The inferred subset function accepts only an empty first list.
 subset(LCons("e", LNil()), LCons("a", LCons("e", LNil()))) as Bool
-//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ α → β.
-//│ Typing error tree:
-//│   (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⊤}) ∧ {tail: X})} ⟹ X) → Bool ≤ α → β
-//│     α ≤ ∀X. {X ≥ LNil} ⟹ X
-//│       (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ∀X. {X ≥ LNil} ⟹ X
-//│         (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ {ε ≥ LNil} ⟹ ε
-//│           (LCons ∧ {head: γ}) ∧ {tail: δ} ≤ ε
-//│             LCons ∧ {head: γ} ≤ ε
-//│               LCons ≤ ε
-//│                 LCons ≤ LNil
-//│               {head: γ} ≤ ε
-//│                 {head: γ} ≤ LNil
-//│                   γ ≤ ⊥
-//│                     Str ≤ ⊥
-//│             {tail: δ} ≤ ε
-//│               {tail: δ} ≤ LNil
-//│                 δ ≤ ⊥
-//│                   ζ ≤ ⊥
-//│                     LNil ≤ ⊥
+//│ Bool
 
 subset(LNil(), LCons("e", LNil())) as Bool
 minm(None(), 0) as Int

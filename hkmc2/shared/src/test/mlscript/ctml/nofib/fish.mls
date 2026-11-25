@@ -242,14 +242,14 @@ fun beside(m, n, p, q, a, b, c) = append(
   p(a, scale_vec2(b, m, m + n), c),
   q(vec_add(a, scale_vec2(b, m, m + n)), scale_vec2(b, n, n + m), c)
 )
-//│ beside: ∀α, β. {α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. α → ⟨Int, Int⟩ → β → ({X ≥ LNil} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → β → ({Y ≥ LNil} ⟹ Y)) → α → ⟨Int, Int⟩ → β → LNil
+//│ beside: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. α → ⟨Int, Int⟩ → β → ({X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → β → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → ⟨Int, Int⟩ → β → Z
 
 /** Stack two pictures with the given height proportions. */
 fun above(m, n, p, q, a, b, c) = append(
   p(vec_add(a, scale_vec2(c, n, m + n)), b, scale_vec2(c, m, n + m)),
   q(a, b, scale_vec2(c, n, m + n))
 )
-//│ above: ∀α, β. {α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. ⟨Int, Int⟩ → β → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → (∀Y. α → β → ⟨Int, Int⟩ → ({Y ≥ LNil} ⟹ Y)) → α → β → ⟨Int, Int⟩ → LNil
+//│ above: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. ⟨Int, Int⟩ → β → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (∀Y. α → β → ⟨Int, Int⟩ → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → β → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The grid traversal is translation-only.
 /** Place segments whose tile coordinates use a 16 by 16 grid. */
@@ -287,7 +287,7 @@ fun quartet(a, b, c, d, origin, xAxis, yAxis) =
     xAxis,
     yAxis
   )
-//│ quartet: ∀α. {α ≤ ⟨Int, Int⟩} ⟹ (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil} ⟹ Y)) → (∀X. α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil} ⟹ Y)) → α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil
+//│ quartet: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β ∨ γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → (∀X. α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The tile pictures are translation-only.
 /** Combine the four source tiles. */
@@ -305,7 +305,7 @@ fun cycle_(p1, origin, xAxis, yAxis) =
     xAxis,
     yAxis
   )
-//│ cycle_: (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil
+//│ cycle_: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ ((∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X)) ∧ (⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β))) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The second tile picture is translation-only.
 /** Cycle a rotated copy of the second tile. */
@@ -398,23 +398,5 @@ cycle_(nil, [0, 0], [16, 0], [0, 16]) as LNil
 fun oneSegment(a, b, c) = LCons([[0, 3], [3, 4]], LNil())
 //│ oneSegment: ⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil})
 
-:fixme // FIXME: The inferred picture combinator accepts callbacks producing only empty lists.
 cycle_(oneSegment, [0, 0], [16, 0], [0, 16])
-//│ ═══[TYPE ERROR] Cannot solve judgment (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil ≤ (⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil})) → α.
-//│ Typing error tree:
-//│   (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → LNil ≤ (⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil})) → α
-//│     ⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil} ⟹ X)
-//│       ⊤ → ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({β ≥ LNil} ⟹ β)
-//│         ⊤ → ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({β ≥ LNil} ⟹ β)
-//│           ⊤ → ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}) ≤ ⟨Int, Int⟩ → ({β ≥ LNil} ⟹ β)
-//│             (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil} ≤ {β ≥ LNil} ⟹ β
-//│               (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil} ≤ β
-//│                 LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩} ≤ β
-//│                   LCons ≤ β
-//│                     LCons ≤ LNil
-//│                   {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩} ≤ β
-//│                     {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩} ≤ LNil
-//│                       ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩ ≤ ⊥
-//│                 {tail: LNil} ≤ β
-//│                   {tail: LNil} ≤ LNil
-//│                     LNil ≤ ⊥
+//│ ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: Z})} ⟹ Z

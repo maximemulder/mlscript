@@ -8,43 +8,14 @@
 
 /** Remove the first structurally equal score. */
 fun delete_(xs, e) = deleteBy((x, y) => x == y, e, xs)
-//│ delete_: (∀X. {X ≥ LNil} ⟹ X) → ⊤ → LNil
+//│ delete_: ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → ⊤ → Y
 
 /** Delete each requested score in order, retaining any additional occurrences. */
 fun listDiff(a, ls) = foldl(delete_, a, ls)
-//│ listDiff: ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil
+//│ listDiff: ∀α, β, γ, Y. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X, Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (α ∨ Y)
 
-:fixme // FIXME: The inferred listDiff rejects a nonempty list in its first argument.
 listDiff(LCons(20, LCons(10, LNil())), LCons(20, LNil()))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ.
-//│ Typing error tree:
-//│   ∀α. (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ
-//│     (∀X. {X ≥ LNil} ⟹ X) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → LNil ≤ β → γ
-//│       β ≤ ∀X. {X ≥ LNil} ⟹ X
-//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
-//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
-//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
-//│               LCons ∧ {head: ε} ≤ η
-//│                 LCons ≤ η
-//│                   LCons ≤ LNil
-//│                 {head: ε} ≤ η
-//│                   {head: ε} ≤ LNil
-//│                     ε ≤ ⊥
-//│                       Int ≤ ⊥
-//│               {tail: ζ} ≤ η
-//│                 {tail: ζ} ≤ LNil
-//│                   ζ ≤ ⊥
-//│                     θ ≤ ⊥
-//│                       (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ⊥
-//│                         LCons ∧ {head: ι} ≤ ⊥
-//│                           LCons ≤ ⊥
-//│                           {head: ι} ≤ ⊥
-//│                             ι ≤ ⊥
-//│                               Int ≤ ⊥
-//│                         {tail: κ} ≤ ⊥
-//│                           κ ≤ ⊥
-//│                             λ ≤ ⊥
-//│                               LNil ≤ ⊥
+//│ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: Y})} ⟹ Y
 
 /** Sort in forward partition mode. */
 data class Sort(ls, acc)
@@ -102,31 +73,10 @@ fun gt(a, b) = b < a
 
 /** Compare the score lists of candidates with the same total. */
 fun ltScores(a, b) = ltList(a, b, lt, gt)
-//│ ltScores: ∀α. {α ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool
+//│ ltScores: ∀α, β. {β ≤ Int, α ≤ Int} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) → Bool
 
-:fixme // FIXME: The inferred comparator rejects a nonempty first score list.
 ltScores(LCons(20, LNil()), LCons(21, LNil())) as Bool
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ.
-//│ Typing error tree:
-//│   ∀α. {α ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
-//│     {δ ≤ Int} ⟹ (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
-//│       (∀X. {X ≥ LNil} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y) → Bool ≤ β → γ
-//│         β ≤ ∀X. {X ≥ LNil} ⟹ X
-//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
-//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
-//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
-//│                 LCons ∧ {head: ε} ≤ η
-//│                   LCons ≤ η
-//│                     LCons ≤ LNil
-//│                   {head: ε} ≤ η
-//│                     {head: ε} ≤ LNil
-//│                       ε ≤ ⊥
-//│                         Int ≤ ⊥
-//│                 {tail: ζ} ≤ η
-//│                   {tail: ζ} ≤ LNil
-//│                     ζ ≤ ⊥
-//│                       θ ≤ ⊥
-//│                         LNil ≤ ⊥
+//│ Bool
 
 :ctml-parse-only // FIXME: The quicksort dispatcher is translation-only.
 /** Sort candidates by total and then lexicographically by their constituent scores. */

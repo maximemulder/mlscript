@@ -600,32 +600,10 @@ fun moveDetailsFor(c, bd) =
 
 /** Recognize an empty line or one beginning with the two comment characters. */
 fun comment(s) = (s is LNil()) || listEq(take(2, s), nofibStringToList("--"))
-//│ comment: ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ α → Bool
+//│ comment: ∀α, β. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)} ⟹ α → Bool
 
-:fixme // FIXME: The inferred comment predicate rejects a nonempty line.
 comment(LCons("-", LNil())) as Bool
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ α → Bool ≤ β → γ.
-//│ Typing error tree:
-//│   ∀α. {α ≤ (¬({α ≤ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ α → Bool ≤ β → γ
-//│     {δ ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)} ⟹ δ → Bool ≤ β → γ
-//│       δ ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)
-//│         β ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)
-//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (¬({δ ≤ LNil} ⟹ ¬LNil) ∨ ¬({δ ≤ ¬LNil} ⟹ LNil)) ∧ (∀X. {X ≥ LNil} ⟹ X)
-//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil} ⟹ X
-//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil} ⟹ η
-//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
-//│                   LCons ∧ {head: ε} ≤ η
-//│                     LCons ≤ η
-//│                       LCons ≤ LNil
-//│                     {head: ε} ≤ η
-//│                       {head: ε} ≤ LNil
-//│                         ε ≤ ⊥
-//│                           Str ≤ ⊥
-//│                   {tail: ζ} ≤ η
-//│                     {tail: ζ} ≤ LNil
-//│                       ζ ≤ ⊥
-//│                         θ ≤ ⊥
-//│                           LNil ≤ ⊥
+//│ Bool
 
 :ctml-parse-only // FIXME: Taking the last list element exceeds bounded inference.
 /** Return the last item of a nonempty list. */
@@ -678,7 +656,7 @@ fun parseBoard(ls) =
   foldr(addPiece, emptyBoard, concat(zipWith(parseRank, reverse(enumFromTo(1, 8)), ls)))
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: The comment check and board and goal parsing have no inferred types.
+:ctml-parse-only // FIXME: Board and goal parsing are translation-only.
 /** Drop comments and split the eight board ranks from the goal. */
 fun parseProblem(s) =
   if splitAt(8, filter(x => negate(comment(x)), s)) is [bdtxt, gltxt] then

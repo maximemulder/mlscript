@@ -36,6 +36,8 @@ fun comp_plus(x, y) = if
   x is Complex(a, b) and y is Complex(c, d) then Complex(numAdd(a, c), numAdd(b, d))
 //│ comp_plus: (({i: Num} ∧ {r: Num}) ∧ Complex) → (({i: Num} ∧ {r: Num}) ∧ Complex) → ((Complex ∧ {r: Num}) ∧ {i: Num})
 
+:ctml-cfg search-steps 20000 check-steps 20000
+:fixme // FIXME: Closing the recursive orbit exhausts the solver budget.
 /** Produce the delayed quadratic orbit starting at c. */
 fun mandel(c) =
   /** Delay the current node and the mapped orbit. */
@@ -43,7 +45,10 @@ fun mandel(c) =
     LzCons(c, mapLz(z => comp_plus(comp_times(z, z), c), infiniteMandel()))
   )
   infiniteMandel()
-//│ mandel: ⊥ → (Delayed ∧ {resume: Unit → {head: ⊥}})
+mandel(Complex(0.0, 0.0))
+//│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
+
+:ctml-cfg no-search-limit no-check-limit
 
 /** Test whether a complex number has passed the escape radius. */
 fun diverge(cmplx, radius) = numGt(comp_magnitude(cmplx), radius)
@@ -59,22 +64,6 @@ createPixmap(1, 1, 75, LCons([1, [74, 74]], LNil())) as Pixmap
 //│ Num
 //│ Bool
 //│ Pixmap
-
-:fixme // FIXME: The recursive lazy map call leaves mandel with a bottom input type.
-mandel(Complex(0.0, 0.0))
-//│ ═══[TYPE ERROR] Cannot solve judgment ⊥ → (Delayed ∧ {resume: Unit → {head: ⊥}}) ≤ α → β.
-//│ Typing error tree:
-//│   ⊥ → (Delayed ∧ {resume: Unit → {head: ⊥}}) ≤ α → β
-//│     α ≤ ⊥
-//│       (Complex ∧ {r: γ}) ∧ {i: δ} ≤ ⊥
-//│         Complex ∧ {r: γ} ≤ ⊥
-//│           Complex ≤ ⊥
-//│           {r: γ} ≤ ⊥
-//│             γ ≤ ⊥
-//│               Num ≤ ⊥
-//│         {i: δ} ≤ ⊥
-//│           δ ≤ ⊥
-//│             Num ≤ ⊥
 
 :ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.
 /** Count the states within the escape radius, bounded by the supplied limit. */

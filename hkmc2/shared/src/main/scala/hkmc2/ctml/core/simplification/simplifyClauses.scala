@@ -12,7 +12,7 @@ extension (ctx: SubContext)
   @tailrec
   def simplifyClauses(type_ : Type, level: Int, outs: SubClauses)(using noInlineVars: NoInlineVars): (Type, SubClauses) =
     val fullCtx = ctx.extend(outs)
-    val dependencies = nestedGuardDependencies(type_) ++ outs.inputGuardDependencies(type_)
+    val dependencies = reachableGuardDependencies(type_)(using fullCtx)
     val boundUses = guardBoundUses(dependencies)(using fullCtx)
     val vars = outs.typeVars
       .filterNot(dependencies.contains)

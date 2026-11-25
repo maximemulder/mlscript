@@ -235,7 +235,7 @@ fun static(board) = interpret(0, map(x => score(board, x), wins))
 
 /** Generate the game tree, alternating the two move generators at each level. */
 fun repTree(f, g, a) = Branch(a, map(x => repTree(g, f, x), f(a)))
-//│ repTree: ∀α, β. {β ≥ (Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y}} ⟹ (∀X. α → ({X ≥ LNil} ⟹ X)) → (∀X. α → ({X ≥ LNil} ⟹ X)) → α → ((Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y})
+//│ repTree: ∀α, β, γ. {γ ≥ (Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, α ≥ β} ⟹ (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → ((Branch ∧ {a: α}) ∧ {cs: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y})
 
 /** Transform every game-tree payload, preserving the tree structure. */
 fun mapTree(f, t) = if t is Branch(a, l) then Branch(f(a), map(x => mapTree(f, x), l))

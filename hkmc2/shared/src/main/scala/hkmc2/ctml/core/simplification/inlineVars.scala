@@ -129,14 +129,21 @@ private[simplification] def guardBoundUses(dependencies: Set[TypeVar])(using Sub
   dependencies.flatMap: variable =>
     variable.getTransDeps(Polarity.Negative).all ++ variable.getTransDeps(Polarity.Positive).all
 
-extension (outs: SubClauses)
-  /** A negative occurrence uses its upper bound when inlined. For example, in `K → R` with
-   *  `K ≤ Unit → List[A]`, the input's guard already depends on `A`. Protecting it here allows
-   *  the simplifier to process `K` and `A` in either order. */
-  private[simplification] def inputGuardDependencies(type_ : Type): Set[TypeVar] =
-    val inputs = type_.getDeps(Polarity.Positive).all.collect:
-      case PolarVar(variable, Polarity.Negative) => variable
-    outs.assertedBounds.iterator
-      .filter(bound => bound.dir == Direction.Sub && inputs.contains(bound.var_))
-      .flatMap(bound => nestedGuardDependencies(bound.type_))
-      .toSet
+/** Find guard dependencies in the result and in reachable upper bounds. For example, with
+ *  `F ≤ S → R` and `R ≤ List[A]`, inlining the input `F` exposes a list guard that depends on
+ *  `A`. Follow bounds in the direction selected by each occurrence so that the dependency is
+ *  visible even while `R` is still a variable. Recursive bounds can revisit a variable. */
+private[simplification] def reachableGuardDependencies(type_ : Type)(using ctx: SubContext): Set[TypeVar] =
+  val dependencies = Set.newBuilder[TypeVar]
+  val visited = scala.collection.mutable.Set.empty[PolarVar]
+
+  /** Inspect the bound that inlining this occurrence would expose. */
+  def visit(ref: PolarVar): Unit =
+    if visited.add(ref) then
+      ctx.varBound(ref.var_, ref.pol.dir).foreach: bound =>
+        if ref.pol == Polarity.Negative then dependencies ++= nestedGuardDependencies(bound)
+        bound.getDeps(ref.pol).all.foreach(visit)
+
+  dependencies ++= nestedGuardDependencies(type_)
+  type_.getDeps(Polarity.Positive).all.foreach(visit)
+  dependencies.result()

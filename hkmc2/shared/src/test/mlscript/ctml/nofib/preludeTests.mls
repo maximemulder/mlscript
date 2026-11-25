@@ -690,6 +690,54 @@ concat(LCons(LCons(1, LNil()), LNil()))
 //│                   λ ≤ ⊥
 //│                     LNil ≤ ⊥
 
+/** Copy the list produced by a callback, preserving its element type through the callback result. */
+fun copyFrom(produce, x) = map(a => a, produce(x))
+//│ copyFrom: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → Y
+
+/** Use the same callback with the value supplied first. */
+fun copyFromValue(x, produce) = map(a => a, produce(x))
+//│ copyFromValue: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ α → (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → Y
+
+copyFrom(n => LCons(n, LNil()), 1) as IntList
+copyFromValue(1, n => LCons(n, LNil())) as IntList
+//│ IntList
+//│ IntList
+
+:te
+copyFrom(s => LCons(s, LNil()), "x") as IntList
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
+//│ Typing error tree:
+//│   α ≤ IntList
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ IntList
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│               {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│                 δ ≤ LNil
+//│                   LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                     (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: β} ≤ LNil
+//│                         LCons ≤ LNil
+//│                         {head: β} ≤ LNil
+//│                           β ≤ ⊥
+//│                             {ζ ≤ β} ⟹ ε ≤ ⊥
+//│                               ζ ≤ β
+//│                                 ε ≤ β
+//│                                   ε ≤ ⊥
+//│                                     Str ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
+//│                             LNil ≤ ⊥
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                   {η ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η})} ⟹ η ≤ LCons
+//│                     η ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η}) ≤ LCons
+//│                         LNil ≤ LCons
+
 /** Element-changing map result used only for assertions. */
 type PairList = [X restricts (LNil | (LCons & {head: [Str, Bool]} & {tail: X}))] -> X
 //│ PairList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ⟨Str, Bool⟩}) ∧ {tail: X})} ⟹ X

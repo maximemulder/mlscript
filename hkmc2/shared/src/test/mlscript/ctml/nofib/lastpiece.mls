@@ -372,16 +372,14 @@ P("a", LCons(LCons(["1", 0], LNil()), LNil()), LNil())
 //│                             ξ ≤ ⊥
 //│                               LNil ≤ ⊥
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece n. */
 val nPiece = P("n",
   LCons(LCons([0, 1], LCons([1, 1], LCons([2, 1], LCons([2, 2], LNil())))),
     LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([1, 0 - 2], LCons([2, 0 - 2], LNil())))),
       LNil())),
   LNil())
-//│ CTML translation succeeded.
+//│ nPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}) ∧ {b: LNil}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece m. */
 val mPiece = P("m",
   LCons(LCons([0, 1], LCons([1, 0], LCons([2, 0], LCons([3, 0], LNil())))),
@@ -389,9 +387,8 @@ val mPiece = P("m",
   LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 3], LNil())))),
     LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([3, 0 - 1], LNil())))),
       LNil())))
-//│ CTML translation succeeded.
+//│ mPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece l. */
 val lPiece = P("l",
   LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 2], LNil())))),
@@ -400,18 +397,16 @@ val lPiece = P("l",
   LCons(LCons([1, 0 - 1], LCons([1, 0], LCons([1, 1], LCons([1, 2], LNil())))),
     LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([1, 1], LNil())))),
       LNil())))
-//│ CTML translation succeeded.
+//│ lPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece k. */
 val kPiece = P("k",
   LCons(LCons([0, 1], LCons([1, 0], LCons([2, 0], LCons([2, 0 - 1], LNil())))),
     LNil()),
   LCons(LCons([1, 0], LCons([1, 1], LCons([1, 2], LCons([2, 2], LNil())))),
     LNil()))
-//│ CTML translation succeeded.
+//│ kPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece j. */
 val jPiece = P("j",
   LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 1], LNil())))),
@@ -420,9 +415,8 @@ val jPiece = P("j",
         LNil()))),
   LCons(LCons([1, 0], LCons([2, 0], LCons([3, 0], LCons([2, 2], LNil())))),
     LNil()))
-//│ CTML translation succeeded.
+//│ jPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece i. */
 val iPiece = P("i",
   LCons(LCons([1, 0], LCons([2, 0], LCons([2, 1], LCons([3, 1], LNil())))),
@@ -431,9 +425,8 @@ val iPiece = P("i",
         LNil()))),
   LCons(LCons([0, 1], LCons([1, 0], LCons([1, 0 - 1], LCons([1, 0 - 2], LNil())))),
     LNil()))
-//│ CTML translation succeeded.
+//│ iPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece h. */
 val hPiece = P("h",
   LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LCons([2, 2], LNil())))),
@@ -442,9 +435,9 @@ val hPiece = P("h",
         LNil()))),
   LCons(LCons([0, 1], LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LNil())))),
     LNil()))
-//│ CTML translation succeeded.
+//│ hPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
+:ctml-parse-only // FIXME: Checking the nested placements for piece g exceeds the inference time budget.
 /** Source placements for piece g. */
 val gPiece = P("g",
   LNil(),
@@ -455,7 +448,6 @@ val gPiece = P("g",
           LNil())))))
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece f. */
 val fPiece = P("f",
   LCons(LCons([0, 1], LCons([1, 1], LCons([2, 1], LCons([3, 1], LNil())))),
@@ -464,9 +456,8 @@ val fPiece = P("f",
         LNil()))),
   LCons(LCons([0, 1], LCons([0, 2], LCons([0, 3], LCons([1, 0], LNil())))),
     LNil()))
-//│ CTML translation succeeded.
+//│ fPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece e. */
 val ePiece = P("e",
   LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LNil()))),
@@ -475,9 +466,8 @@ val ePiece = P("e",
   LCons(LCons([0, 1], LCons([1, 1], LCons([1, 2], LNil()))),
     LCons(LCons([1, 0], LCons([1, 0 - 1], LCons([2, 0 - 1], LNil()))),
       LNil())))
-//│ CTML translation succeeded.
+//│ ePiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece d. */
 val dPiece = P("d",
   LCons(LCons([0, 1], LCons([1, 1], LCons([2, 1], LNil()))),
@@ -485,9 +475,8 @@ val dPiece = P("d",
       LNil())),
   LCons(LCons([1, 0], LCons([2, 0], LCons([2, 1], LNil()))),
     LNil()))
-//│ CTML translation succeeded.
+//│ dPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece c. */
 val cPiece = P("c",
   LNil(),
@@ -496,9 +485,8 @@ val cPiece = P("c",
       LCons(LCons([1, 0 - 1], LCons([1, 0], LCons([1, 1], LNil()))),
         LCons(LCons([1, 0], LCons([1, 1], LCons([2, 0], LNil()))),
           LNil())))))
-//│ CTML translation succeeded.
+//│ cPiece: ((P ∧ {i: Str}) ∧ {a: LNil}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}}
 
-:ctml-parse-only // FIXME: Checking the full nested placement tables times out.
 /** Source placements for piece b. */
 val bPiece = P("b",
   LCons(LCons([0, 1], LCons([0, 2], LCons([1, 2], LNil()))),
@@ -507,9 +495,9 @@ val bPiece = P("b",
         LNil()))),
   LCons(LCons([1, 0], LCons([1, 1], LCons([1, 2], LNil()))),
     LNil()))
-//│ CTML translation succeeded.
+//│ bPiece: ((P ∧ {i: Str}) ∧ {a: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}}}) ∧ {b: (LCons ∧ {head: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: (LCons ∧ {head: ⟨Int, Int⟩}) ∧ {tail: LNil}}}}) ∧ {tail: LNil}}
 
-:ctml-parse-only // FIXME: The full placement tables are translation-only.
+:ctml-parse-only // FIXME: The placement table for piece g is translation-only.
 /** The source piece order after placing piece a. */
 val initialPieces =
   LCons(bPiece,

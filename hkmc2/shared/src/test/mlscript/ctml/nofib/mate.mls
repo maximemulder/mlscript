@@ -225,12 +225,11 @@ fun toLower(c) =
   if isUpper(c) then nofibFromCharCode(nofibCharCode(c) + 32) else c
 //│ toLower: Str → Str
 
-:ctml-parse-only // FIXME: Recursive word splitting exceeds bounded inference.
 /** Split a line at spaces, skipping consecutive separators. */
 fun words(s) = if leaveWhile(x => x === " ", s) is
   LNil() then LNil()
   s_ and break_(x => x === " ", s_) is [w, rest] then LCons(w, words(rest))
-//│ CTML translation succeeded.
+//│ words: (∀X. {X ≥ LNil} ⟹ X) → LNil
 
 :ctml-parse-only // FIXME: Recursive line splitting exceeds bounded inference.
 /** Split at newlines, keeping the final line before end of input. */

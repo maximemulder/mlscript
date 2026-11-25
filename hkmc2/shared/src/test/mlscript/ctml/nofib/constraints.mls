@@ -505,14 +505,13 @@ fun bjbt(csp, t) = bj(csp, bt(csp, t))
 fun bjbt_(csp, t) = bj_(csp, bt(csp, t))
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: The inferred conflict-set union rejects nonempty input.
 /** Combine the conflict sets of the table entries. */
 fun collect(ls) = if ls is
   LNil() then LNil()
   LCons(Known(cs), css) then union(cs, collect(css))
-//│ CTML translation succeeded.
+//│ collect: ∀α. {α ≤ LNil} ⟹ α → LNil
 
-:ctml-parse-only // FIXME: Collection of the wiped domain's conflicts is translation-only.
+:ctml-parse-only // FIXME: The inferred collect type accepts only the empty list.
 /** Use the first empty domain's conflicts when every value in a domain is excluded. */
 fun domainWipeout(csp, t) = if csp is CSP(_, _, _) then
   /** Determine the outcome of one node using its table. */

@@ -141,18 +141,17 @@ collect(1, LCons("a", LNil()))
 fun size(n) = intDiv(listLen(string_of_z(n)) * 47, 100)
 //│ size: BigInt → Int
 
-:ctml-parse-only // FIXME: Block collection and decimal length do not check on nonempty inputs.
 /** Encrypt each block and terminate each decimal result with a newline. */
 fun encrypt(n, e, s) =
   unlines(map(c => string_of_z(power(e, n, code(c))), collect(size(n), s)))
-//│ CTML translation succeeded.
+//│ encrypt: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ BigInt → BigInt → LNil → Y
 
 /** Read the original plaintext fixture. */
 val input = nofibStringToList(
   nofibReadText("./hkmc2/shared/src/test/mlscript/nofib/input/rsa.faststdin"))
 //│ input: LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ α})
 
-:ctml-parse-only // FIXME: The encryption pipeline is translation-only.
+:ctml-parse-only // FIXME: The inferred encrypt type accepts only empty plaintext.
 /** Encrypt the fixture with the source modulus and exponent, then hash the result. */
 fun testRsa_nofib(_) = hash(encrypt(
   bigIntFrom("2036450659413645137870851576872812267542175329986469156678671505255564383842535488743101632280716717779536712424613501441720195827856504007305662157107"),

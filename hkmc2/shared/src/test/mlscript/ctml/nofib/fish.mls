@@ -25,7 +25,6 @@ type Point = [Int, Int]
 type Segment = [Point, Point]
 //│ Segment = ⟨Point, Point⟩
 
-:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
 /** The first tile consists of the following directed segments. */
 val p_tile =
   let segments25 =
@@ -69,9 +68,9 @@ val p_tile =
         LCons([[6, 0], [4, 4]],
           LCons([[4, 5], [4, 10]],
             segments5)))))
-//│ CTML translation succeeded.
+//│ p_tile: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 
-:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
+:ctml-parse-only // FIXME: Checking the q tile exceeds the 20000-call solver budget.
 /** The q tile in source segment order. */
 val q_tile =
   let segments35 =
@@ -128,7 +127,6 @@ val q_tile =
             segments5)))))
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
 /** The r tile in source segment order. */
 val r_tile =
   let segments20 =
@@ -165,9 +163,8 @@ val r_tile =
         LCons([[0, 8], [2, 12]],
           LCons([[0, 12], [1, 14]],
             segments5)))))
-//│ CTML translation succeeded.
+//│ r_tile: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}}}}}}}}}}}}}}}}}}}}}}}}}
 
-:ctml-parse-only // FIXME: The full tile tables are deferred after the file hit the diff-test limit.
 /** The s tile in source segment order. */
 val s_tile =
   let segments25 =
@@ -209,7 +206,7 @@ val s_tile =
         LCons([[0, 4], [2, 1]],
           LCons([[0, 6], [7, 4]],
             segments5)))))
-//│ CTML translation succeeded.
+//│ s_tile: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: (LCons ∧ {head: ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩}) ∧ {tail: LNil}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 
 /** The empty picture. */
 fun nil(a, b, c) = LNil()
@@ -259,7 +256,7 @@ fun above(m, n, p, q, a, b, c) = append(
 fun tile_to_grid(arg, arg2, arg3, arg4) = grid(16, 16, arg, arg2, arg3, arg4)
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+:ctml-parse-only // FIXME: The grid traversal is translation-only.
 /** Draw the first fish tile. */
 fun p(a, b, c) = tile_to_grid(p_tile, a, b, c)
 //│ CTML translation succeeded.
@@ -269,12 +266,12 @@ fun p(a, b, c) = tile_to_grid(p_tile, a, b, c)
 fun q(a, b, c) = tile_to_grid(q_tile, a, b, c)
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+:ctml-parse-only // FIXME: The grid traversal is translation-only.
 /** Draw the third fish tile. */
 fun r(a, b, c) = tile_to_grid(r_tile, a, b, c)
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: The tile table and grid traversal are translation-only.
+:ctml-parse-only // FIXME: The grid traversal is translation-only.
 /** Draw the fourth fish tile. */
 fun s(a, b, c) = tile_to_grid(s_tile, a, b, c)
 //│ CTML translation succeeded.

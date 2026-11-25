@@ -16,15 +16,13 @@ fun goto(x, y) = LCons("E", LCons("[",
     LCons(";", append(nofibStringToList(stringOfFloat(x)), LCons("H", LNil()))))))
 //│ goto: Num → Num → ((LCons ∧ {head: Str}) ∧ {tail: (LCons ∧ {head: Str}) ∧ {tail: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z}})
 
-:ctml-parse-only // FIXME: Position code construction has no inferred type.
 /** Prefix text with a cursor position. */
 fun at(pos, s) = if pos is [x, y] then append(goto(x, y), s)
-//│ CTML translation succeeded.
+//│ at: ∀α, β. {α ≥ Str, β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ ⟨Num, Num⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → β
 
-:ctml-parse-only // FIXME: Inferred character lists cannot instantiate append inputs.
 /** Enclose text in the source highlight controls. */
 fun highlight(s) = append(nofibStringToList("ESC[7m"), append(s, nofibStringToList("ESC[0m")))
-//│ CTML translation succeeded.
+//│ highlight: ∀α, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z}), α ≥ Str} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Z
 
 /** End the program with an empty display suffix. */
 fun endInput(_) = nofibStringToList("")
@@ -117,12 +115,12 @@ fun ringBell(prog, cs) = writeChar("B", prog, cs)
 fun clearScreen(a, b) = writeString(cls, a, b)
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: Cursor position construction has no inferred type.
+:ctml-parse-only // FIXME: The inferred writeString type rejects nonempty prefixes.
 /** Build a continuation that emits text at a position. */
 fun writeAt(pos, s, a) = if pos is [x, y] then p => writeString(append(goto(x, y), s), a, p)
 //│ CTML translation succeeded.
 
-:ctml-parse-only // FIXME: Cursor position construction has no inferred type.
+:ctml-parse-only // FIXME: The inferred writeString type rejects nonempty prefixes.
 /** Build a continuation that moves the cursor. */
 fun moveTo(pos, a) = if pos is [x, y] then p => writeString(goto(x, y), a, p)
 //│ CTML translation succeeded.

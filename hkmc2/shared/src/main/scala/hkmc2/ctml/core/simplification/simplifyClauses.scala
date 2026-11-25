@@ -13,6 +13,7 @@ extension (ctx: SubContext)
   def simplifyClauses(type_ : Type, level: Int, outs: SubClauses)(using noInlineVars: NoInlineVars): (Type, SubClauses) =
     val fullCtx = ctx.extend(outs)
     val dependencies = nestedGuardDependencies(type_) ++ outs.inputGuardDependencies(type_)
+    val boundUses = guardBoundUses(dependencies)(using fullCtx)
     val vars = outs.typeVars
       .filterNot(dependencies.contains)
       .filterNot(noInlineVars.contains)
@@ -20,7 +21,8 @@ extension (ctx: SubContext)
     // Prefer ordinary inlining across all candidates before trying to recover reversed bounds.
     // Search from the oldest declaration, and restart after each removal: dependencies and
     // effective levels may change. Every successful step removes one declaration.
-    val inlining = vars.reverseIterator.flatMap(tryInlineVar(type_, _, outs)(using ctx)).nextOption()
+    val inlining = vars.reverseIterator.flatMap(tryInlineVar(type_, _, outs, boundUses)(using ctx))
+      .nextOption()
     val simplification = inlining.orElse(
       vars.reverseIterator.flatMap(tryEliminateVar(type_, _, outs)(using ctx)).nextOption()
     )

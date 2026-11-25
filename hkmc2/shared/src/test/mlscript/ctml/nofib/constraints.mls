@@ -125,7 +125,7 @@ fun filterTree(p, t) =
   /** Rebuild the node with the children that meet the predicate. */
   fun f1(a, cs) = Node(a, filter(x => p(label(x)), cs))
   foldTree(f1, t)
-//│ filterTree: ∀α, β, γ, δ. {β ≤ ({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node, δ ≤ ({lab: ⊤} ∧ Node) ∧ {children: ⊤}, δ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, γ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, γ ≤ ({lab: ⊤} ∧ Node) ∧ {children: ⊤}} ⟹ (α → Bool) → (({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node) → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y})
+//│ filterTree: ∀α, β, γ, δ, ε. {β ≤ ({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node, δ ≤ ({lab: ε} ∧ Node) ∧ {children: ⊤}, ε ≥ α, δ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, γ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, γ ≤ ({lab: ⊤} ∧ Node) ∧ {children: ⊤}} ⟹ (ε → Bool) → (({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node) → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y})
 
 /** Remove children whose labels satisfy the pruning predicate. */
 fun prune(p, t) = filterTree(x => if p(x) then false else true, t)

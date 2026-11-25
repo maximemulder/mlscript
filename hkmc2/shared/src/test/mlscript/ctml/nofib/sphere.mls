@@ -457,7 +457,7 @@ fun hash(param) =
     let rgb = bigIntAdd(rg, bigIntMul(u8(b), bigIntFrom(23)))
     bigIntAdd(rgb, bigIntMul(acc, bigIntFrom(61)))
   foldr(step, bigIntFrom(0), param)
-//│ hash: ∀α. {α ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt
+//│ hash: ∀α. {α ≤ ⟨Num, ⟨Num, Num⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt
 
 :ctml-parse-only // FIXME: The pixel shading pipeline is translation-only.
 /** Compute the pixels in the source coordinate order. */
@@ -523,7 +523,39 @@ Point([1.0, [2.0, "blue"]], background)
 //│                 ⟨Num, Str⟩ ≤ ⟨Num, Num⟩
 //│                   Str ≤ Num
 
-:breakme // FIXME: The inferred fold accepts an RGB tuple with a nonnumeric component.
 :te
 hash(LCons([0.5, [0.25, "blue"]], LNil()))
-//│ BigInt
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α. {α ≤ ⟨Num, ⟨Num, Num⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ.
+//│ Typing error tree:
+//│   ∀α. {α ≤ ⟨Num, ⟨Num, Num⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ
+//│     {δ ≤ ⟨Num, ⟨Num, Num⟩⟩} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ
+//│       (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → BigInt ≤ β → γ
+//│         β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                   LCons ∧ {head: ε} ≤ LNil
+//│                     LCons ≤ LNil
+//│                     {head: ε} ≤ LNil
+//│                       ε ≤ ⊥
+//│                         ⟨Num, ⟨Num, Str⟩⟩ ≤ ⊥
+//│                   {tail: ζ} ≤ LNil
+//│                     ζ ≤ ⊥
+//│                       θ ≤ ⊥
+//│                         LNil ≤ ⊥
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: δ}
+//│                     (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: δ}
+//│                       LCons ∧ {head: ε} ≤ {head: δ}
+//│                         LCons ≤ {head: δ}
+//│                         {head: ε} ≤ {head: δ}
+//│                           ε ≤ δ
+//│                             ε ≤ ⟨Num, ⟨Num, Num⟩⟩
+//│                               ⟨Num, ⟨Num, Str⟩⟩ ≤ ⟨Num, ⟨Num, Num⟩⟩
+//│                                 ⟨Num, Str⟩ ≤ ⟨Num, Num⟩
+//│                                   Str ≤ Num
+//│                       {tail: ζ} ≤ {head: δ}
+//│                         ζ ≤ ⊥
+//│                           θ ≤ ⊥
+//│                             LNil ≤ ⊥

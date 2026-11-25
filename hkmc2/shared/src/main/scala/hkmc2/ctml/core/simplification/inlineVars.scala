@@ -23,10 +23,17 @@ object NoInlineVars:
     NoInlineVars(Set.empty)
 
 extension (type_ : Type)
-  /** Determine the inlining polarities of a variable whose guard dependencies have been checked.
-   *  Follow the effective bounds reachable from the type. Mixed polarities require equal bounds. */
-  private[simplification] def getInlinePolarities(var_ : TypeVar)(using ctx: SubContext): Option[Polarities] =
-    val polarities = type_.getAllVarPolarities(var_)
+  /** Find which bounds an inlining must preserve in the type and in the bounds of its guard
+   *  dependencies. A variable observed at both polarities needs equal lower and upper bounds. */
+  private[simplification] def getInlinePolarities(
+    var_ : TypeVar,
+    guardBoundUses: Set[PolarVar],
+  )(using ctx: SubContext): Option[Polarities] =
+    val guardPolarities = Polarities(
+      guardBoundUses.contains(PolarVar(var_, Polarity.Negative)),
+      guardBoundUses.contains(PolarVar(var_, Polarity.Positive)),
+    )
+    val polarities = Polarities.join(type_.getAllVarPolarities(var_), guardPolarities)
 
     if polarities == Polarities(false, false) then
       return Some(polarities)
@@ -50,25 +57,26 @@ extension (type_ : Type)
 
 /** Try ordinary polarity inlining in an open result. The caller chooses a local, unprotected
  *  variable declared in the output clauses; those clauses must have summarized effective bounds.
- *  The result type determines which bounds to keep, while all surviving clause occurrences must
- *  admit a non-recursive replacement. */
+ *  The result type and its guard dependencies determine which bounds to keep. Every surviving
+ *  clause occurrence must admit a non-recursive replacement. */
 private[simplification] def tryInlineVar(
   type_ : Type,
   var_ : TypeVar,
   outs: SubClauses,
+  guardBoundUses: Set[PolarVar],
 )(using ctx: SubContext): Option[(Type, SubClauses)] =
   assert(outs.hasVar(var_))
   assert(!outs.hasEffectiveBounds)
   val fullCtx = ctx.extend(outs)
   if !canInlineOpenState(type_, outs, var_)(using fullCtx) then
     return None
-  type_.getInlinePolarities(var_)(using fullCtx).map((polarities) =>
+  type_.getInlinePolarities(var_, guardBoundUses)(using fullCtx).map((polarities) =>
     val (newType, newOuts) = debugInlineVar(inlineVar)(type_, var_, polarities, outs)
     validateInferenceState(s"inlining ${var_}", newType, newOuts)
     (newType, newOuts)
   )
 
-/** Inline using only the output bounds selected by the result type's reachable polarities. */
+/** Inline using the output bounds selected by the observed polarities. */
 private def inlineVar(type_ : Type, var_ : TypeVar, polarities: Polarities, outs: SubClauses)(using ctx: SubContext): (Type, SubClauses) =
   val relevantOuts = outs.filterBounds((bound) =>
     bound.var_ != var_ || polarities.contains(bound.dir.leftPol)
@@ -112,6 +120,14 @@ private[simplification] def nestedGuardDependencies(type_ : Type): Set[TypeVar] 
 
   visit(type_, Set.empty)
   dependencies.result()
+
+/** Both bounds of a variable retained by a guard can constrain a later instantiation. Follow
+ *  each bound at its own polarity. For example, if a list guard retains its element type A and
+ *  A ≤ ⟨⊤, B⟩, its upper bound observes B negatively. A callback accepting B can also observe B
+ *  positively, so replacing B by ⊤ in the pair would lose the callback's input requirement. */
+private[simplification] def guardBoundUses(dependencies: Set[TypeVar])(using SubContext): Set[PolarVar] =
+  dependencies.flatMap: variable =>
+    variable.getTransDeps(Polarity.Negative).all ++ variable.getTransDeps(Polarity.Positive).all
 
 extension (outs: SubClauses)
   /** A negative occurrence uses its upper bound when inlined. For example, in `K → R` with

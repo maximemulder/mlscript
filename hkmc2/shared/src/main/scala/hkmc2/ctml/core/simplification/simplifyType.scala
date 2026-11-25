@@ -80,10 +80,11 @@ private def redundantJointOperand(
 
 /** Simplify a universal type after its parameter and return type have already been simplified. */
 private[simplification] def simplifyUniv(var_ : TypeVar, body: Type)(using ctx: SubContext, noInlineVars: NoInlineVars): Type =
-  if noInlineVars.contains(var_) || nestedGuardDependencies(body).contains(var_) then
+  val dependencies = nestedGuardDependencies(body)
+  if noInlineVars.contains(var_) || dependencies.contains(var_) then
     return TUniv(var_, body)
 
-  body.getInlinePolarities(var_) match
+  body.getInlinePolarities(var_, guardBoundUses(dependencies)) match
     case Some(_) =>
       body.inline(var_)
     case None =>

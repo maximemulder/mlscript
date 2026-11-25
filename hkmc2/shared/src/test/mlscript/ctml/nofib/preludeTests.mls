@@ -319,6 +319,52 @@ takeLzLz(1, delayedCell) as IntLz
 //│ StrLz
 //│ IntLz
 
+/** Apply the callback to the second component of each pair and sum the results. */
+fun sumSeconds(f, xs) =
+  foldr((p, acc) => if p is [_, b] then acc + f(b), 0, xs)
+//│ sumSeconds: ∀α, β. {α ≤ ⟨⊤, β⟩} ⟹ (β → Int) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Int
+
+sumSeconds(x => x + 1, LCons(["unused", 4], LNil())) as Int
+sumSeconds(nofibStringLength, LCons([4, "four"], LNil())) as Int
+//│ Int
+//│ Int
+
+:te
+sumSeconds(x => x + 1, LCons([4, "bad"], LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
+//│ Typing error tree:
+//│   α ≤ β → γ
+//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → Int ≤ β → γ
+//│       β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│         (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X
+//│           (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {η ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: η})} ⟹ η
+//│             (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ η
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LNil
+//│                 LCons ∧ {head: ε} ≤ LNil
+//│                   LCons ≤ LNil
+//│                   {head: ε} ≤ LNil
+//│                     ε ≤ ⊥
+//│                       ⟨Int, Str⟩ ≤ ⊥
+//│                 {tail: ζ} ≤ LNil
+//│                   ζ ≤ ⊥
+//│                     θ ≤ ⊥
+//│                       LNil ≤ ⊥
+//│               (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ (LCons ∧ {head: δ}) ∧ {tail: η}
+//│                 (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ LCons ∧ {head: δ}
+//│                   (LCons ∧ {head: ε}) ∧ {tail: ζ} ≤ {head: δ}
+//│                     LCons ∧ {head: ε} ≤ {head: δ}
+//│                       LCons ≤ {head: δ}
+//│                       {head: ε} ≤ {head: δ}
+//│                         ε ≤ δ
+//│                           ε ≤ ⟨⊤, ι⟩
+//│                             ⟨Int, Str⟩ ≤ ⟨⊤, ι⟩
+//│                               Str ≤ ι
+//│                                 Str ≤ Int
+//│                     {tail: ζ} ≤ {head: δ}
+//│                       ζ ≤ ⊥
+//│                         θ ≤ ⊥
+//│                           LNil ≤ ⊥
+
 :te
 foldr1((a, b) => a + b, LNil())
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.

@@ -21,11 +21,12 @@ levels: solving, wrapping constraints, and quantifying the remaining variables b
 
 ## Variable transformations
 
-`inlineVars.scala` handles ordinary inlining. The result type's transitive polarities determine
-which bounds of a variable matter. Mixed polarities require equal lower and upper bounds. An
-additional check on the surviving clause occurrences prevents recursive replacements outside the
-result type. Bounds in directions that do not matter to the result are excluded from the
-replacement context.
+`inlineVars.scala` handles ordinary inlining. The result type and the bounds of variables retained by
+quantified guards determine which polarities of a variable matter. Both bounds of a retained
+variable can constrain its instantiation, so the analysis follows its lower bound positively and
+its upper bound negatively. Mixed polarities require equal lower and upper bounds. A separate
+check on surviving clause occurrences prevents recursive replacements outside the result type.
+Bounds in unobserved directions are excluded from the replacement context.
 
 `eliminateVar.scala` handles relations recorded on other variables: for example, `β ≥ α` also
 provides the upper bound `α ≤ β`. After recovering these bounds, it requires the other occurrences

@@ -349,7 +349,7 @@ fun ltGraph(t) =
   fun labelOf(t) = if t is Node([n, x], xs) then n
   if t is Node([n, x], xs) then
     LCons([n, [x, map(labelOf, xs)]], concat(map(ltGraph, xs)))
-//│ ltGraph: ∀α, β, γ, δ, ε, ζ. {ζ ≥ ⟨α, ⟨β, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y⟩⟩, ε ≤ ({b: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: X})} ⟹ X)} ∧ {a: ⟨α, β⟩}) ∧ Node, γ ≤ ({b: ⊤} ∧ {a: ⟨⊤, ⊤⟩}) ∧ Node} ⟹ (({b: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: X})} ⟹ X)} ∧ {a: ⟨α, β⟩}) ∧ Node) → ((LCons ∧ {head: ⟨α, ⟨β, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y⟩⟩}) ∧ {tail: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: Y})} ⟹ Y})
+//│ ltGraph: ∀α, β, γ, δ, ε, ζ. {ζ ≥ ⟨α, ⟨β, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y⟩⟩, ε ≤ ({b: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: X})} ⟹ X)} ∧ {a: ⟨α, β⟩}) ∧ Node, γ ≤ ({b: ⊤} ∧ {a: ⟨δ, ⊤⟩}) ∧ Node} ⟹ (({b: (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ε}) ∧ {tail: X})} ⟹ X)} ∧ {a: ⟨α, β⟩}) ∧ Node) → ((LCons ∧ {head: ⟨α, ⟨β, ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y⟩⟩}) ∧ {tail: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ζ}) ∧ {tail: Y})} ⟹ Y})
 
 /** Report whether the label was visited, adding it to the state on the first visit. */
 fun visited(n) =

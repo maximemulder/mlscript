@@ -406,11 +406,11 @@ fun compare_and_update(ipm, pid_port_m) = if
 /** Deliver a packet's signal to the matching input ports. */
 fun up_i(ipm, ins) = if ipm is [i, [p, [m, [_, [_, [_, [_, _]]]]]]] then
   map(x => compare_and_update([i, [p, m]], x), ins)
-//│ up_i: ∀α, β, γ. {β ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩, γ ≥ LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, α⟩⟩}) ∧ {tail: γ})} ⟹ ⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ
+//│ up_i: ∀α, β, γ, δ, ε, ζ. {β ≤ ⟨γ, ⟨δ, ε⟩⟩, ζ ≥ LNil ∨ ((LCons ∧ {head: ⟨γ, ⟨δ, α⟩⟩ ∨ ⟨γ, ⟨δ, ε⟩⟩}) ∧ {tail: ζ})} ⟹ ⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → ζ
 
 /** Deliver the packet from the right first, then the packet from the left. */
 fun update_i(lr, ins) = if lr is [l, r] then up_i(l, up_i(r, ins))
-//│ update_i: ∀α, β, γ. {β ≤ ⟨⊤, ⟨⊤, ⊤⟩⟩, γ ≥ LNil ∨ ((LCons ∧ {head: ⟨⊥, ⟨⊥, α⟩⟩}) ∧ {tail: γ})} ⟹ ⟨⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → γ
+//│ update_i: ∀α, β, γ, δ, ε, ζ, η. {γ ≤ ⟨δ, ⟨ε, ζ⟩⟩, η ≥ LNil ∨ ((LCons ∧ {head: ⟨δ, ⟨ε, α⟩⟩ ∨ ⟨δ, ⟨ε, ζ ∨ β⟩⟩}) ∧ {tail: η})} ⟹ ⟨⟨⊤, ⟨⊤, ⟨α, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩, ⟨⊤, ⟨⊤, ⟨β, ⟨⊤, ⟨⊤, ⟨⊤, ⟨⊤, ⊤⟩⟩⟩⟩⟩⟩⟩⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → η
 
 /** Clear the output's right request when the packet from the left is done. */
 fun check_left(a, b) = if
@@ -699,8 +699,8 @@ send_right([1, [2, [T(), [false, [0, [3, [3, 1]]]]]]], emptyPacket)
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο.
 //│ Typing error tree:
 //│   ∀α, β, γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν. {ζ ≤ Bool} ⟹ ⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨α, ⟨β, ⟨γ, ⟨δ, ⟨ε, ⟨ζ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨η, ⟨θ, ⟨ι, ⟨κ, ⟨λ, ⟨μ, ⟨ν, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
-//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
-//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3715, ⟨3716, ⟨3717, ⟨3718, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│     {φ ≤ Bool} ⟹ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3735, ⟨3736, ⟨3737, ⟨3738, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3735, ⟨3736, ⟨3737, ⟨3738, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
+//│       ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ⟨χ, ⟨ψ, ⟨ω, ⟨3735, ⟨3736, ⟨3737, ⟨3738, Int⟩⟩⟩⟩⟩⟩⟩ → (⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ∨ ⟨χ, ⟨ψ, ⟨ω, ⟨3735, ⟨3736, ⟨3737, ⟨3738, Int⟩⟩⟩⟩⟩⟩⟩) ≤ ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ → ο
 //│         ⟨Int, ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩ ≤ ⟨π, ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩⟩
 //│           ⟨Int, ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩⟩ ≤ ⟨ρ, ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩⟩
 //│             ⟨ξ, ⟨Bool, ⟨Int, ⟨Int, ⟨Int, Int⟩⟩⟩⟩⟩ ≤ ⟨σ, ⟨τ, ⟨υ, ⟨φ, ⟨Int, Int⟩⟩⟩⟩⟩

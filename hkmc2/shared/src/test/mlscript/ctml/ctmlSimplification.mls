@@ -93,19 +93,15 @@ classify(true)
 //│         δ ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
 //│           Bool ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
 //│             Bool ≤ ¬({ε ≥ Str} ⟹ ¬Nat)
-//│               ¬Nat ≤ ¬Bool
-//│                 Bool ≤ Nat
+//│               Bool ≤ Nat
 //│             Bool ≤ ¬({ε ≥ ({δ ≤ Int} ⟹ Int) ∧ ({δ ≤ Str} ⟹ Str)} ⟹ ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)))
-//│               ¬((¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)) ≤ ¬Bool
-//│                 Bool ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)
-//│                   Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat
-//│                     Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
-//│                       ¬Int ≤ ¬Bool
-//│                         Bool ≤ Int
-//│                   Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat
-//│                     Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
-//│                       ¬Str ≤ ¬Bool
-//│                         Bool ≤ Str
+//│               Bool ≤ (¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat) ∨ (¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat)
+//│                 Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∧ ¬Nat
+//│                   Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
+//│                     Bool ≤ Int
+//│                 Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str) ∧ ¬Nat
+//│                   Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
+//│                     Bool ≤ Str
 
 // A variable used at both polarities must retain the connection to the function argument.
 

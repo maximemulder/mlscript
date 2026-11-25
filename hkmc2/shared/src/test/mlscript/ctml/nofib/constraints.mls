@@ -125,29 +125,14 @@ fun filterTree(p, t) =
   /** Rebuild the node with the children that meet the predicate. */
   fun f1(a, cs) = Node(a, filter(x => p(label(x)), cs))
   foldTree(f1, t)
-//│ filterTree: (⊥ → Bool) → {lab: ⊥} → {lab: ⊥}
+//│ filterTree: ∀α, β, γ, δ. {β ≤ ({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node, δ ≤ ({lab: ⊤} ∧ Node) ∧ {children: ⊤}, δ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, γ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, γ ≤ ({lab: ⊤} ∧ Node) ∧ {children: ⊤}} ⟹ (α → Bool) → (({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node) → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y})
 
 /** Remove children whose labels satisfy the pruning predicate. */
 fun prune(p, t) = filterTree(x => if p(x) then false else true, t)
-//│ prune: (⊥ → Bool) → {lab: ⊥} → {lab: ⊥}
+//│ prune: ∀α, β. {β ≤ ({lab: α} ∧ Node) ∧ {children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X}} ⟹ (α → Bool) → (({children: ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X} ∧ {lab: α}) ∧ Node) → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀γ. {γ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}} ⟹ γ}) ∧ {tail: Y})} ⟹ Y}}) ∧ {tail: Y})} ⟹ Y})
 
-:fixme // FIXME: The inferred prune function requires a node labelled with bottom.
 prune(x => x == 0, Node(1, LNil()))
-//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
-//│ Typing error tree:
-//│   α ≤ β → γ
-//│     {lab: ⊥} → {lab: ⊥} ≤ β → γ
-//│       β ≤ {lab: ⊥}
-//│         (Node ∧ {lab: δ}) ∧ {children: ε} ≤ {lab: ⊥}
-//│           Node ∧ {lab: δ} ≤ {lab: ⊥}
-//│             Node ≤ {lab: ⊥}
-//│             {lab: δ} ≤ {lab: ⊥}
-//│               δ ≤ ⊥
-//│                 Int ≤ ⊥
-//│           {children: ε} ≤ {lab: ⊥}
-//│             ε ≤ ⊥
-//│               ζ ≤ ⊥
-//│                 LNil ≤ ⊥
+//│ (Node ∧ {lab: Int}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: (Node ∧ {lab: Int}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: ∀α. {α ≥ (Node ∧ {lab: Int}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y}} ⟹ α}) ∧ {tail: Y})} ⟹ Y}}) ∧ {tail: Y})} ⟹ Y}
 
 /** Collect leaf labels from left to right. */
 fun leaves(t) = if t is

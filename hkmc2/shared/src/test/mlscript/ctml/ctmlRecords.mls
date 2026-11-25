@@ -249,12 +249,11 @@ select as ((Box & {value: Int | Str}) -> Int)
 //│           γ ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int}))
 //│             Box ∧ {value: Str} ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int})) ∨ (({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int}))
 //│               Box ∧ {value: Str} ≤ ¬({δ ≥ Int} ⟹ ¬(Box ∧ {value: Int}))
-//│                 ¬(Box ∧ {value: Int}) ≤ ¬(Box ∧ {value: Str})
-//│                   Box ∧ {value: Str} ≤ Box ∧ {value: Int}
-//│                     Box ∧ {value: Str} ≤ {value: Int}
-//│                       Box ≤ {value: Int}
-//│                       {value: Str} ≤ {value: Int}
-//│                         Str ≤ Int
+//│                 Box ∧ {value: Str} ≤ Box ∧ {value: Int}
+//│                   Box ∧ {value: Str} ≤ {value: Int}
+//│                     Box ≤ {value: Int}
+//│                     {value: Str} ≤ {value: Int}
+//│                       Str ≤ Int
 //│               Box ∧ {value: Str} ≤ ({value: δ} ∧ Box) ∧ ¬(Box ∧ {value: Int})
 //│                 Box ∧ {value: Str} ≤ {value: δ} ∧ Box
 //│                   Box ∧ {value: Str} ≤ {value: δ}

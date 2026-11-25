@@ -40,9 +40,8 @@ baz(1, "")
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                 ¬Int ≤ ¬Str
-//│                   Str ≤ Int
+//│               Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                 Str ≤ Int
 //│             Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│               ε ≤ Str
 //│                 Int ≤ Str
@@ -56,13 +55,11 @@ baz(true, false)
 //│       ε ≤ ¬({ζ ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ζ ≤ Str, η ≥ Str} ⟹ ¬Str)
 //│         Bool ≤ ¬({ζ ≤ Int, η ≥ Int} ⟹ ¬Int) ∨ ¬({ζ ≤ Str, η ≥ Str} ⟹ ¬Str)
 //│           Bool ≤ ¬({ζ ≤ Int, η ≥ Int} ⟹ ¬Int)
-//│             {η ≥ Int} ⟹ ¬Int ≤ ¬Bool
-//│               ¬Int ≤ ¬Bool
-//│                 Bool ≤ Int
+//│             Bool ≤ ¬({η ≥ Int} ⟹ ¬Int)
+//│               Bool ≤ Int
 //│           Bool ≤ ¬({ζ ≤ Str, η ≥ Str} ⟹ ¬Str)
-//│             {η ≥ Str} ⟹ ¬Str ≤ ¬Bool
-//│               ¬Str ≤ ¬Bool
-//│                 Bool ≤ Str
+//│             Bool ≤ ¬({η ≥ Str} ⟹ ¬Str)
+//│               Bool ≤ Str
 
 fun bop(a, b) =
   let x = baz(a, b)

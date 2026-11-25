@@ -88,15 +88,13 @@ fun correlated(pair: [Int, Str] | [Str, Int]) = if pair is
 //│           ⟨Str, Int⟩ ≤ (⟨Int, Str⟩ ∨ ⟨Str, Int⟩) ∧ (¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩)))
 //│             ⟨Str, Int⟩ ≤ ¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩)) ∨ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))
 //│               ⟨Str, Int⟩ ≤ ¬({δ ≥ Str} ⟹ ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩))
-//│                 ¬(⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩) ≤ ¬⟨Str, Int⟩
-//│                   ⟨Str, Int⟩ ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩
-//│                     ⟨Str, Int⟩ ≤ ⟨⊤, Str⟩
-//│                       Int ≤ Str
+//│                 ⟨Str, Int⟩ ≤ ⟨⊤, Str⟩ ∧ ⟨Int, ⊤⟩
+//│                   ⟨Str, Int⟩ ≤ ⟨⊤, Str⟩
+//│                     Int ≤ Str
 //│               ⟨Str, Int⟩ ≤ ¬({δ ≥ Int} ⟹ ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩))
-//│                 ¬(⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩) ≤ ¬⟨Str, Int⟩
-//│                   ⟨Str, Int⟩ ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩
-//│                     ⟨Str, Int⟩ ≤ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩
-//│                       ⟨Str, Int⟩ ≤ ¬⟨Int, ⊤⟩
+//│                 ⟨Str, Int⟩ ≤ ⟨⊤, Int⟩ ∧ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩
+//│                   ⟨Str, Int⟩ ≤ ⟨Str, ⊤⟩ ∧ ¬⟨Int, ⊤⟩
+//│                     ⟨Str, Int⟩ ≤ ¬⟨Int, ⊤⟩
 
 // Tuple patterns compose with constructor patterns.
 data class Packed(value)

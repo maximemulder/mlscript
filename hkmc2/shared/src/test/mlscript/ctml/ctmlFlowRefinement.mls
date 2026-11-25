@@ -83,17 +83,13 @@ f4(unit)
 //│         δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ Bool} ⟹ Bool)} ⟹ ¬(¬({ε ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≥ Bool} ⟹ ¬Bool)))
 //│           Unit ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ Bool} ⟹ Bool)} ⟹ ¬(¬({ε ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≥ Bool} ⟹ ¬Bool)))
 //│             Unit ≤ ¬({ε ≥ Int} ⟹ ¬Int)
-//│               ¬Int ≤ ¬Unit
-//│                 Unit ≤ Int
+//│               Unit ≤ Int
 //│             Unit ≤ ¬({ε ≥ ({δ ≤ Str} ⟹ Str) ∧ ({δ ≤ Bool} ⟹ Bool)} ⟹ ¬(¬({ε ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≥ Bool} ⟹ ¬Bool)))
-//│               ¬(¬({ε ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≥ Bool} ⟹ ¬Bool)) ≤ ¬Unit
-//│                 Unit ≤ ¬({ε ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≥ Bool} ⟹ ¬Bool)
-//│                   Unit ≤ ¬({ε ≥ Str} ⟹ ¬Str)
-//│                     ¬Str ≤ ¬Unit
-//│                       Unit ≤ Str
-//│                   Unit ≤ ¬({ε ≥ Bool} ⟹ ¬Bool)
-//│                     ¬Bool ≤ ¬Unit
-//│                       Unit ≤ Bool
+//│               Unit ≤ ¬({ε ≥ Str} ⟹ ¬Str) ∨ ¬({ε ≥ Bool} ⟹ ¬Bool)
+//│                 Unit ≤ ¬({ε ≥ Str} ⟹ ¬Str)
+//│                   Unit ≤ Str
+//│                 Unit ≤ ¬({ε ≥ Bool} ⟹ ¬Bool)
+//│                   Unit ≤ Bool
 
 f4 as (Int -> Int) & (Str -> Str) & (Bool -> Bool)
 //│ ((Int → Int) ∧ (Str → Str)) ∧ (Bool → Bool)
@@ -165,12 +161,10 @@ f8("Hello")
 //│         δ ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ Int} ⟹ ¬(Int ∧ ¬Nat))
 //│           Str ≤ ¬({ε ≥ Str} ⟹ ¬Nat) ∨ ¬({ε ≥ Int} ⟹ ¬(Int ∧ ¬Nat))
 //│             Str ≤ ¬({ε ≥ Str} ⟹ ¬Nat)
-//│               ¬Nat ≤ ¬Str
-//│                 Str ≤ Nat
+//│               Str ≤ Nat
 //│             Str ≤ ¬({ε ≥ Int} ⟹ ¬(Int ∧ ¬Nat))
-//│               ¬(Int ∧ ¬Nat) ≤ ¬Str
-//│                 Str ≤ Int ∧ ¬Nat
-//│                   Str ≤ Int
+//│               Str ≤ Int ∧ ¬Nat
+//│                 Str ≤ Int
 
 // Abstract types
 

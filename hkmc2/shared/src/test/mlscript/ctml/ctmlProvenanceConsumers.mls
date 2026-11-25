@@ -20,12 +20,12 @@ fun walkStep(self, xs) = if xs is
 //│ walkStep: ∀α, β, γ, δ. {α ≤ ¬({β ≤ LNil, γ ≥ Int} ⟹ ⊥) ∨ ¬({β ≤ ({tail: δ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(δ → γ)), β ≤ ¬({γ ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≤ δ → γ} ⟹ ¬(({tail: δ} ∧ LCons) ∧ {head: ⊤})), γ ≥ ({β ≤ LNil} ⟹ Int) ∧ ({α ≤ δ → γ, β ≤ ({tail: δ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)} ⟹ α → β → γ
 
 val walk = fix(walkStep)
-//│ @ctml-search calls=4156 checks=4119 fresh=5 infer=1 origins=5 groups=5 max-per-group=1 exact=111 abstract=0 cuts=241 max-clauses=62 max-goal-nodes=87
+//│ @ctml-search calls=4155 checks=4119 fresh=5 infer=1 origins=5 groups=5 max-per-group=1 exact=111 abstract=0 cuts=241 max-clauses=62 max-goal-nodes=87
 //│ walk: ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬((¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≥ γ, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≥ ({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ γ), β ≥ (({α ≤ LNil} ⟹ Int) ∧ ({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)) ∨ (({α ≤ LNil} ⟹ Int) ∧ ({α → β ≤ γ → β, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥))} ⟹ α → β
 
 :fixme // FIXME: The inferred guarded recursive scheme rejects this valid nonempty list.
 walk(LCons(1, LCons("a", LNil()))) as Int
-//│ @ctml-search calls=4497 checks=4105 fresh=7 infer=6 origins=5 groups=5 max-per-group=2 exact=204 abstract=0 cuts=318 max-clauses=96 max-goal-nodes=248
+//│ @ctml-search calls=1709 checks=1557 fresh=7 infer=6 origins=5 groups=5 max-per-group=2 exact=67 abstract=0 cuts=127 max-clauses=104 max-goal-nodes=248
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬((¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≥ γ, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≥ ({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ γ), β ≥ (({α ≤ LNil} ⟹ Int) ∧ ({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)) ∨ (({α ≤ LNil} ⟹ Int) ∧ ({α → β ≤ γ → β, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥))} ⟹ α → β ≤ δ → ε.
 //│ Typing error tree:
 //│   ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬((¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≥ γ, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≥ ({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ γ), β ≥ (({α ≤ LNil} ⟹ Int) ∧ ({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)) ∨ (({α ≤ LNil} ⟹ Int) ∧ ({α → β ≤ γ → β, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥))} ⟹ α → β ≤ δ → ε
@@ -36,260 +36,64 @@ walk(LCons(1, LCons("a", LNil()))) as Int
 //│             δ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
 //│               (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
 //│                 (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({η ≥ Int} ⟹ ¬LNil)
-//│                   ¬LNil ≤ ¬((LCons ∧ {head: ι}) ∧ {tail: κ})
-//│                     (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ LNil
-//│                       LCons ∧ {head: ι} ≤ LNil
-//│                         LCons ≤ LNil
-//│                         {head: ι} ≤ LNil
-//│                           ι ≤ ⊥
-//│                             Int ≤ ⊥
-//│                       {tail: κ} ≤ LNil
-//│                         κ ≤ ⊥
-//│                           λ ≤ ⊥
-//│                             (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ⊥
-//│                               LCons ∧ {head: μ} ≤ ⊥
-//│                                 LCons ≤ ⊥
-//│                                 {head: μ} ≤ ⊥
-//│                                   μ ≤ ⊥
-//│                                     Str ≤ ⊥
-//│                               {tail: ν} ≤ ⊥
-//│                                 ν ≤ ⊥
-//│                                   ξ ≤ ⊥
-//│                                     LNil ≤ ⊥
+//│                   (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ LNil
+//│                     LCons ∧ {head: ι} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: ι} ≤ LNil
+//│                         ι ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: κ} ≤ LNil
+//│                       κ ≤ ⊥
+//│                         λ ≤ ⊥
+//│                           (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ⊥
+//│                             LCons ∧ {head: μ} ≤ ⊥
+//│                               LCons ≤ ⊥
+//│                               {head: μ} ≤ ⊥
+//│                                 μ ≤ ⊥
+//│                                   Str ≤ ⊥
+//│                             {tail: ν} ≤ ⊥
+//│                               ν ≤ ⊥
+//│                                 ξ ≤ ⊥
+//│                                   LNil ≤ ⊥
 //│                 (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                   {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬((LCons ∧ {head: ι}) ∧ {tail: κ})
-//│                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬(LCons ∧ {head: ι})
-//│                       {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                         ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                           LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                             LCons ≤ {tail: θ} ∧ LCons
-//│                               LCons ≤ {tail: θ}
-//│                       {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                         ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                           {head: ι} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                             {head: ι} ≤ {tail: θ} ∧ LCons
-//│                               {head: ι} ≤ {tail: θ}
-//│                                 ι ≤ ⊥
-//│                                   Int ≤ ⊥
-//│                       ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: ι})
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                               LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 LCons ≤ {tail: θ} ∧ LCons
-//│                                   LCons ≤ {tail: θ}
-//│                           LCons ≤ ¬LCons
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: ι}
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                               {head: ι} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 {head: ι} ≤ {tail: θ} ∧ LCons
-//│                                   {head: ι} ≤ {tail: θ}
-//│                                     ι ≤ ⊥
-//│                                       Int ≤ ⊥
-//│                           LCons ≤ ¬{head: ι}
-//│                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                       ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                         {tail: κ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                           {tail: κ} ≤ {tail: θ} ∧ LCons
-//│                             {tail: κ} ≤ {tail: θ}
-//│                               κ ≤ θ
-//│                                 κ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                   λ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                     (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                       (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({η ≥ Int} ⟹ ¬LNil)
-//│                                         ¬LNil ≤ ¬((LCons ∧ {head: μ}) ∧ {tail: ν})
-//│                                           (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ LNil
-//│                                             LCons ∧ {head: μ} ≤ LNil
-//│                                               LCons ≤ LNil
-//│                                               {head: μ} ≤ LNil
-//│                                                 μ ≤ ⊥
-//│                                                   Str ≤ ⊥
-//│                                             {tail: ν} ≤ LNil
-//│                                               ν ≤ ⊥
-//│                                                 ξ ≤ ⊥
-//│                                                   LNil ≤ ⊥
-//│                                       (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                         {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬((LCons ∧ {head: μ}) ∧ {tail: ν})
-//│                                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬(LCons ∧ {head: μ})
-//│                                             {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                               ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                 LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                   LCons ≤ {tail: θ} ∧ LCons
-//│                                                     LCons ≤ {tail: θ}
-//│                                             {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                               ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                 {head: μ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                   {head: μ} ≤ {tail: θ} ∧ LCons
-//│                                                     {head: μ} ≤ {tail: θ}
-//│                                                       μ ≤ ⊥
-//│                                                         Str ≤ ⊥
-//│                                             ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: μ})
-//│                                               ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                                                 {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                   ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                     LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                       LCons ≤ {tail: θ} ∧ LCons
-//│                                                         LCons ≤ {tail: θ}
-//│                                                 LCons ≤ ¬LCons
-//│                                               ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: μ}
-//│                                                 {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                   ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                     {head: μ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                       {head: μ} ≤ {tail: θ} ∧ LCons
-//│                                                         {head: μ} ≤ {tail: θ}
-//│                                                           μ ≤ ⊥
-//│                                                             Str ≤ ⊥
-//│                                                 LCons ≤ ¬{head: μ}
-//│                                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                               {tail: ν} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                 {tail: ν} ≤ {tail: θ} ∧ LCons
-//│                                                   {tail: ν} ≤ LCons
-//│                                                     ν ≤ ⊥
-//│                                                       ξ ≤ ⊥
-//│                                                         LNil ≤ ⊥
-//│                                           ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬((LCons ∧ {head: μ}) ∧ {tail: ν})
-//│                                             ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: μ})
-//│                                               ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                                                 {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                   ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                     LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                       LCons ≤ {tail: θ} ∧ LCons
-//│                                                         LCons ≤ {tail: θ}
-//│                                                 LCons ≤ ¬LCons
-//│                                               ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: μ}
-//│                                                 {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                   ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                     {head: μ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                       {head: μ} ≤ {tail: θ} ∧ LCons
-//│                                                         {head: μ} ≤ {tail: θ}
-//│                                                           μ ≤ ⊥
-//│                                                             Str ≤ ⊥
-//│                                                 LCons ≤ ¬{head: μ}
-//│                                             ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{tail: ν}
-//│                                               {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                                 ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                                   {tail: ν} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                     {tail: ν} ≤ {tail: θ} ∧ LCons
-//│                                                       {tail: ν} ≤ LCons
-//│                                                         ν ≤ ⊥
-//│                                                           ξ ≤ ⊥
-//│                                                             LNil ≤ ⊥
-//│                                               LCons ≤ ¬{tail: ν}
-//│                     ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬((LCons ∧ {head: ι}) ∧ {tail: κ})
-//│                       ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: ι})
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                               LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 LCons ≤ {tail: θ} ∧ LCons
-//│                                   LCons ≤ {tail: θ}
-//│                           LCons ≤ ¬LCons
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: ι}
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                               {head: ι} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 {head: ι} ≤ {tail: θ} ∧ LCons
-//│                                   {head: ι} ≤ {tail: θ}
-//│                                     ι ≤ ⊥
-//│                                       Int ≤ ⊥
-//│                           LCons ≤ ¬{head: ι}
-//│                       ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{tail: κ}
-//│                         {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                           ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                             {tail: κ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                               {tail: κ} ≤ {tail: θ} ∧ LCons
-//│                                 {tail: κ} ≤ {tail: θ}
-//│                                   κ ≤ θ
-//│                                     κ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                       λ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                         (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                           (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({η ≥ Int} ⟹ ¬LNil)
-//│                                             ¬LNil ≤ ¬((LCons ∧ {head: μ}) ∧ {tail: ν})
-//│                                               (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ LNil
-//│                                                 LCons ∧ {head: μ} ≤ LNil
-//│                                                   LCons ≤ LNil
-//│                                                   {head: μ} ≤ LNil
-//│                                                     μ ≤ ⊥
-//│                                                       Str ≤ ⊥
-//│                                                 {tail: ν} ≤ LNil
-//│                                                   ν ≤ ⊥
-//│                                                     ξ ≤ ⊥
-//│                                                       LNil ≤ ⊥
-//│                                           (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                             {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬((LCons ∧ {head: μ}) ∧ {tail: ν})
-//│                                               {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬(LCons ∧ {head: μ})
-//│                                                 {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                   ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                     LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                       LCons ≤ {tail: θ} ∧ LCons
-//│                                                         LCons ≤ {tail: θ}
-//│                                                 {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                   ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                     {head: μ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                       {head: μ} ≤ {tail: θ} ∧ LCons
-//│                                                         {head: μ} ≤ {tail: θ}
-//│                                                           μ ≤ ⊥
-//│                                                             Str ≤ ⊥
-//│                                                 ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: μ})
-//│                                                   ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                                                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                       ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                         LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                           LCons ≤ {tail: θ} ∧ LCons
-//│                                                             LCons ≤ {tail: θ}
-//│                                                     LCons ≤ ¬LCons
-//│                                                   ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: μ}
-//│                                                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                       ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                         {head: μ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                           {head: μ} ≤ {tail: θ} ∧ LCons
-//│                                                             {head: μ} ≤ {tail: θ}
-//│                                                               μ ≤ ⊥
-//│                                                                 Str ≤ ⊥
-//│                                                     LCons ≤ ¬{head: μ}
-//│                                               {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                                 ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                                   {tail: ν} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                     {tail: ν} ≤ {tail: θ} ∧ LCons
-//│                                                       {tail: ν} ≤ LCons
-//│                                                         ν ≤ ⊥
-//│                                                           ξ ≤ ⊥
-//│                                                             LNil ≤ ⊥
-//│                                               ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬((LCons ∧ {head: μ}) ∧ {tail: ν})
-//│                                                 ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: μ})
-//│                                                   ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                                                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                       ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                                                         LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                           LCons ≤ {tail: θ} ∧ LCons
-//│                                                             LCons ≤ {tail: θ}
-//│                                                     LCons ≤ ¬LCons
-//│                                                   ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: μ}
-//│                                                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                       ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: μ}
-//│                                                         {head: μ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                           {head: μ} ≤ {tail: θ} ∧ LCons
-//│                                                             {head: μ} ≤ {tail: θ}
-//│                                                               μ ≤ ⊥
-//│                                                                 Str ≤ ⊥
-//│                                                     LCons ≤ ¬{head: μ}
-//│                                                 ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{tail: ν}
-//│                                                   {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                                     ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: ν}
-//│                                                       {tail: ν} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                         {tail: ν} ≤ {tail: θ} ∧ LCons
-//│                                                           {tail: ν} ≤ LCons
-//│                                                             ν ≤ ⊥
-//│                                                               ξ ≤ ⊥
-//│                                                                 LNil ≤ ⊥
-//│                                                   LCons ≤ ¬{tail: ν}
-//│                         LCons ≤ ¬{tail: κ}
+//│                   (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                     (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                       (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ {tail: θ} ∧ LCons
+//│                         (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ {tail: θ}
+//│                           LCons ∧ {head: ι} ≤ {tail: θ}
+//│                             LCons ≤ {tail: θ}
+//│                             {head: ι} ≤ {tail: θ}
+//│                               ι ≤ ⊥
+//│                                 Int ≤ ⊥
+//│                           {tail: κ} ≤ {tail: θ}
+//│                             κ ≤ θ
+//│                               κ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                 λ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                   (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                     (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({η ≥ Int} ⟹ ¬LNil)
+//│                                       (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ LNil
+//│                                         LCons ∧ {head: μ} ≤ LNil
+//│                                           LCons ≤ LNil
+//│                                           {head: μ} ≤ LNil
+//│                                             μ ≤ ⊥
+//│                                               Str ≤ ⊥
+//│                                         {tail: ν} ≤ LNil
+//│                                           ν ≤ ⊥
+//│                                             ξ ≤ ⊥
+//│                                               LNil ≤ ⊥
+//│                                     (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                       (LCons ∧ {head: μ}) ∧ {tail: ν} ≤ ¬({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                         θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                                           ν ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                                             ξ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                                               LNil ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                                                 LNil ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                                                   LNil ≤ {tail: θ} ∧ LCons
+//│                                                     LNil ≤ {tail: θ}
 
 :te
 walk(LCons(1, false))
-//│ @ctml-search calls=1809 checks=1663 fresh=5 infer=3 origins=5 groups=5 max-per-group=1 exact=80 abstract=0 cuts=130 max-clauses=70 max-goal-nodes=248
+//│ @ctml-search calls=933 checks=859 fresh=5 infer=3 origins=5 groups=5 max-per-group=1 exact=36 abstract=0 cuts=70 max-clauses=70 max-goal-nodes=248
 //│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬((¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≥ γ, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≥ ({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ γ), β ≥ (({α ≤ LNil} ⟹ Int) ∧ ({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)) ∨ (({α ≤ LNil} ⟹ Int) ∧ ({α → β ≤ γ → β, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥))} ⟹ α → β ≤ δ → ε.
 //│ Typing error tree:
 //│   ∀α, β, γ. {γ ≤ ¬({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∨ ¬({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬((¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≤ ¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α ≥ γ, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤})), α ≥ ({α ≤ LNil, β ≥ Int} ⟹ ⊥) ∧ ({α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ γ), β ≥ (({α ≤ LNil} ⟹ Int) ∧ ({α ≥ γ, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}, γ ≤ (¬({β ≥ Int} ⟹ ¬LNil) ∨ ¬({α → β ≤ γ → β} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥)) ∨ (({α ≤ LNil} ⟹ Int) ∧ ({α → β ≤ γ → β, α ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ⊥))} ⟹ α → β ≤ δ → ε
@@ -300,337 +104,136 @@ walk(LCons(1, false))
 //│             δ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
 //│               (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
 //│                 (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({η ≥ Int} ⟹ ¬LNil)
-//│                   ¬LNil ≤ ¬((LCons ∧ {head: ι}) ∧ {tail: κ})
-//│                     (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ LNil
-//│                       LCons ∧ {head: ι} ≤ LNil
-//│                         LCons ≤ LNil
-//│                         {head: ι} ≤ LNil
-//│                           ι ≤ ⊥
-//│                             Int ≤ ⊥
-//│                       {tail: κ} ≤ LNil
-//│                         κ ≤ ⊥
-//│                           Bool ≤ ⊥
+//│                   (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ LNil
+//│                     LCons ∧ {head: ι} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: ι} ≤ LNil
+//│                         ι ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: κ} ≤ LNil
+//│                       κ ≤ ⊥
+//│                         Bool ≤ ⊥
 //│                 (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                   {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬((LCons ∧ {head: ι}) ∧ {tail: κ})
-//│                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬(LCons ∧ {head: ι})
-//│                       {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                         ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                           LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                             LCons ≤ {tail: θ} ∧ LCons
-//│                               LCons ≤ {tail: θ}
-//│                       {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                         ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                           {head: ι} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                             {head: ι} ≤ {tail: θ} ∧ LCons
-//│                               {head: ι} ≤ {tail: θ}
-//│                                 ι ≤ ⊥
-//│                                   Int ≤ ⊥
-//│                       ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: ι})
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                               LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 LCons ≤ {tail: θ} ∧ LCons
-//│                                   LCons ≤ {tail: θ}
-//│                           LCons ≤ ¬LCons
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: ι}
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                               {head: ι} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 {head: ι} ≤ {tail: θ} ∧ LCons
-//│                                   {head: ι} ≤ {tail: θ}
-//│                                     ι ≤ ⊥
-//│                                       Int ≤ ⊥
-//│                           LCons ≤ ¬{head: ι}
-//│                     {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                       ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                         {tail: κ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                           {tail: κ} ≤ {tail: θ} ∧ LCons
-//│                             {tail: κ} ≤ {tail: θ}
-//│                               κ ≤ θ
-//│                                 κ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                   Bool ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                     Bool ≤ ¬({η ≥ Int} ⟹ ¬LNil)
-//│                                       ¬LNil ≤ ¬Bool
-//│                                         Bool ≤ LNil
-//│                                     Bool ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                       {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬Bool
-//│                                         ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬Bool
-//│                                           Bool ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                             Bool ≤ {tail: θ} ∧ LCons
-//│                                               Bool ≤ {tail: θ}
-//│                     ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬((LCons ∧ {head: ι}) ∧ {tail: κ})
-//│                       ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬(LCons ∧ {head: ι})
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬LCons
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬LCons
-//│                               LCons ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 LCons ≤ {tail: θ} ∧ LCons
-//│                                   LCons ≤ {tail: θ}
-//│                           LCons ≤ ¬LCons
-//│                         ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{head: ι}
-//│                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{head: ι}
-//│                               {head: ι} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                 {head: ι} ≤ {tail: θ} ∧ LCons
-//│                                   {head: ι} ≤ {tail: θ}
-//│                                     ι ≤ ⊥
-//│                                       Int ≤ ⊥
-//│                           LCons ≤ ¬{head: ι}
-//│                       ({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤})) ∧ LCons ≤ ¬{tail: κ}
-//│                         {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                           ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬{tail: κ}
-//│                             {tail: κ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                               {tail: κ} ≤ {tail: θ} ∧ LCons
-//│                                 {tail: κ} ≤ {tail: θ}
-//│                                   κ ≤ θ
-//│                                     κ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                       Bool ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                         Bool ≤ ¬({η ≥ Int} ⟹ ¬LNil)
-//│                                           ¬LNil ≤ ¬Bool
-//│                                             Bool ≤ LNil
-//│                                         Bool ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
-//│                                           {θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬Bool
-//│                                             ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}) ≤ ¬Bool
-//│                                               Bool ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
-//│                                                 Bool ≤ {tail: θ} ∧ LCons
-//│                                                   Bool ≤ {tail: θ}
-//│                         LCons ≤ ¬{tail: κ}
+//│                   (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ¬({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                     (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                       (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ {tail: θ} ∧ LCons
+//│                         (LCons ∧ {head: ι}) ∧ {tail: κ} ≤ {tail: θ}
+//│                           LCons ∧ {head: ι} ≤ {tail: θ}
+//│                             LCons ≤ {tail: θ}
+//│                             {head: ι} ≤ {tail: θ}
+//│                               ι ≤ ⊥
+//│                                 Int ≤ ⊥
+//│                           {tail: κ} ≤ {tail: θ}
+//│                             κ ≤ θ
+//│                               κ ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                 Bool ≤ ¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                   Bool ≤ ¬({η ≥ Int} ⟹ ¬LNil)
+//│                                     Bool ≤ LNil
+//│                                   Bool ≤ ¬({ζ ≥ θ, θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                     Bool ≤ ¬({θ ≤ (¬({η ≥ Int} ⟹ ¬LNil) ∨ ¬({ζ → η ≤ θ → η} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))) ∧ ({tail: θ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(({tail: θ} ∧ LCons) ∧ {head: ⊤}))
+//│                                       Bool ≤ ({tail: θ} ∧ LCons) ∧ {head: ⊤}
+//│                                         Bool ≤ {tail: θ} ∧ LCons
+//│                                           Bool ≤ {tail: θ}
 
 fun lengthStep(self, xs) = if xs is
   LNil() then 0
   LCons(_, t) then 1 + self(t)
-//│ @ctml-search calls=2469 checks=2347 fresh=5 infer=11 origins=4 groups=5 max-per-group=1 exact=0 abstract=0 cuts=41 max-clauses=51 max-goal-nodes=103
+//│ @ctml-search calls=2470 checks=2348 fresh=5 infer=11 origins=4 groups=5 max-per-group=1 exact=0 abstract=0 cuts=43 max-clauses=51 max-goal-nodes=103
 //│ lengthStep: ∀α, β, γ. {α ≤ ¬({β ≤ LNil} ⟹ ⊥) ∨ ¬({β ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ ¬(γ → Int)), β ≤ LNil ∨ ¬({α ≤ γ → Int} ⟹ ¬(({tail: γ} ∧ LCons) ∧ {head: ⊤}))} ⟹ α → β → (({β ≤ LNil} ⟹ Int) ∧ ({α ≤ γ → Int, β ≤ ({tail: γ} ∧ LCons) ∧ {head: ⊤}} ⟹ Int))
 
 :fixme // FIXME: Closing length exhausts the solver budget in guarded-bound comparisons.
 val length = fix(lengthStep)
-//│ @ctml-search calls=20001 checks=19851 fresh=4 infer=1 origins=4 groups=4 max-per-group=1 exact=1069 abstract=0 cuts=2442 max-clauses=68 max-goal-nodes=817
+//│ @ctml-search calls=20001 checks=19852 fresh=4 infer=1 origins=4 groups=4 max-per-group=1 exact=1042 abstract=0 cuts=2627 max-clauses=68 max-goal-nodes=817
 //│ ═══[TYPE ERROR] Subtyping search inconclusive: operation exceeded 20000 solver calls
 
 fun copyStep(self, xs) = if xs is
   LNil() then LNil()
   LCons(h, t) then LCons(h, self(t))
-//│ @ctml-search calls=4230 checks=4084 fresh=13 infer=15 origins=8 groups=13 max-per-group=1 exact=0 abstract=0 cuts=108 max-clauses=55 max-goal-nodes=147
+//│ @ctml-search calls=4146 checks=4000 fresh=13 infer=15 origins=8 groups=13 max-per-group=1 exact=0 abstract=0 cuts=100 max-clauses=55 max-goal-nodes=147
 //│ copyStep: ∀α, β, γ, δ, ε, ζ. {α ≤ ¬({β ≤ LNil, γ ≥ LNil} ⟹ ⊥) ∨ ¬({β ≤ ({head: δ} ∧ {tail: ε}) ∧ LCons, γ ≥ (LCons ∧ {head: δ}) ∧ {tail: ζ}} ⟹ ¬(ε → ζ)), β ≤ ¬({γ ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≤ ε → ζ, γ ≥ (LCons ∧ {head: δ}) ∧ {tail: ζ}} ⟹ ¬(({head: δ} ∧ {tail: ε}) ∧ LCons)), γ ≥ ({β ≤ LNil} ⟹ LNil) ∧ ({α ≤ ε → ζ, β ≤ ({head: δ} ∧ {tail: ε}) ∧ LCons} ⟹ (LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ α → β → γ
 
 val copy = fix(copyStep)
-//│ @ctml-search calls=5401 checks=5360 fresh=7 infer=1 origins=7 groups=7 max-per-group=1 exact=136 abstract=0 cuts=246 max-clauses=70 max-goal-nodes=116
-//│ copy: ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β
+//│ @ctml-search calls=5382 checks=5342 fresh=7 infer=1 origins=7 groups=7 max-per-group=1 exact=136 abstract=0 cuts=242 max-clauses=70 max-goal-nodes=116
+//│ copy: ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons)), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β
 
 :fixme // FIXME: The inferred guarded recursive scheme rejects this valid nonempty list.
 copy(LCons(1, LNil())) as (LCons & {head: Int} & {tail: LNil})
-//│ @ctml-search calls=5695 checks=5505 fresh=7 infer=4 origins=7 groups=7 max-per-group=1 exact=118 abstract=0 cuts=286 max-clauses=81 max-goal-nodes=444
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η.
+//│ @ctml-search calls=1921 checks=1800 fresh=7 infer=4 origins=7 groups=7 max-per-group=1 exact=77 abstract=0 cuts=93 max-clauses=104 max-goal-nodes=411
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons)), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η.
 //│ Typing error tree:
-//│   ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η
-//│     {μ ≤ ¬({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∨ ¬({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, λ ≥ ι} ⟹ ¬((¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons)), θ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
-//│       {θ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
-//│         θ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│           ζ ∨ (({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ)) ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│             ζ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│               (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│                 (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
-//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil)
-//│                     ¬LNil ≤ ¬((LCons ∧ {head: ν}) ∧ {tail: ξ})
-//│                       (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ LNil
-//│                         LCons ∧ {head: ν} ≤ LNil
-//│                           LCons ≤ LNil
-//│                           {head: ν} ≤ LNil
-//│                             ν ≤ ⊥
-//│                               Int ≤ ⊥
-//│                         {tail: ξ} ≤ LNil
-//│                           ξ ≤ ⊥
-//│                             ο ≤ ⊥
-//│                               LNil ≤ ⊥
-//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
-//│                     {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬((LCons ∧ {head: ν}) ∧ {tail: ξ})
-//│                       {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬(LCons ∧ {head: ν})
-//│                         {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                           {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                             {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                               ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                 LCons ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                   LCons ≤ {head: κ} ∧ {tail: μ}
-//│                                     LCons ≤ {head: κ}
-//│                         {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                           {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                             {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                               ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                 {head: ν} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                   {head: ν} ≤ {head: κ} ∧ {tail: μ}
-//│                                     {head: ν} ≤ {tail: μ}
-//│                                       ν ≤ ⊥
-//│                                         Int ≤ ⊥
-//│                         ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬(LCons ∧ {head: ν})
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬LCons
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                     LCons ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       LCons ≤ {head: κ} ∧ {tail: μ}
-//│                                         LCons ≤ {head: κ}
-//│                             LCons ≤ ¬LCons
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬{head: ν}
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                     {head: ν} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       {head: ν} ≤ {head: κ} ∧ {tail: μ}
-//│                                         {head: ν} ≤ {tail: μ}
-//│                                           ν ≤ ⊥
-//│                                             Int ≤ ⊥
-//│                             LCons ≤ ¬{head: ν}
-//│                       {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                         {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                           {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                             ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                               {tail: ξ} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                 {tail: ξ} ≤ {head: κ} ∧ {tail: μ}
-//│                                   {tail: ξ} ≤ {head: κ}
-//│                                     ξ ≤ ⊥
-//│                                       ο ≤ ⊥
-//│                                         LNil ≤ ⊥
-//│                       ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬((LCons ∧ {head: ν}) ∧ {tail: ξ})
-//│                         ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬(LCons ∧ {head: ν})
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬LCons
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                     LCons ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       LCons ≤ {head: κ} ∧ {tail: μ}
-//│                                         LCons ≤ {head: κ}
-//│                             LCons ≤ ¬LCons
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬{head: ν}
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                     {head: ν} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       {head: ν} ≤ {head: κ} ∧ {tail: μ}
-//│                                         {head: ν} ≤ {tail: μ}
-//│                                           ν ≤ ⊥
-//│                                             Int ≤ ⊥
-//│                             LCons ≤ ¬{head: ν}
-//│                         ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬{tail: ξ}
-//│                           {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                             {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                               {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                                 ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                                   {tail: ξ} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                     {tail: ξ} ≤ {head: κ} ∧ {tail: μ}
-//│                                       {tail: ξ} ≤ {head: κ}
-//│                                         ξ ≤ ⊥
-//│                                           ο ≤ ⊥
-//│                                             LNil ≤ ⊥
-//│                           LCons ≤ ¬{tail: ξ}
+//│   ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons)), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η
+//│     {μ ≤ ¬({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∨ ¬({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, λ ≥ ι} ⟹ ¬((¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons)), θ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
+//│       {θ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
+//│         θ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│           ζ ∨ (({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ)) ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│             ζ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│               (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                 (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil)
+//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ LNil
+//│                     LCons ∧ {head: ν} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: ν} ≤ LNil
+//│                         ν ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: ξ} ≤ LNil
+//│                       ξ ≤ ⊥
+//│                         ο ≤ ⊥
+//│                           LNil ≤ ⊥
+//│                 (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                     (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                       μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                         ξ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                           ο ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                             LNil ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                               LNil ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                                 LNil ≤ {head: κ} ∧ {tail: μ}
+//│                                   LNil ≤ {head: κ}
 
 :te
 copy(LCons(1, false))
-//│ @ctml-search calls=5685 checks=5502 fresh=7 infer=3 origins=7 groups=7 max-per-group=1 exact=118 abstract=0 cuts=286 max-clauses=78 max-goal-nodes=444
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η.
+//│ @ctml-search calls=1606 checks=1506 fresh=7 infer=3 origins=7 groups=7 max-per-group=1 exact=66 abstract=0 cuts=63 max-clauses=85 max-goal-nodes=411
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons)), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η.
 //│ Typing error tree:
-//│   ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η
-//│     {μ ≤ ¬({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∨ ¬({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, λ ≥ ι} ⟹ ¬((¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons)), θ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
-//│       {θ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
-//│         θ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│           ζ ∨ (({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ)) ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│             ζ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│               (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)))
-//│                 (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
-//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil)
-//│                     ¬LNil ≤ ¬((LCons ∧ {head: ν}) ∧ {tail: ξ})
-//│                       (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ LNil
-//│                         LCons ∧ {head: ν} ≤ LNil
-//│                           LCons ≤ LNil
-//│                           {head: ν} ≤ LNil
-//│                             ν ≤ ⊥
-//│                               Int ≤ ⊥
-//│                         {tail: ξ} ≤ LNil
-//│                           ξ ≤ ⊥
-//│                             Bool ≤ ⊥
-//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
-//│                     {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬((LCons ∧ {head: ν}) ∧ {tail: ξ})
-//│                       {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬(LCons ∧ {head: ν})
-//│                         {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                           {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                             {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                               ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                 LCons ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                   LCons ≤ {head: κ} ∧ {tail: μ}
-//│                                     LCons ≤ {head: κ}
-//│                         {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                           {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                             {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                               ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                 {head: ν} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                   {head: ν} ≤ {head: κ} ∧ {tail: μ}
-//│                                     {head: ν} ≤ {tail: μ}
-//│                                       ν ≤ ⊥
-//│                                         Int ≤ ⊥
-//│                         ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬(LCons ∧ {head: ν})
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬LCons
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                     LCons ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       LCons ≤ {head: κ} ∧ {tail: μ}
-//│                                         LCons ≤ {head: κ}
-//│                             LCons ≤ ¬LCons
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬{head: ν}
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                     {head: ν} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       {head: ν} ≤ {head: κ} ∧ {tail: μ}
-//│                                         {head: ν} ≤ {tail: μ}
-//│                                           ν ≤ ⊥
-//│                                             Int ≤ ⊥
-//│                             LCons ≤ ¬{head: ν}
-//│                       {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                         {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                           {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                             ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                               {tail: ξ} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                 {tail: ξ} ≤ {head: κ} ∧ {tail: μ}
-//│                                   {tail: ξ} ≤ {head: κ}
-//│                                     ξ ≤ ⊥
-//│                                       Bool ≤ ⊥
-//│                       ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬((LCons ∧ {head: ν}) ∧ {tail: ξ})
-//│                         ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬(LCons ∧ {head: ν})
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬LCons
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬LCons
-//│                                     LCons ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       LCons ≤ {head: κ} ∧ {tail: μ}
-//│                                         LCons ≤ {head: κ}
-//│                             LCons ≤ ¬LCons
-//│                           ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬{head: ν}
-//│                             {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                               {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                 {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                   ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{head: ν}
-//│                                     {head: ν} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                       {head: ν} ≤ {head: κ} ∧ {tail: μ}
-//│                                         {head: ν} ≤ {tail: μ}
-//│                                           ν ≤ ⊥
-//│                                             Int ≤ ⊥
-//│                             LCons ≤ ¬{head: ν}
-//│                         ({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)) ∧ LCons ≤ ¬{tail: ξ}
-//│                           {ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                             {μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                               {λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                                 ¬(({head: κ} ∧ {tail: μ}) ∧ LCons) ≤ ¬{tail: ξ}
-//│                                   {tail: ξ} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
-//│                                     {tail: ξ} ≤ {head: κ} ∧ {tail: μ}
-//│                                       {tail: ξ} ≤ {head: κ}
-//│                                         ξ ≤ ⊥
-//│                                           Bool ≤ ⊥
-//│                           LCons ≤ ¬{tail: ξ}
+//│   ∀α, β, γ, δ, ε. {δ ≤ ¬({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∨ ¬({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, ε ≥ β} ⟹ ¬((¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons)), α ≤ ¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α ≥ δ, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons)), ε ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ β), α ≥ ({α ≤ LNil, β ≥ LNil} ⟹ ⊥) ∧ ({α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ δ), β ≥ (({α ≤ LNil} ⟹ LNil) ∧ ({α ≥ δ, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons, δ ≤ (¬({β ≥ LNil} ⟹ ¬LNil) ∨ ¬({α → β ≤ δ → ε, β ≥ (LCons ∧ {head: γ}) ∧ {tail: ε}} ⟹ ¬(({head: γ} ∧ {tail: δ}) ∧ LCons))) ∧ ({head: γ} ∧ {tail: δ}) ∧ LCons, ε ≥ β} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε})) ∨ (({α ≤ LNil} ⟹ LNil) ∧ ({α → β ≤ δ → ε, α ≤ ({head: γ} ∧ {tail: δ}) ∧ LCons} ⟹ (LCons ∧ {head: γ}) ∧ {tail: ε}))} ⟹ α → β ≤ ζ → η
+//│     {μ ≤ ¬({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∨ ¬({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, λ ≥ ι} ⟹ ¬((¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons)), θ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
+//│       {θ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons)), λ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ ι), θ ≥ ({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ), ι ≥ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ ≥ μ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ})) ∨ (({θ ≤ LNil} ⟹ LNil) ∧ ({θ → ι ≤ μ → λ, θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons} ⟹ (LCons ∧ {head: κ}) ∧ {tail: λ}))} ⟹ θ → ι ≤ ζ → η
+//│         θ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│           ζ ∨ (({θ ≤ LNil, ι ≥ LNil} ⟹ ⊥) ∧ ({θ ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ μ)) ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│             ζ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│               (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                 (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ LNil} ⟹ ¬LNil)
+//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ LNil
+//│                     LCons ∧ {head: ν} ≤ LNil
+//│                       LCons ≤ LNil
+//│                       {head: ν} ≤ LNil
+//│                         ν ≤ ⊥
+//│                           Int ≤ ⊥
+//│                     {tail: ξ} ≤ LNil
+//│                       ξ ≤ ⊥
+//│                         Bool ≤ ⊥
+//│                 (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                   (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                     (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                       (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ¬({λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                         (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                           (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ {head: κ} ∧ {tail: μ}
+//│                             (LCons ∧ {head: ν}) ∧ {tail: ξ} ≤ {tail: μ}
+//│                               LCons ∧ {head: ν} ≤ {tail: μ}
+//│                                 LCons ≤ {tail: μ}
+//│                                 {head: ν} ≤ {tail: μ}
+//│                                   ν ≤ ⊥
+//│                                     Int ≤ ⊥
+//│                               {tail: ξ} ≤ {tail: μ}
+//│                                 ξ ≤ μ
+//│                                   ξ ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                                     Bool ≤ ¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                                       Bool ≤ ¬({ι ≥ LNil} ⟹ ¬LNil)
+//│                                         Bool ≤ LNil
+//│                                       Bool ≤ ¬({θ ≥ μ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                                         Bool ≤ ¬({ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}, μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                                           Bool ≤ ¬({μ ≤ (¬({ι ≥ LNil} ⟹ ¬LNil) ∨ ¬({θ → ι ≤ μ → λ, ι ≥ (LCons ∧ {head: κ}) ∧ {tail: λ}} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))) ∧ ({head: κ} ∧ {tail: μ}) ∧ LCons, λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                                             Bool ≤ ¬({λ ≥ ι} ⟹ ¬(({head: κ} ∧ {tail: μ}) ∧ LCons))
+//│                                               Bool ≤ ({head: κ} ∧ {tail: μ}) ∧ LCons
+//│                                                 Bool ≤ {head: κ} ∧ {tail: μ}
+//│                                                   Bool ≤ {head: κ}

@@ -61,7 +61,7 @@ computed as (Int -> Str)
 //│         γ ≤ ¬({γ ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ Int)
 //│           Int ≤ ¬({γ ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ Int)
 //│             Int ≤ ¬({γ ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Int
+//│               Int ≤ ¬({δ ≥ Int} ⟹ ¬Int)
 //│                 Int ≤ δ
 //│                   Int ≤ Str
 //│             Int ≤ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ Int)
@@ -119,11 +119,9 @@ multi(true)
 //│         δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
 //│           Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
 //│             Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
-//│               ¬Int ≤ ¬Bool
-//│                 Bool ≤ Int
+//│               Bool ≤ Int
 //│             Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
-//│               ¬Str ≤ ¬Bool
-//│                 Bool ≤ Str
+//│               Bool ≤ Str
 
 // Shadowing in a branch remains local when an ascribed variable scrutinee is substituted.
 

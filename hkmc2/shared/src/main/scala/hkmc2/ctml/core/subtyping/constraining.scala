@@ -184,13 +184,11 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
   // flexible variable bound is decomposed rather than kept whole. Placing them after the flexible
   // variable rules, with the constrained type rules, makes inferred types larger.
 
-  // A constrained type that is moved to the left by contraposition is decomposed right away, which
-  // is the introduction rule of constraining types above. Deferring it to the rule of left
-  // constrained types would let the choice rules decompose the negated subtype first: e.g.
-  // `Int ∧ ¬Nat ≤ ¬({c} ⟹ ¬(Int ∧ ¬Nat))` would be explored as `{c} ⟹ ¬(Int ∧ ¬Nat) ≤ ¬Int` or
-  // `{c} ⟹ ¬(Int ∧ ¬Nat) ≤ Nat`, which both fail. A universal type that is moved to the left is
-  // still decomposed after the invertible rules, so that it is instantiated once per operand of a
-  // right intersection.
+  // Introduce a right constraining type by solving its guard and comparing the original subtype
+  // with the negated body. Each nested guard is then exposed in the same direction. Splitting
+  // ¬(A ∧ B) between guards can lose the proof that needs A and B together.
+  // A universal moved to the left is instantiated after the invertible rules, once per operand
+  // of a right intersection.
 
   sub match
     case TNeg(subBody) if subBody.isBinder =>
@@ -213,7 +211,7 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
         case _ =>
           supBody match
             case supBody: TConstrained =>
-              subtypeConstrainedSub(supBody, sub.negate())
+              withSolvedGuard(supBody.constraint)(subtype(sub, supBody.body.negate()))
             case _ =>
               subtype(supBody, sub.negate())
     case _ =>
@@ -629,21 +627,23 @@ def subtypeUnivSup(sub: Type, sup: TUniv)(using ctx: SubContext): SubClauses =
     subtypeSeq(sub, instanceBody, outs)(using ctx)
   )
 
-/** Constrain a constrained type to be a subtype of another type.
+/** Constrain a constrained type to be a subtype of another type. */
+def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using SubContext): SubClauses =
+  withSolvedGuard(constrained.constraint)(subtype(constrained.body, type_))
+
+/** Establish a guard and the subtyping judgment on its body in the same context.
  *
  *  A guard containing constrained types can choose between branches when it is solved. Solve the
  *  body first to supply the bounds that decide these branches: opening the guarded bounds of a
  *  polymorphic function before applying it can otherwise repeatedly join unconstrained branches.
  *  Plain guards are solved first, so that an instance's bounds are available before its body is
  *  used, notably when checking self-application. Both orders solve the guard and the body. */
-def subtypeConstrainedSub(constrained: TConstrained, type_ : Type)(using ctx: SubContext): SubClauses =
-  val constraint = constrained.constraint
-  if mentionsConstrained(constraint.left) || mentionsConstrained(constraint.right) then
-    val clauses = subtype(constrained.body, type_)
-    subtypeConstraintSeq(constraint, clauses)
+private def withSolvedGuard(guard: Constraint)(body: SubContext ?=> SubClauses)
+    (using ctx: SubContext): SubClauses =
+  if mentionsConstrained(guard.left) || mentionsConstrained(guard.right) then
+    subtypeConstraintSeq(guard, body)
   else
-    val clauses = subtypeConstraint(constraint)
-    subtypeSeq(constrained.body, type_, clauses)
+    ctx.seqUnit(body, subtypeConstraint(guard))
 
 /** Check whether a type contains a constrained type, including a negated constrained type. */
 private def mentionsConstrained(type_ : Type): Boolean =

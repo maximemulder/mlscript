@@ -34,8 +34,7 @@ tbad(1, "World")
 //│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
 //│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
 //│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
-//│               ¬Int ≤ ¬Str
-//│                 Str ≤ Int
+//│               Str ≤ Int
 //│             Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
 //│               δ ≤ ¬Int
 //│                 Int ≤ ¬Int
@@ -51,8 +50,7 @@ tbad(int_or_string, "World")
 //│           Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
 //│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
 //│               Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
-//│                 ¬Int ≤ ¬Str
-//│                   Str ≤ Int
+//│                 Str ≤ Int
 //│               Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
 //│                 δ ≤ ¬Int
 //│                   Int ≤ ¬Int
@@ -78,10 +76,9 @@ tpass(1, (y) => y ++ "!")
 //│         Str → Str ≤ (¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (ε → δ)
 //│           Str → Str ≤ ¬({ε ≤ Int} ⟹ ¬(ε → δ)) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│             Str → Str ≤ ¬({ε ≤ Int} ⟹ ¬(ε → δ))
-//│               ¬(ε → δ) ≤ ¬(Str → Str)
-//│                 Str → Str ≤ ε → δ
-//│                   ε ≤ Str
-//│                     Int ≤ Str
+//│               Str → Str ≤ ε → δ
+//│                 ε ≤ Str
+//│                   Int ≤ Str
 //│             Str → Str ≤ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│               ε ≤ ¬Int
 //│                 Int ≤ ¬Int
@@ -97,10 +94,9 @@ tpass(int_or_string, (y) => y ++ "!")
 //│           Str → Str ≤ (¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ (η → δ)
 //│             Str → Str ≤ ¬({η ≤ Int} ⟹ ¬(η → δ)) ∨ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│               Str → Str ≤ ¬({η ≤ Int} ⟹ ¬(η → δ))
-//│                 ¬(η → δ) ≤ ¬(Str → Str)
-//│                   Str → Str ≤ η → δ
-//│                     η ≤ Str
-//│                       Int ≤ Str
+//│                 Str → Str ≤ η → δ
+//│                   η ≤ Str
+//│                     Int ≤ Str
 //│               Str → Str ≤ ¬({η ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│                 η ≤ ¬Int
 //│                   Int ≤ ¬Int
@@ -126,15 +122,13 @@ tsel(1, "World")
 //│         Str ≤ (¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)) ∧ Int
 //│           Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int))) ∨ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│             Str ≤ ¬({ε ≤ (¬({γ ≤ Int, δ ≥ Int} ⟹ ⊥) ∨ ¬({γ ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int, δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)))
-//│               {δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
-//│                 ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)) ≤ ¬Str
-//│                   Str ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
-//│                     Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
-//│                       ¬Int ≤ ¬Str
-//│                         Str ≤ Int
-//│                     Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
-//│                       ε ≤ Str
-//│                         Int ≤ Str
+//│               Str ≤ ¬({δ ≥ ({γ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, γ ≤ ¬Int} ⟹ Str)} ⟹ ¬(¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)))
+//│                 Str ≤ ¬({δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
+//│                   Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                     Str ≤ Int
+//│                   Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ Int)
+//│                     ε ≤ Str
+//│                       Int ≤ Str
 //│             Str ≤ ¬({ε ≤ ¬Int, δ ≥ Int} ⟹ ⊥)
 //│               ε ≤ ¬Int
 //│                 Int ≤ ¬Int

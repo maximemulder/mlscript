@@ -137,6 +137,21 @@ type T
 Int <:< ~([Bot <:< Int] => ~Int)
 //│ OK
 
+// The tag and its field must be checked together through every guard.
+type TaggedInt = A & {value: Int}
+//│ TaggedInt = A ∧ {value: Int}
+
+TaggedInt <:< ~([Int <:< Int] => [Str <:< Str] => ~TaggedInt)
+//│ OK
+
+:te
+TaggedInt <:< ~([Int <:< Int] => [Str <:< Int] => ~TaggedInt)
+//│ ═══[TYPE ERROR] Cannot solve judgment TaggedInt ≤ ¬({Int ≤ Int, Str ≤ Int} ⟹ ¬TaggedInt).
+//│ Typing error tree:
+//│   TaggedInt ≤ ¬({Int ≤ Int, Str ≤ Int} ⟹ ¬TaggedInt)
+//│     TaggedInt ≤ ¬({Str ≤ Int} ⟹ ¬TaggedInt)
+//│       Str ≤ Int
+
 :te
 Int <:< ~([T <:< Int] => ~Int)
 //│ ═══[TYPE ERROR] Cannot solve judgment Int ≤ ¬({T ≤ Int} ⟹ ¬Int).

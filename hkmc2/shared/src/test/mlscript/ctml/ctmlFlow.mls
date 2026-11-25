@@ -67,11 +67,9 @@ foo(true)
 //│         δ ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
 //│           Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≥ Str} ⟹ ¬Str)
 //│             Bool ≤ ¬({ε ≥ Int} ⟹ ¬Int)
-//│               ¬Int ≤ ¬Bool
-//│                 Bool ≤ Int
+//│               Bool ≤ Int
 //│             Bool ≤ ¬({ε ≥ Str} ⟹ ¬Str)
-//│               ¬Str ≤ ¬Bool
-//│                 Bool ≤ Str
+//│               Bool ≤ Str
 
 // Multiple parameters
 
@@ -124,9 +122,8 @@ foo2(1, "World")
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                 ¬Int ≤ ¬Str
-//│                   Str ≤ Int
+//│               Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                 Str ≤ Int
 //│             Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│               ε ≤ Str
 //│                 Int ≤ Str
@@ -142,9 +139,8 @@ foo2(1, int_or_string)
 //│           Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│               Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                   ¬Int ≤ ¬Str
-//│                     Str ≤ Int
+//│                 Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                   Str ≤ Int
 //│               Str ≤ ¬({ε ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│                 ε ≤ Str
 //│                   Int ≤ Str
@@ -163,9 +159,8 @@ foo2(int_or_string, int_or_string)
 //│             Str ≤ (¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ Str, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│               Str ≤ ¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│                 Str ≤ ¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                   {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                     ¬Int ≤ ¬Str
-//│                       Str ≤ Int
+//│                   Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                     Str ≤ Int
 //│                 Str ≤ ¬({η ≤ Str, δ ≥ Str} ⟹ ¬Str)
 //│                   η ≤ Str
 //│                     Int ≤ Str
@@ -302,8 +297,7 @@ fooI(1, "World")
 //│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str} ⟹ ¬Str)) ∧ Int
 //│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ Str} ⟹ ¬Str)
 //│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
-//│               ¬Int ≤ ¬Str
-//│                 Str ≤ Int
+//│               Str ≤ Int
 //│             Str ≤ ¬({δ ≤ Str} ⟹ ¬Str)
 //│               δ ≤ Str
 //│                 Int ≤ Str
@@ -321,8 +315,7 @@ fooI("Hello", 2)
 //│               δ ≤ Int
 //│                 Str ≤ Int
 //│             Int ≤ ¬({δ ≤ Str} ⟹ ¬Str)
-//│               ¬Str ≤ ¬Int
-//│                 Int ≤ Str
+//│               Int ≤ Str
 
 fooI("Hello", "World")
 //│ Int

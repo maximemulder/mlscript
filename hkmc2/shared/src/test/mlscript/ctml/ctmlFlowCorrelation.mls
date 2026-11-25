@@ -112,9 +112,8 @@ g5(1, "World")
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                 ¬Int ≤ ¬Str
-//│                   Str ≤ Int
+//│               Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                 Str ≤ Int
 //│             Str ≤ ¬({ε ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│               ε ≤ ¬Int
 //│                 Int ≤ ¬Int
@@ -133,9 +132,8 @@ g5(int_or_string, 1)
 //│                 η ≤ Int
 //│                   Str ≤ Int
 //│               Int ≤ ¬({η ≤ ¬Int, ζ ≥ Str} ⟹ ¬Str)
-//│                 {ζ ≥ Str} ⟹ ¬Str ≤ ¬Int
-//│                   ¬Str ≤ ¬Int
-//│                     Int ≤ Str
+//│                 Int ≤ ¬({ζ ≥ Str} ⟹ ¬Str)
+//│                   Int ≤ Str
 
 :te
 g5(int_or_string, "World")
@@ -148,9 +146,8 @@ g5(int_or_string, "World")
 //│           Str ≤ (¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)) ∧ Int
 //│             Str ≤ ¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({η ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│               Str ≤ ¬({η ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│                 {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                   ¬Int ≤ ¬Str
-//│                     Str ≤ Int
+//│                 Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                   Str ≤ Int
 //│               Str ≤ ¬({η ≤ ¬Int, δ ≥ Str} ⟹ ¬Str)
 //│                 η ≤ ¬Int
 //│                   Int ≤ ¬Int
@@ -173,9 +170,8 @@ g6(1, "World")
 //│         Str ≤ (¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)) ∧ Int
 //│           Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int) ∨ ¬({ε ≤ ¬Int} ⟹ ⊥)
 //│             Str ≤ ¬({ε ≤ Int, δ ≥ Int} ⟹ ¬Int)
-//│               {δ ≥ Int} ⟹ ¬Int ≤ ¬Str
-//│                 ¬Int ≤ ¬Str
-//│                   Str ≤ Int
+//│               Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
+//│                 Str ≤ Int
 //│             Str ≤ ¬({ε ≤ ¬Int} ⟹ ⊥)
 //│               ε ≤ ¬Int
 //│                 Int ≤ ¬Int
@@ -228,8 +224,7 @@ g9(1, "World")
 //│         Str ≤ (¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)) ∧ Int
 //│           Str ≤ ¬({δ ≤ Int} ⟹ ¬Int) ∨ ¬({δ ≤ ¬Int} ⟹ ⊥)
 //│             Str ≤ ¬({δ ≤ Int} ⟹ ¬Int)
-//│               ¬Int ≤ ¬Str
-//│                 Str ≤ Int
+//│               Str ≤ Int
 //│             Str ≤ ¬({δ ≤ ¬Int} ⟹ ⊥)
 //│               δ ≤ ¬Int
 //│                 Int ≤ ¬Int

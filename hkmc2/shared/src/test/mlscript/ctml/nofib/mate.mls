@@ -825,8 +825,13 @@ parseSquare(3, 5, "p") as (LNil | (LCons & {head: [Piece, Square]} & {tail: LNil
 //│ Num
 //│ LNil ∨ ((LCons ∧ {head: ⟨Piece, Square⟩}) ∧ {tail: LNil})
 
-:fixme // FIXME: The inferred optional eliminator rejects a present integer and its callback.
 maybe(0, x => x + 1, Some(2)) as Int
+maybe(0, x => x + 1, None()) as Int
+//│ Int
+//│ Int
+
+:te
+maybe(0, x => x + 1, Some("two")) as Int
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ β → γ.
 //│ Typing error tree:
 //│   α ≤ β → γ
@@ -836,39 +841,21 @@ maybe(0, x => x + 1, Some(2)) as Int
 //│           Some ∧ {value: ι} ≤ (¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))) ∧ (¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({θ ≤ η → ε} ⟹ ¬({value: η} ∧ Some)))
 //│             Some ∧ {value: ι} ≤ ¬({ε ≥ ζ} ⟹ ¬None) ∨ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))
 //│               Some ∧ {value: ι} ≤ ¬({ε ≥ ζ} ⟹ ¬None)
-//│                 ¬None ≤ ¬(Some ∧ {value: ι})
-//│                   Some ∧ {value: ι} ≤ None
-//│                     Some ≤ None
-//│                     {value: ι} ≤ None
-//│                       ι ≤ ⊥
-//│                         Int ≤ ⊥
+//│                 Some ∧ {value: ι} ≤ None
+//│                   Some ≤ None
+//│                   {value: ι} ≤ None
+//│                     ι ≤ ⊥
+//│                       Str ≤ ⊥
 //│               Some ∧ {value: ι} ≤ ¬({ε ≥ Int, η ≤ Int} ⟹ ¬({value: η} ∧ Some))
-//│                 {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬(Some ∧ {value: ι})
-//│                   {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬Some
-//│                     ¬({value: η} ∧ Some) ≤ ¬Some
-//│                       Some ≤ {value: η} ∧ Some
-//│                         Some ≤ {value: η}
-//│                   {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬{value: ι}
-//│                     ¬({value: η} ∧ Some) ≤ ¬{value: ι}
-//│                       {value: ι} ≤ {value: η} ∧ Some
-//│                         {value: ι} ≤ Some
-//│                           ι ≤ ⊥
-//│                             Int ≤ ⊥
-//│                   ({η ≤ Int} ⟹ ¬({value: η} ∧ Some)) ∧ Some ≤ ¬(Some ∧ {value: ι})
-//│                     ({η ≤ Int} ⟹ ¬({value: η} ∧ Some)) ∧ Some ≤ ¬Some
-//│                       {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬Some
-//│                         ¬({value: η} ∧ Some) ≤ ¬Some
-//│                           Some ≤ {value: η} ∧ Some
-//│                             Some ≤ {value: η}
-//│                       Some ≤ ¬Some
-//│                     ({η ≤ Int} ⟹ ¬({value: η} ∧ Some)) ∧ Some ≤ ¬{value: ι}
-//│                       {η ≤ Int} ⟹ ¬({value: η} ∧ Some) ≤ ¬{value: ι}
-//│                         ¬({value: η} ∧ Some) ≤ ¬{value: ι}
-//│                           {value: ι} ≤ {value: η} ∧ Some
-//│                             {value: ι} ≤ Some
-//│                               ι ≤ ⊥
-//│                                 Int ≤ ⊥
-//│                       Some ≤ ¬{value: ι}
+//│                 Some ∧ {value: ι} ≤ ¬({η ≤ Int} ⟹ ¬({value: η} ∧ Some))
+//│                   Some ∧ {value: ι} ≤ {value: η} ∧ Some
+//│                     Some ∧ {value: ι} ≤ {value: η}
+//│                       Some ≤ {value: η}
+//│                       {value: ι} ≤ {value: η}
+//│                         ι ≤ η
+//│                           ι ≤ (¬({δ ≤ None, ε ≥ ζ} ⟹ ⊥) ∨ ¬({δ ≤ {value: η} ∧ Some, ε ≥ Int} ⟹ ¬Int)) ∧ Int
+//│                             Str ≤ (¬({δ ≤ None, ε ≥ ζ} ⟹ ⊥) ∨ ¬({δ ≤ {value: η} ∧ Some, ε ≥ Int} ⟹ ¬Int)) ∧ Int
+//│                               Str ≤ Int
 
 val sampleBoard = Board(LCons([king, [5, 3]], LNil()), LCons([pawn, [2, 2]], LNil()))
 sampleBoard as Board

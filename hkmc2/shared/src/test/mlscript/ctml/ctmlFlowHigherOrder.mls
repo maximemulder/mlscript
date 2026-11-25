@@ -274,9 +274,8 @@ h2((x) => x + 1, int_or_string)
 //│     γ → δ ≤ (Int ∨ Str) → β
 //│       Int ∨ Str ≤ γ
 //│         Int ∨ Str ≤ ¬({δ ≥ Int} ⟹ ¬Int)
-//│           ¬Int ≤ ¬(Int ∨ Str)
-//│             Int ∨ Str ≤ Int
-//│               Str ≤ Int
+//│           Int ∨ Str ≤ Int
+//│             Str ≤ Int
 
 // Functions as scrutinees
 

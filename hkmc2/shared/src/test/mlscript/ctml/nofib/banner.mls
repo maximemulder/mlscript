@@ -99,7 +99,7 @@ val digits =
 fun join(ls) =
   let gap = LCons(" ", LCons(" ", LNil()))
   foldr1((xs, ys) => append(xs, append(gap, ys)), ls)
-//│ join: ∀α, β, γ. {γ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ}), α ≥ ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z, β ≥ Str, α ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ (LCons ∧ {head: α}) ∧ {tail: X}) → γ
+//│ join: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z}), β ≥ Str, α ≤ ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ (LCons ∧ {head: α}) ∧ {tail: X}) → Z
 
 /** Test for an ASCII uppercase character. */
 fun isUpper(c) =

@@ -37,6 +37,56 @@ Int <:< ([Bot <:< Top] => Nat)
 //│   {⊤ ≤ ⊥} ⟹ Int ≤ Int
 //│     ⊤ ≤ ⊥
 
+// A guarded result can span both alternatives of the target union.
+
+([Int <:< (Int | Str)] => (Int | Str)) <:< (Int | Str)
+//│ OK
+
+:te
+([Int <:< (Int | Str)] => (Int | Str)) <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment {Int ≤ Int ∨ Str} ⟹ Int ∨ Str ≤ Int.
+//│ Typing error tree:
+//│   {Int ≤ Int ∨ Str} ⟹ Int ∨ Str ≤ Int
+//│     Int ∨ Str ≤ Int
+//│       Str ≤ Int
+
+:te
+([Str <:< Int] => (Int | Str)) <:< (Int | Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment {Str ≤ Int} ⟹ Int ∨ Str ≤ Int ∨ Str.
+//│ Typing error tree:
+//│   {Str ≤ Int} ⟹ Int ∨ Str ≤ Int ∨ Str
+//│     {Str ≤ Int} ⟹ Int ∨ Str ≤ Int
+//│       Str ≤ Int
+//│     {Str ≤ Int} ⟹ Int ∨ Str ≤ Str
+//│       Str ≤ Int
+//│     ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int ∨ Str
+//│       ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
+//│         {Str ≤ Int} ⟹ Int ∨ Str ≤ Int
+//│           Str ≤ Int
+//│         ¬Int ≤ Int
+//│       ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
+//│         {Str ≤ Int} ⟹ Int ∨ Str ≤ Str
+//│           Str ≤ Int
+//│         ¬Int ≤ Str
+//│       (({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Int ∨ Str
+//│         (({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Int
+//│           ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
+//│             {Str ≤ Int} ⟹ Int ∨ Str ≤ Int
+//│               Str ≤ Int
+//│             ¬Int ≤ Int
+//│           ¬Str ≤ Int
+//│         (({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Str
+//│           ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
+//│             {Str ≤ Int} ⟹ Int ∨ Str ≤ Str
+//│               Str ≤ Int
+//│             ¬Int ≤ Str
+//│           ¬Str ≤ Str
+
+// A target alternative can supply the assumption needed to open the source guard.
+
+([A <:< Int] => Nat) <:< (([A <:< Nat] => Int) | Str)
+//│ OK
+
 // Constrained types distributvity
 
 Int <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
@@ -167,15 +217,9 @@ A <:< ([B <:< Int] => Int)
 (([A <:< Int] => A) & B) <:< ([A <:< Int] => A)
 //│ OK
 
-:fixme // FIXME: A rigid variable on the right is replaced by its lower bound before the left constrained type is opened.
+// The right guard implies the left guard, and both bodies name the same rigid variable.
 ([A <:< Int] => A) <:< ([A <:< Nat] => A)
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ A ≤ {A ≤ Nat} ⟹ A.
-//│ Typing error tree:
-//│   {A ≤ Int} ⟹ A ≤ {A ≤ Nat} ⟹ A
-//│     {A ≤ Int} ⟹ A ≤ A
-//│       {A ≤ Int} ⟹ A ≤ ⊥
-//│         A ≤ ⊥
-//│           Nat ≤ ⊥
+//│ OK
 
 // A guard containing a constrained type is still required when the body alone matches.
 

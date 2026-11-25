@@ -28,8 +28,8 @@ import hkmc2.ctml.types.*
  *  judgments that are not derived. Comparing only the two sides as a whole is not enough, since the
  *  rules that are applied before the choice rules may not keep their operands as they are: e.g.
  *  `({c} ⟹ α) ∧ τ ≤ {c} ⟹ α` opens the right constrained type before choosing the left operand of
- *  the subtype (see `subtypeImpl`), and then requires `{c} ⟹ α ≤ α`, which is not derived when `α`
- *  is rigid: `α` is replaced by its lower bound before the left constrained type is opened. */
+ *  the subtype (see `subtypeImpl`). Recognizing the shared atom closes the original judgment
+ *  without opening either occurrence of its guard. */
 def holdsByAtoms(sub: Type, sup: Type)(using ctx: SubContext): Boolean =
   val hypotheses = if config.hypothesis then ctx.hypotheses.judgments.toList else Nil
   ClauseAtoms(Nil, Nil).add(sub, Polarity.Negative).add(sup, Polarity.Positive).isClosedWith(hypotheses)

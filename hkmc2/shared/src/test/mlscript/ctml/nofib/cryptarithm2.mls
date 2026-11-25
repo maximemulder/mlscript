@@ -51,7 +51,7 @@ fun bind(m, f) =
     fun next(result) = if result is [a, ss] then runStateT(f(a), ss)
     concat(map(next, runStateT(m, s)))
   StateT(run)
-//│ bind: ∀α, β. α → β → (StateT ∧ {run: ∀γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, π. {ζ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X, π ≤ {ι ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: ι})} ⟹ ι, δ ≤ ⟨κ, μ⟩, λ ≥ κ, ο ≥ ν, ξ ≤ {run: ο → π} ∧ StateT, β ≤ λ → ξ, ν ≥ μ, α ≤ {run: ε → ζ} ∧ StateT, ε ≥ γ} ⟹ γ → ({θ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: θ})} ⟹ θ)})
+//│ bind: ∀α, β. α → β → (StateT ∧ {run: ∀γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, Y. {ζ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X, ο ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: θ})} ⟹ θ, δ ≤ ⟨ι, λ⟩, κ ≥ ι, ξ ≥ μ, ν ≤ {run: ξ → ο} ∧ StateT, β ≤ κ → ν, μ ≥ λ, α ≤ {run: ε → ζ} ∧ StateT, ε ≥ γ} ⟹ γ → ({Y ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: Y})} ⟹ Y)})
 
 /** Return a result without changing the state. */
 fun return_(a) = StateT(s => LCons([a, s], LNil()))
@@ -74,7 +74,7 @@ fun execStateT(m, s) =
   /** Collect a final state from one alternative. */
   fun stateOnly(result) = if result is [a, ss] then LCons(ss, LNil())
   concat(map(stateOnly, runStateT(m, s)))
-//│ execStateT: ∀α, β, γ, δ. {β ≤ ⟨⊤, δ⟩, γ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: γ})} ⟹ ({run: ∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)} ∧ StateT) → α → γ
+//│ execStateT: ∀α, β, γ, Y. {β ≤ ⟨⊤, γ⟩, Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ ({run: ∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)} ∧ StateT) → α → Y
 
 /** Keep the current state precisely when the guard holds. */
 fun guard(b) = if b then StateT(s => LCons([(), s], LNil())) else StateT(s => LNil())
@@ -129,31 +129,31 @@ execStateT(return_(7), "state") as IntList
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ IntList.
 //│ Typing error tree:
 //│   α ≤ IntList
-//│     ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ IntList
-//│       ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
-//│         ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: δ})} ⟹ δ
-//│           ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ δ
-//│             ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LNil
-//│               {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ LNil
-//│                 ε ≤ LNil
-//│                   LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ LNil
-//│                     (LCons ∧ {head: γ}) ∧ {tail: ε} ≤ LNil
-//│                       LCons ∧ {head: γ} ≤ LNil
+//│     ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ IntList
+//│       ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
+//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: γ})} ⟹ γ
+//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ γ
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LNil
+//│               {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│                 δ ≤ LNil
+//│                   LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                     (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                       LCons ∧ {head: β} ≤ LNil
 //│                         LCons ≤ LNil
-//│                         {head: γ} ≤ LNil
-//│                           γ ≤ ⊥
-//│                             ζ ≤ ⊥
+//│                         {head: β} ≤ LNil
+//│                           β ≤ ⊥
+//│                             ε ≤ ⊥
 //│                               Str ≤ ⊥
-//│                       {tail: ε} ≤ LNil
-//│                         ε ≤ ⊥
-//│                           LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ ⊥
+//│                       {tail: δ} ≤ LNil
+//│                         δ ≤ ⊥
+//│                           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
 //│                             LNil ≤ ⊥
-//│             ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ (LCons ∧ {head: Int}) ∧ {tail: δ}
-//│               ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons ∧ {head: Int}
-//│                 ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons
-//│                   {η ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: η})} ⟹ η ≤ LCons
-//│                     η ≤ LCons
-//│                       LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: η}) ≤ LCons
+//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
+//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
+//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
+//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
+//│                     ζ ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ}) ≤ LCons
 //│                         LNil ≤ LCons
 
 :ctml-parse-only // FIXME: Inference exceeds a 20000-call solver budget.

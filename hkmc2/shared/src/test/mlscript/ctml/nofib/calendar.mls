@@ -103,7 +103,7 @@ fun cjustify(n, s) =
   let m = n - listLen(s)
   let halfm = intDiv(m, 2)
   append(space(halfm), append(s, space(m - halfm)))
-//│ cjustify: ∀α, β. {α ≥ Str, β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → β
+//│ cjustify: ∀α, Z. {α ≥ Str, Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ Int → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Z
 
 // Deferred calendar formatting stages use the inferred justification functions.
 // /** Render an in-month day as a right-aligned cell and an out-of-month day as blanks. */

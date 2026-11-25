@@ -381,11 +381,11 @@ fun bm(csp, t) = mapTree(fst, lookupCache(csp, cacheChecks(csp, emptyTable(csp),
 fun union(xs, ys) =
   let eq = (x, y) => x == y
   append(xs, foldl((acc, y) => deleteBy(eq, y, acc), nubBy(eq, ys), xs))
-//│ union: ∀α, β, γ, δ. {α ≥ {γ ≤ α} ⟹ γ, δ ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: δ})} ⟹ ((∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → δ
+//│ union: ∀α, β, γ, Z. {α ≥ {γ ≤ α} ⟹ γ, Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ ((∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X) → Z
 
 // The second argument may contain conflicts when the first argument is empty.
 union(LNil(), LCons(1, LNil()))
-//│ ∀α, β. {α ≥ {Int ≤ α} ⟹ Int, β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β
+//│ ∀α, Z. {α ≥ {Int ≤ α} ⟹ Int, Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ Z
 
 union(LNil(), LCons(1, LNil())) as ([X restricts (LNil | (LCons & {head: Int} & {tail: X}))] -> X)
 //│ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X
@@ -395,37 +395,37 @@ union(LNil(), LCons(1, LNil())) as ([X restricts (LNil | (LCons & {head: Str} & 
 //│ ═══[TYPE ERROR] Cannot solve judgment α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X.
 //│ Typing error tree:
 //│   α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│     ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
-//│       ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ
-//│         ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ δ
-//│           ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LNil
-//│             {ε ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε})} ⟹ ε ≤ LNil
-//│               ε ≤ LNil
-//│                 LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ LNil
-//│                   (LCons ∧ {head: γ}) ∧ {tail: ε} ≤ LNil
-//│                     LCons ∧ {head: γ} ≤ LNil
+//│     ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│       ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ
+//│         ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ γ
+//│           ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ LNil
+//│             {δ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ})} ⟹ δ ≤ LNil
+//│               δ ≤ LNil
+//│                 LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ LNil
+//│                   (LCons ∧ {head: β}) ∧ {tail: δ} ≤ LNil
+//│                     LCons ∧ {head: β} ≤ LNil
 //│                       LCons ≤ LNil
-//│                       {head: γ} ≤ LNil
-//│                         γ ≤ ⊥
-//│                           {ζ ≤ γ} ⟹ ζ ≤ ⊥
-//│                             ζ ≤ γ
-//│                               ζ ≤ ⊥
-//│                                 η ≤ ⊥
+//│                       {head: β} ≤ LNil
+//│                         β ≤ ⊥
+//│                           {ε ≤ β} ⟹ ε ≤ ⊥
+//│                             ε ≤ β
+//│                               ε ≤ ⊥
+//│                                 ζ ≤ ⊥
 //│                                   Int ≤ ⊥
-//│                     {tail: ε} ≤ LNil
-//│                       ε ≤ ⊥
-//│                         LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: ε}) ≤ ⊥
+//│                     {tail: δ} ≤ LNil
+//│                       δ ≤ ⊥
+//│                         LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
 //│                           LNil ≤ ⊥
-//│           ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ (LCons ∧ {head: Str}) ∧ {tail: δ}
-//│             ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons ∧ {head: Str}
-//│               ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: β})} ⟹ β ≤ LCons
-//│                 {θ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: θ})} ⟹ θ ≤ LCons
-//│                   θ ≤ LCons
-//│                     LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: θ}) ≤ LCons
+//│           ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ (LCons ∧ {head: Str}) ∧ {tail: γ}
+//│             ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ LCons ∧ {head: Str}
+//│               ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ Z ≤ LCons
+//│                 {η ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η})} ⟹ η ≤ LCons
+//│                   η ≤ LCons
+//│                     LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η}) ≤ LCons
 //│                       LNil ≤ LCons
 
 union(LCons(1, LNil()), LNil())
-//│ ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: α})} ⟹ α
+//│ ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: Z})} ⟹ Z
 
 :ctml-parse-only // FIXME: Recursive conflict gathering exceeds the 20000-call diagnostic.
 /** Gather conflicts, stopping when one does not involve the latest assignment. */

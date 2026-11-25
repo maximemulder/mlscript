@@ -60,7 +60,7 @@ fun showEvaluation(e) = if e is
   XWin() then nofibStringToList("XWin")
   OWin() then nofibStringToList("OWin")
   Score(i) then append(nofibStringToList("Score "), nofibStringToList(stringOfInt(i)))
-//│ showEvaluation: ∀α, β, γ. {β ≥ ({α ≤ XWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ})) ∧ ({α ≤ OWin ∨ ¬({β ≥ {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ} ⟹ ¬({i: Int} ∧ Score))} ⟹ ({α ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ})) ∧ ({α ≤ {i: Int} ∧ Score, γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ)), α ≤ XWin ∨ ¬({β ≥ ({α ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀δ. {δ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: δ})} ⟹ δ})) ∧ ({α ≤ {i: Int} ∧ Score, γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ)} ⟹ ¬(OWin ∨ ¬({β ≥ {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ} ⟹ ¬({i: Int} ∧ Score))))} ⟹ α → β
+//│ showEvaluation: ∀α, β. {α ≥ ({β ≤ XWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ})) ∧ ({β ≤ OWin ∨ ({i: Int} ∧ Score)} ⟹ ({β ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ})) ∧ (∀Z. {β ≤ {i: Int} ∧ Score, Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z)), β ≤ XWin ∨ ¬({α ≥ ({β ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ})) ∧ (∀Z. {β ≤ {i: Int} ∧ Score, Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z)} ⟹ ¬(OWin ∨ ({i: Int} ∧ Score)))} ⟹ β → α
 
 /** Assemble three pieces or three rows in order. */
 fun triple(a, b, c) = LCons(a, LCons(b, LCons(c, LNil())))

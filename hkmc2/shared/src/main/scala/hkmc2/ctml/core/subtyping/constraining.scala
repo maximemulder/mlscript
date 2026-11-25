@@ -9,6 +9,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.inference.*
+import hkmc2.ctml.core.structural.getVars
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
@@ -379,6 +380,12 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
       )
     case _ =>
 
+  /** A guard entailed by the current context makes its body available against the whole target.
+   *  Otherwise a target alternative may introduce the assumption needed to prove the guard. */
+  def withKnownSourceGuard(decomposeTarget: => SubClauses): SubClauses = sub match
+    case guarded: TConstrained if checkConstraint(guarded.constraint) => subtype(guarded.body, sup)
+    case _ => decomposeTarget
+
   // The choice rules are applied last, on what the invertible rules cannot decompose: a right union
   // and a left intersection are each decomposed in two judgments of which either may hold, and which
   // forget the other operand (see `splitAny`).
@@ -399,14 +406,9 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
         case Some(sup) =>
           subtype(sub, sup)
         case None =>
-          try
-            ctx.any(
-              subtype(sub, supLeft),
-              subtype(sub, supRight),
-            )
-          catch
-            case error: TypeError =>
-              subtypeCases(sub, sup, error)
+          withKnownSourceGuard:
+            try ctx.any(subtype(sub, supLeft), subtype(sub, supRight))
+            catch case error: TypeError => subtypeCases(sub, sup, error)
     case _ =>
 
   sub.splitAny(Polarity.Negative) match
@@ -429,7 +431,7 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
     case (TVar(sub), _) if sub.isRigid =>
       return subtype(sub.upperBound, sup)
     case (_, TVar(sup)) if sup.isRigid =>
-      return subtype(sub, sup.lowerBound)
+      return withKnownSourceGuard(subtype(sub, sup.lowerBound))
     case (_, _) =>
 
   // Subtyping of left constrained types.
@@ -572,8 +574,10 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
   sup match
     case sup: TLam =>
       subtypeUnivCases(sub, sup) match
-        case Some(clauses) =>
-          return clauses
+        case Some(clauses) => return clauses
+        case None =>
+      scopeResultBinders(sub) match
+        case Some(scoped) => return subtype(scoped, sup)
         case None =>
     case _ =>
 
@@ -584,6 +588,24 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
     val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)(using ctx)
     subtypeSeq(instanceBody, sup, outs)(using ctx)
   )
+
+/** For implicit arrow comparison, keep a result guard's variables quantified at the result.
+ *  When X is free only in R, ∀X. P → R equals P → ∀X. R. The latter lets each use of a
+ *  guarded result instantiate X at its expected type. Variables mentioned by the input or
+ *  by an enclosing guard must keep their scope over the whole function. */
+private def scopeResultBinders(scheme: TUniv): Option[Type] =
+  val (variables, guarded) = scheme.getUnivComponents
+  val (body, guards) = guarded.getConstrainedComponents
+  body match
+    case TLam(param, result: TConstrained) =>
+      val resultVars = result.getConstrainedComponents._2.flatMap(_.getVars).toSet
+      val enclosingVars = param.getVars ++ guards.flatMap(_.getVars)
+      val (local, enclosing) = variables.partition(resultVars -- enclosingVars)
+      Option.when(local.nonEmpty):
+        val arrow: Type = TLam(param, local.foldRight(result: Type)(TUniv.apply))
+        val guardedArrow = guards.foldRight(arrow)((guard, t) => TConstrained(t, guard))
+        enclosing.foldRight(guardedArrow)(TUniv.apply)
+    case _ => None
 
 /** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
  *  elimination: constrain every substituted guard and return its obligations. Failure leaves

@@ -619,41 +619,29 @@ nofibCharCode(false)
 //│   Str → Int ≤ Bool → α
 //│     Bool ≤ Str
 
-:fixme // FIXME: Implicit instantiation loses the nested proper-list result of map.
 /** Flatten rows with a trailing newline per row. */
 fun inferredUnlines(ls) = concat(map(x => append(x, LCons("\n", LNil())), ls))
-//│ ═══[TYPE ERROR] Cannot solve judgment ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) ≤ α → β.
+//│ inferredUnlines: ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y
+
+inferredUnlines(LCons(LCons("a", LNil()), LCons(LCons("b", LNil()), LNil()))) as StrList
+//│ StrList
+
+:te
+inferredUnlines(LCons("a", LNil()))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y ≤ β → γ.
 //│ Typing error tree:
-//│   ∀A. (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: A}) ∧ {tail: Y})} ⟹ Y) ≤ α → β
-//│     (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y) ≤ α → β
-//│       α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X
-//│         ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X
-//│           ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ {ε ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: R})} ⟹ R}) ∧ {tail: ε})} ⟹ ε
-//│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ ε
-//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ LNil
-//│                 {ζ ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ})} ⟹ ζ ≤ LNil
-//│                   ζ ≤ LNil
-//│                     LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ}) ≤ LNil
-//│                       (LCons ∧ {head: δ}) ∧ {tail: ζ} ≤ LNil
-//│                         LCons ∧ {head: δ} ≤ LNil
-//│                           LCons ≤ LNil
-//│                           {head: δ} ≤ LNil
-//│                             δ ≤ ⊥
-//│                               {η ≥ LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η})} ⟹ η ≤ ⊥
-//│                                 η ≤ ⊥
-//│                                   LNil ∨ ((LCons ∧ {head: θ}) ∧ {tail: η}) ≤ ⊥
-//│                                     LNil ≤ ⊥
-//│                         {tail: ζ} ≤ LNil
-//│                           ζ ≤ ⊥
-//│                             LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ζ}) ≤ ⊥
-//│                               LNil ≤ ⊥
-//│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: R})} ⟹ R}) ∧ {tail: ε}
-//│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: R})} ⟹ R}
-//│                   ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y ≤ LCons
-//│                     {ι ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ι})} ⟹ ι ≤ LCons
-//│                       ι ≤ LCons
-//│                         LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: ι}) ≤ LCons
-//│                           LNil ≤ LCons
+//│   ∀α, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y}), α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → Y ≤ β → γ
+//│     ∀α. {α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│       {δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X) → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Y})} ⟹ Y) ≤ β → γ
+//│         δ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│           ε ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│             Str ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+//│               Str ≤ {ζ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ζ})} ⟹ ζ
+//│                 Str ≤ ζ
+//│                   Str ≤ LNil
+//│                   Str ≤ (LCons ∧ {head: Str}) ∧ {tail: ζ}
+//│                     Str ≤ LCons ∧ {head: Str}
+//│                       Str ≤ LCons
 
 :fixme // FIXME: Inference with trusted append rejects a nonempty list of lists.
 /** Flatten a list of lists in source order. */

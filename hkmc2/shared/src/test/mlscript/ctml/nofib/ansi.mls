@@ -18,7 +18,7 @@ fun goto(x, y) = LCons("E", LCons("[",
 
 /** Prefix text with a cursor position. */
 fun at(pos, s) = if pos is [x, y] then append(goto(x, y), s)
-//│ at: ∀α, β. {α ≥ Str, β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ ⟨Num, Num⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → β
+//│ at: ∀α, Z. {α ≥ Str, Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ ⟨Num, Num⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) → Z
 
 /** Enclose text in the source highlight controls. */
 fun highlight(s) = append(nofibStringToList("ESC[7m"), append(s, nofibStringToList("ESC[0m")))

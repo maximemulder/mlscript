@@ -353,7 +353,7 @@ fun showFourTupleofInt(segment) = if segment is [[a, b], [c, d]] then
             append(nofibStringToList(stringOfInt(c)),
               append(nofibStringToList(","),
                 nofibStringToList(stringOfInt(d)))))))))
-//│ showFourTupleofInt: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩ → α
+//│ showFourTupleofInt: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ ⟨⟨Int, Int⟩, ⟨Int, Int⟩⟩ → Z
 
 :ctml-parse-only // FIXME: The source formatter uses a string as the final list tail.
 /** Format a list of segments with the source separators and suffix. */

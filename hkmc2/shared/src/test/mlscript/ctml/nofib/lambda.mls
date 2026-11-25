@@ -364,7 +364,7 @@ val sum0 = App(fixTerm, partialSum0)
 /** Render the direct evaluator's result with its constructor label. */
 fun showTerm(t) = if t is Con(i) then
   append(nofibStringToList("Con "), nofibStringToList(stringOfInt(i)))
-//│ showTerm: ∀α. {α ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: α})} ⟹ ({i: Int} ∧ Con) → α
+//│ showTerm: ∀Z. {Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ ({i: Int} ∧ Con) → Z
 
 :ctml-parse-only // FIXME: Stateful evaluation and printing are translation-only.
 /** Run the stateful evaluator in an empty environment and print both results. */

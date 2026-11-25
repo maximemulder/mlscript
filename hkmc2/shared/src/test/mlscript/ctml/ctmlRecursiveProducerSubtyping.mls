@@ -22,6 +22,54 @@ Producer <:< (Int -> Rec)
 WidenedProducer <:< (Int -> Rec)
 //│ OK
 
+// A result-only parameter can be instantiated at the entire recursive union.
+
+type Values = [X restricts (Int | F[X])] -> X
+type GuardedResult = [X] -> Int -> ([(Int | F[X]) <:< X] => X)
+//│ Values = ∀X. {X ≥ Int ∨ F[X]} ⟹ X
+//│ GuardedResult = ∀X. Int → ({Int ∨ F[X] ≤ X} ⟹ X)
+
+GuardedResult <:< (Int -> Values)
+//│ OK
+
+declare fun guardedProducer: GuardedResult
+//│ guardedProducer: GuardedResult
+
+guardedProducer[Values](1) as Values
+//│ Values
+
+// Both the input and any enclosing guard retain their constraints on the result variable.
+
+type SharedInput = [X] -> X -> ([Int <:< X] => X)
+type SharedGuard = [X restricts Str] -> Int -> ([Int <:< X] => X)
+//│ SharedInput = ∀X. X → ({Int ≤ X} ⟹ X)
+//│ SharedGuard = ∀X. {X ≥ Str} ⟹ Int → ({Int ≤ X} ⟹ X)
+
+:te
+SharedInput <:< (Str -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment SharedInput ≤ Str → Int.
+//│ Typing error tree:
+//│   SharedInput ≤ Str → Int
+//│     ∀X. X → ({Int ≤ X} ⟹ X) ≤ Str → Int
+//│       α → ({Int ≤ α} ⟹ α) ≤ Str → Int
+//│         {Int ≤ α} ⟹ α ≤ Int
+//│           α ≤ Int
+//│             Str ∨ Int ≤ Int
+//│               Str ≤ Int
+
+:te
+SharedGuard <:< (Int -> Int)
+//│ ═══[TYPE ERROR] Cannot solve judgment SharedGuard ≤ Int → Int.
+//│ Typing error tree:
+//│   SharedGuard ≤ Int → Int
+//│     ∀X. {X ≥ Str} ⟹ Int → ({Int ≤ X} ⟹ X) ≤ Int → Int
+//│       {α ≥ Str} ⟹ Int → ({Int ≤ α} ⟹ α) ≤ Int → Int
+//│         Int → ({Int ≤ α} ⟹ α) ≤ Int → Int
+//│           {Int ≤ α} ⟹ α ≤ Int
+//│             α ≤ Int
+//│               Str ∨ Int ≤ Int
+//│                 Str ≤ Int
+
 // A nonrecursive guard distinguishes the cycle from arrow instantiation.
 type PlainProducer = [X restricts Int] -> Int -> X
 //│ PlainProducer = ∀X. {X ≥ Int} ⟹ Int → X

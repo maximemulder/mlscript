@@ -1,7 +1,7 @@
 package hkmc2.ctml.core.subtyping
 
 import hkmc2.ctml.config.*
-import hkmc2.ctml.core.{is, isSubClass}
+import hkmc2.ctml.core.{is, isSubClass, makeJointType}
 import hkmc2.ctml.core.clauses.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.combine.*
@@ -9,7 +9,7 @@ import hkmc2.ctml.core.type_.*
 import hkmc2.ctml.core.type_.impls.substitute.substitute
 import hkmc2.ctml.core.var_.*
 import hkmc2.ctml.core.inference.*
-import hkmc2.ctml.core.structural.getVars
+import hkmc2.ctml.core.structural.{getVars, isAcyclicLookup}
 import hkmc2.ctml.types.*
 import hkmc2.ctml.utils.*
 
@@ -406,9 +406,10 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
         case Some(sup) =>
           subtype(sub, sup)
         case None =>
-          withKnownSourceGuard:
-            try ctx.any(subtype(sub, supLeft), subtype(sub, supRight))
-            catch case error: TypeError => subtypeCases(sub, sup, error)
+          splitGuardedSource(sub, sup, supLeft, supRight).getOrElse:
+            withKnownSourceGuard:
+              try ctx.any(subtype(sub, supLeft), subtype(sub, supRight))
+              catch case error: TypeError => subtypeCases(sub, sup, error)
     case _ =>
 
   sub.splitAny(Polarity.Negative) match
@@ -489,6 +490,46 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
     case _ =>
 
   throw TypeError()
+
+/** Split a guarded source before choosing an arm of a first-order target union. For each
+ *  assignment, (g ⇒ B) ∧ R is B ∧ R when g holds and R otherwise. Hence the two obligations
+ *  are B ∧ R ≤ T and (g or R ≤ T). Both retain the original target, including a rigid variable
+ *  whose lower bound exposed the union. Disjoining the guard with the sibling proof retains
+ *  their alternative solutions for the caller's flexible variables.
+ *
+ *  A binder in the target can supply g only within one alternative. Leave those targets to
+ *  the ordinary rules so the relevant assumption is available where the guard is used. */
+private def splitGuardedSource(sub: Type, sup: Type, left: Type, right: Type)
+    (using ctx: SubContext): Option[SubClauses] =
+  guardedOperand(sub) match
+    case Some((guard, rest)) if firstOrderData(left) && firstOrderData(right) =>
+      Some(ctx.all(
+        subtype(makeJointType(JointMode.Inter, guard.body, rest), sup),
+        ctx.any(subtypeConstraint(guard.constraint), subtype(rest, sup))))
+    case _ => None
+
+/** Recognize positive data targets through immutable fields, pairs, Boolean joints and the
+ *  lower bounds exposed by right rigid lookup. Revisiting a bound closes the syntax traversal. */
+private def firstOrderData(t: Type, seen: Set[TypeVar] = Set.empty)(using SubContext): Boolean =
+  t match
+    case TTop | TBot | _: TClass => true
+    case TField(_, value) => firstOrderData(value, seen)
+    case TTuple(l, r) => firstOrderData(l, seen) && firstOrderData(r, seen)
+    case TJointType(_, l, r) => firstOrderData(l, seen) && firstOrderData(r, seen)
+    case TVar(v) if v.isRigid => seen(v) || firstOrderData(v.lowerBound, seen + v)
+    case _ => false
+
+/** Extract one constrained operand of an intersection, retaining every sibling. Equal rigid
+ *  bounds expose an alias exactly. An acyclic lookup keeps its expansion finite in the
+ *  recursive subgoals, where the other operands of the intersection remain present. */
+private def guardedOperand(t: Type)(using SubContext): Option[(TConstrained, Type)] = t match
+  case guard: TConstrained => Some((guard, TTop))
+  case TJointType(JointMode.Inter, l, r) =>
+    guardedOperand(l).map((g, rest) => (g, makeJointType(JointMode.Inter, rest, r)))
+      .orElse(guardedOperand(r).map((g, rest) => (g, makeJointType(JointMode.Inter, l, rest))))
+  case TVar(v) if v.isRigid && v.hasEqualBounds && v.isAcyclicLookup(Polarity.Negative) =>
+    guardedOperand(v.upperBound)
+  case _ => None
 
 // Flexible type variables.
 

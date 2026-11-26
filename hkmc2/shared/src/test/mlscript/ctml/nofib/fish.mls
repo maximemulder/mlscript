@@ -305,7 +305,7 @@ fun cycle_(p1, origin, xAxis, yAxis) =
     xAxis,
     yAxis
   )
-//│ cycle_: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ ((∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X)) ∧ (⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({β ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: β})} ⟹ β))) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
+//│ cycle_: ∀α, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The second tile picture is translation-only.
 /** Cycle a rotated copy of the second tile. */

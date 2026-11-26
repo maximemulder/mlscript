@@ -55,37 +55,98 @@ Int <:< ([Bot <:< Top] => Nat)
 //│ ═══[TYPE ERROR] Cannot solve judgment {Str ≤ Int} ⟹ Int ∨ Str ≤ Int ∨ Str.
 //│ Typing error tree:
 //│   {Str ≤ Int} ⟹ Int ∨ Str ≤ Int ∨ Str
-//│     {Str ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│       Str ≤ Int
-//│     {Str ≤ Int} ⟹ Int ∨ Str ≤ Str
-//│       Str ≤ Int
-//│     ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int ∨ Str
-//│       ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
-//│         {Str ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│           Str ≤ Int
+//│     Str ≤ Int
+//│     ⊤ ≤ Int ∨ Str
+//│       ⊤ ≤ Int
+//│       ⊤ ≤ Str
+//│       ¬Int ≤ Int ∨ Str
 //│         ¬Int ≤ Int
-//│       ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
-//│         {Str ≤ Int} ⟹ Int ∨ Str ≤ Str
-//│           Str ≤ Int
 //│         ¬Int ≤ Str
-//│       (({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Int ∨ Str
-//│         (({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Int
-//│           ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
-//│             {Str ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│               Str ≤ Int
+//│         ¬Int ∧ ¬Str ≤ Int ∨ Str
+//│           ¬Int ∧ ¬Str ≤ Int
 //│             ¬Int ≤ Int
-//│           ¬Str ≤ Int
-//│         (({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Str
-//│           ({Str ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
-//│             {Str ≤ Int} ⟹ Int ∨ Str ≤ Str
-//│               Str ≤ Int
+//│             ¬Str ≤ Int
+//│           ¬Int ∧ ¬Str ≤ Str
 //│             ¬Int ≤ Str
-//│           ¬Str ≤ Str
+//│             ¬Str ≤ Str
+
+// An applicable guard suffices in either intersection order.
+
+type U = Int | Str
+type GivenU = [Int <:< Int] => U
+type UnavailableU = [Int <:< Str] => U
+//│ U = Int ∨ Str
+//│ GivenU = {Int ≤ Int} ⟹ U
+//│ UnavailableU = {Int ≤ Str} ⟹ U
+
+(GivenU & UnavailableU) <:< U
+//│ OK
+
+(UnavailableU & GivenU) <:< U
+//│ OK
+
+:te
+(GivenU & UnavailableU) <:< Int
+//│ ═══[TYPE ERROR] Cannot solve judgment GivenU ∧ UnavailableU ≤ Int.
+//│ Typing error tree:
+//│   GivenU ∧ UnavailableU ≤ Int
+//│     GivenU ≤ Int
+//│       {Int ≤ Int} ⟹ U ≤ Int
+//│         U ≤ Int
+//│           Int ∨ Str ≤ Int
+//│             Str ≤ Int
+//│     UnavailableU ≤ Int
+//│       {Int ≤ Str} ⟹ U ≤ Int
+//│         Int ≤ Str
+
+// Both guarded operands contribute to the common result Bool.
+
+(([Int <:< Int] => (Int | Bool)) & ([Int <:< Int] => (Str | Bool))) <:< (Bool | Nat)
+//│ OK
+
+:te
+(([Int <:< Int] => (Int | Bool)) & ([Str <:< Int] => (Str | Bool))) <:< (Bool | Nat)
+//│ ═══[TYPE ERROR] Cannot solve judgment ({Int ≤ Int} ⟹ Int ∨ Bool) ∧ ({Str ≤ Int} ⟹ Str ∨ Bool) ≤ Bool ∨ Nat.
+//│ Typing error tree:
+//│   ({Int ≤ Int} ⟹ Int ∨ Bool) ∧ ({Str ≤ Int} ⟹ Str ∨ Bool) ≤ Bool ∨ Nat
+//│     (Int ∨ Bool) ∧ ({Str ≤ Int} ⟹ Str ∨ Bool) ≤ Bool ∨ Nat
+//│       Int ∧ ({Str ≤ Int} ⟹ Str ∨ Bool) ≤ Bool ∨ Nat
+//│         Str ≤ Int
+//│         Int ≤ Bool ∨ Nat
+//│           Int ≤ Bool
+//│           Int ≤ Nat
+//│           Int ∧ ¬Nat ≤ Bool ∨ Nat
+//│             Int ∧ ¬Nat ≤ Bool
+//│               Int ≤ Bool
+//│               ¬Nat ≤ Bool
+//│             Int ∧ ¬Nat ≤ Nat
+//│               Int ≤ Nat
+//│               ¬Nat ≤ Nat
 
 // A target alternative can supply the assumption needed to open the source guard.
 
 ([A <:< Int] => Nat) <:< (([A <:< Nat] => Int) | Str)
 //│ OK
+
+// The assumption may also be inside an intersection in a target alternative.
+
+type GuardedArm = Int & ([A <:< Nat] => Str)
+//│ GuardedArm = Int ∧ ({A ≤ Nat} ⟹ Str)
+
+(([A <:< Int] => Str) & Int) <:< (GuardedArm | Bool)
+//│ OK
+
+:fixme // FIXME: The field lookup loses the guarded refinement supplied by the other conjunct.
+(([A <:< Int] => ({x: Str})) & {x: Top}) <:< ({x: ([A <:< Nat] => Str)})
+//│ ═══[TYPE ERROR] Cannot solve judgment ({A ≤ Int} ⟹ {x: Str}) ∧ {x: ⊤} ≤ {x: {A ≤ Nat} ⟹ Str}.
+//│ Typing error tree:
+//│   ({A ≤ Int} ⟹ {x: Str}) ∧ {x: ⊤} ≤ {x: {A ≤ Nat} ⟹ Str}
+//│     {A ≤ Int} ⟹ {x: Str} ≤ {x: {A ≤ Nat} ⟹ Str}
+//│       A ≤ Int
+//│         ⊤ ≤ Int
+//│     {x: ⊤} ≤ {x: {A ≤ Nat} ⟹ Str}
+//│       ⊤ ≤ {A ≤ Nat} ⟹ Str
+//│         ⊤ ≤ Str
 
 // Constrained types distributvity
 

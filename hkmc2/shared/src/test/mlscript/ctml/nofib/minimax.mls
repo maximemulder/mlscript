@@ -62,6 +62,36 @@ fun showEvaluation(e) = if e is
   Score(i) then append(nofibStringToList("Score "), nofibStringToList(stringOfInt(i)))
 //│ showEvaluation: ∀α, β. {α ≥ ({β ≤ XWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ})) ∧ ({β ≤ OWin ∨ ({i: Int} ∧ Score)} ⟹ ({β ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ})) ∧ (∀Z. {β ≤ {i: Int} ∧ Score, Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z)), β ≤ XWin ∨ ¬({α ≥ ({β ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀γ. {γ ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: γ})} ⟹ γ})) ∧ (∀Z. {β ≤ {i: Int} ∧ Score, Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z)} ⟹ ¬(OWin ∨ ({i: Int} ∧ Score)))} ⟹ β → α
 
+/** The character-list result shared by the three evaluation constructors. */
+type CharList = [X restricts (LNil | (LCons & {head: Str} & {tail: X}))] -> X
+//│ CharList = ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: X})} ⟹ X
+
+showEvaluation(XWin()) as CharList
+//│ CharList
+
+showEvaluation(OWin()) as CharList
+//│ CharList
+
+showEvaluation(Score(3)) as CharList
+//│ CharList
+
+:te
+showEvaluation(XWin()) as Int
+//│ ═══[TYPE ERROR] Cannot solve judgment α ≤ Int.
+//│ Typing error tree:
+//│   α ≤ Int
+//│     ({γ ≤ XWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ β})) ∧ ({γ ≤ OWin ∨ ({i: Int} ∧ Score)} ⟹ ({γ ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ β})) ∧ (∀Z. {γ ≤ {i: Int} ∧ Score, Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z)) ≤ Int
+//│       {γ ≤ XWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ β}) ≤ Int
+//│         LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ β}) ≤ Int
+//│           LNil ≤ Int
+//│       {γ ≤ OWin ∨ ({i: Int} ∧ Score)} ⟹ ({γ ≤ OWin} ⟹ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: ∀β. {β ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: β})} ⟹ β})) ∧ (∀Z. {γ ≤ {i: Int} ∧ Score, Z ≥ LNil ∨ ((LCons ∧ {head: Str}) ∧ {tail: Z})} ⟹ Z) ≤ Int
+//│         γ ≤ OWin ∨ ({i: Int} ∧ Score)
+//│           δ ≤ OWin ∨ ({i: Int} ∧ Score)
+//│             XWin ≤ OWin ∨ ({i: Int} ∧ Score)
+//│               XWin ≤ OWin
+//│               XWin ≤ {i: Int} ∧ Score
+//│                 XWin ≤ {i: Int}
+
 /** Assemble three pieces or three rows in order. */
 fun triple(a, b, c) = LCons(a, LCons(b, LCons(c, LNil())))
 //│ triple: ∀α, β, γ. α → β → γ → ((LCons ∧ {head: α}) ∧ {tail: (LCons ∧ {head: β}) ∧ {tail: (LCons ∧ {head: γ}) ∧ {tail: LNil}}})

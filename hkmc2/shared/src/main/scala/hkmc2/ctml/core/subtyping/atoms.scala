@@ -66,9 +66,15 @@ private case class ClauseAtoms(
   /** Check whether the clause holds by its atoms alone, without the hypotheses (see
    *  `holdsByAtoms`). */
   def isClosed(using ctx: SubContext): Boolean =
-    this.left.contains(TBot) || this.right.contains(TTop) ||
+    this.left.exists(isEmptyAtom) || this.right.contains(TTop) ||
       this.left.exists(l => this.right.exists(sameTypeSyntax(l, _))) ||
       this.left.combinations(2).exists((pair) => areDisjointConstructors(pair(0), pair(1)))
+
+  /** A required field with an empty payload cannot be present in any value. */
+  private def isEmptyAtom(atom: Type): Boolean = atom match
+    case TBot => true
+    case TField(_, value) => isEmptyAtom(value)
+    case _ => false
 
   /** Check closure after each cut, stopping as soon as the atoms prove the clause. */
   @scala.annotation.tailrec

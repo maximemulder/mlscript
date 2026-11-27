@@ -193,12 +193,13 @@ outerFallback("outer", [1, bool]) as Int
 //│   α ≤ Int
 //│     (({γ ≤ ⟨δ, Bool⟩} ⟹ β) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β)) ∨ Int ≤ Int
 //│       ({γ ≤ ⟨δ, Bool⟩} ⟹ β) ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β) ≤ Int
-//│         {γ ≤ ⟨δ, Bool⟩} ⟹ β ≤ Int
-//│           β ≤ Int
-//│             Str ≤ Int
-//│         {γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β ≤ Int
-//│           γ ≤ ¬⟨⊤, ⊤⟩
-//│             ⟨Int, Bool⟩ ≤ ¬⟨⊤, ⊤⟩
+//│         β ∧ ({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β) ≤ Int
+//│           β ≤ ¬({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β) ∨ Int
+//│             Str ≤ ¬({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β) ∨ Int
+//│               Str ≤ ¬({γ ≤ ¬⟨⊤, ⊤⟩} ⟹ β)
+//│                 γ ≤ ¬⟨⊤, ⊤⟩
+//│                   ⟨Int, Bool⟩ ≤ ¬⟨⊤, ⊤⟩
+//│               Str ≤ Int
 
 // A separately nested if expression has its own exhaustiveness obligation.
 /** The inner partial type match does not inherit the outer if expression's fallback. */

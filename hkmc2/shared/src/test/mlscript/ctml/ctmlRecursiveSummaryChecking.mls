@@ -28,19 +28,18 @@ val summary: (Nodes -> Int) -> Nodes -> Int = step
 //│         {η ≥ ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥)} ⟹ ε → ζ → η ≤ (Nodes → Int) → Nodes → Int
 //│           ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥) ≤ η
 //│             ({ζ ≤ Stop} ⟹ Int) ∧ ({ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥) ≤ Int
-//│               {ζ ≤ Stop} ⟹ Int ≤ Int
-//│                 ζ ≤ Stop
-//│                   Nodes ≤ Stop
-//│                     ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ Stop
-//│                       {ι ≥ Stop ∨ (Next ∧ {tail: ι})} ⟹ ι ≤ Stop
-//│                         ι ≤ Stop
-//│                           Stop ∨ (Next ∧ {tail: ι}) ≤ Stop
-//│                             Next ∧ {tail: ι} ≤ Stop
-//│                               Next ≤ Stop
-//│                               {tail: ι} ≤ Stop
-//│                                 ι ≤ ⊥
-//│                                   Stop ∨ (Next ∧ {tail: ι}) ≤ ⊥
-//│                                     Stop ≤ ⊥
+//│               ζ ≤ Stop
+//│                 Nodes ≤ Stop
+//│                   ∀X. {X ≥ Stop ∨ (Next ∧ {tail: X})} ⟹ X ≤ Stop
+//│                     {ι ≥ Stop ∨ (Next ∧ {tail: ι})} ⟹ ι ≤ Stop
+//│                       ι ≤ Stop
+//│                         Stop ∨ (Next ∧ {tail: ι}) ≤ Stop
+//│                           Next ∧ {tail: ι} ≤ Stop
+//│                             Next ≤ Stop
+//│                             {tail: ι} ≤ Stop
+//│                               ι ≤ ⊥
+//│                                 Stop ∨ (Next ∧ {tail: ι}) ≤ ⊥
+//│                                   Stop ≤ ⊥
 //│               {ε ≤ θ → η, ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥ ≤ Int
 //│                 {ζ ≤ {tail: θ} ∧ Next} ⟹ ⊥ ≤ Int
 //│                   ζ ≤ {tail: θ} ∧ Next

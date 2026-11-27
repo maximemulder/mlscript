@@ -185,10 +185,9 @@ f9(t) as Int
 //│ Typing error tree:
 //│   α ≤ Int
 //│     ({β ≤ Int} ⟹ Int) ∧ ({β ≤ ¬Int} ⟹ Int) ≤ Int
-//│       {β ≤ Int} ⟹ Int ≤ Int
-//│         β ≤ Int
-//│           T ≤ Int
-//│             ⊤ ≤ Int
+//│       β ≤ Int
+//│         T ≤ Int
+//│           ⊤ ≤ Int
 //│       {β ≤ ¬Int} ⟹ Int ≤ Int
 //│         β ≤ ¬Int
 //│           T ≤ ¬Int

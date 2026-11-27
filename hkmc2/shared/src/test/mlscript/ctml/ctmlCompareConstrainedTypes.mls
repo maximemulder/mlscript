@@ -90,14 +90,12 @@ type UnavailableU = [Int <:< Str] => U
 //│ ═══[TYPE ERROR] Cannot solve judgment GivenU ∧ UnavailableU ≤ Int.
 //│ Typing error tree:
 //│   GivenU ∧ UnavailableU ≤ Int
-//│     GivenU ≤ Int
-//│       {Int ≤ Int} ⟹ U ≤ Int
-//│         U ≤ Int
-//│           Int ∨ Str ≤ Int
+//│     U ∧ UnavailableU ≤ Int
+//│       Str ∧ UnavailableU ≤ Int
+//│         U ∧ Str ≤ Int
+//│           Str ∧ Str ≤ Int
 //│             Str ≤ Int
-//│     UnavailableU ≤ Int
-//│       {Int ≤ Str} ⟹ U ≤ Int
-//│         Int ≤ Str
+//│             Str ≤ Int
 
 // Both guarded operands contribute to the common result Bool.
 
@@ -123,6 +121,32 @@ type UnavailableU = [Int <:< Str] => U
 //│               Int ≤ Nat
 //│               ¬Nat ≤ Nat
 
+// The intersection of the two field payloads is Bool. Opening the guard keeps both records.
+type WithChoice = [Int <:< Int] => ({x: (Int | Bool)})
+type OtherChoice = {x: (Str | Bool)}
+//│ WithChoice = {Int ≤ Int} ⟹ {x: Int ∨ Bool}
+//│ OtherChoice = {x: Str ∨ Bool}
+
+(WithChoice & OtherChoice) <:< {x: Bool}
+//│ OK
+
+(OtherChoice & WithChoice) <:< ({x: Bool} | Str)
+//│ OK
+
+:te
+(([Str <:< Int] => ({x: (Int | Bool)})) & OtherChoice) <:< {x: Bool}
+//│ ═══[TYPE ERROR] Cannot solve judgment ({Str ≤ Int} ⟹ {x: Int ∨ Bool}) ∧ OtherChoice ≤ {x: Bool}.
+//│ Typing error tree:
+//│   ({Str ≤ Int} ⟹ {x: Int ∨ Bool}) ∧ OtherChoice ≤ {x: Bool}
+//│     ({Str ≤ Int} ⟹ {x: Int ∨ Bool}) ∧ {x: Str} ≤ {x: Bool}
+//│       Str ≤ Int
+//│       {x: Str} ≤ {x: Bool}
+//│         Str ≤ Bool
+
+// Two same-field function requirements cover the union of the argument types.
+(([Int <:< Int] => ({call: (Int -> Bool)})) & {call: (Str -> Bool)}) <:< {call: ((Int | Str) -> Bool)}
+//│ OK
+
 // A target alternative can supply the assumption needed to open the source guard.
 
 ([A <:< Int] => Nat) <:< (([A <:< Nat] => Int) | Str)
@@ -136,7 +160,7 @@ type GuardedArm = Int & ([A <:< Nat] => Str)
 (([A <:< Int] => Str) & Int) <:< (GuardedArm | Bool)
 //│ OK
 
-:fixme // FIXME: The field lookup loses the guarded refinement supplied by the other conjunct.
+:fixme // FIXME: Moving a guard into the payload of a required field needs a declarative rule.
 (([A <:< Int] => ({x: Str})) & {x: Top}) <:< ({x: ([A <:< Nat] => Str)})
 //│ ═══[TYPE ERROR] Cannot solve judgment ({A ≤ Int} ⟹ {x: Str}) ∧ {x: ⊤} ≤ {x: {A ≤ Nat} ⟹ Str}.
 //│ Typing error tree:
@@ -174,49 +198,9 @@ Str <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
 //│         Bool ≤ {A ≤ Str} ⟹ Str
 //│           Bool ≤ Str
 
-:te
+// Each target arm supplies its own guard.
 ([A <:< Int] => (Int | Str)) <:< (([A <:< Int] => Int) | ([A <:< Str] => Str))
-//│ ═══[TYPE ERROR] Cannot solve judgment {A ≤ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str).
-//│ Typing error tree:
-//│   {A ≤ Int} ⟹ Int ∨ Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│     {A ≤ Int} ⟹ Int ∨ Str ≤ {A ≤ Int} ⟹ Int
-//│       {A ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│         Int ∨ Str ≤ Int
-//│           Str ≤ Int
-//│     {A ≤ Int} ⟹ Int ∨ Str ≤ {A ≤ Str} ⟹ Str
-//│       {A ≤ Int} ⟹ Int ∨ Str ≤ Str
-//│         A ≤ Int
-//│           Str ≤ Int
-//│     ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│       ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ {A ≤ Int} ⟹ Int
-//│         ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
-//│           {A ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│             Int ∨ Str ≤ Int
-//│               Str ≤ Int
-//│           ¬Int ≤ Int
-//│       ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ {A ≤ Str} ⟹ Str
-//│         ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
-//│           {A ≤ Int} ⟹ Int ∨ Str ≤ Str
-//│             A ≤ Int
-//│               Str ≤ Int
-//│           ¬Int ≤ Str
-//│       (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ ({A ≤ Int} ⟹ Int) ∨ ({A ≤ Str} ⟹ Str)
-//│         (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ {A ≤ Int} ⟹ Int
-//│           (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Int
-//│             ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Int
-//│               {A ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│                 Int ∨ Str ≤ Int
-//│                   Str ≤ Int
-//│               ¬Int ≤ Int
-//│             ¬Str ≤ Int
-//│         (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ {A ≤ Str} ⟹ Str
-//│           (({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int) ∧ ¬Str ≤ Str
-//│             ({A ≤ Int} ⟹ Int ∨ Str) ∧ ¬Int ≤ Str
-//│               {A ≤ Int} ⟹ Int ∨ Str ≤ Str
-//│                 A ≤ Int
-//│                   Str ≤ Int
-//│               ¬Int ≤ Str
-//│             ¬Str ≤ Str
+//│ OK
 
 // Opposite bounds
 

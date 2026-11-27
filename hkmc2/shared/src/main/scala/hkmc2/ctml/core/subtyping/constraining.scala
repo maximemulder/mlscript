@@ -178,7 +178,7 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
 
   // Notably, these rules derive the rules of constraining types, which are encoded as negated
   // constrained types `¬({c} ⟹ ¬τ)` (see `makeConstrainingType`):
-  // - `σ ≤ ¬({c} ⟹ ¬τ)` iff `({c} ⟹ ¬τ) ≤ ¬σ`, that is, `c` is solved and `σ ≤ τ`.
+  // - Solving `c` and `σ ≤ τ` suffices for `σ ≤ ¬({c} ⟹ ¬τ)`. An empty source also suffices.
   // - `¬({c} ⟹ ¬τ) ≤ σ` iff `¬σ ≤ ({c} ⟹ ¬τ)`, that is, `τ ≤ σ` assuming `c`.
 
   // These rules come before the flexible variable rules, so that the constraining type in a
@@ -212,7 +212,14 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
         case _ =>
           supBody match
             case supBody: TConstrained =>
-              withSolvedGuard(supBody.constraint)(subtype(sub, supBody.body.negate()))
+              /** Introduce the receipt while retaining the whole source. */
+              def pay(using SubContext): SubClauses =
+                withSolvedGuard(supBody.constraint)(subtype(sub, supBody.body.negate()))
+              sub match
+                case TField(_, value) =>
+                  // Either the receipt is established or the required field has no value.
+                  ctx.any(pay, subtype(value, TBot))
+                case _ => pay
             case _ =>
               subtype(supBody, sub.negate())
     case _ =>
@@ -380,12 +387,6 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
       )
     case _ =>
 
-  /** A guard entailed by the current context makes its body available against the whole target.
-   *  Otherwise a target alternative may introduce the assumption needed to prove the guard. */
-  def withKnownSourceGuard(decomposeTarget: => SubClauses): SubClauses = sub match
-    case guarded: TConstrained if checkConstraint(guarded.constraint) => subtype(guarded.body, sup)
-    case _ => decomposeTarget
-
   // The choice rules are applied last, on what the invertible rules cannot decompose: a right union
   // and a left intersection are each decomposed in two judgments of which either may hold, and which
   // forget the other operand (see `splitAny`).
@@ -406,10 +407,10 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
         case Some(sup) =>
           subtype(sub, sup)
         case None =>
-          splitGuardedSource(sub, sup, supLeft, supRight).getOrElse:
-            withKnownSourceGuard:
-              try ctx.any(subtype(sub, supLeft), subtype(sub, supRight))
-              catch case error: TypeError => subtypeCases(sub, sup, error)
+          lazy val dataTarget = firstOrderData(supLeft) && firstOrderData(supRight)
+          splitGuardedSource(sub, sup, dataTarget).getOrElse:
+            try ctx.any(subtype(sub, supLeft), subtype(sub, supRight))
+            catch case error: TypeError => subtypeCases(sub, sup, error)
     case _ =>
 
   sub.splitAny(Polarity.Negative) match
@@ -418,10 +419,8 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
         case Some(sub) =>
           subtype(sub, sup)
         case None =>
-          ctx.any(
-            subtype(subLeft,  sup),
-            subtype(subRight, sup),
-          )
+          splitGuardedSource(sub, sup, firstOrderData(sup)).getOrElse:
+            ctx.any(subtype(subLeft, sup), subtype(subRight, sup))
     case _ =>
 
   // Subtyping of rigid type variables.
@@ -432,7 +431,9 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
     case (TVar(sub), _) if sub.isRigid =>
       return subtype(sub.upperBound, sup)
     case (_, TVar(sup)) if sup.isRigid =>
-      return withKnownSourceGuard(subtype(sub, sup.lowerBound))
+      return sub match
+        case g: TConstrained if checkConstraint(g.constraint) => subtype(g.body, TVar(sup))
+        case _ => subtype(sub, sup.lowerBound)
     case (_, _) =>
 
   // Subtyping of left constrained types.
@@ -491,22 +492,29 @@ private def subtypeStructural(sub: Type, sup: Type)(using ctx: SubContext): SubC
 
   throw TypeError()
 
-/** Split a guarded source before choosing an arm of a first-order target union. For each
- *  assignment, (g ⇒ B) ∧ R is B ∧ R when g holds and R otherwise. Hence the two obligations
- *  are B ∧ R ≤ T and (g or R ≤ T). Both retain the original target, including a rigid variable
- *  whose lower bound exposed the union. Disjoining the guard with the sibling proof retains
- *  their alternative solutions for the caller's flexible variables.
+/** Open a guarded conjunct before a choice would discard a source or target operand. For each
+ *  target T, B ∧ R ≤ T and either g or R ≤ T suffice to derive (g ⇒ B) ∧ R ≤ T.
+ *  Keep T even when a rigid lower bound exposed its union. Joining the guard and sibling
+ *  solutions preserves both alternatives for the caller's flexible variables.
  *
- *  A binder in the target can supply g only within one alternative. Leave those targets to
- *  the ordinary rules so the relevant assumption is available where the guard is used. */
-private def splitGuardedSource(sub: Type, sup: Type, left: Type, right: Type)
+ *  A target binder can supply an assumption within one arm. In that case open only guards
+ *  already entailed by the incoming context, and otherwise let the target introduce its binder. */
+private def splitGuardedSource(sub: Type, sup: Type, dataTarget: => Boolean)
     (using ctx: SubContext): Option[SubClauses] =
-  guardedOperand(sub) match
-    case Some((guard, rest)) if firstOrderData(left) && firstOrderData(right) =>
-      Some(ctx.all(
-        subtype(makeJointType(JointMode.Inter, guard.body, rest), sup),
-        ctx.any(subtypeConstraint(guard.constraint), subtype(rest, sup))))
-    case _ => None
+  lazy val data = dataTarget
+  /** A proof query at every conjunct can repeatedly enter the same recursive bounds.
+   *  For nested guards use the clause's non-recursive closure test. */
+  def available(g: TConstrained): Boolean = data || (sub match
+    case _: TConstrained => checkConstraint(g.constraint)
+    case _ => g.constraint.dir match
+      case Direction.Sub => holdsByAtoms(g.constraint.left, g.constraint.right)
+      case Direction.Super => holdsByAtoms(g.constraint.right, g.constraint.left))
+  guardedOperand(sub, available).map: (guard, rest) =>
+    val opened = makeJointType(JointMode.Inter, guard.body, rest)
+    if data then
+      ctx.all(subtype(opened, sup),
+        ctx.any(subtypeConstraint(guard.constraint), subtype(rest, sup)))
+    else subtype(opened, sup)
 
 /** Recognize positive data targets through immutable fields, pairs, Boolean joints and the
  *  lower bounds exposed by right rigid lookup. Revisiting a bound closes the syntax traversal. */
@@ -522,13 +530,15 @@ private def firstOrderData(t: Type, seen: Set[TypeVar] = Set.empty)(using SubCon
 /** Extract one constrained operand of an intersection, retaining every sibling. Equal rigid
  *  bounds expose an alias exactly. An acyclic lookup keeps its expansion finite in the
  *  recursive subgoals, where the other operands of the intersection remain present. */
-private def guardedOperand(t: Type)(using SubContext): Option[(TConstrained, Type)] = t match
-  case guard: TConstrained => Some((guard, TTop))
+private def guardedOperand(t: Type, accept: TConstrained => Boolean)
+    (using SubContext): Option[(TConstrained, Type)] = t match
+  case guard: TConstrained if accept(guard) => Some((guard, TTop))
   case TJointType(JointMode.Inter, l, r) =>
-    guardedOperand(l).map((g, rest) => (g, makeJointType(JointMode.Inter, rest, r)))
-      .orElse(guardedOperand(r).map((g, rest) => (g, makeJointType(JointMode.Inter, l, rest))))
+    guardedOperand(l, accept).map((g, rest) => (g, makeJointType(JointMode.Inter, rest, r)))
+      .orElse:
+        guardedOperand(r, accept).map((g, rest) => (g, makeJointType(JointMode.Inter, l, rest)))
   case TVar(v) if v.isRigid && v.hasEqualBounds && v.isAcyclicLookup(Polarity.Negative) =>
-    guardedOperand(v.upperBound)
+    guardedOperand(v.upperBound, accept)
   case _ => None
 
 // Flexible type variables.

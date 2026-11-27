@@ -287,42 +287,15 @@ chainProducer[Chain | Str] as (Int -> (Chain | Str))
 //│                                 Int ≤ {next: δ}
 //│                       ¬Str ≤ {next: δ}
 //│         ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ Str
-//│           {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ Str
-//│             Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str
-//│               {next: Chain ∨ Str} ≤ Chain ∨ Str
-//│                 {next: Str} ≤ Chain ∨ Str
-//│                   {next: Str} ≤ Chain
-//│                     {next: Str} ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
-//│                       {next: Str} ≤ {η ≥ Int ∨ {next: η}} ⟹ η
-//│                         {next: Str} ≤ η
-//│                           {next: Str} ≤ Int
-//│                             Str ≤ ⊥
-//│                           {next: Str} ≤ {next: η}
-//│                             Str ≤ η
-//│                               Str ≤ Int
-//│                               Str ≤ {next: η}
-//│                   {next: Str} ≤ Str
-//│                     Str ≤ ⊥
-//│                   {next: Str} ∧ ¬Str ≤ Chain ∨ Str
-//│                     {next: Str} ∧ ¬Str ≤ Chain
-//│                       {next: Str} ∧ ¬Str ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
-//│                         {next: Str} ∧ ¬Str ≤ {θ ≥ Int ∨ {next: θ}} ⟹ θ
-//│                           {next: Str} ∧ ¬Str ≤ θ
-//│                             {next: Str} ∧ ¬Str ≤ Int
-//│                               {next: Str} ≤ Int
-//│                                 Str ≤ ⊥
-//│                               ¬Str ≤ Int
-//│                             {next: Str} ∧ ¬Str ≤ {next: θ}
-//│                               {next: Str} ≤ {next: θ}
-//│                                 Str ≤ θ
-//│                                   Str ≤ Int
-//│                                   Str ≤ {next: θ}
-//│                               ¬Str ≤ {next: θ}
-//│                     {next: Str} ∧ ¬Str ≤ Str
-//│                       {next: Str} ≤ Str
-//│                         Str ≤ ⊥
-//│                       ¬Str ≤ Str
-//│           ¬Str ≤ Str
+//│           (Chain ∨ Str) ∧ ¬Str ≤ Str
+//│             Chain ∧ ¬Str ≤ Str
+//│               Chain ≤ Str
+//│                 ∀X. {X ≥ Int ∨ {next: X}} ⟹ X ≤ Str
+//│                   {η ≥ Int ∨ {next: η}} ⟹ η ≤ Str
+//│                     η ≤ Str
+//│                       Int ∨ {next: η} ≤ Str
+//│                         Int ≤ Str
+//│               ¬Str ≤ Str
 
 // An input-only parameter and a guarded result parameter admit independent instances.
 type NominalParametric = [A, X] -> A -> ([(Int | F[X]) <:< X] => X)

@@ -56,12 +56,12 @@ pick(1) as Int
 //│ Typing error tree:
 //│   α ≤ Int
 //│     ({β ≤ Int} ⟹ Int ∨ Str) ∧ ({β ≤ Str} ⟹ Int ∨ Str) ≤ Int
-//│       {β ≤ Int} ⟹ Int ∨ Str ≤ Int
-//│         Int ∨ Str ≤ Int
-//│           Str ≤ Int
-//│       {β ≤ Str} ⟹ Int ∨ Str ≤ Int
-//│         β ≤ Str
-//│           Int ≤ Str
+//│       (Int ∨ Str) ∧ ({β ≤ Str} ⟹ Int ∨ Str) ≤ Int
+//│         Str ∧ ({β ≤ Str} ⟹ Int ∨ Str) ≤ Int
+//│           (Int ∨ Str) ∧ Str ≤ Int
+//│             Str ∧ Str ≤ Int
+//│               Str ≤ Int
+//│               Str ≤ Int
 
 // Errors
 
@@ -200,12 +200,12 @@ foo2 as (Bool -> Bool -> Bool)
 //│         {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
 //│           ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ ζ
 //│             ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ Bool
-//│               {ε ≤ Int, δ ≤ Int} ⟹ Int ≤ Bool
-//│                 ε ≤ Int
-//│                   Bool ≤ Int
-//│               {ε ≤ Str, δ ≤ Str} ⟹ Str ≤ Bool
-//│                 ε ≤ Str
-//│                   Bool ≤ Str
+//│               ({δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ Bool
+//│                 Int ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ Bool
+//│                   ({δ ≤ Str} ⟹ Str) ∧ Int ≤ Bool
+//│                     δ ≤ Str
+//│                       Bool ≤ Str
+//│                     Int ≤ Bool
 
 :te
 foo2 as ((Int | Str) -> (Int | Str) -> (Int | Str))
@@ -250,12 +250,12 @@ foo2 as (Top -> Top -> Bot)
 //│           {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str)} ⟹ δ → ε → ζ ≤ Int → ⊤ → ⊥
 //│             ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ ζ
 //│               ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ ⊥
-//│                 {ε ≤ Int, δ ≤ Int} ⟹ Int ≤ ⊥
-//│                   ε ≤ Int
-//│                     ⊤ ≤ Int
-//│                 {ε ≤ Str, δ ≤ Str} ⟹ Str ≤ ⊥
-//│                   ε ≤ Str
-//│                     ⊤ ≤ Str
+//│                 ({δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ ⊥
+//│                   Int ∧ ({ε ≤ Str, δ ≤ Str} ⟹ Str) ≤ ⊥
+//│                     ({δ ≤ Str} ⟹ Str) ∧ Int ≤ ⊥
+//│                       δ ≤ Str
+//│                         Int ≤ Str
+//│                       Int ≤ ⊥
 
 // Same return
 

@@ -137,6 +137,18 @@ type T
 Int <:< ~([Bot <:< Int] => ~Int)
 //│ OK
 
+// An impossible required field is below even a receipt whose guard cannot be paid.
+{x: Bot} <:< ~([Str <:< Int] => Bot)
+//│ OK
+
+:te
+{x: Int} <:< ~([Str <:< Int] => Bot)
+//│ ═══[TYPE ERROR] Cannot solve judgment {x: Int} ≤ ¬({Str ≤ Int} ⟹ ⊥).
+//│ Typing error tree:
+//│   {x: Int} ≤ ¬({Str ≤ Int} ⟹ ⊥)
+//│     Str ≤ Int
+//│     Int ≤ ⊥
+
 // The tag and its field must be checked together through every guard.
 type TaggedInt = A & {value: Int}
 //│ TaggedInt = A ∧ {value: Int}

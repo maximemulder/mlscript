@@ -49,12 +49,11 @@ foo as (Bool -> Bool -> Bool)
 //│         {ζ ≥ ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str)} ⟹ δ → ε → ζ ≤ Bool → Bool → Bool
 //│           ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ ζ
 //│             ({ε ≤ Int, δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ Bool
-//│               {ε ≤ Int, δ ≤ Int} ⟹ Int ≤ Bool
-//│                 ε ≤ Int
-//│                   Bool ≤ Int
-//│               {ε ≤ Str, δ ≤ ¬Int} ⟹ Str ≤ Bool
-//│                 ε ≤ Str
-//│                   Bool ≤ Str
+//│               ({δ ≤ Int} ⟹ Int) ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ Bool
+//│                 Int ∧ ({ε ≤ Str, δ ≤ ¬Int} ⟹ Str) ≤ Bool
+//│                   ε ≤ Str
+//│                     Bool ≤ Str
+//│                   Int ≤ Bool
 
 :te
 foo(true, 1)

@@ -224,27 +224,26 @@ fun inferredLength(xs: IntList): Int = if xs is
 //│                   {κ ≥ ({θ ≤ LNil} ⟹ Int) ∧ ({ζ ≤ λ → Int, θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int), ι ≤ κ, θ ≥ η} ⟹ η → Int ≤ ((IntList ∧ ¬LNil) ∧ LCons) → ⊤
 //│                     ({θ ≤ LNil} ⟹ Int) ∧ ({ζ ≤ λ → Int, θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int) ≤ κ
 //│                       ({θ ≤ LNil} ⟹ Int) ∧ ({ζ ≤ λ → Int, θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int) ≤ Int
-//│                         {θ ≤ LNil} ⟹ Int ≤ Int
-//│                           θ ≤ LNil
-//│                             η ≤ LNil
-//│                               (IntList ∧ ¬LNil) ∧ LCons ≤ LNil
-//│                                 IntList ∧ ¬LNil ≤ LNil
-//│                                   IntList ≤ LNil
-//│                                     ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X ≤ LNil
-//│                                       {μ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ})} ⟹ μ ≤ LNil
-//│                                         μ ≤ LNil
-//│                                           LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ}) ≤ LNil
-//│                                             (LCons ∧ {head: Int}) ∧ {tail: μ} ≤ LNil
-//│                                               LCons ∧ {head: Int} ≤ LNil
-//│                                                 LCons ≤ LNil
-//│                                                 {head: Int} ≤ LNil
-//│                                                   Int ≤ ⊥
-//│                                               {tail: μ} ≤ LNil
-//│                                                 μ ≤ ⊥
-//│                                                   LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ}) ≤ ⊥
-//│                                                     LNil ≤ ⊥
-//│                                   ¬LNil ≤ LNil
-//│                                 LCons ≤ LNil
+//│                         θ ≤ LNil
+//│                           η ≤ LNil
+//│                             (IntList ∧ ¬LNil) ∧ LCons ≤ LNil
+//│                               IntList ∧ ¬LNil ≤ LNil
+//│                                 IntList ≤ LNil
+//│                                   ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: X})} ⟹ X ≤ LNil
+//│                                     {μ ≥ LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ})} ⟹ μ ≤ LNil
+//│                                       μ ≤ LNil
+//│                                         LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ}) ≤ LNil
+//│                                           (LCons ∧ {head: Int}) ∧ {tail: μ} ≤ LNil
+//│                                             LCons ∧ {head: Int} ≤ LNil
+//│                                               LCons ≤ LNil
+//│                                               {head: Int} ≤ LNil
+//│                                                 Int ≤ ⊥
+//│                                             {tail: μ} ≤ LNil
+//│                                               μ ≤ ⊥
+//│                                                 LNil ∨ ((LCons ∧ {head: Int}) ∧ {tail: μ}) ≤ ⊥
+//│                                                   LNil ≤ ⊥
+//│                                 ¬LNil ≤ LNil
+//│                               LCons ≤ LNil
 //│                         {ζ ≤ λ → Int, θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int ≤ Int
 //│                           {θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil} ⟹ Int ≤ Int
 //│                             θ ≤ {tail: λ} ∧ ((LCons ∧ {head: ⊤}) ∧ {tail: ⊤}) ∧ ¬LNil

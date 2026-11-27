@@ -74,15 +74,6 @@ def makeJointType(mode: JointMode, left: Type, right: Type): Type =
   else
     TJointType(mode, left, right)
 
-/** Make a lambda type, moving a result binder only across a parameter independent of it. */
-def makeLambdaType(param: Type, ret: Type): Type =
-  ret match
-    case TUniv(var_, body) if !param.hasVar(var_) =>
-      val type_ = makeLambdaType(param, body)
-      TUniv(var_, type_)
-    case _ =>
-      TLam(param, ret)
-
 /** Check whether or not a bound is implicit, that is, satisfied no matter the context. */
 def isBoundImplicit(bound: Bound): Boolean =
   (bound.dir, bound.type_) match

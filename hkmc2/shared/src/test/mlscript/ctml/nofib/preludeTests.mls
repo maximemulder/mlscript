@@ -680,11 +680,11 @@ concat(LCons(LCons(1, LNil()), LNil()))
 
 /** Copy the list produced by a callback, preserving its element type through the callback result. */
 fun copyFrom(produce, x) = map(a => a, produce(x))
-//│ copyFrom: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → Y
+//│ copyFrom: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ (α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → Y
 
 /** Use the same callback with the value supplied first. */
 fun copyFromValue(x, produce) = map(a => a, produce(x))
-//│ copyFromValue: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ α → (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → Y
+//│ copyFromValue: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ α → (α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → Y
 
 copyFrom(n => LCons(n, LNil()), 1) as IntList
 copyFromValue(1, n => LCons(n, LNil())) as IntList

@@ -183,7 +183,7 @@ leaves(Node(0, LCons(Node(42, LNil()), LNil())))
 
 /** Expand each seed with the child seeds it produces. */
 fun initTree(f, x) = Node(x, map(y => initTree(f, y), f(x)))
-//│ initTree: ∀α, β, γ. {γ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, α ≥ β} ⟹ (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y})
+//│ initTree: ∀α, β, γ. {γ ≥ (Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y}, α ≥ β} ⟹ (α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → ((Node ∧ {lab: α}) ∧ {children: ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y})
 
 :ctml-parse-only // FIXME: Recursive enumeration of candidate assignments exceeds the 20000-call budget.
 /** Enumerate assignment paths in increasing order of each variable's candidate values. */

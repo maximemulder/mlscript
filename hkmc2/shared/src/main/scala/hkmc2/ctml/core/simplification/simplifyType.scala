@@ -26,7 +26,7 @@ extension (type_ : Type)
           right.simplify(),
         )
       case TLam(param, ret) =>
-        makeLambdaType(
+        TLam(
           param.simplify(),
           ret.simplify(),
         )

@@ -51,7 +51,7 @@ fun bind(m, f) =
     fun next(result) = if result is [a, ss] then runStateT(f(a), ss)
     concat(map(next, runStateT(m, s)))
   StateT(run)
-//│ bind: ∀α, β. α → β → (StateT ∧ {run: ∀γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ, ο, Y. {ζ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X, ο ≤ {θ ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: θ})} ⟹ θ, δ ≤ ⟨ι, λ⟩, κ ≥ ι, ξ ≥ μ, ν ≤ {run: ξ → ο} ∧ StateT, β ≤ κ → ν, μ ≥ λ, α ≤ {run: ε → ζ} ∧ StateT, ε ≥ γ} ⟹ γ → ({Y ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: Y})} ⟹ Y)})
+//│ bind: ∀α, β. α → β → (StateT ∧ {run: ∀γ, δ, ε, ζ, η, θ, ι, κ, λ, μ, ν, ξ. {ζ ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: X})} ⟹ X, ξ ≤ ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: R})} ⟹ R, δ ≤ ⟨θ, κ⟩, ι ≥ θ, ν ≥ λ, μ ≤ {run: ν → ξ} ∧ StateT, β ≤ ι → μ, λ ≥ κ, α ≤ {run: ε → ζ} ∧ StateT, ε ≥ γ} ⟹ γ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: η}) ∧ {tail: Y})} ⟹ Y)})
 
 /** Return a result without changing the state. */
 fun return_(a) = StateT(s => LCons([a, s], LNil()))
@@ -67,14 +67,14 @@ fun mapM(f, ls) =
 
 /** Lift a list of alternatives into a state computation. */
 fun lift(ls) = StateT(s => concat(map(x => LCons([x, s], LNil()), ls)))
-//│ lift: ∀α. α → (StateT ∧ {run: ∀β, γ, δ, Y. {δ ≥ ⟨γ, β⟩, α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ⟹ β → ({Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y)})
+//│ lift: ∀α. α → (StateT ∧ {run: ∀β, γ, δ. {δ ≥ ⟨γ, β⟩, α ≤ ∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X} ⟹ β → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: δ}) ∧ {tail: Y})} ⟹ Y)})
 
 /** Run a computation and retain the possible final states. */
 fun execStateT(m, s) =
   /** Collect a final state from one alternative. */
   fun stateOnly(result) = if result is [a, ss] then LCons(ss, LNil())
   concat(map(stateOnly, runStateT(m, s)))
-//│ execStateT: ∀α, β, γ, Y. {β ≤ ⟨⊤, γ⟩, Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ ({run: ∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)} ∧ StateT) → α → Y
+//│ execStateT: ∀α, β, γ, Y. {β ≤ ⟨⊤, γ⟩, Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ ({run: α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)} ∧ StateT) → α → Y
 
 /** Keep the current state precisely when the guard holds. */
 fun guard(b) = if b then StateT(s => LCons([(), s], LNil())) else StateT(s => LNil())

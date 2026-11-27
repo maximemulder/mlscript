@@ -74,7 +74,7 @@ private def inlineTuple(tuple: TTuple, var_ : TypeVar, pol: Polarity)(using ctx:
 
 /** Inline in a function, reversing the polarity of its parameter. */
 private def inlineLambda(lam: TLam, var_ : TypeVar, pol: Polarity)(using ctx: SubContext): Type =
-  makeLambdaType(
+  TLam(
     inlineType(lam.param, var_, !pol),
     inlineType(lam.ret, var_, pol),
   )

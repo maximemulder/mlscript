@@ -74,7 +74,7 @@ fun writeChar(c, prog, cs) = LCons(c, prog(cs))
 
 /** Emit a string before the continuation's display suffix. */
 fun writeString(s, prog, cs) = append(s, prog(cs))
-//│ writeString: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → α → Z
+//│ writeString: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X) → (α → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → α → Z
 
 writeString(LNil(), _ => LNil(), LNil()) as LNil
 //│ LNil
@@ -101,7 +101,7 @@ writeString(LCons("x", LNil()), _ => LNil(), LNil()) as LCons
 
 /** Concatenate display fragments and then emit the continuation's suffix. */
 fun writes(ss, a, b) = writeString(concat(ss), a, b)
-//│ writes: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), γ ≥ β} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → Z
+//│ writes: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), γ ≥ β} ⟹ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: ∀R. {R ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: R})} ⟹ R}) ∧ {tail: X})} ⟹ X) → (α → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → Z
 
 /** Emit the source bell code. */
 fun ringBell(prog, cs) = writeChar("B", prog, cs)
@@ -109,15 +109,15 @@ fun ringBell(prog, cs) = writeChar("B", prog, cs)
 
 /** Emit the clear-screen code. */
 fun clearScreen(a, b) = writeString(cls, a, b)
-//│ clearScreen: ∀α, β, γ, Z. {γ ≥ Str, Z ≥ (LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})) ∨ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ ((∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) ∧ (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y))) → α → Z
+//│ clearScreen: ∀α, β, γ, Z. {γ ≥ Str, Z ≥ (LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})) ∨ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z})} ⟹ (α → ((∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) ∧ (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y))) → α → Z
 
 /** Build a continuation that emits text at a position. */
 fun writeAt(pos, s, a) = if pos is [x, y] then p => writeString(append(goto(x, y), s), a, p)
-//│ writeAt: ∀α, β, γ, δ. {δ ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: δ}), β ≥ Str, γ ≥ β} ⟹ ⟨Num, Num⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → δ
+//│ writeAt: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), β ≥ Str, γ ≥ β} ⟹ ⟨Num, Num⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y) → (α → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → Z
 
 /** Build a continuation that moves the cursor. */
 fun moveTo(pos, a) = if pos is [x, y] then p => writeString(goto(x, y), a, p)
-//│ moveTo: ∀α, β, γ. {β ≥ Str, γ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: γ})} ⟹ ⟨Num, Num⟩ → (∀Y. α → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → α → γ
+//│ moveTo: ∀α, β, Z. {β ≥ Str, Z ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Z})} ⟹ ⟨Num, Num⟩ → (α → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → α → Z
 
 ringBell(_ => LNil(), LNil()) as (LCons & {head: Str} & {tail: LNil})
 //│ (LCons ∧ {head: Str}) ∧ {tail: LNil}

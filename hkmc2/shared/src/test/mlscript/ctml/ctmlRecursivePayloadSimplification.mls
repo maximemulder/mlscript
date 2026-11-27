@@ -56,11 +56,11 @@ forwarded[Int][IntList](LCons("bad", LNil()))
 
 /** Copy the list produced by a callback. Its element type flows through the result guard. */
 fun copyResult(x, produce) = copy(produce(x))
-//│ copyResult: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ α → (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → Y
+//│ copyResult: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ α → (α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → Y
 
 /** Supply the same arguments in callback-first order. */
 fun copyResultFrom(produce, x) = copy(produce(x))
-//│ copyResultFrom: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ (∀X. α → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → Y
+//│ copyResultFrom: ∀α, β, Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ (α → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → α → Y
 
 copyResult(1, n => LCons(n, LNil())) as IntList
 copyResultFrom(n => LCons(n, LNil()), 1) as IntList
@@ -86,7 +86,8 @@ copyResult("bad", s => LCons(s, LNil())) as IntList
 //│                         {head: β} ≤ LNil
 //│                           β ≤ ⊥
 //│                             ε ≤ ⊥
-//│                               Str ≤ ⊥
+//│                               ζ ≤ ⊥
+//│                                 Str ≤ ⊥
 //│                       {tail: δ} ≤ LNil
 //│                         δ ≤ ⊥
 //│                           LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: δ}) ≤ ⊥
@@ -94,7 +95,7 @@ copyResult("bad", s => LCons(s, LNil())) as IntList
 //│             ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ (LCons ∧ {head: Int}) ∧ {tail: γ}
 //│               ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons ∧ {head: Int}
 //│                 ∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y ≤ LCons
-//│                   {ζ ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ})} ⟹ ζ ≤ LCons
-//│                     ζ ≤ LCons
-//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: ζ}) ≤ LCons
+//│                   {η ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η})} ⟹ η ≤ LCons
+//│                     η ≤ LCons
+//│                       LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: η}) ≤ LCons
 //│                         LNil ≤ LCons

@@ -1,0 +1,84 @@
+:ctml
+
+// Distribution into a result and into a field, with and without a result guard.
+type Identity = [A] -> A -> A
+type Factory = [A] -> Top -> A -> A
+type IdField = [A] -> ({id: A -> A})
+//│ Identity = ∀A. A → A
+//│ Factory = ∀A. ⊤ → A → A
+//│ IdField = ∀A. {id: A → A}
+
+Factory <:< (Top -> Identity)
+IdField <:< {id: Identity}
+//│ OK
+//│ OK
+
+type EveryChoice = [X] -> ([X <:< {next: X}] => (X | ~{next: X}))
+type ScopedChoice = [X] -> Top -> ([X <:< {next: X}] => (X | ~{next: X}))
+type ChoiceField = [X] -> ({f: ([X <:< {next: X}] => (X | ~{next: X}))})
+//│ EveryChoice = ∀X. {X ≤ {next: X}} ⟹ X ∨ ¬{next: X}
+//│ ScopedChoice = ∀X. ⊤ → ({X ≤ {next: X}} ⟹ X ∨ ¬{next: X})
+//│ ChoiceField = ∀X. {f: {X ≤ {next: X}} ⟹ X ∨ ¬{next: X}}
+
+ScopedChoice <:< (Top -> EveryChoice)
+ChoiceField <:< {f: EveryChoice}
+ChoiceField <:< {f: Str | EveryChoice}
+//│ OK
+//│ OK
+//│ OK
+
+// The quantifier crosses one constructor at a time.
+type NestedChoice = [X] -> ({get: Top -> ([X <:< {next: X}] => (X | ~{next: X}))})
+//│ NestedChoice = ∀X. {get: ⊤ → ({X ≤ {next: X}} ⟹ X ∨ ¬{next: X})}
+
+NestedChoice <:< {get: Top -> EveryChoice}
+//│ OK
+
+// Keep the binder order when a whole prefix crosses the same field.
+([A, B] -> ({f: A -> B})) <:< {f: [A, B] -> A -> B}
+//│ OK
+
+:te
+ChoiceField <:< {other: EveryChoice}
+//│ ═══[TYPE ERROR] Cannot solve judgment ChoiceField ≤ {other: EveryChoice}.
+//│ Typing error tree:
+//│   ChoiceField ≤ {other: EveryChoice}
+//│     ∀X. {f: {X ≤ {next: X}} ⟹ X ∨ ¬{next: X}} ≤ {other: EveryChoice}
+//│       {f: {α ≤ {next: α}} ⟹ α ∨ ¬{next: α}} ≤ {other: EveryChoice}
+//│         {α ≤ {next: α}} ⟹ α ∨ ¬{next: α} ≤ ⊥
+//│           α ∨ ¬{next: α} ≤ ⊥
+//│             ¬{next: α} ≤ ⊥
+
+// A binder used in the parameter must enclose the arrow.
+:te
+Identity <:< (Top -> ([X] -> X))
+//│ ═══[TYPE ERROR] Cannot solve judgment Identity ≤ ⊤ → (∀X. X).
+//│ Typing error tree:
+//│   Identity ≤ ⊤ → (∀X. X)
+//│     ∀A. A → A ≤ ⊤ → (∀X. X)
+//│       α → α ≤ ⊤ → (∀X. X)
+//│         α ≤ ∀X. X
+//│           ⊤ ≤ ∀X. X
+//│             ⊤ ≤ β
+//│               ⊤ ≤ ⊥
+
+// A guard around the whole arrow cannot move into its result.
+:te
+([X] -> ([Top <:< Bot] => (Top -> X))) <:< (Top -> ([X] -> ([Top <:< Bot] => X)))
+//│ ═══[TYPE ERROR] Cannot solve judgment ∀X. {⊤ ≤ ⊥} ⟹ ⊤ → X ≤ ⊤ → (∀X. {⊤ ≤ ⊥} ⟹ X).
+//│ Typing error tree:
+//│   ∀X. {⊤ ≤ ⊥} ⟹ ⊤ → X ≤ ⊤ → (∀X. {⊤ ≤ ⊥} ⟹ X)
+//│     {⊤ ≤ ⊥} ⟹ ⊤ → α ≤ ⊤ → (∀X. {⊤ ≤ ⊥} ⟹ X)
+//│       ⊤ ≤ ⊥
+
+// One variable fixes the input while the other remains polymorphic at the result.
+type MixedChoice = [X, A] -> A -> ([X <:< {next: X}] => (X | ~{next: X}))
+MixedChoice <:< (Int -> EveryChoice)
+//│ MixedChoice = ∀X, A. A → ({X ≤ {next: X}} ⟹ X ∨ ¬{next: X})
+//│ OK
+
+// An enclosing guard independent of the result binder is paid at the original scope.
+type GuardedFactory = [X] -> ([Int <:< Top] => (Top -> ([X <:< {next: X}] => (X | ~{next: X}))))
+GuardedFactory <:< (Top -> EveryChoice)
+//│ GuardedFactory = ∀X. {Int ≤ ⊤} ⟹ ⊤ → ({X ≤ {next: X}} ⟹ X ∨ ¬{next: X})
+//│ OK

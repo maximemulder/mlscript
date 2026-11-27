@@ -150,3 +150,188 @@ NegativeProducer <:< (Int -> Bot)
 //│         Int → α ≤ Int → ⊥
 //│           α ≤ ⊥
 //│             ⊤ ≤ ⊥
+
+// The record encoding exercises the same witness with a structural recursive layer.
+type Chain = [X restricts (Int | {next: X})] -> X
+type ChainProducer = [X] -> Int -> ([(Int | {next: X}) <:< X] => X)
+declare fun chainProducer: ChainProducer
+//│ Chain = ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│ ChainProducer = ∀X. Int → ({Int ∨ {next: X} ≤ X} ⟹ X)
+//│ chainProducer: ChainProducer
+
+ChainProducer <:< (Int -> Chain)
+//│ OK
+
+chainProducer[Chain] as (Int -> Chain)
+//│ Int → Chain
+
+// Instantiating at Chain also gives any wider result that contains Chain.
+ChainProducer <:< (Int -> (Chain | Str))
+//│ OK
+
+chainProducer[Chain] as (Int -> (Chain | Str))
+//│ Int → (Chain ∨ Str)
+
+:te
+(Int | {next: (Chain | Str)}) <:< (Chain | Str)
+//│ ═══[TYPE ERROR] Cannot solve judgment Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str.
+//│ Typing error tree:
+//│   Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str
+//│     {next: Chain ∨ Str} ≤ Chain ∨ Str
+//│       {next: Str} ≤ Chain ∨ Str
+//│         {next: Str} ≤ Chain
+//│           {next: Str} ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│             {next: Str} ≤ {α ≥ Int ∨ {next: α}} ⟹ α
+//│               {next: Str} ≤ α
+//│                 {next: Str} ≤ Int
+//│                   Str ≤ ⊥
+//│                 {next: Str} ≤ {next: α}
+//│                   Str ≤ α
+//│                     Str ≤ Int
+//│                     Str ≤ {next: α}
+//│         {next: Str} ≤ Str
+//│           Str ≤ ⊥
+//│         {next: Str} ∧ ¬Str ≤ Chain ∨ Str
+//│           {next: Str} ∧ ¬Str ≤ Chain
+//│             {next: Str} ∧ ¬Str ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│               {next: Str} ∧ ¬Str ≤ {β ≥ Int ∨ {next: β}} ⟹ β
+//│                 {next: Str} ∧ ¬Str ≤ β
+//│                   {next: Str} ∧ ¬Str ≤ Int
+//│                     {next: Str} ≤ Int
+//│                       Str ≤ ⊥
+//│                     ¬Str ≤ Int
+//│                   {next: Str} ∧ ¬Str ≤ {next: β}
+//│                     {next: Str} ≤ {next: β}
+//│                       Str ≤ β
+//│                         Str ≤ Int
+//│                         Str ≤ {next: β}
+//│                     ¬Str ≤ {next: β}
+//│           {next: Str} ∧ ¬Str ≤ Str
+//│             {next: Str} ≤ Str
+//│               Str ≤ ⊥
+//│             ¬Str ≤ Str
+
+:te
+chainProducer[Chain | Str] as (Int -> (Chain | Str))
+//│ ═══[TYPE ERROR] Cannot solve judgment Int → ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ≤ Int → (Chain ∨ Str).
+//│ Typing error tree:
+//│   Int → ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ≤ Int → (Chain ∨ Str)
+//│     {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ Chain ∨ Str
+//│       {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ Chain
+//│         {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│           {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ {α ≥ Int ∨ {next: α}} ⟹ α
+//│             {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ α
+//│               Chain ∨ Str ≤ α
+//│                 Str ≤ α
+//│                   Str ≤ Int
+//│                   Str ≤ {next: α}
+//│       {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ Str
+//│         Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str
+//│           {next: Chain ∨ Str} ≤ Chain ∨ Str
+//│             {next: Str} ≤ Chain ∨ Str
+//│               {next: Str} ≤ Chain
+//│                 {next: Str} ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│                   {next: Str} ≤ {β ≥ Int ∨ {next: β}} ⟹ β
+//│                     {next: Str} ≤ β
+//│                       {next: Str} ≤ Int
+//│                         Str ≤ ⊥
+//│                       {next: Str} ≤ {next: β}
+//│                         Str ≤ β
+//│                           Str ≤ Int
+//│                           Str ≤ {next: β}
+//│               {next: Str} ≤ Str
+//│                 Str ≤ ⊥
+//│               {next: Str} ∧ ¬Str ≤ Chain ∨ Str
+//│                 {next: Str} ∧ ¬Str ≤ Chain
+//│                   {next: Str} ∧ ¬Str ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│                     {next: Str} ∧ ¬Str ≤ {γ ≥ Int ∨ {next: γ}} ⟹ γ
+//│                       {next: Str} ∧ ¬Str ≤ γ
+//│                         {next: Str} ∧ ¬Str ≤ Int
+//│                           {next: Str} ≤ Int
+//│                             Str ≤ ⊥
+//│                           ¬Str ≤ Int
+//│                         {next: Str} ∧ ¬Str ≤ {next: γ}
+//│                           {next: Str} ≤ {next: γ}
+//│                             Str ≤ γ
+//│                               Str ≤ Int
+//│                               Str ≤ {next: γ}
+//│                           ¬Str ≤ {next: γ}
+//│                 {next: Str} ∧ ¬Str ≤ Str
+//│                   {next: Str} ≤ Str
+//│                     Str ≤ ⊥
+//│                   ¬Str ≤ Str
+//│       ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ Chain ∨ Str
+//│         ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ Chain
+//│           ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│             ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ {δ ≥ Int ∨ {next: δ}} ⟹ δ
+//│               ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ δ
+//│                 (Chain ∨ Str) ∧ ¬Str ≤ δ
+//│                   Chain ∧ ¬Str ≤ δ
+//│                     Chain ∧ ¬Str ≤ Int
+//│                       Chain ≤ Int
+//│                         ∀X. {X ≥ Int ∨ {next: X}} ⟹ X ≤ Int
+//│                           {ε ≥ Int ∨ {next: ε}} ⟹ ε ≤ Int
+//│                             ε ≤ Int
+//│                               Int ∨ {next: ε} ≤ Int
+//│                                 {next: ε} ≤ Int
+//│                                   ε ≤ ⊥
+//│                                     Int ∨ {next: ε} ≤ ⊥
+//│                                       Int ≤ ⊥
+//│                       ¬Str ≤ Int
+//│                     Chain ∧ ¬Str ≤ {next: δ}
+//│                       Chain ≤ {next: δ}
+//│                         ∀X. {X ≥ Int ∨ {next: X}} ⟹ X ≤ {next: δ}
+//│                           {ζ ≥ Int ∨ {next: ζ}} ⟹ ζ ≤ {next: δ}
+//│                             ζ ≤ {next: δ}
+//│                               Int ∨ {next: ζ} ≤ {next: δ}
+//│                                 Int ≤ {next: δ}
+//│                       ¬Str ≤ {next: δ}
+//│         ({Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str) ∧ ¬Str ≤ Str
+//│           {Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str} ⟹ Chain ∨ Str ≤ Str
+//│             Int ∨ {next: Chain ∨ Str} ≤ Chain ∨ Str
+//│               {next: Chain ∨ Str} ≤ Chain ∨ Str
+//│                 {next: Str} ≤ Chain ∨ Str
+//│                   {next: Str} ≤ Chain
+//│                     {next: Str} ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│                       {next: Str} ≤ {η ≥ Int ∨ {next: η}} ⟹ η
+//│                         {next: Str} ≤ η
+//│                           {next: Str} ≤ Int
+//│                             Str ≤ ⊥
+//│                           {next: Str} ≤ {next: η}
+//│                             Str ≤ η
+//│                               Str ≤ Int
+//│                               Str ≤ {next: η}
+//│                   {next: Str} ≤ Str
+//│                     Str ≤ ⊥
+//│                   {next: Str} ∧ ¬Str ≤ Chain ∨ Str
+//│                     {next: Str} ∧ ¬Str ≤ Chain
+//│                       {next: Str} ∧ ¬Str ≤ ∀X. {X ≥ Int ∨ {next: X}} ⟹ X
+//│                         {next: Str} ∧ ¬Str ≤ {θ ≥ Int ∨ {next: θ}} ⟹ θ
+//│                           {next: Str} ∧ ¬Str ≤ θ
+//│                             {next: Str} ∧ ¬Str ≤ Int
+//│                               {next: Str} ≤ Int
+//│                                 Str ≤ ⊥
+//│                               ¬Str ≤ Int
+//│                             {next: Str} ∧ ¬Str ≤ {next: θ}
+//│                               {next: Str} ≤ {next: θ}
+//│                                 Str ≤ θ
+//│                                   Str ≤ Int
+//│                                   Str ≤ {next: θ}
+//│                               ¬Str ≤ {next: θ}
+//│                     {next: Str} ∧ ¬Str ≤ Str
+//│                       {next: Str} ≤ Str
+//│                         Str ≤ ⊥
+//│                       ¬Str ≤ Str
+//│           ¬Str ≤ Str
+
+// An input-only parameter and a guarded result parameter admit independent instances.
+type NominalParametric = [A, X] -> A -> ([(Int | F[X]) <:< X] => X)
+declare fun nominalParametric: NominalParametric
+//│ NominalParametric = ∀A, X. A → ({Int ∨ F[X] ≤ X} ⟹ X)
+//│ nominalParametric: NominalParametric
+
+NominalParametric <:< (Int -> Values)
+//│ OK
+
+nominalParametric[Int][Values] as (Int -> Values)
+//│ Int → Values

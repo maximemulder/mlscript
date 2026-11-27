@@ -3,10 +3,12 @@ package hkmc2.ctml
 import org.scalatest.funsuite.AnyFunSuite
 
 import hkmc2.ctml.core.*
+import hkmc2.ctml.core.simplification.simplify
 import hkmc2.ctml.core.structural.*
+import hkmc2.ctml.core.var_.declTypeVar
 import hkmc2.ctml.types.*
 
-/** Guard construction must preserve outer variables when moving universal binders. */
+/** Check binder scope during guard construction and arrow simplification. */
 class GuardScopeTest extends AnyFunSuite:
   /** The nonempty finite universe used only for Boolean and universal type interpretation. */
   private val universe = Set(0, 1)
@@ -64,17 +66,18 @@ class GuardScopeTest extends AnyFunSuite:
         assert(denote(actual, env) == denote(expected, env),
           s"body=$body guards=$constraints constraining=$constraining env=$env actual=$actual")
 
-  test("a lambda result binder cannot capture a free variable of its parameter"):
+  test("simplification preserves a polymorphic result under its original arrow"):
     val a = TypeVar("A")
-    val body = TUniv(a, TClass(ClassVar("Int")))
-    val result = makeLambdaType(TVar(a), body)
-    assert(result.getVars == Set(a))
+    given SubContext = SubContext.empty.declTypeVar(a, TypeVarKind.Rigid)
+    val result = TUniv(a, TLam(TVar(a), TVar(a)))
+    for param <- List(TTop, TVar(a)) do
+      val arrow = TLam(param, result)
+      assert(arrow.simplify() == arrow)
 
-  test("independent guards and lambda parameters still permit binder movement"):
+  test("independent guards permit binder movement"):
     val a = TypeVar("A")
     val b = TypeVar("B")
     val body = TUniv(a, TVar(a))
     val guard = Constraint(TVar(b), Direction.Sub, TClass(ClassVar("Int")))
     assert(makeConstrainedType(body, List(guard)).getVars == Set(b))
     assert(makeConstrainingType(body, List(guard)).getVars == Set(b))
-    assert(makeLambdaType(TVar(b), body).getVars == Set(b))

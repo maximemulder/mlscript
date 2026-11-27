@@ -275,7 +275,7 @@ private def subtypeRules(sub: Type, sup: Type)(using ctx: SubContext): SubClause
 
   sub match
     case scheme: TUniv =>
-      withInstance(subtypeProjectedInstance(scheme, sup), preferDischarged = true)(
+      withAlternative(subtypeProjectedInstance(scheme, sup), preferDischarged = true)(
         subtypeBinders(sub, sup))
     case _ => subtypeBinders(sub, sup)
 
@@ -303,7 +303,7 @@ private def subtypeBinders(sub: Type, sup: Type)(using ctx: SubContext): SubClau
       // variables first hides that witness, even though right introduction remains sound.
       sub match
         case sub: TUniv =>
-          return withInstance(subtypeTargetInstance(sub, sup))(subtypeUnivSup(sub, sup))
+          return withAlternative(subtypeTargetInstance(sub, sup))(subtypeUnivSup(sub, sup))
         case _ =>
       return subtypeUnivSup(sub, sup)
     case _ =>
@@ -332,7 +332,7 @@ private def subtypeBinders(sub: Type, sup: Type)(using ctx: SubContext): SubClau
   // guards before exposing a rigid target or choosing one branch of a target union.
   sub match
     case sub: TUniv =>
-      withInstance(subtypeTargetInstance(sub, sup))(subtypeStructural(sub, sup))
+      withAlternative(subtypeTargetInstance(sub, sup))(subtypeStructural(sub, sup))
     case _ => subtypeStructural(sub, sup)
 
 /** Apply structural and bound-lookup rules after primitive and right-binder rules. */
@@ -617,35 +617,53 @@ def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
       subtypeUnivCases(sub, sup) match
         case Some(clauses) => return clauses
         case None =>
-      scopeResultBinders(sub) match
-        case Some(scoped) => return subtype(scoped, sup)
-        case None =>
     case _ =>
 
-  val (univVars, univBody) = sub.getUnivComponents
-  val opening = ctx.mapTrail(trail => trail.copy(
-    flow = trail.flow ++ univVars.map(_.provenance.root)))
-  opening.withSubtypingLevel((ctx) =>
-    val (instanceBody, outs) = instantiateUniv(univVars, univBody, TypeVarKind.Flex)(using ctx)
-    subtypeSeq(instanceBody, sup, outs)(using ctx)
-  )
+  val (variables, body) = sub.getUnivComponents
+  withAlternative(distributeForall(variables, body, sup).map(subtype(_, sup))):
+    val opening = ctx.mapTrail(trail => trail.copy(
+      flow = trail.flow ++ variables.map(_.provenance.root)))
+    opening.withSubtypingLevel((ctx) =>
+      val (instance, outs) = instantiateUniv(variables, body, TypeVarKind.Flex)(using ctx)
+      subtypeSeq(instance, sup, outs)(using ctx)
+    )
 
-/** For implicit arrow comparison, keep a result guard's variables quantified at the result.
- *  When X is free only in R, ∀X. P → R equals P → ∀X. R. The latter lets each use of a
- *  guarded result instantiate X at its expected type. Variables mentioned by the input or
- *  by an enclosing guard must keep their scope over the whole function. */
-private def scopeResultBinders(scheme: TUniv): Option[Type] =
-  val (variables, guarded) = scheme.getUnivComponents
-  val (body, guards) = guarded.getConstrainedComponents
-  body match
-    case TLam(param, result: TConstrained) =>
-      val resultVars = result.getConstrainedComponents._2.flatMap(_.getVars).toSet
-      val enclosingVars = param.getVars ++ guards.flatMap(_.getVars)
-      val (local, enclosing) = variables.partition(resultVars -- enclosingVars)
-      Option.when(local.nonEmpty):
-        val arrow: Type = TLam(param, local.foldRight(result: Type)(TUniv.apply))
-        val guardedArrow = guards.foldRight(arrow)((guard, t) => TConstrained(t, guard))
-        enclosing.foldRight(guardedArrow)(TUniv.apply)
+/** Follow target results, field payloads, guard bodies and Boolean operands to a universal.
+ *  Transparent rigid aliases expose their definition. Visiting each alias once bounds the walk
+ *  on shared and cyclic definitions. */
+private def resultHasForall(target: Type)(using SubContext): Boolean =
+  val visited = scala.collection.mutable.Set.empty[TypeVar]
+  /** Search the result positions reachable from this type. */
+  def visit(t: Type): Boolean = t match
+    case _: TUniv => true
+    case TLam(_, ret) => visit(ret)
+    case TField(_, value) => visit(value)
+    case TConstrained(body, _) => visit(body)
+    case TJointType(_, left, right) => visit(left) || visit(right)
+    case TVar(v) => visited.add(v) && v.isRigid && v.hasEqualBounds && visit(v.upperBound)
+    case _ => false
+  visit(target)
+
+/** Distribute source universals across one matching constructor when its target requests a
+ *  polymorphic result. Pure universal binders commute. Each enclosing guard stays outside the
+ *  constructor with every binder it mentions, as does the domain of an arrow. */
+private def distributeForall(variables: List[TypeVar], source: Type, target: Type)
+    (using SubContext): Option[Type] =
+  val (body, guards) = source.getConstrainedComponents
+
+  /** Preserve binder order within each scope and reconstruct the original guard chain. */
+  def distribute(payload: Type, fixed: Set[TypeVar])(wrap: Type => Type): Option[Type] =
+    val (outer, inner) = variables.partition(fixed ++ guards.flatMap(_.getVars))
+    Option.when(inner.nonEmpty):
+      val distributed = wrap(inner.foldRight(payload)(TUniv.apply))
+      val guarded = guards.foldRight(distributed)((g, t) => TConstrained(t, g))
+      outer.foldRight(guarded)(TUniv.apply)
+
+  (body, target) match
+    case (TLam(param, ret), TLam(_, wanted)) if resultHasForall(wanted) =>
+      distribute(ret, param.getVars)(TLam(param, _))
+    case (TField(f, value), TField(g, wanted)) if f == g && resultHasForall(wanted) =>
+      distribute(value, Set.empty)(TField(f, _))
     case _ => None
 
 /** Try the witness X = target for `forall X. {guards} => X`. This is ordinary universal
@@ -661,13 +679,14 @@ private def subtypeTargetInstance(sub: TUniv, sup: Type)(using ctx: SubContext):
   catch
     case _: TypeError => None
 
-/** A local cut leaves ordinary inference available. A projected instance with residual bounds
- *  is kept in reserve so a completed ordinary solution retains its original constraints. */
-private def withInstance(check: => Option[SubClauses], preferDischarged: Boolean = false)
+/** A failed alternative or local cut leaves ordinary inference available. When looking for a
+ *  discharged instance, keep a candidate with residual bounds in reserve during ordinary search. */
+private def withAlternative(check: => Option[SubClauses], preferDischarged: Boolean = false)
     (fallback: => SubClauses): SubClauses =
   var inconclusive: Option[SearchInconclusive] = None
   val candidate = try check
   catch
+    case _: TypeError => None
     case error: SearchInconclusive if !error.global =>
       inconclusive = Some(error)
       None

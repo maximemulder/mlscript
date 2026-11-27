@@ -242,14 +242,14 @@ fun beside(m, n, p, q, a, b, c) = append(
   p(a, scale_vec2(b, m, m + n), c),
   q(vec_add(a, scale_vec2(b, m, m + n)), scale_vec2(b, n, n + m), c)
 )
-//│ beside: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. α → ⟨Int, Int⟩ → β → ({X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → β → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → ⟨Int, Int⟩ → β → Z
+//│ beside: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (α → ⟨Int, Int⟩ → β → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (⟨Int, Int⟩ → ⟨Int, Int⟩ → β → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → ⟨Int, Int⟩ → β → Z
 
 /** Stack two pictures with the given height proportions. */
 fun above(m, n, p, q, a, b, c) = append(
   p(vec_add(a, scale_vec2(c, n, m + n)), b, scale_vec2(c, m, n + m)),
   q(a, b, scale_vec2(c, n, m + n))
 )
-//│ above: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (∀X. ⟨Int, Int⟩ → β → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (∀Y. α → β → ⟨Int, Int⟩ → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → β → ⟨Int, Int⟩ → Z
+//│ above: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ Int → Int → (⟨Int, Int⟩ → β → ⟨Int, Int⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (α → β → ⟨Int, Int⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → β → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The grid traversal is translation-only.
 /** Place segments whose tile coordinates use a 16 by 16 grid. */
@@ -287,7 +287,7 @@ fun quartet(a, b, c, d, origin, xAxis, yAxis) =
     xAxis,
     yAxis
   )
-//│ quartet: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β ∨ γ}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → (∀X. α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (∀Y. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
+//│ quartet: ∀α, β, γ, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: γ ∨ β}) ∧ {tail: Z}), α ≤ ⟨Int, Int⟩} ⟹ (⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X)) → (⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: Y})} ⟹ Y)) → (α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: X})} ⟹ X)) → (⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → (∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: γ}) ∧ {tail: Y})} ⟹ Y)) → α → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The tile pictures are translation-only.
 /** Combine the four source tiles. */
@@ -305,7 +305,7 @@ fun cycle_(p1, origin, xAxis, yAxis) =
     xAxis,
     yAxis
   )
-//│ cycle_: ∀α, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Z})} ⟹ (∀X. ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ({X ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: X})} ⟹ X)) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
+//│ cycle_: ∀α, β, Z. {Z ≥ LNil ∨ ((LCons ∧ {head: β ∨ α}) ∧ {tail: Z})} ⟹ (⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ((∀Y. {Y ≥ LNil ∨ ((LCons ∧ {head: α}) ∧ {tail: Y})} ⟹ Y) ∧ (∀X. {X ≥ LNil ∨ ((LCons ∧ {head: β}) ∧ {tail: X})} ⟹ X))) → ⟨Int, Int⟩ → ⟨Int, Int⟩ → ⟨Int, Int⟩ → Z
 
 :ctml-parse-only // FIXME: The second tile picture is translation-only.
 /** Cycle a rotated copy of the second tile. */

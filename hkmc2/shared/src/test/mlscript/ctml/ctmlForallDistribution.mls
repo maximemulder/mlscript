@@ -13,6 +13,10 @@ IdField <:< {id: Identity}
 //│ OK
 //│ OK
 
+// The two returned identities can use different instances of the factory.
+Factory <:< (Top -> ((Int -> Int) & (Str -> Str)))
+//│ OK
+
 type EveryChoice = [X] -> ([X <:< {next: X}] => (X | ~{next: X}))
 type ScopedChoice = [X] -> Top -> ([X <:< {next: X}] => (X | ~{next: X}))
 type ChoiceField = [X] -> ({f: ([X <:< {next: X}] => (X | ~{next: X}))})

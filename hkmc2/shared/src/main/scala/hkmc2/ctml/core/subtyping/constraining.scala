@@ -620,15 +620,14 @@ def subtypeRigidVars(sub: TypeVar, sup: TypeVar)(using ctx: SubContext): SubClau
 
 /** Constrain a universal type to be a subtype of another type. */
 def subtypeUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
-  // An argument that the bound of the parameter splits is checked by cases, each with its own
-  // instance (see `subtypeUnivCases`).
   sup match
-    case sup: TLam =>
-      subtypeUnivCases(sub, sup) match
-        case Some(clauses) => return clauses
-        case None =>
-    case _ =>
+    case target: TLam =>
+      withAlternative(uncoveredArrowTarget(sub, target).map(subtype(sub, _))):
+        subtypeUnivCases(sub, target).getOrElse(instantiateUnivSub(sub, sup))
+    case _ => instantiateUnivSub(sub, sup)
 
+/** Compare the quantified source by result distribution or ordinary instantiation. */
+private def instantiateUnivSub(sub: TUniv, sup: Type)(using ctx: SubContext): SubClauses =
   val (variables, body) = sub.getUnivComponents
   withAlternative(distributeForall(variables, body, sup).map(subtype(_, sup))):
     val opening = ctx.mapTrail(trail => trail.copy(

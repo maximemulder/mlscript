@@ -4,7 +4,7 @@ import hkmc2.ctml.types.*
 import hkmc2.ctml.core.context.*
 import hkmc2.ctml.core.{isSubClass, makeJointType}
 import hkmc2.ctml.core.combine.{join, meet}
-import hkmc2.ctml.core.structural.getVars
+import hkmc2.ctml.core.structural.{getVars, hasVar, sameTypeSyntax, TypeSyntaxKey}
 
 // The complement rules.
 
@@ -114,6 +114,36 @@ private def resultGuardClasses(result: Type, param: TypeVar): List[TClass] = res
     resultGuardClasses(left, param) ::: resultGuardClasses(right, param)
   case TNeg(body) => resultGuardClasses(body, param)
   case _ => Nil
+
+/** Each matching promise proves P → R by instantiation at its own test P. An exhaustive
+ *  pair covers the entire domain. When every arm matches, subtract their whole union so a
+ *  later caller can still use any promised input. */
+private def coveredDomain(promises: Type, param: TypeVar, result: Type): Option[Type] =
+  val arms = promises.exactComponents(JointMode.Inter)
+  val tests = arms.flatMap:
+    case TConstrained(value, condition) if sameTypeSyntax(value, result) =>
+      condition.boundOf(param, Direction.Sub).filterNot(_.hasVar(param))
+    case _ => None
+  val present = tests.iterator.map(TypeSyntaxKey(_)).toSet
+  val exhaustive = tests.exists:
+    case TTop => true
+    case TNeg(p) => present(TypeSyntaxKey(p))
+    case _ => false
+  if exhaustive then Some(TTop)
+  else if tests.size == arms.size && tests.size >= 2 then
+    Some(tests.reduceLeft(TJointType(JointMode.Union, _, _)))
+  else None
+
+/** For a source S known to satisfy U → R, checking S ≤ D → R reduces exactly to checking
+ *  S ≤ (D ∧ ¬U) → R. A top cover discharges the judgment for every assignment to D. */
+def uncoveredArrowTarget(source: TUniv, target: TLam)(using SubContext): Option[Type] =
+  (source.body, target.param) match
+    case (TLam(TVar(a), arms @ TJointType(JointMode.Inter, _, _)), TVar(d))
+        if a == source.var_ && d.isFlex && !target.ret.hasVar(a) =>
+      coveredDomain(arms, a, target.ret).map:
+        case TTop => TTop
+        case u => TLam(TJointType(JointMode.Inter, target.param, TNeg(u)), target.ret)
+    case _ => None
 
 /** Derive a subtyping judgment `τ ≤ σ` by cases on a class `C` of the Boolean structure of `σ`, by
  *  excluded middle at `C`: `τ ≤ σ` follows from `τ ∧ C ≤ σ` and `τ ∧ ¬C ≤ σ`, since

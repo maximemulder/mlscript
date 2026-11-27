@@ -61,6 +61,31 @@ Use <:< (TwoCases -> Bool -> Int)
 //│         (α → Int) → α → Int ≤ TwoCases → Bool → Int
 //│           α → Int ≤ Bool → Int
 //│             Bool ≤ α
-//│               Bool ≤ Int ∨ Str
-//│                 Bool ≤ Int
-//│                 Bool ≤ Str
+//│               Bool ≤ ¬({β ≤ Int} ⟹ ¬((Int ∨ Str) ∨ Int)) ∨ ¬({β ≤ Str} ⟹ ¬((Int ∨ Str) ∨ Str))
+//│                 Bool ≤ ¬({β ≤ Int} ⟹ ¬((Int ∨ Str) ∨ Int))
+//│                   β ≤ Int
+//│                     α ∧ ¬(Int ∨ Str) ≤ Int
+//│                       α ≤ (Int ∨ Str) ∨ Int
+//│                         Bool ∨ Int ∨ Str ≤ (Int ∨ Str) ∨ Int
+//│                           Bool ≤ (Int ∨ Str) ∨ Int
+//│                             Bool ≤ Int ∨ Str
+//│                               Bool ≤ Int
+//│                               Bool ≤ Str
+//│                             Bool ≤ Int
+//│                 Bool ≤ ¬({β ≤ Str} ⟹ ¬((Int ∨ Str) ∨ Str))
+//│                   β ≤ Str
+//│                     α ∧ ¬(Int ∨ Str) ≤ Str
+//│                       α ≤ (Int ∨ Str) ∨ Str
+//│                         Bool ∨ Int ∨ Str ≤ (Int ∨ Str) ∨ Str
+//│                           Bool ≤ (Int ∨ Str) ∨ Str
+//│                             Bool ≤ Int ∨ Str
+//│                               Bool ≤ Int
+//│                               Bool ≤ Str
+//│                             Bool ≤ Str
+
+// Both known alternatives lie outside Bool, but a later argument needs it in X.
+type BoolCases = [A] -> A -> (([A <:< Bool] => Int) & ([A <:< ~Bool] => Int))
+//│ BoolCases = ∀A. A → (({A ≤ Bool} ⟹ Int) ∧ ({A ≤ ¬Bool} ⟹ Int))
+
+Use <:< (BoolCases -> Bool -> Int)
+//│ OK
